@@ -1,77 +1,140 @@
 # **Nexora-G05**
-Plataforma ERP educativa con IA que permite simular la gestión empresarial y mejorar el aprendizaje de contabilidad mediante validación inteligente y feedback en tiempo real.
+Nexora es una plataforma ERP educativa. El sistema integra funcionalidades de gestión académica y administrativa junto con herramientas de asistencia pedagógica potenciadas mediante Inteligencia Artificial.
 
-## **Criterio de Línea Base**
-Se definirá una línea base al finalizar cada entrega significativa del proyecto (por ejemplo: entregas parciales, versiones funcionales o hitos definidos en Scrum).
+El proyecto se desarrolla bajo una arquitectura web distribuida basada en contenedores, utilizando tecnologías modernas tanto para frontend como backend, priorizando escalabilidad, mantenibilidad y desacoplamiento entre componentes.
 
-Cada línea base representará una versión estable del sistema.
+---
 
-# **Estructura del repositorio**
-- 📂 **Documentacion/**
-  - 📂 User Stories/
-  - 📂 Casos de prueba/
-  - 📂 Minutas/
-  - 📂 Requerimientos/
-- 📂 **Base de Datos/**
-- 📂 **Desarrollo/**
-  - 📂 Frontend/
-  - 📂 Backend/
-- 📂 **Equipo/**
-- 📂 **Planificacion/**
-- 📋 **README.md**
+# Tecnologías
+## Frontend
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- TanStack Query
+- Axios
 
-## **Listado de Ítems de Configuración**
+## Backend
+- Node.js
+- Express
+- TypeScript
+- Prisma ORM
+- Socket.IO
+- Zod
 
-| Nombre Ítem               | Regla de Nombrado                             | Ubicación                         |
-|---------------------------|-----------------------------------------------|-----------------------------------|
-| User Stories              | `US_<<NroUS>>_<<NombreUS>>.pdf`               | /Documentacion/User_Stories       |
-| Casos de prueba           | `CP_<<NroCP>>_US<<NroUS>>_<<NombreCP>>.pdf`   | /Documentacion/Casos_de_prueba    |
-| Minutas                   | `Minuta_<<Fecha>>.pdf`                        | /Documentacion/Minutas            |
-| Requerimientos            | `REQ_<<NombreREQ>>_<<Version>>.pdf`           | /Documentacion/Requerimientos     |
-| Readme                    | `README.md`                                   | /                                 |
-| Base de Datos (Revisar)   | `BD_<<Version>>.sql`                          | /Base_de_datos                    |
-| Frontend                  | Según convención del framework                | /Desarrollo/Frontend              |
-| Backend                   | Según convención del lenguaje o framework     | /Desarrollo/Backend               |
-| Equipo                    | `Equipo_<<Miembro>>.pdf`                      | /Equipo                           |
-| Planificación             | `Planificacion_<<Periodo>>.xlsx`              | /Planificacion                    |
+## Infraestructura y DevOps
+- Docker
+- Docker Compose
+- GitHub Actions
 
-## **Reglas de Nombrado**
+## Base de Datos y Seguridad
+- PostgreSQL
+- Keycloak
 
-| Sigla | Significado |
-|------|------------|
-| `<<NroUS>>` | Número de User Story (01, 02, 03...) |
-| `<<NroCP>>` | Número de Caso de Prueba (01, 02, 03...) |
-| `<<NombreUS>>` | Nombre descriptivo de la User Story en PascalCase |
-| `<<NombreCP>>` | Nombre del caso de prueba en PascalCase |
-| `<<NombreREQ>>` | Nombre del requerimiento en PascalCase |
-| `<<Version>>` | Número de versión (v1, v2, v1.1, etc.) |
-| `<<Fecha>>` | Fecha de ocurrencia del evento. Con el formato 'dd-mm-aaaa' d:Día, m:Mes, a:Año |
-| `<<Periodo>>` | Periodo de vigencia para la planificación. Se reconocerán los periodos con fecha de inicio y fecha fin, con el formato 'dd-mm-aaaa_dd-mm-aaaa' d:Día, m:Mes, a:Año |
-| `<<Miembro>>` | Nombre del miembro que conforma el equipo en formato PascalCase (Ej: JuanPerez) |
+## Integraciones externas
+- APIs de Inteligencia Artificial
+- Servicio SMTP para envío de correos electrónicos
 
+# Arquitectura general
 
-# **Política de ramas**
-## **Ramas**
-- `main` → versión estable
-- `develop` → integración de funcionalidades
-- `feature/*` → nuevas funcionalidades
-- `fix/*` → correcciones
+La plataforma utiliza una arquitectura basada en contenedores desacoplados:
 
+- Frontend web desarrollado en React
+- Backend API REST desarrollado en Express
+- Base de datos PostgreSQL
+- Servidor de autenticación y autorización Keycloak
+- Integraciones externas para IA y servicios de correo
 
-## **Flujo de Trabajo**
-1. Crear rama desde `develop`
-2. Desarrollar funcionalidad
-3. Crear Pull Request
-4. Revisión por el equipo
-5. Merge a `develop`
-6. Versionado en línea base cuando corresponda
+La solución se organiza bajo una estrategia Monorepo, centralizando código fuente, documentación técnica y artefactos de planificación dentro de un único repositorio.
 
-# Equipo
+# Estructura del repositorio
+
+```text
+/
+├── frontend/      # Aplicación frontend React
+├── backend/       # API backend Express
+├── database/      # Scripts y migraciones de base de datos
+├── keycloak/      # Configuración del servidor Keycloak
+├── docs/          # Documentación técnica y funcional
+│   ├── adrs/                  # Architecture Decision Records
+│   ├── user_stories/          # Historias de usuario
+│   ├── casos_de_prueba/       # Casos de prueba y QA
+│   ├── requerimientos/        # Requerimientos funcionales y técnicos
+│   └── minutas/               # Minutas y registros de reuniones
+├── planning/      # Artefactos de planificación
+└── README.md
+```
+
+# Instalación
+A definir
+
+# Variables de entorno
+A definir
+
+# Política de ramas
+El proyecto utiliza una estrategia de ramas basada en integración progresiva:
+
+| Rama | Propósito |
+|---|---|
+| `main` | Contiene la versión estable y aprobada del sistema |
+| `test` | Validaciones QA y pruebas funcionales previas a producción |
+| `develop` | Integración de funcionalidades y correcciones |
+| `feature/*` | Desarrollo de nuevas funcionalidades |
+| `fix/*` | Corrección de errores |
+
+Toda integración hacia ramas principales se realiza mediante Pull Requests y revisión previa del código.
+
+## Flujo de trabajo
+1. Crear una rama desde `develop`
+2. Desarrollar la funcionalidad o corrección
+3. Crear un Pull Request
+4. Realizar revisión técnica
+5. Integrar cambios en `develop`
+6. Promover cambios a `test`
+7. Ejecutar pruebas funcionales y QA
+8. Liberar versión estable en `main`
+
+### Consideraciones
+- No se permiten commits directos sobre las ramas `develop`, `test` y `main`
+- Todo Pull Request deberá contar con al menos una aprobación antes de ser integrado
+
+## Convención commits
+| Prefijo | Descripción |
+|---|---|
+| `feat:` | Incorporación de nuevas funcionalidades |
+| `fix:` | Corrección de errores |
+| `docs:` | Modificaciones en documentación |
+| `refactor:` | Reestructuración interna del código sin alterar funcionalidades |
+| `style:` | Cambios de formato o estilos visuales |
+| `test:` | Incorporación o modificación de pruebas |
+| `chore:` | Tareas de mantenimiento y configuración |
+
+## Versionado
+El sistema utiliza Semantic Versioning (SemVer):
+
+```text
+MAJOR.MINOR.PATCH
+```
+
+- `MAJOR`: cambios incompatibles
+- `MINOR`: nuevas funcionalidades
+- `PATCH`: corrección de errores
+
+Las versiones estables son liberadas sobre la rama `main` y etiquetadas mediante tags de Git.
+
+---
+
+# Información adicional
+## Equipo
 Proyecto desarrollado por estudiantes de Ingeniería en Sistemas – UTN FRC.
 
-**Integrantes**
-- Aráoz, Noel 
+### Integrantes
+- Araoz, Noel 
 - Bacci Fernández, Nazarena 
 - Españon Acevedo, Braian Abel 
 - Insfran, Agustina Ayelén
 - Torazza Pacheco, María Marta 
+
+
+## Gestion de configuracion
+Consultar: `/docs/gestion_configuracion.md`
