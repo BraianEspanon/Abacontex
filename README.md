@@ -1,5 +1,5 @@
-# **Nexora-G05**
-Nexora es una plataforma ERP educativa. El sistema integra funcionalidades de gestión académica y administrativa junto con herramientas de asistencia pedagógica potenciadas mediante Inteligencia Artificial.
+# **Abacontex**
+Abacontex es una plataforma ERP educativa. El sistema integra funcionalidades de gestión académica y administrativa junto con herramientas de asistencia pedagógica potenciadas mediante Inteligencia Artificial.
 
 El proyecto se desarrolla bajo una arquitectura web distribuida basada en contenedores, utilizando tecnologías modernas tanto para frontend como backend, priorizando escalabilidad, mantenibilidad y desacoplamiento entre componentes.
 
