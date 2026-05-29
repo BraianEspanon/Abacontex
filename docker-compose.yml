@@ -1,0 +1,63 @@
+services:
+  backend:
+    build:
+      context: ./backend
+
+    container_name: abacontex-backend
+
+    ports:
+      - '3000:3000'
+
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+    depends_on:
+      - postgres
+  
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: abacontex-frontend
+
+    ports:
+      - '5173:5173'
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+  
+  postgres:
+    image: postgres:17
+    container_name: abacontex-postgres
+
+    environment:
+      POSTGRES_DB: abacontex
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: UTC
+      PGTZ: UTC
+
+    ports:
+      - '5432:5432'
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2
+
+    container_name: abacontex-keycloak
+
+    command: start-dev
+
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+    ports:
+      - '8080:8080'
+
+volumes:
+  postgres_data:
