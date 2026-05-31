@@ -1,0 +1,31 @@
+name: Backend Docker
+
+on:
+  push:
+    branches:
+      - develop
+      - test
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-docker.yml'
+
+  pull_request:
+    branches:
+      - develop
+      - test
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-docker.yml'
+
+jobs:
+  backend-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t backend-test ./backend
