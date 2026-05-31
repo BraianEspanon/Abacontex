@@ -1,0 +1,31 @@
+name: Frontend Docker
+
+on:
+  push:
+    branches:
+      - develop
+      - test
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-docker.yml'
+
+  pull_request:
+    branches:
+      - develop
+      - test
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-docker.yml'
+
+jobs:
+  frontend-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build frontend image
+        run: docker build -t frontend-test ./frontend

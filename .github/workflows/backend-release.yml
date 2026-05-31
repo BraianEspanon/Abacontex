@@ -1,0 +1,41 @@
+name: Backend Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  backend-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract tag
+        id: tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Build image
+        run: |
+          docker build \
+          -t ghcr.io/braianespanon/abacontex-backend:${VERSION} \
+          -t ghcr.io/braianespanon/abacontex-backend:latest \
+          ./backend
+
+      - name: Push image
+        run: |
+          docker push ghcr.io/braianespanon/abacontex-backend:${VERSION}
+          docker push ghcr.io/braianespanon/abacontex-backend:latest
