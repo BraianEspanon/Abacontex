@@ -50,7 +50,9 @@ services:
 
     container_name: abacontex-keycloak
 
-    command: start-dev
+    command:
+      - start-dev
+      - --import-realm
 
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -60,6 +62,7 @@ services:
       - '8080:8080'
 
     volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
       - keycloak_data:/opt/keycloak/data
 
 volumes:
