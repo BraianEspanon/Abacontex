@@ -23,7 +23,11 @@ export async function authenticate(
       issuer: KEYCLOAK_ISSUER,
     });
 
-    req.user = payload;
+    req.user = {
+      id: payload.sub as string,
+      username: payload.preferred_username as string,
+      email: payload.email as string,
+    };
 
     next();
   } catch (error) {
