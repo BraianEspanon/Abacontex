@@ -31,6 +31,7 @@ jobs:
       - name: Build image
         run: |
           docker build \
+          -f ./backend/Dockerfile.release \
           -t ghcr.io/braianespanon/abacontex-backend:${VERSION} \
           -t ghcr.io/braianespanon/abacontex-backend:latest \
           ./backend

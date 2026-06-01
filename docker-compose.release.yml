@@ -1,69 +1,48 @@
 services:
   backend:
-    build:
-      context: ./backend
-
+    image: ghcr.io/braianespanon/abacontex-backend:latest
     container_name: abacontex-backend
-
     ports:
-      - '3000:3000'
-
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-
+      - "3000:3000"
     depends_on:
       - postgres
-  
+
   frontend:
-    build:
-      context: ./frontend
-
+    image: ghcr.io/braianespanon/abacontex-frontend:latest
     container_name: abacontex-frontend
-
     ports:
-      - '5173:5173'
+      - "80:80"
 
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-  
   postgres:
     image: postgres:17
     container_name: abacontex-postgres
-
     environment:
       POSTGRES_DB: abacontex
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       TZ: UTC
       PGTZ: UTC
-
-    ports:
-      - '5432:5432'
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
-
     container_name: abacontex-keycloak
-
     command:
-      - start-dev
+      - start
       - --import-realm
-
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
 
+      KC_HOSTNAME: localhost
+      KC_PROXY: edge
+      KC_HTTP_ENABLED: "true"
     ports:
-      - '8080:8080'
-
+      - "8080:8080"
     volumes:
       - ./keycloak/themes:/opt/keycloak/themes
-      - ./keycloak/realm-export.dev.json:/opt/keycloak/data/import/realm.json
+      - ./keycloak/realm-export.prod.json:/opt/keycloak/data/import/realm.json
       - keycloak_data:/opt/keycloak/data
 
 volumes:
