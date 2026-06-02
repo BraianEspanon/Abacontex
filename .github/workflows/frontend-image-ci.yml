@@ -34,6 +34,11 @@ jobs:
         run: |
           docker build \
             -f ./frontend/Dockerfile.release \
+            --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
+            --build-arg VITE_KEYCLOAK_URL=${{ secrets.VITE_KEYCLOAK_URL }} \
+            --build-arg VITE_KEYCLOAK_REALM=${{ secrets.VITE_KEYCLOAK_REALM }} \
+            --build-arg VITE_KEYCLOAK_CLIENT=${{ secrets.VITE_KEYCLOAK_CLIENT }} \
+            --build-arg VITE_KEYCLOAK_REDIRECT_URI=${{ secrets.VITE_KEYCLOAK_REDIRECT_URI }} \
             -t ghcr.io/braianespanon/abacontex-frontend:${IMAGE_TAG} \
             ./frontend
 
