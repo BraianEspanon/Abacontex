@@ -4,6 +4,15 @@ services:
     container_name: abacontex-backend
     ports:
       - "3000:3000"
+    
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
+
     depends_on:
       - postgres
 
@@ -12,16 +21,26 @@ services:
     container_name: abacontex-frontend
     ports:
       - "80:80"
+    
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL}
+      VITE_KEYCLOAK_REALM: ${VITE_KEYCLOAK_REALM}
+      VITE_KEYCLOAK_CLIENT: ${VITE_KEYCLOAK_CLIENT}
+      VITE_KEYCLOAK_REDIRECT_URI: ${VITE_KEYCLOAK_REDIRECT_URI}
+
 
   postgres:
     image: postgres:17
     container_name: abacontex-postgres
+
     environment:
-      POSTGRES_DB: abacontex
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: UTC
       PGTZ: UTC
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -31,13 +50,15 @@ services:
     command:
       - start
       - --import-realm
+    
     environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
 
-      KC_HOSTNAME: localhost
-      KC_PROXY: edge
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME}
       KC_HTTP_ENABLED: "true"
+      KC_PROXY: edge
+    
     ports:
       - "8080:8080"
     volumes:
