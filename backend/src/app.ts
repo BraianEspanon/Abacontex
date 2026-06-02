@@ -12,8 +12,4 @@ app.use(express.json());
 app.use('/', healthRoutes);
 app.use('/auth', authRoutes);
 
-const PORT = 3000;
-
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto: ${PORT}`);
-});
+export default app;
