@@ -1,4 +1,4 @@
-name: Frontend Release
+name: Frontend Release (Promote Image)
 
 on:
   push:
@@ -10,13 +10,10 @@ permissions:
   packages: write
 
 jobs:
-  frontend-release:
+  promote:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -24,19 +21,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract tag
-        id: tag
+      - name: Extract version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Build image
-        run: |
-          docker build \
-          -f ./frontend/Dockerfile.release \
-          -t ghcr.io/braianespanon/abacontex-frontend:${VERSION} \
-          -t ghcr.io/braianespanon/abacontex-frontend:latest \
-          ./frontend
+      - name: Define SHA source (manual or from mapping strategy)
+        run: echo "SHA_SOURCE=${{ github.event.inputs.sha }}" >> $GITHUB_ENV
 
-      - name: Push image
+      - name: Pull image built in staging
+        run: |
+          docker pull ghcr.io/braianespanon/abacontex-frontend:${SHA_SOURCE}
+
+      - name: Tag image as release
+        run: |
+          docker tag ghcr.io/braianespanon/abacontex-frontend:${SHA_SOURCE} \
+                     ghcr.io/braianespanon/abacontex-frontend:${VERSION}
+
+          docker tag ghcr.io/braianespanon/abacontex-frontend:${SHA_SOURCE} \
+                     ghcr.io/braianespanon/abacontex-frontend:latest
+
+      - name: Push release tags
         run: |
           docker push ghcr.io/braianespanon/abacontex-frontend:${VERSION}
           docker push ghcr.io/braianespanon/abacontex-frontend:latest
