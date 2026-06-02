@@ -1,12 +1,13 @@
 import { createRemoteJWKSet } from 'jose';
 
-export const KEYCLOAK_REALM = 'abacontex';
+const KEYCLOAK_BASE_URL = process.env.KEYCLOAK_BASE_URL;
+const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM;
 
 export const KEYCLOAK_ISSUER =
-  'http://localhost:8080/realms/abacontex';
+  `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}`;
 
 export const JWKS = createRemoteJWKSet(
   new URL(
-    'http://keycloak:8080/realms/abacontex/protocol/openid-connect/certs'
+    `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs`
   )
 );
