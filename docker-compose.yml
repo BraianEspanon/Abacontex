@@ -6,7 +6,7 @@ services:
     container_name: abacontex-backend
 
     ports:
-      - '3000:3000'
+      - "${BACKEND_PORT}:3000"
 
     volumes:
       - ./backend:/app
@@ -30,14 +30,14 @@ services:
     container_name: abacontex-frontend
 
     ports:
-      - '5173:5173'
-
+      - "${FRONTEND_PORT}:5173"
     environment:
       VITE_API_URL: ${VITE_API_URL}
       VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL}
       VITE_KEYCLOAK_REALM: ${VITE_KEYCLOAK_REALM}
       VITE_KEYCLOAK_CLIENT: ${VITE_KEYCLOAK_CLIENT}
       VITE_KEYCLOAK_REDIRECT_URI: ${VITE_KEYCLOAK_REDIRECT_URI}
+      VITE_ENVIRONMENT: ${VITE_ENVIRONMENT}
 
     volumes:
       - ./frontend:/app
@@ -55,7 +55,7 @@ services:
       PGTZ: UTC
 
     ports:
-      - '5432:5432'
+      - "${POSTGRES_PORT}:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -76,7 +76,7 @@ services:
       KC_HTTP_ENABLED: "true"
 
     ports:
-      - '8080:8080'
+      - "${KEYCLOAK_PORT}:8080"
 
     volumes:
       - ./keycloak/themes:/opt/keycloak/themes
