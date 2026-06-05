@@ -35,8 +35,10 @@ jobs:
           docker build \
             -f ./backend/Dockerfile.release \
             -t ghcr.io/braianespanon/abacontex-backend:${IMAGE_TAG} \
+            -t ghcr.io/braianespanon/abacontex-backend:staging \
             ./backend
 
       - name: Push Docker image (SHA)
         run: |
           docker push ghcr.io/braianespanon/abacontex-backend:${IMAGE_TAG}
+          docker push ghcr.io/braianespanon/abacontex-backend:staging
