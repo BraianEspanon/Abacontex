@@ -19,7 +19,7 @@ import keycloak from "./keycloak";
 import { config } from "./config";
 
 if (config.ENVIRONMENT === "development") {
-  (window as any).keycloak = keycloak;
+  window.keycloak = keycloak;
 }
 
 keycloak
