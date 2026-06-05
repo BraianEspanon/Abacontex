@@ -24,19 +24,16 @@ jobs:
       - name: Extract version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Define SHA source (manual or mapping)
-        run: echo "SHA_SOURCE=${{ github.event.inputs.sha }}" >> $GITHUB_ENV
-
       - name: Pull staging image
         run: |
-          docker pull ghcr.io/braianespanon/abacontex-backend:${SHA_SOURCE}
+          docker pull ghcr.io/braianespanon/abacontex-backend:staging
 
       - name: Tag image as release
         run: |
-          docker tag ghcr.io/braianespanon/abacontex-backend:${SHA_SOURCE} \
+          docker tag ghcr.io/braianespanon/abacontex-backend:staging \
                      ghcr.io/braianespanon/abacontex-backend:${VERSION}
 
-          docker tag ghcr.io/braianespanon/abacontex-backend:${SHA_SOURCE} \
+          docker tag ghcr.io/braianespanon/abacontex-backend:staging \
                      ghcr.io/braianespanon/abacontex-backend:latest
 
       - name: Push release tags
