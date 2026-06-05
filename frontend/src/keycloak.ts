@@ -1,9 +1,10 @@
 import Keycloak from "keycloak-js";
+import { config } from "./config";
 
 const keycloak = new Keycloak({
-  url: "http://localhost:8080",
-  realm: "abacontex",
-  clientId: "frontend",
+  url: config.KEYCLOAK_URL,
+  realm: config.KEYCLOAK_REALM,
+  clientId: config.KEYCLOAK_CLIENT,
 });
 
 export default keycloak;
