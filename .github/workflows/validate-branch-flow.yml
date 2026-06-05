@@ -20,17 +20,6 @@ jobs:
           echo "Source branch: $HEAD"
           echo "Target branch: $BASE"
 
-          # develop solo acepta feature/*, fix/*,
-          if [[ "$BASE" == "develop" ]]; then
-            if [[ "$HEAD" =~ ^feature/.* ]] || \
-               [[ "$HEAD" =~ ^fix/.* ]]; then
-              exit 0
-            fi
-
-            echo "Only feature/* and fix/* can be merged into develop"
-            exit 1
-          fi
-
           # test solo acepta develop
           if [[ "$BASE" == "test" ]]; then
             if [[ "$HEAD" == "develop" ]]; then
