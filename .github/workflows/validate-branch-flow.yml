@@ -1,0 +1,55 @@
+name: Validate Branch Flow
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate source and target branches
+        run: |
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
+
+          echo "Source branch: $HEAD"
+          echo "Target branch: $BASE"
+
+          # develop solo acepta feature/*, fix/*,
+          if [[ "$BASE" == "develop" ]]; then
+            if [[ "$HEAD" =~ ^feature/.* ]] || \
+               [[ "$HEAD" =~ ^fix/.* ]]; then
+              exit 0
+            fi
+
+            echo "Only feature/* and fix/* can be merged into develop"
+            exit 1
+          fi
+
+          # test solo acepta develop
+          if [[ "$BASE" == "test" ]]; then
+            if [[ "$HEAD" == "develop" ]]; then
+              exit 0
+            fi
+
+            echo "Only develop can be merged into test"
+            exit 1
+          fi
+
+          # main solo acepta test
+          if [[ "$BASE" == "main" ]]; then
+            if [[ "$HEAD" == "test" ]]; then
+              exit 0
+            fi
+
+            echo "Only test can be merged into main"
+            exit 1
+          fi
+
+          # Para cualquier otra rama no validamos nada
+          exit 0
