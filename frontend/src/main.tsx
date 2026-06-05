@@ -16,8 +16,11 @@ import App from "./App";
 import './index.css'
 
 import keycloak from "./keycloak";
-//Exponer el objeto Keycloak para depuración (opcional)
-//(window as any).keycloak = keycloak; 
+import { config } from "./config";
+
+if (config.ENVIRONMENT === "development") {
+  (window as any).keycloak = keycloak;
+}
 
 keycloak
   .init({
