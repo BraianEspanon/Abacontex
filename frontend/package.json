@@ -11,7 +11,8 @@
     "test": "vitest",
     "test:ci": "vitest run",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "check": "npm run lint && npm run test:ci && npm run format:check && npm run build"
   },
   "dependencies": {
     "keycloak-js": "^26.2.4",
