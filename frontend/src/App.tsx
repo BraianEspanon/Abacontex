@@ -8,7 +8,8 @@ import keycloak from './keycloak';
 function App() {
   const [count, setCount] = useState(0);
   const authenticated = keycloak.authenticated;
-  const username = keycloak.tokenParsed?.preferred_username ?? keycloak.tokenParsed?.name;
+  const username =
+    keycloak.tokenParsed?.preferred_username ?? keycloak.tokenParsed?.name;
 
   const handleAuth = () => {
     if (authenticated) {
@@ -32,7 +33,9 @@ function App() {
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>
           <p>
-            {authenticated ? `Usuario: ${username ?? 'autenticado'}` : 'No has iniciado sesión aún.'}
+            {authenticated
+              ? `Usuario: ${username ?? 'autenticado'}`
+              : 'No has iniciado sesión aún.'}
           </p>
         </div>
         <button type="button" className="auth-button" onClick={handleAuth}>
