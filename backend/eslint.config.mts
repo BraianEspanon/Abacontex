@@ -18,4 +18,11 @@ export default defineConfig([
   },
 
   tseslint.configs.recommended,
+
+  {
+    files: ['jest.config.cjs'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
 ]);

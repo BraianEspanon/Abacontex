@@ -1,11 +1,23 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import reactLogo from './assets/react.svg';
+import viteLogo from './assets/vite.svg';
+import heroImg from './assets/hero.png';
+import './App.css';
+import keycloak from './keycloak';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+  const authenticated = keycloak.authenticated;
+  const username =
+    keycloak.tokenParsed?.preferred_username ?? keycloak.tokenParsed?.name;
+
+  const handleAuth = () => {
+    if (authenticated) {
+      keycloak.logout();
+    } else {
+      keycloak.login();
+    }
+  };
 
   return (
     <>
@@ -16,11 +28,19 @@ function App() {
           <img src={viteLogo} className="vite" alt="Vite logo" />
         </div>
         <div>
-          <h1>Get started</h1>
+          <h1>Get started 2</h1>
           <p>
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>
+          <p>
+            {authenticated
+              ? `Usuario: ${username ?? 'autenticado'}`
+              : 'No has iniciado sesión aún.'}
+          </p>
         </div>
+        <button type="button" className="auth-button" onClick={handleAuth}>
+          {authenticated ? 'Logout' : 'Login'}
+        </button>
         <button
           type="button"
           className="counter"
@@ -116,7 +136,7 @@ function App() {
       <div className="ticks"></div>
       <section id="spacer"></section>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

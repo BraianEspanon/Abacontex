@@ -1,4 +1,4 @@
-import Keycloak from "keycloak-js";
+import Keycloak from 'keycloak-js';
 
 declare global {
   interface Window {
