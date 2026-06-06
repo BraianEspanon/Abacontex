@@ -39,7 +39,7 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
 
-    "esModuleInterop": true,
+    "esModuleInterop": true
   },
 
   "include": ["src"]
