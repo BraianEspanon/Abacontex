@@ -24,7 +24,7 @@ if (config.ENVIRONMENT === 'development') {
 
 keycloak
   .init({
-    onLoad: 'login-required',
+    onLoad: 'check-sso',
     checkLoginIframe: false,
   })
   .then((authenticated) => {

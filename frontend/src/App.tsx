@@ -3,9 +3,21 @@ import reactLogo from './assets/react.svg';
 import viteLogo from './assets/vite.svg';
 import heroImg from './assets/hero.png';
 import './App.css';
+import keycloak from './keycloak';
 
 function App() {
   const [count, setCount] = useState(0);
+  const authenticated = keycloak.authenticated;
+  const username =
+    keycloak.tokenParsed?.preferred_username ?? keycloak.tokenParsed?.name;
+
+  const handleAuth = () => {
+    if (authenticated) {
+      keycloak.logout();
+    } else {
+      keycloak.login();
+    }
+  };
 
   return (
     <>
@@ -20,7 +32,15 @@ function App() {
           <p>
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>
+          <p>
+            {authenticated
+              ? `Usuario: ${username ?? 'autenticado'}`
+              : 'No has iniciado sesión aún.'}
+          </p>
         </div>
+        <button type="button" className="auth-button" onClick={handleAuth}>
+          {authenticated ? 'Logout' : 'Login'}
+        </button>
         <button
           type="button"
           className="counter"
