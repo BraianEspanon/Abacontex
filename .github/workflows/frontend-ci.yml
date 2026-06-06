@@ -45,5 +45,8 @@ jobs:
       - name: Run tests
         run: npm run test:ci
       
+      - name: Check formatting
+        run: npm run format:check
+
       - name: Build frontend
         run: npm run build
