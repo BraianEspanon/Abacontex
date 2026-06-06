@@ -6,13 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    
     "lint": "eslint .",
     "preview": "vite preview",
-
     "test": "vitest",
     "test:ci": "vitest run",
-
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
