@@ -5,6 +5,6 @@ export const config = window.APP_CONFIG ?? {
   KEYCLOAK_REALM: import.meta.env.VITE_KEYCLOAK_REALM,
   KEYCLOAK_CLIENT: import.meta.env.VITE_KEYCLOAK_CLIENT,
   KEYCLOAK_REDIRECT_URI: import.meta.env.VITE_KEYCLOAK_REDIRECT_URI,
-  
+
   ENVIRONMENT: import.meta.env.VITE_ENVIRONMENT,
 };
