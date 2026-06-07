@@ -3,11 +3,7 @@ import { jwtVerify } from 'jose';
 
 import { JWKS, KEYCLOAK_ISSUER } from '../config/keycloak';
 
-export async function authenticate(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export async function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
 
