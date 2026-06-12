@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. Tabla Curso (id es PK)
+model Curso {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique
+  usuarios Usuario[]
+
+  @@map("cursos")
+}
+
+// 2. Tabla Rol (id es PK) - Igual a tu Draw.io
+model RolSistema {
+  id          Int       @id @default(autoincrement())
+  nombreRol   String    @unique
+  usuarios    Usuario[]
+
+  @@map("roles_sistema")
+}
+
+// 3. Tabla Usuario (Con sus dos FK: curso y rol)
+model Usuario {
+  id           String     @id @default(uuid())
+  keycloakId   String     @unique
+  email        String     @unique
+  nombre       String
+  apellido     String
+  
+  // --- FK hacia Curso ---
+  cursoId      Int?
+  curso        Curso?     @relation(fields: [cursoId], references: [id])
+  
+  // --- FK hacia RolSistema ---
+  rolSistemaId Int
+  rolSistema   RolSistema @relation(fields: [rolSistemaId], references: [id])
+
+  @@map("usuarios")
+}
