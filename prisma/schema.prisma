@@ -6,7 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// 1. Tabla Curso (id es PK)
+
 model Curso {
   id       Int       @id @default(autoincrement())
   nombre   String    @unique
@@ -15,7 +15,7 @@ model Curso {
   @@map("cursos")
 }
 
-// 2. Tabla Rol (id es PK) - Igual a tu Draw.io
+
 model RolSistema {
   id          Int       @id @default(autoincrement())
   nombreRol   String    @unique
@@ -24,7 +24,7 @@ model RolSistema {
   @@map("roles_sistema")
 }
 
-// 3. Tabla Usuario (Con sus dos FK: curso y rol)
+
 model Usuario {
   id           String     @id @default(uuid())
   keycloakId   String     @unique
