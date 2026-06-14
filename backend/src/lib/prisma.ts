@@ -1,15 +1,15 @@
-import dotenv from "dotenv";
-import path from "path";
+import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config({
-  path: path.resolve(__dirname, "../../../.env"),
+  path: path.resolve(__dirname, '../../../.env'),
 });
 
-console.log("DATABASE_URL =", process.env.DATABASE_URL);
+console.log('DATABASE_URL =', process.env.DATABASE_URL);
 
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,

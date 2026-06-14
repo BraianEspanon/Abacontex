@@ -1,14 +1,12 @@
-
-import { prisma } from "../src/lib/prisma";
+import { prisma } from '../src/lib/prisma';
 // Cargamos las variables de entorno de forma limpia al inicio, como en el video
 import 'dotenv/config';
 
 // Inicializamos el cliente estándar de Prisma
 // const prisma = new PrismaClient();
 
-
 async function main() {
-  console.log('🌱 Iniciando la carga de datos maestros (Seed)...');
+  console.log('Iniciando la carga de datos maestros (Seed)...');
 
   // 1. Crear los Cursos de prueba
   const curso5toA = await prisma.curso.upsert({
@@ -23,7 +21,7 @@ async function main() {
     create: { nombreCurso: '6to Año B' },
   });
 
-  console.log('✅ Cursos creados:', [curso5toA.nombreCurso, curso6toA.nombreCurso]);
+  console.log('Cursos creados:', [curso5toA.nombreCurso, curso6toA.nombreCurso]);
 
   // 2. Crear los Roles del Sistema
   const rolDocente = await prisma.rolesSistema.upsert({
@@ -38,7 +36,7 @@ async function main() {
     create: { nombreRol: 'ALUMNO', descripcion: 'Estudiante regular matriculado' },
   });
 
-  console.log('✅ Roles insertados:', [rolDocente.nombreRol, rolAlumno.nombreRol]);
+  console.log('Roles insertados:', [rolDocente.nombreRol, rolAlumno.nombreRol]);
 
   // 3. Crear un Profesor de Prueba (Usuario)
   const profesor = await prisma.usuario.upsert({
@@ -53,7 +51,7 @@ async function main() {
     },
   });
 
-  console.log(`✅ Profesor de prueba creado: ${profesor.nombre} ${profesor.apellido}`);
+  console.log(`Profesor de prueba creado: ${profesor.nombre} ${profesor.apellido}`);
 
   // 4. ASIGNARLE MÚLTIPLES CURSOS AL PROFESOR (Tabla Intermedia)
   await prisma.usuarioCursos.upsert({
@@ -72,7 +70,7 @@ async function main() {
     create: { idCurso: curso6toA.idCurso, idUsuario: profesor.id },
   });
 
-  console.log('✅ Profesor asignado a 5to A y 6to B.');
+  console.log('Profesor asignado a 5to A y 6to B.');
 
   // 5. Crear un Alumno de Prueba (Usuario con Rol ALUMNO)
   const alumno = await prisma.usuario.upsert({
@@ -87,7 +85,7 @@ async function main() {
     },
   });
 
-  console.log(`✅ Alumno de prueba creado: ${alumno.nombre} ${alumno.apellido}`);
+  console.log(`Alumno de prueba creado: ${alumno.nombre} ${alumno.apellido}`);
 
   // 6. ASIGNAR EL ALUMNO A UN SOLO CURSO (Regla de negocio intermedia)
   await prisma.usuarioCursos.upsert({
@@ -98,13 +96,13 @@ async function main() {
     create: { idCurso: curso5toA.idCurso, idUsuario: alumno.id },
   });
 
-  console.log(`✅ Alumno asignado correctamente a su único curso (${curso5toA.nombreCurso}).`);
-  console.log('🎉 ¡Base de datos sembrada con éxito!');
+  console.log(`Alumno asignado correctamente a su único curso (${curso5toA.nombreCurso}).`);
+  console.log('Base de datos sembrada con éxito');
 }
 
 main()
   .catch(async (e) => {
-    console.error('❌ Error ejecutando el seed:', e);
+    console.error('Error ejecutando el seed:', e);
     await prisma.$disconnect();
     process.exit(1);
   })
