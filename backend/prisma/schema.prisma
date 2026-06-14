@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model CicloLectivo {
+  id     Int     @id @default(autoincrement())
+  año   Int
+  activo Boolean @default(true)
+
+  @@map("ciclo_lectivo")
+}
+
+model Usuario {
+  id           String          @id @default(uuid())
+  keycloakId   String          @unique
+  email        String          @unique
+  nombre       String
+  apellido     String
+  rolSistemaId Int
+  cursos       UsuarioCursos[]
+  rolSistema   RolesSistema    @relation(fields: [rolSistemaId], references: [idRol])
+
+  @@map("usuarios")
+}
+
+model Curso {
+  idCurso     Int             @id @default(autoincrement())
+  nombreCurso String          @unique
+  usuarios    UsuarioCursos[]
+
+  @@map("cursos")
+}
+
+model UsuarioCursos {
+  idCurso   Int
+  idUsuario String
+  curso     Curso   @relation(fields: [idCurso], references: [idCurso], onDelete: Cascade)
+  usuario   Usuario @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+
+  @@id([idCurso, idUsuario])
+  @@map("usuario_cursos")
+}
+
+model RolesSistema {
+  nombreRol   String    @unique
+  descripcion String?
+  idRol       Int       @id @default(autoincrement())
+  usuarios    Usuario[]
+
+  @@map("roles_sistema")
+}
