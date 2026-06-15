@@ -19,6 +19,9 @@ develop
 ↑           ↑
 feature/* o fix/*
 ```
+Los cambios deben seguir el flujo indicado anteriormente.
+
+No se puede promover cambios directamente entre ramas salteando etapas, ya que esto podría provocar diferencias entre entornos y dificultar la trazabilidad de los cambios.
 
 ## main
 Representa la versión estable del sistema.
@@ -30,6 +33,8 @@ v1.1.0
 v1.2.0
 ```
 Al crear las tags, los builds de docker automáticamente son etiquetados con esta version y con la etiqueta "latest", la cual indica que dicha build es la última versión estable.
+
+Los tags siempre deben crearse a partir de commits presentes en la rama main.
 
 ---
 
@@ -60,12 +65,6 @@ Características:
 * Debe mantenerse estable y funcional.
 
 Al intentar integrar cambios en esta rama, se ejecutarán validaciones para asegurar que todas las ramas que hereden código de acá, como mínimo se ejecuten correctamente y cumplan con las convenciones de codificación.
-
-Dichas validaciones son:
-1. Lint: Verifica que no se usen prácticas obsoletas para codificar
-2. Tests: Son los test unitarios.
-3. Formatting: Verifica que se cumplan con las pautas y convenciones de codificación
-4. Build: Valida que el código se pueda compilar
 
 ---
 
