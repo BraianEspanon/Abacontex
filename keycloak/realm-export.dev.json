@@ -660,7 +660,7 @@
     "description" : "",
     "rootUrl" : "",
     "adminUrl" : "",
-    "baseUrl" : "",
+    "baseUrl" : "http://localhost:5173/",
     "surrogateAuthRequired" : false,
     "enabled" : true,
     "alwaysDisplayInConsole" : false,

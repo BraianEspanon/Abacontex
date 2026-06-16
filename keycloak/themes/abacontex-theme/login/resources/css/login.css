@@ -144,7 +144,6 @@ body {
     -moz-user-select: none;
 
     -webkit-user-drag: none;
-    user-drag: none;
 
     pointer-events: none;
 }
@@ -164,7 +163,6 @@ body {
     -moz-user-select: none;
 
     -webkit-user-drag: none;
-    user-drag: none;
 
     pointer-events: none;
 }
@@ -672,7 +670,7 @@ body.login-pf,
 }
 
 .policy-item {
-    font-size: 0.62rem;
+    font-size: 0.65rem;
     transition: color 0.2s ease;
     display: flex;
     align-items: center;
@@ -710,6 +708,13 @@ body.login-pf,
     font-weight: 400;
     padding-left: 0.5rem;
     animation: fadeInError 0.2s ease-in-out;
+}
+/* Fulminamos el div residual vacío de Keycloak que empuja con su margin-top */
+#kc-info, .login-pf-signup {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Ajustes Responsive */
