@@ -5,15 +5,6 @@ services:
 
     container_name: abacontex-backend
 
-    command:
-    - sh
-    - -c
-    - |
-      npx prisma generate &&
-      npx prisma migrate deploy &&
-      npx prisma db seed &&
-      npm run dev
-
     ports:
       - "${BACKEND_PORT}:3000"
 
@@ -22,7 +13,7 @@ services:
       - /app/node_modules
 
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/abacontex?schema=public
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
