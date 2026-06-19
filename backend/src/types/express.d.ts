@@ -1,9 +1,12 @@
 import 'express';
 
 export interface AuthUser {
-  id: string;
+  keycloakId: string;
   username: string;
-  email?: string;
+  email: string;
+  nombre: string;
+  apellido: string;
+  roles: string[];
 }
 
 declare global {

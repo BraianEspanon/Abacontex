@@ -20,9 +20,12 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     });
 
     req.user = {
-      id: payload.sub as string,
+      keycloakId: payload.sub as string,
       username: payload.preferred_username as string,
       email: payload.email as string,
+      nombre: payload.given_name as string,
+      apellido: payload.family_name as string,
+      roles: (payload.realm_access as any)?.roles ?? [],
     };
 
     next();

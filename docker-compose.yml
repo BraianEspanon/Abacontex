@@ -21,6 +21,7 @@ services:
 
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
     
     depends_on:
       postgres:
