@@ -35,24 +35,47 @@ async function main() {
     update: {},
     create: { nombreRol: 'ALUMNO', descripcion: 'Estudiante regular matriculado' },
   });
+  const rolUsuarioGlobal = await prisma.rolesSistema.upsert({
+  where: { nombreRol: 'USUARIO_GLOBAL' },
+  update: {},
+  create: {
+    nombreRol: 'USUARIO_GLOBAL',
+    descripcion: 'Usuario con acceso global al sistema',
+  },
+});
 
-  console.log('Roles insertados:', [rolDocente.nombreRol, rolAlumno.nombreRol]);
+  console.log('Roles insertados:', [rolDocente.nombreRol, rolAlumno.nombreRol, rolUsuarioGlobal.nombreRol]);
 
   // 3. Crear un Profesor de Prueba (Usuario)
   const profesor = await prisma.usuario.upsert({
-    where: { email: 'quinteros.profesor@abacontex.com' },
+    where: { email: 'sergio.quinteros@abacontex.com' },
     update: {},
     create: {
       keycloakId: 'mock-keycloak-profesor-123',
-      email: 'quinteros.profesor@abacontex.com',
-      nombre: 'Quinteros',
-      apellido: 'Docente',
+      email: 'sergio.quinteros@abacontex.com',
+      nombre: 'Sergio',
+      apellido: 'Quinteros',
       rolSistemaId: rolDocente.idRol,
     },
   });
 
   console.log(`Profesor de prueba creado: ${profesor.nombre} ${profesor.apellido}`);
 
+  const usuarioGlobal = await prisma.usuario.upsert({
+  where: { email: 'admin@abacontex.com' },
+  update: {},
+  create: {
+    keycloakId: 'mock-keycloak-admin-001',
+    email: 'admin@abacontex.com',
+    nombre: 'Admin',
+    apellido: 'Global',
+    rolSistemaId: rolUsuarioGlobal.idRol,
+  },
+});
+
+console.log(
+  `Usuario global creado: ${usuarioGlobal.nombre} ${usuarioGlobal.apellido}`
+);
   // 4. ASIGNARLE MÚLTIPLES CURSOS AL PROFESOR (Tabla Intermedia)
   await prisma.usuarioCursos.upsert({
     where: {
@@ -74,11 +97,11 @@ async function main() {
 
   // 5. Crear un Alumno de Prueba (Usuario con Rol ALUMNO)
   const alumno = await prisma.usuario.upsert({
-    where: { email: 'nahuel.alumno@abacontex.com' },
+    where: { email: 'nahuel.perez@abacontex.com' },
     update: {},
     create: {
       keycloakId: 'mock-keycloak-alumno-456',
-      email: 'nahuel.alumno@abacontex.com',
+      email: 'nahuel.perez@abacontex.com',
       nombre: 'Nahuel',
       apellido: 'Pérez',
       rolSistemaId: rolAlumno.idRol,
@@ -109,3 +132,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+
