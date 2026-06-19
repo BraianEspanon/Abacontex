@@ -25,7 +25,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       email: payload.email as string,
       nombre: payload.given_name as string,
       apellido: payload.family_name as string,
-      roles: (payload.realm_access as any)?.roles ?? [],
+      roles: (payload.realm_access as { roles?: string[] })?.roles ?? [],
     };
 
     next();

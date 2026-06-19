@@ -92,7 +92,7 @@
       "description" : "${role_default-roles}",
       "composite" : true,
       "composites" : {
-        "realm" : [ "ALUMNO", "offline_access", "uma_authorization" ],
+        "realm" : [ "offline_access", "uma_authorization" ],
         "client" : {
           "account" : [ "view-profile", "manage-account" ]
         }
@@ -472,6 +472,23 @@
     "realmRoles" : [ "default-roles-abacontex", "DOCENTE" ],
     "notBefore" : 0,
     "groups" : [ ]
+  }, {
+    "id" : "44b98d42-91f3-4039-a315-ce6087a37e85",
+    "username" : "service-account-backend-api",
+    "emailVerified" : false,
+    "createdTimestamp" : 1781888263857,
+    "enabled" : true,
+    "totp" : false,
+    "serviceAccountClientId" : "backend-api",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-abacontex" ],
+    "clientRoles" : {
+      "realm-management" : [ "manage-users", "view-users", "query-users" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
   } ],
   "scopeMappings" : [ {
     "clientScope" : "offline_access",
@@ -596,7 +613,7 @@
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
-    "secret" : "**********",
+    "secret" : "7zcglfTGpPQa7tC76g7VyXguVX41jha2",
     "redirectUris" : [ "/*" ],
     "webOrigins" : [ "/*" ],
     "notBefore" : 0,
@@ -605,24 +622,26 @@
     "standardFlowEnabled" : false,
     "implicitFlowEnabled" : false,
     "directAccessGrantsEnabled" : false,
-    "serviceAccountsEnabled" : false,
+    "serviceAccountsEnabled" : true,
     "publicClient" : false,
     "frontchannelLogout" : true,
     "protocol" : "openid-connect",
     "attributes" : {
       "realm_client" : "false",
       "oidc.ciba.grant.enabled" : "false",
-      "client.secret.creation.time" : "1780330065",
+      "client.secret.creation.time" : "1781888040",
       "backchannel.logout.session.required" : "true",
       "standard.token.exchange.enabled" : "false",
       "post.logout.redirect.uris" : "+",
+      "frontchannel.logout.session.required" : "true",
       "oauth2.device.authorization.grant.enabled" : "false",
+      "display.on.consent.screen" : "false",
       "backchannel.logout.revoke.offline.tokens" : "false"
     },
     "authenticationFlowBindingOverrides" : { },
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
-    "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
+    "defaultClientScopes" : [ "web-origins", "service_account", "acr", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
   }, {
     "id" : "ac24dc13-6172-44c4-8934-7a4416915e27",
@@ -1451,7 +1470,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper", "oidc-full-name-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "saml-user-attribute-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "oidc-address-mapper", "saml-user-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "saml-role-list-mapper", "saml-user-property-mapper" ]
       }
     }, {
       "id" : "2c9cb6f1-4eb3-4a7f-b28c-a555ad622efa",
@@ -1476,7 +1495,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "saml-role-list-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-property-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper", "oidc-address-mapper" ]
       }
     }, {
       "id" : "f80f11ab-d364-4643-801c-677f5adce56e",

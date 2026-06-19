@@ -4,5 +4,4 @@ export const ROLES = {
   ALUMNO: 'ALUMNO',
 } as const;
 
-export type RolSistema =
-  (typeof ROLES)[keyof typeof ROLES];
+export type RolSistema = (typeof ROLES)[keyof typeof ROLES];

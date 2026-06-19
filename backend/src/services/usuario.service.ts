@@ -2,22 +2,18 @@ import { prisma } from '../lib/prisma';
 import { AuthUser } from '../types/express';
 import { getRolSistema } from './role.service';
 
-export const syncUsuario = async (
-  user: AuthUser
-) => {
-  let usuario =
-    await prisma.usuario.findUnique({
-      where: {
-        keycloakId: user.keycloakId,
-      },
-    });
+export const syncUsuario = async (user: AuthUser) => {
+  let usuario = await prisma.usuario.findUnique({
+    where: {
+      keycloakId: user.keycloakId,
+    },
+  });
 
   if (usuario) {
     return usuario;
   }
 
-  const rolSistema =
-    await getRolSistema(user.roles);
+  const rolSistema = await getRolSistema(user.roles);
 
   usuario = await prisma.usuario.create({
     data: {
@@ -32,10 +28,7 @@ export const syncUsuario = async (
   return usuario;
 };
 
-
-export const getUsuarioActual = async (
-  user: AuthUser
-) => {
+export const getUsuarioActual = async (user: AuthUser) => {
   return prisma.usuario.findUnique({
     where: {
       keycloakId: user.keycloakId,
