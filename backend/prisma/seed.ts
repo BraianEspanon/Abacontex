@@ -36,15 +36,19 @@ async function main() {
     create: { nombreRol: 'ALUMNO', descripcion: 'Estudiante regular matriculado' },
   });
   const rolUsuarioGlobal = await prisma.rolesSistema.upsert({
-  where: { nombreRol: 'USUARIO_GLOBAL' },
-  update: {},
-  create: {
-    nombreRol: 'USUARIO_GLOBAL',
-    descripcion: 'Usuario con acceso global al sistema',
-  },
-});
+    where: { nombreRol: 'USUARIO_GLOBAL' },
+    update: {},
+    create: {
+      nombreRol: 'USUARIO_GLOBAL',
+      descripcion: 'Usuario con acceso global al sistema',
+    },
+  });
 
-  console.log('Roles insertados:', [rolDocente.nombreRol, rolAlumno.nombreRol, rolUsuarioGlobal.nombreRol]);
+  console.log('Roles insertados:', [
+    rolDocente.nombreRol,
+    rolAlumno.nombreRol,
+    rolUsuarioGlobal.nombreRol,
+  ]);
 
   // 3. Crear un Profesor de Prueba (Usuario)
   const profesor = await prisma.usuario.upsert({
@@ -62,20 +66,18 @@ async function main() {
   console.log(`Profesor de prueba creado: ${profesor.nombre} ${profesor.apellido}`);
 
   const usuarioGlobal = await prisma.usuario.upsert({
-  where: { email: 'admin@abacontex.com' },
-  update: {},
-  create: {
-    keycloakId: 'mock-keycloak-admin-001',
-    email: 'admin@abacontex.com',
-    nombre: 'Admin',
-    apellido: 'Global',
-    rolSistemaId: rolUsuarioGlobal.idRol,
-  },
-});
+    where: { email: 'admin@abacontex.com' },
+    update: {},
+    create: {
+      keycloakId: 'mock-keycloak-admin-001',
+      email: 'admin@abacontex.com',
+      nombre: 'Admin',
+      apellido: 'Global',
+      rolSistemaId: rolUsuarioGlobal.idRol,
+    },
+  });
 
-console.log(
-  `Usuario global creado: ${usuarioGlobal.nombre} ${usuarioGlobal.apellido}`
-);
+  console.log(`Usuario global creado: ${usuarioGlobal.nombre} ${usuarioGlobal.apellido}`);
   // 4. ASIGNARLE MÚLTIPLES CURSOS AL PROFESOR (Tabla Intermedia)
   await prisma.usuarioCursos.upsert({
     where: {
@@ -132,5 +134,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-
