@@ -120,7 +120,7 @@ console.log(
   });
 
   console.log(`Alumno asignado correctamente a su único curso (${curso5toA.nombreCurso}).`);
-  console.log('Base de datos sembrada con éxito');
+  console.log('Base de datos sembrada con éxito ');
 }
 
 main()
