@@ -1,12 +1,12 @@
 import { Router } from 'express';
 
-import { me } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { syncUser } from '../controllers/auth.controller';
+import { syncUser, me } from '../controllers/auth.controller';
+import { requireRole } from '../middleware/role.middleware';
 
 const router = Router();
 
-router.get('/me', authenticate, me);
 router.post('/sync-user', authenticate, syncUser);
+router.get('/me', authenticate, requireRole('ALUMNO', 'DOCENTE', 'ADMIN'), me);
 
 export default router;

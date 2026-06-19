@@ -31,3 +31,22 @@ export const syncUsuario = async (
 
   return usuario;
 };
+
+
+export const getUsuarioActual = async (
+  user: AuthUser
+) => {
+  return prisma.usuario.findUnique({
+    where: {
+      keycloakId: user.keycloakId,
+    },
+    include: {
+      rolSistema: true,
+      cursos: {
+        include: {
+          curso: true,
+        },
+      },
+    },
+  });
+};
