@@ -56,44 +56,31 @@ export async function crearUsuario(data: {
   let keycloakId: string | undefined;
 
   try {
-    keycloakId =
-      await keycloakAdminService.createUser({
-        username: data.email,
-        email: data.email,
-        firstName: data.nombre,
-        lastName: data.apellido,
-        password: data.password,
-      });
+    keycloakId = await keycloakAdminService.createUser({
+      username: data.email,
+      email: data.email,
+      firstName: data.nombre,
+      lastName: data.apellido,
+      password: data.password,
+    });
 
-    if (
-      data.rol === ROLES.DOCENTE ||
-      data.rol === ROLES.ADMIN
-    ) {
-      await keycloakAdminService.removeUserFromGroup(
-        keycloakId,
-        'Grupo_Alumnos'
-      );
+    if (data.rol === ROLES.DOCENTE || data.rol === ROLES.ADMIN) {
+      await keycloakAdminService.removeUserFromGroup(keycloakId, 'Grupo_Alumnos');
 
-      await keycloakAdminService.assignRealmRole(
-        keycloakId,
-        data.rol
-      );
+      await keycloakAdminService.assignRealmRole(keycloakId, data.rol);
     }
 
-    const rolSistema =
-      await prisma.rolesSistema.findUnique({
-        where: {
-          nombreRol: data.rol,
-        },
-      });
+    const rolSistema = await prisma.rolesSistema.findUnique({
+      where: {
+        nombreRol: data.rol,
+      },
+    });
 
     if (!rolSistema) {
-      throw new Error(
-        `No existe el rol ${data.rol} en la BD`
-      );
+      throw new Error(`No existe el rol ${data.rol} en la BD`);
     }
 
-  const usuario = await prisma.usuario.create({
+    const usuario = await prisma.usuario.create({
       data: {
         keycloakId,
         email: data.email,
@@ -103,27 +90,17 @@ export async function crearUsuario(data: {
       },
     });
 
-  console.info(
-    `[USUARIO] Creado ${usuario.email} con rol ${data.rol}`
-  );
+    console.info(`[USUARIO] Creado ${usuario.email} con rol ${data.rol}`);
 
-  return usuario
-
+    return usuario;
   } catch (error) {
     if (keycloakId) {
       try {
-        await keycloakAdminService.deleteUser(
-          keycloakId
-        );
+        await keycloakAdminService.deleteUser(keycloakId);
 
-        console.warn(
-          `[ROLLBACK] Usuario ${keycloakId} eliminado de Keycloak`
-        );
+        console.warn(`[ROLLBACK] Usuario ${keycloakId} eliminado de Keycloak`);
       } catch (rollbackError) {
-        console.error(
-          '[ROLLBACK] Error eliminando usuario',
-          rollbackError
-        );
+        console.error('[ROLLBACK] Error eliminando usuario', rollbackError);
       }
     }
 

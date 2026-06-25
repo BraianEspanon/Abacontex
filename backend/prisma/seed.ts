@@ -44,11 +44,7 @@ async function main() {
     },
   });
 
-  console.log('Roles insertados:', [
-    rolDocente.nombreRol,
-    rolAlumno.nombreRol,
-    rolAdmin.nombreRol,
-  ]);
+  console.log('Roles insertados:', [rolDocente.nombreRol, rolAlumno.nombreRol, rolAdmin.nombreRol]);
 
   // 3. Crear un Profesor de Prueba (Usuario)
   const profesor = await prisma.usuario.upsert({

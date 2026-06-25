@@ -6,9 +6,5 @@ export const crearUsuarioSchema = z.object({
   apellido: z.string().min(2),
   email: z.email(),
   password: z.string().min(8),
-  rol: z.enum([
-    ROLES.ADMIN,
-    ROLES.DOCENTE,
-    ROLES.ALUMNO,
-  ]),
+  rol: z.enum([ROLES.ADMIN, ROLES.DOCENTE, ROLES.ALUMNO]),
 });

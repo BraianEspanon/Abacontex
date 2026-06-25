@@ -46,55 +46,45 @@ export async function createUser({
 }) {
   const token = await getAdminToken();
 
-  const response = await fetch(
-    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username,
-        email,
-        firstName,
-        lastName,
-        enabled: true,
-        emailVerified: true,
-        credentials: [
-          {
-            type: 'password',
-            value: password,
-            temporary: false,
-          },
-        ],
-      }),
-    }
-  );
+  const response = await fetch(`${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username,
+      email,
+      firstName,
+      lastName,
+      enabled: true,
+      emailVerified: true,
+      credentials: [
+        {
+          type: 'password',
+          value: password,
+          temporary: false,
+        },
+      ],
+    }),
+  });
 
   if (!response.ok) {
     const error = await response.text();
 
-    throw new Error(
-      `Error creando usuario: ${error}`
-    );
+    throw new Error(`Error creando usuario: ${error}`);
   }
 
   const location = response.headers.get('location');
 
   if (!location) {
-    throw new Error(
-      'No se pudo obtener el ID del usuario'
-    );
+    throw new Error('No se pudo obtener el ID del usuario');
   }
 
   return location.split('/').pop()!;
 }
 
-export async function assignRealmRole(
-  userId: string,
-  roleName: string
-) {
+export async function assignRealmRole(userId: string, roleName: string) {
   const token = await getAdminToken();
 
   const roleResponse = await fetch(
@@ -107,9 +97,7 @@ export async function assignRealmRole(
   );
 
   if (!roleResponse.ok) {
-    throw new Error(
-      `No existe el rol ${roleName}`
-    );
+    throw new Error(`No existe el rol ${roleName}`);
   }
 
   const role = await roleResponse.json();
@@ -132,16 +120,11 @@ export async function assignRealmRole(
   );
 
   if (!assignResponse.ok) {
-    throw new Error(
-      `No se pudo asignar el rol ${roleName}`
-    );
+    throw new Error(`No se pudo asignar el rol ${roleName}`);
   }
 }
 
-export async function removeUserFromGroup(
-  userId: string,
-  groupName: string
-) {
+export async function removeUserFromGroup(userId: string, groupName: string) {
   const token = await getAdminToken();
 
   const groupResponse = await fetch(
@@ -179,9 +162,7 @@ export async function removeUserFromGroup(
   }
 }
 
-export async function deleteUser(
-  userId: string
-) {
+export async function deleteUser(userId: string) {
   const token = await getAdminToken();
 
   const response = await fetch(
@@ -195,8 +176,6 @@ export async function deleteUser(
   );
 
   if (!response.ok) {
-    throw new Error(
-      `No se pudo eliminar el usuario ${userId}`
-    );
+    throw new Error(`No se pudo eliminar el usuario ${userId}`);
   }
 }
