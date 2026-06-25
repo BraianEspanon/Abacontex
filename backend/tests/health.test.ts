@@ -4,6 +4,10 @@ jest.mock('../src/middleware/auth.middleware', () => ({
   authenticate: (_req: unknown, _res: unknown, next: () => void) => next(),
 }));
 
+jest.mock('jose', () => ({
+  createRemoteJWKSet: jest.fn(),
+}));
+
 import app from '../src/app';
 
 describe('GET /health', () => {

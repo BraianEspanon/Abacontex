@@ -35,20 +35,16 @@ async function main() {
     update: {},
     create: { nombreRol: 'ALUMNO', descripcion: 'Estudiante regular matriculado' },
   });
-  const rolUsuarioGlobal = await prisma.rolesSistema.upsert({
-    where: { nombreRol: 'USUARIO_GLOBAL' },
+  const rolAdmin = await prisma.rolesSistema.upsert({
+    where: { nombreRol: 'ADMIN' },
     update: {},
     create: {
-      nombreRol: 'USUARIO_GLOBAL',
-      descripcion: 'Usuario con acceso global al sistema',
+      nombreRol: 'ADMIN',
+      descripcion: 'Usuario con permisos de administración del sistema',
     },
   });
 
-  console.log('Roles insertados:', [
-    rolDocente.nombreRol,
-    rolAlumno.nombreRol,
-    rolUsuarioGlobal.nombreRol,
-  ]);
+  console.log('Roles insertados:', [rolDocente.nombreRol, rolAlumno.nombreRol, rolAdmin.nombreRol]);
 
   // 3. Crear un Profesor de Prueba (Usuario)
   const profesor = await prisma.usuario.upsert({
@@ -65,7 +61,7 @@ async function main() {
 
   console.log(`Profesor de prueba creado: ${profesor.nombre} ${profesor.apellido}`);
 
-  const usuarioGlobal = await prisma.usuario.upsert({
+  const admin = await prisma.usuario.upsert({
     where: { email: 'admin@abacontex.com' },
     update: {},
     create: {
@@ -73,11 +69,11 @@ async function main() {
       email: 'admin@abacontex.com',
       nombre: 'Admin',
       apellido: 'Global',
-      rolSistemaId: rolUsuarioGlobal.idRol,
+      rolSistemaId: rolAdmin.idRol,
     },
   });
 
-  console.log(`Usuario global creado: ${usuarioGlobal.nombre} ${usuarioGlobal.apellido}`);
+  console.log(`Administrador creado: ${admin.nombre} ${admin.apellido}`);
   // 4. ASIGNARLE MÚLTIPLES CURSOS AL PROFESOR (Tabla Intermedia)
   await prisma.usuarioCursos.upsert({
     where: {
