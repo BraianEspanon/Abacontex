@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import * as usuarioService from '../services/usuario.service';
-import * as keycloakAdminService from '../services/keycloak-admin.service';
 
 export const syncUser = async (req: Request, res: Response) => {
   const usuario = await usuarioService.syncUsuario(req.user!);
@@ -18,13 +17,4 @@ export const me = async (req: Request, res: Response) => {
   }
 
   res.json(usuario);
-};
-
-export const adminTest = async (_req: Request, res: Response) => {
-  const token = await keycloakAdminService.getAdminToken();
-
-  res.json({
-    ok: true,
-    tokenPreview: token.substring(0, 30),
-  });
 };
