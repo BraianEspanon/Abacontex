@@ -361,7 +361,15 @@
       "frontend" : [ ]
     }
   },
-  "groups" : [ ],
+  "groups" : [ {
+    "id" : "ceb48b6f-f5a1-4751-97f7-67d88d325ae9",
+    "name" : "Grupo_Alumnos",
+    "path" : "/Grupo_Alumnos",
+    "subGroups" : [ ],
+    "attributes" : { },
+    "realmRoles" : [ "ALUMNO" ],
+    "clientRoles" : { }
+  } ],
   "defaultRole" : {
     "id" : "51ce5c01-7212-4f89-8677-17c9beff9d63",
     "name" : "default-roles-abacontex",
@@ -370,6 +378,7 @@
     "clientRole" : false,
     "containerId" : "be2798cb-dabd-4971-9d69-c0ba10dd6817"
   },
+  "defaultGroups" : [ "/Grupo_Alumnos" ],
   "requiredCredentials" : [ "password" ],
   "passwordPolicy" : "length(8) and digits(1) and lowerCase(1) and upperCase(1)",
   "otpPolicyType" : "totp",
@@ -485,7 +494,7 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-abacontex" ],
     "clientRoles" : {
-      "realm-management" : [ "manage-users", "view-users", "query-users" ]
+      "realm-management" : [ "view-realm", "query-clients", "manage-users", "view-users", "view-clients", "query-users" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -1470,7 +1479,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "oidc-address-mapper", "saml-user-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "saml-role-list-mapper", "saml-user-property-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper" ]
       }
     }, {
       "id" : "2c9cb6f1-4eb3-4a7f-b28c-a555ad622efa",
@@ -1495,7 +1504,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-property-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper", "oidc-address-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-full-name-mapper", "oidc-usermodel-property-mapper", "saml-role-list-mapper", "saml-user-property-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-sha256-pairwise-sub-mapper" ]
       }
     }, {
       "id" : "f80f11ab-d364-4643-801c-677f5adce56e",
