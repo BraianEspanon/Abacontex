@@ -41,6 +41,8 @@ jobs:
 
       - name: Generate prisma
         run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/abacontex?schema=public
 
       - name: Run lint
         run: npm run lint
@@ -48,8 +50,9 @@ jobs:
       - name: Run tests
         run: npm run test:ci
         env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/abacontex?schema=public
           KEYCLOAK_BASE_URL: http://keycloak:8080
-          KEYCLOAK_REALM:abacontex
+          KEYCLOAK_REALM: abacontex
 
       - name: Check formatting
         run: npm run format:check
