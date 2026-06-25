@@ -47,6 +47,9 @@ jobs:
 
       - name: Run tests
         run: npm run test:ci
+        env:
+          KEYCLOAK_BASE_URL: http://keycloak:8080
+          KEYCLOAK_REALM:abacontex
 
       - name: Check formatting
         run: npm run format:check
