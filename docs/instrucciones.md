@@ -19,12 +19,12 @@ Para empezar a trabajar se debe:
 
 1. Clonar repositorio
 2. Abrir Docker Desktop (Para que reconozca los comandos)
-3. Generar .env
+3. Generar .env con el comando:
 ```text
 cp .env.example .env
 ```
-4. Modificar datos de .env según entorno (Desarrollo por defecto)
-5. Levantar docker-compose
+4. Modificar datos de .env según entorno (Viene para desarrollo por defecto)
+5. Levantar docker-compose con el comando:
 ```text
 docker compose up
 ```
@@ -56,7 +56,7 @@ Una vez se tenga lo básico para empezar a trabajar, se hará el desarrollo de f
 
 1. Posicionarse en rama "develop", hacer pull y luego crear rama feature/* o fix/* según necesidad.
 2. Una vez posicionados en la nueva rama, realizar las modificaciones que sean necesarias.
-3. Se pueden realizar commits en cualquier momento con los avances, pero hay que tener en cuenta que existen validaciones para luego hacer pull request.
+3. Se pueden realizar commits en cualquier momento con los avances, pero hay que tener en cuenta que existen validaciones para cuando se desee hacer pull request.
 4. Cuando se termina de desarrollar, conviene ejecutar todas las validaciones localmente, antes de llegar a las validaciones que hará Github, para no crear commits todo el tiempo con cada correción. Esto se hace con el comando: 
 ```text
 npm run check
@@ -75,7 +75,7 @@ Las validaciones que se ejecutan para poder integrar el código son:
 # 3. Testing (Staging)
 1. Clonar repositorio
 2. Abrir Docker Desktop (Para que reconozca los comandos)
-3. Generar .env
+3. Generar .env con el comando:
 ```text
 cp .env.example .env
 ```
