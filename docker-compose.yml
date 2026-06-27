@@ -13,15 +13,22 @@ services:
       - /app/node_modules
 
     environment:
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
+
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+
+      KEYCLOAK_ADMIN_CLIENT_ID: ${KEYCLOAK_ADMIN_CLIENT_ID}
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
     
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
   
   frontend:
     build:
@@ -53,6 +60,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: UTC
       PGTZ: UTC
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 
     ports:
       - "${POSTGRES_PORT}:5432"
