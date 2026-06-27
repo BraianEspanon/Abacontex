@@ -45,13 +45,13 @@ export default function Navbar() {
                         <Button 
                         label="Iniciar Sesión" 
                         variant="outline" 
-                        onClick={() => keycloak.login()} 
+                        onClick={() => keycloak.login({ redirectUri: window.location.origin + '/setup' })} 
                         />
                     </div>
                     <Button 
                         label="Crear Cuenta" 
                         variant="solid" 
-                        onClick={() => keycloak.register()} 
+                        onClick={() => keycloak.register({ redirectUri: window.location.origin + '/setup' })} 
                     />
                     </>
                 )}

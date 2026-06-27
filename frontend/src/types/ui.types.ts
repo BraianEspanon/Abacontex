@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+
 //Se definen las 3 variable que puede tener un botón
 export type ButtonVariant = 'solid' | 'outline' | 'pill';
 
@@ -27,4 +29,13 @@ export interface TimelineStepProps {
   title: string;
   icon: React.ReactNode;
   isLast?: boolean;
+}
+
+export interface RoleCardProps {
+  id: string;
+  title: string;
+  description?: string;
+  icon: LucideIcon;
+  isSelected: boolean;
+  onClick: (id: string) => void;
 }

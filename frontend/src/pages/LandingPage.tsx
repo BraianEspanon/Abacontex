@@ -4,8 +4,16 @@ import BokehContainer from "../components/ui/BokehContainer";
 import TimelineStep from "../components/ui/TimelineStep";
 import { Package, ShoppingCart, Factory, Truck, Receipt, ArrowRight, Astroid, RefreshCw, ChartColumnBigIcon, ZapIcon, BookOpen, CircleDollarSign } from 'lucide-react';
 import Navbar from "../layouts/Navbar";
+import { useKeycloak } from "@react-keycloak/web";
+import { Navigate } from "react-router-dom";
+
 
 export default function LandingPage() {
+    const {keycloak, initialized} = useKeycloak()
+
+    if (initialized && keycloak.authenticated) {
+    return <Navigate to="/setup" replace />;
+  }
 
     return (
         /* Contenedor principal */
