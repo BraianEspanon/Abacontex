@@ -1,9 +1,11 @@
+
+/*
 import { useState } from 'react';
 import reactLogo from './assets/react.svg';
 import viteLogo from './assets/vite.svg';
 import heroImg from './assets/hero.png';
-import './App.css';
 import keycloak from './keycloak';
+
 
 function App() {
   const [count, setCount] = useState(0);
@@ -119,3 +121,11 @@ function App() {
 }
 
 export default App;
+*/
+// src/App.tsx
+import LandingPage from './pages/LandingPage';
+
+export default function App() {
+  // Renderizamos solo la vista estática, sin lógica de autenticación
+  return <LandingPage />;
+}
