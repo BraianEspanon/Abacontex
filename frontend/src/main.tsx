@@ -31,9 +31,8 @@ keycloak
     console.log('Authenticated:', authenticated);
 
     ReactDOM.createRoot(document.getElementById('root')!).render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
+      <App />
+   
     );
   })
   .catch((error) => {

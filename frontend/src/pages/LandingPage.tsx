@@ -1,12 +1,11 @@
 import Button from "../components/ui/Button";
 import FeatureCard from "../components/ui/FeatureCard";
 import BokehContainer from "../components/ui/BokehContainer";
-import { useScroll } from "../hooks/useScroll";
 import TimelineStep from "../components/ui/TimelineStep";
 import { Package, ShoppingCart, Factory, Truck, Receipt, ArrowRight, Astroid, RefreshCw, ChartColumnBigIcon, ZapIcon, BookOpen, CircleDollarSign } from 'lucide-react';
+import Navbar from "../layouts/Navbar";
 
 export default function LandingPage() {
-    const scrolled = useScroll(20)
 
     return (
         /* Contenedor principal */
@@ -23,33 +22,9 @@ export default function LandingPage() {
                 <rect width="100%" height="100%" fill="url(#cuadricula)" />
                 </svg>
                 <div className="absolute inset-0 bg-linear-to-b from-transparent via-abacontex-light/50 to-abacontex-light"></div>
-            </div>
+            </div>   
 
-            {/* --- BARRA DE NAVEGACIÓN --- */}
-            <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 px-4 md:px-8 ${scrolled ? 'pt-4' : 'pt-6'}`}>
-                <nav className={`w-full mx-auto max-w-7xl flex items-center justify-between transition-all duration-500 ${
-                    scrolled
-                        ? 'bg-white/50 backdrop-blur-md border border-abacontex-gray-text/30 px-6 py-3 rounded-2xl shadow-md' 
-                        : 'bg-transparent px-6 py-4 rounded-none border-b border-transparent'
-                    }`}>
-                    <div className="font-heading text-2xl font-extrabold text-abacontex-black-text tracking-tight">
-                        ABACONTEX
-                    </div>
-
-                    <div className="hidden md:flex items-center gap-8 text-md font-medium text-abacontex-gray-text">
-                        <a href="#" className="hover:text-abacontex-gray-text transition-colors">Inicio</a>
-                        <a href="#caracteristicas" className="hover:text-abacontex-gray-text transition-colors">Características</a>
-                        <a href="#simulacion" className="hover:text-abacontex-gray-text transition-colors">Simulación</a>
-                        <a href="#docentes" className="hover:text-abacontex-gray-text transition-colors">Docentes</a>
-
-                    </div>
-                    <div className="flex gap-4">
-                        <Button label="Iniciar sesión" variant="outline"/>
-                        <Button label="Registrarse" variant="solid"/>
-                    </div>
-                </nav>
-            </header>
-            
+            <Navbar /> 
 
             {/* --- SECCIÓN HERO --- */}
             <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 px-8 pt-32 pb-20 max-w-7xl mx-auto items-center">
