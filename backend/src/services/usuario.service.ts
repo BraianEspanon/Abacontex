@@ -37,11 +37,6 @@ export const getUsuarioActual = async (user: AuthUser) => {
     },
     include: {
       rolSistema: true,
-      cursos: {
-        include: {
-          curso: true,
-        },
-      },
     },
   });
 };
