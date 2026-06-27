@@ -1,71 +1,165 @@
-import { prisma } from '../src/lib/prisma';
-// Cargamos las variables de entorno de forma limpia al inicio, como en el video
 import 'dotenv/config';
-
-// Inicializamos el cliente estándar de Prisma
-// const prisma = new PrismaClient();
+import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  console.log('Iniciando la carga de datos maestros (Seed)...');
+  console.log('Iniciando Seed...');
 
-  // 1. Crear los Cursos de prueba
+  // =====================================================
+  // CICLO LECTIVO
+  // =====================================================
+
+  const ciclo2026 = await prisma.cicloLectivo.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      año: 2026,
+      activo: true,
+    },
+  });
+
+  // =====================================================
+  // CURSOS
+  // =====================================================
+
   const curso5toA = await prisma.curso.upsert({
     where: { nombreCurso: '5to Año A' },
     update: {},
-    create: { nombreCurso: '5to Año A' },
+    create: {
+      nombreCurso: '5to Año A',
+    },
   });
 
-  const curso6toA = await prisma.curso.upsert({
+  const curso6toB = await prisma.curso.upsert({
     where: { nombreCurso: '6to Año B' },
     update: {},
-    create: { nombreCurso: '6to Año B' },
+    create: {
+      nombreCurso: '6to Año B',
+    },
   });
 
-  console.log('Cursos creados:', [curso5toA.nombreCurso, curso6toA.nombreCurso]);
+  console.log('Cursos creados');
 
-  // 2. Crear los Roles del Sistema
-  const rolDocente = await prisma.rolesSistema.upsert({
-    where: { nombreRol: 'DOCENTE' },
-    update: {},
-    create: { nombreRol: 'DOCENTE', descripcion: 'Personal docente del establecimiento' },
-  });
+  // =====================================================
+  // ROLES DEL SISTEMA
+  // =====================================================
 
-  const rolAlumno = await prisma.rolesSistema.upsert({
-    where: { nombreRol: 'ALUMNO' },
-    update: {},
-    create: { nombreRol: 'ALUMNO', descripcion: 'Estudiante regular matriculado' },
-  });
   const rolAdmin = await prisma.rolesSistema.upsert({
     where: { nombreRol: 'ADMIN' },
     update: {},
     create: {
       nombreRol: 'ADMIN',
-      descripcion: 'Usuario con permisos de administración del sistema',
+      descripcion: 'Administrador del sistema',
     },
   });
 
-  console.log('Roles insertados:', [rolDocente.nombreRol, rolAlumno.nombreRol, rolAdmin.nombreRol]);
-
-  // 3. Crear un Profesor de Prueba (Usuario)
-  const profesor = await prisma.usuario.upsert({
-    where: { email: 'sergio.quinteros@abacontex.com' },
+  const rolDocente = await prisma.rolesSistema.upsert({
+    where: { nombreRol: 'DOCENTE' },
     update: {},
     create: {
-      keycloakId: 'mock-keycloak-profesor-123',
-      email: 'sergio.quinteros@abacontex.com',
-      nombre: 'Sergio',
-      apellido: 'Quinteros',
-      rolSistemaId: rolDocente.idRol,
+      nombreRol: 'DOCENTE',
+      descripcion: 'Profesor',
     },
   });
 
-  console.log(`Profesor de prueba creado: ${profesor.nombre} ${profesor.apellido}`);
-
-  const admin = await prisma.usuario.upsert({
-    where: { email: 'admin@abacontex.com' },
+  const rolAlumno = await prisma.rolesSistema.upsert({
+    where: { nombreRol: 'ALUMNO' },
     update: {},
     create: {
-      keycloakId: 'mock-keycloak-admin-001',
+      nombreRol: 'ALUMNO',
+      descripcion: 'Alumno',
+    },
+  });
+
+  console.log('Roles del sistema creados');
+
+  // =====================================================
+  // ROLES DE EMPRESA
+  // =====================================================
+
+  const rolCEO = await prisma.rolesEmpresa.upsert({
+    where: { nombreRol: 'CEO' },
+    update: {},
+    create: {
+      nombreRol: 'CEO',
+      descripcion: 'Director Ejecutivo',
+    },
+  });
+
+  const rolCOO = await prisma.rolesEmpresa.upsert({
+    where: { nombreRol: 'COO' },
+    update: {},
+    create: {
+      nombreRol: 'COO',
+      descripcion: 'Director de Operaciones',
+    },
+  });
+
+  const rolCFO = await prisma.rolesEmpresa.upsert({
+    where: { nombreRol: 'CFO' },
+    update: {},
+    create: {
+      nombreRol: 'CFO',
+      descripcion: 'Director Financiero',
+    },
+  });
+
+  const rolCTO = await prisma.rolesEmpresa.upsert({
+    where: { nombreRol: 'CTO' },
+    update: {},
+    create: {
+      nombreRol: 'CTO',
+      descripcion: 'Director Tecnológico',
+    },
+  });
+
+  const rolCCO = await prisma.rolesEmpresa.upsert({
+    where: { nombreRol: 'CCO' },
+    update: {},
+    create: {
+      nombreRol: 'CCO',
+      descripcion: 'Director de Comunicación',
+    },
+  });
+
+  const rolCIO = await prisma.rolesEmpresa.upsert({
+    where: { nombreRol: 'CIO' },
+    update: {},
+    create: {
+      nombreRol: 'CIO',
+      descripcion: 'Director de Sistemas de Información',
+    },
+  });
+
+  const rolCMO = await prisma.rolesEmpresa.upsert({
+    where: { nombreRol: 'CMO' },
+    update: {},
+    create: {
+      nombreRol: 'CMO',
+      descripcion: 'Director de Marketing',
+    },
+  });
+
+  console.log('Roles de empresa creados:', [
+    rolCEO.nombreRol,
+    rolCOO.nombreRol,
+    rolCFO.nombreRol,
+    rolCTO.nombreRol,
+    rolCCO.nombreRol,
+    rolCIO.nombreRol,
+    rolCMO.nombreRol,
+  ]);
+
+  // =====================================================
+  // USUARIOS
+  // =====================================================
+
+  await prisma.usuario.upsert({
+    where: {
+      email: 'admin@abacontex.com',
+    },
+    update: {},
+    create: {
+      keycloakId: 'mock-admin',
       email: 'admin@abacontex.com',
       nombre: 'Admin',
       apellido: 'Global',
@@ -73,32 +167,27 @@ async function main() {
     },
   });
 
-  console.log(`Administrador creado: ${admin.nombre} ${admin.apellido}`);
-  // 4. ASIGNARLE MÚLTIPLES CURSOS AL PROFESOR (Tabla Intermedia)
-  await prisma.usuarioCursos.upsert({
+  const profesor = await prisma.usuario.upsert({
     where: {
-      idCurso_idUsuario: { idCurso: curso5toA.idCurso, idUsuario: profesor.id },
+      email: 'sergio.quinteros@abacontex.com',
     },
-    update: {},
-    create: { idCurso: curso5toA.idCurso, idUsuario: profesor.id },
-  });
-
-  await prisma.usuarioCursos.upsert({
-    where: {
-      idCurso_idUsuario: { idCurso: curso6toA.idCurso, idUsuario: profesor.id },
-    },
-    update: {},
-    create: { idCurso: curso6toA.idCurso, idUsuario: profesor.id },
-  });
-
-  console.log('Profesor asignado a 5to A y 6to B.');
-
-  // 5. Crear un Alumno de Prueba (Usuario con Rol ALUMNO)
-  const alumno = await prisma.usuario.upsert({
-    where: { email: 'nahuel.perez@abacontex.com' },
     update: {},
     create: {
-      keycloakId: 'mock-keycloak-alumno-456',
+      keycloakId: 'mock-profesor',
+      email: 'sergio.quinteros@abacontex.com',
+      nombre: 'Sergio',
+      apellido: 'Quinteros',
+      rolSistemaId: rolDocente.idRol,
+    },
+  });
+
+  const usuarioAlumno1 = await prisma.usuario.upsert({
+    where: {
+      email: 'nahuel.perez@abacontex.com',
+    },
+    update: {},
+    create: {
+      keycloakId: 'mock-alumno-1',
       email: 'nahuel.perez@abacontex.com',
       nombre: 'Nahuel',
       apellido: 'Pérez',
@@ -106,24 +195,128 @@ async function main() {
     },
   });
 
-  console.log(`Alumno de prueba creado: ${alumno.nombre} ${alumno.apellido}`);
-
-  // 6. ASIGNAR EL ALUMNO A UN SOLO CURSO (Regla de negocio intermedia)
-  await prisma.usuarioCursos.upsert({
+  const usuarioAlumno2 = await prisma.usuario.upsert({
     where: {
-      idCurso_idUsuario: { idCurso: curso5toA.idCurso, idUsuario: alumno.id },
+      email: 'martina.lopez@abacontex.com',
     },
     update: {},
-    create: { idCurso: curso5toA.idCurso, idUsuario: alumno.id },
+    create: {
+      keycloakId: 'mock-alumno-2',
+      email: 'martina.lopez@abacontex.com',
+      nombre: 'Martina',
+      apellido: 'López',
+      rolSistemaId: rolAlumno.idRol,
+    },
   });
 
-  console.log(`Alumno asignado correctamente a su único curso (${curso5toA.nombreCurso}).`);
-  console.log('Base de datos sembrada con éxito ');
+  console.log('Usuarios creados');
+
+  // =====================================================
+  // PROFESOR -> CURSOS
+  // =====================================================
+
+  await prisma.profesorCursos.upsert({
+    where: {
+      idCurso_idUsuario: {
+        idCurso: curso5toA.idCurso,
+        idUsuario: profesor.id,
+      },
+    },
+    update: {},
+    create: {
+      idCurso: curso5toA.idCurso,
+      idUsuario: profesor.id,
+    },
+  });
+
+  await prisma.profesorCursos.upsert({
+    where: {
+      idCurso_idUsuario: {
+        idCurso: curso6toB.idCurso,
+        idUsuario: profesor.id,
+      },
+    },
+    update: {},
+    create: {
+      idCurso: curso6toB.idCurso,
+      idUsuario: profesor.id,
+    },
+  });
+
+  console.log('Profesor asignado a cursos');
+
+  // =====================================================
+  // EMPRESAS
+  // =====================================================
+
+  const empresa5to = await prisma.empresa.upsert({
+    where: {
+      nombre: 'TechNova',
+    },
+    update: {},
+    create: {
+      nombre: 'TechNova',
+      puntos: 0,
+      idCurso: curso5toA.idCurso,
+      idCicloLectivo: ciclo2026.id,
+    },
+  });
+
+  const empresa6to = await prisma.empresa.upsert({
+    where: {
+      nombre: 'InnovaSoft',
+    },
+    update: {},
+    create: {
+      nombre: 'InnovaSoft',
+      puntos: 0,
+      idCurso: curso6toB.idCurso,
+      idCicloLectivo: ciclo2026.id,
+    },
+  });
+
+  console.log('Empresas creadas');
+
+  // =====================================================
+  // ALUMNOS
+  // =====================================================
+
+  await prisma.alumno.upsert({
+    where: {
+      id: usuarioAlumno1.id,
+    },
+    update: {},
+    create: {
+      id: usuarioAlumno1.id,
+      idCurso: curso5toA.idCurso,
+      idEmpresa: empresa5to.id,
+      idRolEmpresa: rolCEO.idRol,
+    },
+  });
+
+  await prisma.alumno.upsert({
+    where: {
+      id: usuarioAlumno2.id,
+    },
+    update: {},
+    create: {
+      id: usuarioAlumno2.id,
+      idCurso: curso6toB.idCurso,
+      idEmpresa: empresa6to.id,
+      idRolEmpresa: rolCOO.idRol,
+    },
+  });
+
+  console.log('Alumnos creados');
+
+  console.log('====================================');
+  console.log('Seed ejecutado correctamente');
+  console.log('====================================');
 }
 
 main()
   .catch(async (e) => {
-    console.error('Error ejecutando el seed:', e);
+    console.error(e);
     await prisma.$disconnect();
     process.exit(1);
   })

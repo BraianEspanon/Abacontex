@@ -7,49 +7,126 @@ datasource db {
 }
 
 model CicloLectivo {
-  id     Int     @id @default(autoincrement())
-  año   Int
+  id     Int @id @default(autoincrement())
+  año    Int
   activo Boolean @default(true)
+
+  empresas Empresa[]
 
   @@map("ciclo_lectivo")
 }
 
 model Usuario {
-  id           String          @id @default(uuid())
-  keycloakId   String          @unique
-  email        String          @unique
-  nombre       String
-  apellido     String
+  id String @id @default(uuid())
+
+  keycloakId String @unique
+  email       String @unique
+
+  nombre   String
+  apellido String
+
   rolSistemaId Int
-  cursos       UsuarioCursos[]
-  rolSistema   RolesSistema    @relation(fields: [rolSistemaId], references: [idRol])
+
+  rolSistema RolesSistema @relation(fields: [rolSistemaId], references: [idRol])
+
+  profesorCursos ProfesorCursos[]
+
+  alumno Alumno?
 
   @@map("usuarios")
 }
 
+model Alumno {
+  id String @id
+
+  usuario Usuario @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  idCurso Int
+  curso Curso @relation(fields: [idCurso], references: [idCurso])
+
+  idRolEmpresa Int?
+  rolEmpresa RolesEmpresa? @relation(fields: [idRolEmpresa], references: [idRol])
+
+  idEmpresa Int?
+  empresa Empresa? @relation(fields: [idEmpresa], references: [id], onDelete: SetNull)
+
+  @@index([idCurso])
+  @@index([idEmpresa])
+  @@index([idRolEmpresa])
+
+  @@map("alumnos")
+}
+
 model Curso {
-  idCurso     Int             @id @default(autoincrement())
-  nombreCurso String          @unique
-  usuarios    UsuarioCursos[]
+  idCurso Int @id @default(autoincrement())
+
+  nombreCurso String @unique
+
+  alumnos Alumno[]
+
+  profesores ProfesorCursos[]
+
+  empresas Empresa[]
 
   @@map("cursos")
 }
 
-model UsuarioCursos {
-  idCurso   Int
+model ProfesorCursos {
+  idCurso Int
+
   idUsuario String
-  curso     Curso   @relation(fields: [idCurso], references: [idCurso], onDelete: Cascade)
-  usuario   Usuario @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+
+  curso Curso @relation(fields: [idCurso], references: [idCurso], onDelete: Cascade)
+
+  profesor Usuario @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
 
   @@id([idCurso, idUsuario])
-  @@map("usuario_cursos")
+
+  @@map("profesor_cursos")
 }
 
 model RolesSistema {
-  nombreRol   String    @unique
+  idRol Int @id @default(autoincrement())
+
+  nombreRol   String @unique
   descripcion String?
-  idRol       Int       @id @default(autoincrement())
-  usuarios    Usuario[]
+
+  usuarios Usuario[]
 
   @@map("roles_sistema")
+}
+
+model Empresa {
+  id Int @id @default(autoincrement())
+
+  nombre String @unique
+
+  puntos Int @default(0)
+
+  idCurso Int
+  curso Curso @relation(fields: [idCurso], references: [idCurso])
+
+  idCicloLectivo Int
+  cicloLectivo CicloLectivo @relation(fields: [idCicloLectivo], references: [id])
+
+  alumnos Alumno[]
+
+
+  @@index([idCurso])
+  @@index([idCicloLectivo])
+
+  @@map("empresas")
+}
+
+
+model RolesEmpresa {
+  idRol Int @id @default(autoincrement())
+
+  nombreRol String @unique
+
+  descripcion String?
+
+  alumnos Alumno[]
+
+  @@map("roles_empresa")
 }
