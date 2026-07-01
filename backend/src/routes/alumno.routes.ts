@@ -9,6 +9,12 @@ import { getAlumnoActual, completarRegistro } from '../controllers/alumno.contro
 
 const router = Router();
 router.get('/me', authenticate, requireRole(ROLES.ALUMNO), getAlumnoActual);
-router.patch('/me', authenticate, requireRole(ROLES.ALUMNO), validate(completarRegistroSchema), completarRegistro);
+router.patch(
+  '/me',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(completarRegistroSchema),
+  completarRegistro
+);
 
 export default router;

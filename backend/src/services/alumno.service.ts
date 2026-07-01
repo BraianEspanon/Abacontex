@@ -1,9 +1,7 @@
 import { prisma } from '../lib/prisma';
 import { AuthUser } from '../types/express';
 
-export async function getAlumnoActual(
-  user: AuthUser
-) {
+export async function getAlumnoActual(user: AuthUser) {
   const usuario = await prisma.usuario.findUnique({
     where: {
       keycloakId: user.keycloakId,
@@ -71,7 +69,6 @@ export async function completarRegistro(
     idRolEmpresa: number;
   }
 ) {
-
   const usuario = await prisma.usuario.findUnique({
     where: {
       keycloakId: user.keycloakId,
@@ -86,9 +83,7 @@ export async function completarRegistro(
   }
 
   if (usuario.alumno) {
-    throw new Error(
-      'El registro ya fue completado'
-    );
+    throw new Error('El registro ya fue completado');
   }
 
   const curso = await prisma.curso.findUnique({
@@ -101,28 +96,26 @@ export async function completarRegistro(
     throw new Error('Curso inexistente');
   }
 
-  const rolEmpresa =
-    await prisma.rolesEmpresa.findUnique({
-      where: {
-        idRol: data.idRolEmpresa,
-      },
-    });
-
-  if (!rolEmpresa) {
-    throw new Error(
-      'Rol de empresa inexistente'
-    );
-  }
-
-  return prisma.alumno.create({
-    data: {
-        id: usuario.id,
-        idCurso: data.idCurso,
-        idRolEmpresa: data.idRolEmpresa,
-    },
-    include: {
-        curso: true,
-        rolEmpresa: true,
+  const rolEmpresa = await prisma.rolesEmpresa.findUnique({
+    where: {
+      idRol: data.idRolEmpresa,
     },
   });
+
+  if (!rolEmpresa) {
+    throw new Error('Rol de empresa inexistente');
+  }
+
+  await prisma.alumno.create({
+    data: {
+      id: usuario.id,
+      idCurso: data.idCurso,
+      idRolEmpresa: data.idRolEmpresa,
+    },
+    include: {
+      curso: true,
+      rolEmpresa: true,
+    },
+  });
+  return getAlumnoActual(user);
 }
