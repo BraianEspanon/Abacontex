@@ -12,14 +12,31 @@ if (config.ENVIRONMENT === 'development') {
   window.keycloak = keycloak;
 }
 
+async function syncUsuario() {
+  await fetch(`${config.API_URL}/auth/sync-user`, {
+    method: 'POST',
+    headers: {
+    Authorization: `Bearer ${keycloak.token}`,
+    },
+  });
+}
+
 keycloak
   .init({
     onLoad: 'check-sso',
     checkLoginIframe: false,
   })
-  .then((authenticated) => {
+  .then(async (authenticated) => {
     console.log('Authenticated:', authenticated);
 
+    if (authenticated) {
+      try {
+        await syncUsuario();
+      } catch (error) {
+        console.error('Error syncing user', error);
+      }
+    }
+    
     ReactDOM.createRoot(document.getElementById('root')!).render(
       < QueryClientProvider client={queryClient}>
         <App />
