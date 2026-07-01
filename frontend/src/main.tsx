@@ -1,22 +1,12 @@
-/*
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
-*/
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App';
 import './index.css';
-
 import keycloak from './keycloak';
 import { config } from './config';
+
+const queryClient = new QueryClient();
 
 if (config.ENVIRONMENT === 'development') {
   window.keycloak = keycloak;
@@ -31,11 +21,17 @@ keycloak
     console.log('Authenticated:', authenticated);
 
     ReactDOM.createRoot(document.getElementById('root')!).render(
-      <React.StrictMode>
+      < QueryClientProvider client={queryClient}>
         <App />
-      </React.StrictMode>
+      </QueryClientProvider>
+      
+   
     );
   })
   .catch((error) => {
     console.error('Keycloak init failed', error);
   });
+
+
+
+
