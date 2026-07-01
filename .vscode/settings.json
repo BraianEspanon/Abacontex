@@ -1,3 +1,5 @@
 {
-    "workbench.browser.openLocalhostLinks": false
+    "workbench.browser.openLocalhostLinks": false,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
