@@ -102,3 +102,25 @@ export async function crearUsuario(data: {
     throw error;
   }
 }
+
+export async function actualizarPassword(
+  user: AuthUser,
+  data: {
+    currentPassword: string;
+    newPassword: string;
+  }
+) {
+  const usuario = await prisma.usuario.findUnique({
+    where: {
+      keycloakId: user.keycloakId,
+    },
+  });
+
+  if (!usuario) {
+    throw new Error('Usuario inexistente');
+  }
+
+  await keycloakAdminService.verifyPassword(usuario.email, data.currentPassword);
+
+  await keycloakAdminService.updatePassword(user.keycloakId, data.newPassword);
+}

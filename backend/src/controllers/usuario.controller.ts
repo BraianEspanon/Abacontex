@@ -6,3 +6,9 @@ export const crearUsuario = async (req: Request, res: Response) => {
 
   res.status(201).json(usuario);
 };
+
+export async function actualizarPassword(req: Request, res: Response) {
+  await usuarioService.actualizarPassword(req.user!, req.body);
+
+  res.status(204).send();
+}
