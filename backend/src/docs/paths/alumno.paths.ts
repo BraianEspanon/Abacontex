@@ -30,7 +30,44 @@
  *       403:
  *         description: El usuario no posee el rol ALUMNO.
  *
+ *   patch:
+ *     summary: Actualizar perfil del alumno
+ *     description: |
+ *       Permite modificar los datos personales del alumno autenticado.
+ *       Actualmente pueden actualizarse el nombre, apellido y el rol
+ *       dentro de la empresa.
  *
+ *     tags:
+ *       - Alumnos
+ *
+ *     security:
+ *       - bearerAuth: []
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ActualizarPerfilRequest'
+ *
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AlumnoActual'
+ *
+ *       400:
+ *         description: Datos inválidos.
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ *       403:
+ *         description: El usuario no posee el rol ALUMNO.
+ *
+ * /alumnos/me/registro:
  *   patch:
  *     summary: Completar registro del alumno
  *     description: |
@@ -52,11 +89,11 @@
  *
  *     responses:
  *       200:
- *           description: Registro completado correctamente.
- *           content:
+ *         description: Registro completado correctamente.
+ *         content:
  *           application/json:
- *               schema:
- *                 $ref: '#/components/schemas/AlumnoActual'
+ *             schema:
+ *               $ref: '#/components/schemas/AlumnoActual'
  *
  *       400:
  *         description: Datos inválidos.

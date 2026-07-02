@@ -80,4 +80,21 @@
  *             nombre:
  *               type: string
  *               example: Abacontex S.A.
+ *
+ *     ActualizarPerfilRequest:
+ *       type: object
+ *       required:
+ *         - nombre
+ *         - apellido
+ *         - idRolEmpresa
+ *       properties:
+ *         nombre:
+ *           type: string
+ *           example: Juan
+ *         apellido:
+ *           type: string
+ *           example: Pérez
+ *         idRolEmpresa:
+ *           type: integer
+ *           example: 2
  */

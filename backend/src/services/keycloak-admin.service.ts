@@ -179,3 +179,34 @@ export async function deleteUser(userId: string) {
     throw new Error(`No se pudo eliminar el usuario ${userId}`);
   }
 }
+
+export async function updateUser(
+  keycloakId: string,
+  data: {
+    firstName: string;
+    lastName: string;
+  }
+) {
+  const token = await getAdminToken();
+
+  const response = await fetch(
+    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${keycloakId}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        firstName: data.firstName,
+        lastName: data.lastName,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+
+    throw new Error(`No se pudo actualizar el usuario en Keycloak: ${error}`);
+  }
+}
