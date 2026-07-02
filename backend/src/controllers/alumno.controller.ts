@@ -12,9 +12,3 @@ export async function completarRegistro(req: Request, res: Response) {
 
   res.status(200).json(alumno);
 }
-
-export const actualizarPerfil = async (req: Request, res: Response) => {
-  const alumno = await alumnoService.actualizarPerfil(req.user!, req.body);
-
-  res.json(alumno);
-};

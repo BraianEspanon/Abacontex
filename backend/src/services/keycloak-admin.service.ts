@@ -212,17 +212,13 @@ export async function updateUser(
   }
 }
 
-export async function verifyPassword(
-  email: string,
-  password: string
-) {
+export async function verifyPassword(email: string, password: string) {
   const response = await fetch(
     `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
     {
       method: 'POST',
       headers: {
-        'Content-Type':
-          'application/x-www-form-urlencoded',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
         grant_type: 'password',
@@ -234,9 +230,7 @@ export async function verifyPassword(
   );
 
   if (!response.ok) {
-    throw new Error(
-      'La contraseña actual es incorrecta'
-    );
+    throw new Error('La contraseña actual es incorrecta');
   }
 }
 

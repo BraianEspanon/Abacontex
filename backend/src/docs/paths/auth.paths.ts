@@ -1,8 +1,13 @@
 /**
  * @openapi
- * /auth/me:
- *   get:
- *     summary: Obtener usuario autenticado
+ * /auth/sync-user:
+ *   post:
+ *     summary: Sincronizar usuario autenticado
+ *     description: |
+ *       Sincroniza el usuario autenticado en el sistema,
+ *       creando un registro en la base de datos si no existe.
+ *       Si el usuario ya existe, devuelve su información actual.
+ *
  *     tags:
  *       - Auth
  *
@@ -11,12 +16,12 @@
  *
  *     responses:
  *       200:
- *         description: Usuario autenticado
+ *         description: Usuario sincronizado correctamente
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UsuarioActual'
  *
  *       401:
- *         description: Token inválido
+ *         description: Token inválido o inexistente.
  */
