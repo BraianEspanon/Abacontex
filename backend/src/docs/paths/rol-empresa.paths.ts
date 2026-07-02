@@ -10,7 +10,7 @@
  *       - Roles de empresa
  *
  *     security:
- *       - bearerAuth: []
+ *       - oauth2: []
  *
  *     responses:
  *       200:

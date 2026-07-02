@@ -12,7 +12,7 @@
  *       - Usuarios
  *
  *     security:
- *       - bearerAuth: []
+ *       - oauth2: []
  *
  *     requestBody:
  *       required: true
@@ -49,7 +49,7 @@
  *       - Usuarios
  *
  *     security:
- *       - bearerAuth: []
+ *       - oauth2: []
  *
  *     responses:
  *       200:
@@ -75,7 +75,7 @@
  *       - Usuarios
  *
  *     security:
- *       - bearerAuth: []
+ *       - oauth2: []
  *
  *     requestBody:
  *       required: true
@@ -111,7 +111,7 @@
  *       - Usuarios
  *
  *     security:
- *       - bearerAuth: []
+ *       - oauth2: []
  *
  *     requestBody:
  *       required: true

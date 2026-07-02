@@ -45,17 +45,22 @@ export const swaggerSpec = swaggerJsdoc({
 
     components: {
       securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
+        oauth2: {
+          type: 'oauth2',
+          flows: {
+            authorizationCode: {
+              authorizationUrl: process.env.KEYCLOAK_ISSUER + '/protocol/openid-connect/auth',
+              tokenUrl: process.env.KEYCLOAK_ISSUER + '/protocol/openid-connect/token',
+              scopes: {},
+            },
+          },
         },
       },
     },
 
     security: [
       {
-        bearerAuth: [],
+        oauth2: [],
       },
     ],
   },

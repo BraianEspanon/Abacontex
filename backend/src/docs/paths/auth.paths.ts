@@ -12,7 +12,7 @@
  *       - Auth
  *
  *     security:
- *       - bearerAuth: []
+ *       - oauth2: []
  *
  *     responses:
  *       200:

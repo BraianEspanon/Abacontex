@@ -14,7 +14,7 @@
  *       - Alumnos
  *
  *     security:
- *       - bearerAuth: []
+ *       - oauth2: []
  *
  *     responses:
  *       200:
@@ -41,7 +41,7 @@
  *       - Alumnos
  *
  *     security:
- *       - bearerAuth: []
+ *       - oauth2: []
  *
  *     requestBody:
  *       required: true
