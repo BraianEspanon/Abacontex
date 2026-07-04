@@ -8,8 +8,6 @@ import alumnoRoutes from './routes/alumno.routes';
 import cursoRoutes from './routes/curso.routes';
 import rolEmpresaRoutes from './routes/rol-empresa.routes';
 
-import scalarDocs from './docs/scalar';
-
 const app = express();
 
 app.use(cors());
@@ -22,8 +20,10 @@ app.use('/alumnos', alumnoRoutes);
 app.use('/cursos', cursoRoutes);
 app.use('/roles-empresa', rolEmpresaRoutes);
 
-if (process.env.ENVIROMENT === 'development') {
-  app.use('/docs', scalarDocs);
+if (process.env.ENVIRONMENT === 'development') {
+  import('./docs/scalar').then(({ default: scalarDocs }) => {
+    app.use('/docs', scalarDocs);
+  });
 }
 
 export default app;
