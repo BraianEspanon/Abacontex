@@ -101,6 +101,10 @@ model Empresa {
 
   nombre String @unique
 
+  actividad String
+
+  logoUrl String?
+
   puntos Int @default(0)
 
   idCurso Int
@@ -110,7 +114,6 @@ model Empresa {
   cicloLectivo CicloLectivo @relation(fields: [idCicloLectivo], references: [id])
 
   alumnos Alumno[]
-
 
   @@index([idCurso])
   @@index([idCicloLectivo])
