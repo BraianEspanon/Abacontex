@@ -102,3 +102,60 @@ export async function crearUsuario(data: {
     throw error;
   }
 }
+
+export async function actualizarUsuarioActual(
+  user: AuthUser,
+  data: {
+    nombre: string;
+    apellido: string;
+  }
+) {
+  const usuario = await prisma.usuario.findUnique({
+    where: {
+      keycloakId: user.keycloakId,
+    },
+  });
+
+  if (!usuario) {
+    throw new Error('Usuario inexistente');
+  }
+
+  await keycloakAdminService.updateUser(user.keycloakId, {
+    firstName: data.nombre,
+    lastName: data.apellido,
+  });
+
+  await prisma.usuario.update({
+    where: {
+      keycloakId: user.keycloakId,
+    },
+    data: {
+      nombre: data.nombre,
+      apellido: data.apellido,
+    },
+  });
+
+  return getUsuarioActual(user);
+}
+
+export async function actualizarPassword(
+  user: AuthUser,
+  data: {
+    currentPassword: string;
+    newPassword: string;
+  }
+) {
+  const usuario = await prisma.usuario.findUnique({
+    where: {
+      keycloakId: user.keycloakId,
+    },
+  });
+
+  if (!usuario) {
+    throw new Error('Usuario inexistente');
+  }
+
+  await keycloakAdminService.verifyPassword(usuario.email, data.currentPassword);
+
+  await keycloakAdminService.updatePassword(user.keycloakId, data.newPassword);
+}

@@ -8,3 +8,13 @@ export const crearUsuarioSchema = z.object({
   password: z.string().min(8),
   rol: z.enum([ROLES.ADMIN, ROLES.DOCENTE, ROLES.ALUMNO]),
 });
+
+export const actualizarPasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8),
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: 'La nueva contraseña debe ser distinta a la actual',
+    path: ['newPassword'],
+  });

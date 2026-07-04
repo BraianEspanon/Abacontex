@@ -17,7 +17,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
+      ENVIRONMENT: ${VITE_ENVIRONMENT}
 
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
@@ -25,11 +25,13 @@ services:
 
       KEYCLOAK_ADMIN_CLIENT_ID: ${KEYCLOAK_ADMIN_CLIENT_ID}
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
-    
+      KEYCLOAK_FRONTEND_CLIENT_ID: ${KEYCLOAK_FRONTEND_CLIENT_ID}
+      KEYCLOAK_TESTING_CLIENT_ID: ${KEYCLOAK_TESTING_CLIENT_ID}
+
     depends_on:
       postgres:
         condition: service_healthy
-  
+
   frontend:
     build:
       context: ./frontend
@@ -49,7 +51,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-  
+
   postgres:
     image: postgres:17
     container_name: abacontex-postgres
@@ -66,7 +68,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
 
     ports:
       - "${POSTGRES_PORT}:5432"
@@ -88,7 +89,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HOSTNAME: ${KEYCLOAK_HOSTNAME}
       KC_HTTP_ENABLED: "true"
-        
+
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
 

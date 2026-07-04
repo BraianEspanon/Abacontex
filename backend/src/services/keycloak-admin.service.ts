@@ -3,6 +3,7 @@ import {
   KEYCLOAK_REALM,
   KEYCLOAK_ADMIN_CLIENT_ID,
   KEYCLOAK_ADMIN_CLIENT_SECRET,
+  KEYCLOAK_FRONTEND_CLIENT_ID,
 } from '../config/keycloak';
 import { KeycloakGroup } from '../types/keycloak';
 
@@ -177,5 +178,84 @@ export async function deleteUser(userId: string) {
 
   if (!response.ok) {
     throw new Error(`No se pudo eliminar el usuario ${userId}`);
+  }
+}
+
+export async function updateUser(
+  keycloakId: string,
+  data: {
+    firstName: string;
+    lastName: string;
+  }
+) {
+  const token = await getAdminToken();
+
+  const response = await fetch(
+    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${keycloakId}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        firstName: data.firstName,
+        lastName: data.lastName,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+
+    throw new Error(`No se pudo actualizar el usuario en Keycloak: ${error}`);
+  }
+}
+
+export async function verifyPassword(email: string, password: string) {
+  const response = await fetch(
+    `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'password',
+        client_id: KEYCLOAK_FRONTEND_CLIENT_ID,
+        username: email,
+        password,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('La contraseña actual es incorrecta');
+  }
+}
+
+export async function updatePassword(userId: string, newPassword: string) {
+  const token = await getAdminToken();
+
+  const response = await fetch(
+    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}/reset-password`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'password',
+        value: newPassword,
+        temporary: false,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+
+    throw new Error(`No se pudo actualizar la contraseña: ${error}`);
   }
 }
