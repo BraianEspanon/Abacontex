@@ -10,12 +10,12 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ReactKeycloakProvider 
+      <ReactKeycloakProvider
         authClient={keycloak}
-        initOptions={{ 
+        initOptions={{
           onLoad: 'check-sso',
           checkLoginIframe: false,
-          silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html'
+          silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
         }}
       >
         {/* ACÁ ESTÁ EL GPS ENCENDIDO */}

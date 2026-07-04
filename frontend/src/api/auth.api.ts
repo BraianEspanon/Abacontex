@@ -11,9 +11,9 @@ interface SetupPayload {
 
 export const setupUserAccount = async (data: SetupPayload) => {
   // Mandamos ambos datos al backend en una sola petición
-  const response = await axios.post(`${API_URL}/users/setup`, { 
+  const response = await axios.post(`${API_URL}/users/setup`, {
     role: data.roleId,
-    course: data.courseId
+    course: data.courseId,
   });
   return response.data;
 };

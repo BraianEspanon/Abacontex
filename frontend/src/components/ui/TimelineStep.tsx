@@ -1,14 +1,15 @@
-import type { TimelineStepProps } from "../../types/ui.types";
+import type { TimelineStepProps } from '../../types/ui.types';
 
 export default function TimelineStep({ number, title, icon, isLast = false }: TimelineStepProps) {
   return (
     <div className="relative flex flex-col items-center flex-1 group">
-      
       {/* --- LA LÍNEA HORIZONTAL --- */}
-      
+
       {!isLast && (
-        <div className="hidden lg:block absolute top-6 left-1/2 w-full h-0.5 bg-linear-to-r from-abacontext-light-bg
-         to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-300 z-0" />
+        <div
+          className="hidden lg:block absolute top-6 left-1/2 w-full h-0.5 bg-linear-to-r from-abacontext-light-bg
+         to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-300 z-0"
+        />
       )}
 
       {/* --- EL NODO (CÍRCULO CON NÚMERO) --- */}
@@ -18,14 +19,13 @@ export default function TimelineStep({ number, title, icon, isLast = false }: Ti
 
       {/* --- LA TARJETA  --- */}
       <div className="relative z-10 p-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-abacontex-primary-two flex flex-col items-center justify-center gap-4 text-center w-full max-w-50 cursor-default">
-            <div className="p-4 bg-abacontex-light text-abacontex-primary rounded-2xl transition-colors duration-300 group-hover:bg-abacontex-primary group-hover:text-white">
-            {icon}
-            </div>
-            <h3 className="font-heading text-lg font-bold text-abacontext-light-bg leading-tight">
-            {title}
-            </h3>
+        <div className="p-4 bg-abacontex-light text-abacontex-primary rounded-2xl transition-colors duration-300 group-hover:bg-abacontex-primary group-hover:text-white">
+          {icon}
+        </div>
+        <h3 className="font-heading text-lg font-bold text-abacontext-light-bg leading-tight">
+          {title}
+        </h3>
       </div>
-      
     </div>
   );
 }

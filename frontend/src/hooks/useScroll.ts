@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 // Le pasamos un "umbral" por defecto de 20px
 export function useScroll(umbral: number = 20) {

@@ -1,33 +1,29 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
 html {
   scroll-behavior: smooth;
 }
 
-
 @theme {
-
   /* --- PALETAS DE COLORES --- */
 
-  --color-abacontex-dark: #1A1F1A;
-  --color-abacontex-primary: #3A5137;
-  --color-abacontex-light: #F8F6F2;
-  --color-abacontex-primary-two: #4E6B4A;
-  --color-abacontex-primary-three: #6A8F65;
-  --color-abacontex-secondary: #5B4636;
-  --color-abacontex-secondary-two: #8A6A52;
-  --color-abacontex-gray-text: #6B7280;
-  --color-abacontex-black-text: #2C2C2C;
-  --color-abacontext-light-bg: #F3F1EF; 
+  --color-abacontex-dark: #1a1f1a;
+  --color-abacontex-primary: #3a5137;
+  --color-abacontex-light: #f8f6f2;
+  --color-abacontex-primary-two: #4e6b4a;
+  --color-abacontex-primary-three: #6a8f65;
+  --color-abacontex-secondary: #5b4636;
+  --color-abacontex-secondary-two: #8a6a52;
+  --color-abacontex-gray-text: #6b7280;
+  --color-abacontex-black-text: #2c2c2c;
+  --color-abacontext-light-bg: #f3f1ef;
 
   /* --- TIPOGRAFÍAS --- */
 
   /* El cuerpo de la página (textos, botones, menú) usará Outfit */
   --font-sans: 'Outfit', sans-serif;
-  
+
   /* Los títulos usarán Playfair Display */
   --font-heading: 'Playfair Display', serif;
-
 }
-

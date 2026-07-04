@@ -1,2 +1,2 @@
 /// <reference types="vite/client" />
-declare module '@react-keycloak/web'
+declare module '@react-keycloak/web';
