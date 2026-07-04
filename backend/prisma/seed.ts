@@ -253,9 +253,14 @@ async function main() {
     where: {
       nombre: 'TechNova',
     },
-    update: {},
+    update: {
+      actividad: 'Desarrollo y comercialización de soluciones tecnológicas',
+      logoUrl: null,
+    },
     create: {
       nombre: 'TechNova',
+      actividad: 'Desarrollo y comercialización de soluciones tecnológicas',
+      logoUrl: null,
       puntos: 0,
       idCurso: curso5toA.idCurso,
       idCicloLectivo: ciclo2026.id,
@@ -266,9 +271,14 @@ async function main() {
     where: {
       nombre: 'InnovaSoft',
     },
-    update: {},
+    update: {
+      actividad: 'Producción y venta de software educativo',
+      logoUrl: null,
+    },
     create: {
       nombre: 'InnovaSoft',
+      actividad: 'Producción y venta de software educativo',
+      logoUrl: null,
       puntos: 0,
       idCurso: curso6toB.idCurso,
       idCicloLectivo: ciclo2026.id,
