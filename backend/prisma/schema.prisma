@@ -7,8 +7,8 @@ datasource db {
 }
 
 model CicloLectivo {
-  id     Int @id @default(autoincrement())
-  año    Int
+  id     Int     @id @default(autoincrement())
+  año   Int
   activo Boolean @default(true)
 
   empresas Empresa[]
@@ -20,7 +20,7 @@ model Usuario {
   id String @id @default(uuid())
 
   keycloakId String @unique
-  email       String @unique
+  email      String @unique
 
   nombre   String
   apellido String
@@ -29,9 +29,14 @@ model Usuario {
 
   rolSistema RolesSistema @relation(fields: [rolSistemaId], references: [idRol])
 
+  fotoPerfilUrl String?
+
+  fechaAlta DateTime @default(now())
+
   profesorCursos ProfesorCursos[]
 
-  alumno Alumno?
+  alumno    Alumno?
+  auditLogs AuditLog[]
 
   @@map("usuarios")
 }
@@ -42,18 +47,19 @@ model Alumno {
   usuario Usuario @relation(fields: [id], references: [id], onDelete: Cascade)
 
   idCurso Int
-  curso Curso @relation(fields: [idCurso], references: [idCurso])
+  curso   Curso @relation(fields: [idCurso], references: [idCurso])
 
   idRolEmpresa Int?
-  rolEmpresa RolesEmpresa? @relation(fields: [idRolEmpresa], references: [idRol])
+  rolEmpresa   RolesEmpresa? @relation(fields: [idRolEmpresa], references: [idRol])
 
   idEmpresa Int?
-  empresa Empresa? @relation(fields: [idEmpresa], references: [id], onDelete: SetNull)
+  empresa   Empresa? @relation(fields: [idEmpresa], references: [id], onDelete: SetNull)
+
+  auditLogs AuditLog[]
 
   @@index([idCurso])
   @@index([idEmpresa])
   @@index([idRolEmpresa])
-
   @@map("alumnos")
 }
 
@@ -81,14 +87,13 @@ model ProfesorCursos {
   profesor Usuario @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
 
   @@id([idCurso, idUsuario])
-
   @@map("profesor_cursos")
 }
 
 model RolesSistema {
   idRol Int @id @default(autoincrement())
 
-  nombreRol   String @unique
+  nombreRol   String  @unique
   descripcion String?
 
   usuarios Usuario[]
@@ -108,19 +113,18 @@ model Empresa {
   puntos Int @default(0)
 
   idCurso Int
-  curso Curso @relation(fields: [idCurso], references: [idCurso])
+  curso   Curso @relation(fields: [idCurso], references: [idCurso])
 
   idCicloLectivo Int
-  cicloLectivo CicloLectivo @relation(fields: [idCicloLectivo], references: [id])
+  cicloLectivo   CicloLectivo @relation(fields: [idCicloLectivo], references: [id])
 
-  alumnos Alumno[]
+  alumnos   Alumno[]
+  auditLogs AuditLog[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
-
   @@map("empresas")
 }
-
 
 model RolesEmpresa {
   idRol Int @id @default(autoincrement())
@@ -132,4 +136,36 @@ model RolesEmpresa {
   alumnos Alumno[]
 
   @@map("roles_empresa")
+}
+
+model AuditLog {
+  id Int @id @default(autoincrement())
+
+  createdAt DateTime @default(now())
+
+  performedById String
+  performedBy   Usuario @relation(fields: [performedById], references: [id])
+
+  action String
+
+  entity   String
+  entityId String
+
+  empresaId Int?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  alumnoId String?
+  alumno   Alumno? @relation(fields: [alumnoId], references: [id], onDelete: SetNull)
+
+  oldValues Json?
+  newValues Json?
+
+  description String?
+
+  @@index([performedById])
+  @@index([empresaId])
+  @@index([alumnoId])
+  @@index([createdAt])
+  @@index([entity, entityId])
+  @@map("audit_logs")
 }
