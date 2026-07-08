@@ -3,6 +3,7 @@ import { AuthUser } from '../types/express';
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as empresaRepository from '../repositories/empresa.repository';
+import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
 
 export async function crearEmpresa(
   user: AuthUser,
@@ -187,7 +188,7 @@ export async function agregarParticipantes(user: AuthUser, participantes: string
   }
 
   if (!usuario.alumno.idEmpresa) {
-    throw new Error('El alumno no pertenece a una empresa');
+    throw new Error('El alumno (CEO) no pertenece a una empresa');
   }
 
   if (usuario.alumno.rolEmpresa?.nombreRol !== 'CEO') {
@@ -212,7 +213,138 @@ export async function agregarParticipantes(user: AuthUser, participantes: string
     if (alumno.idEmpresa) {
       throw new Error('Uno o más alumnos ya pertenecen a una empresa');
     }
+
+    if (alumno.rolEmpresa?.nombreRol === 'CEO') {
+      throw new Error('No es posible agregar un Director Ejecutivo a una empresa');
+    }
   }
 
   await alumnoRepository.agregarAEmpresa(ids, usuario.alumno.idEmpresa!);
+}
+
+export async function cambiarRolParticipante(
+  user: AuthUser,
+  idAlumno: string,
+  idRolEmpresa: number
+) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithRolEmpresa(user.keycloakId);
+
+  if (!usuario) {
+    throw new Error('Usuario inexistente');
+  }
+
+  if (!usuario.alumno) {
+    throw new Error('El usuario no completó el registro');
+  }
+
+  if (!usuario.alumno.idEmpresa) {
+    throw new Error('El alumno no pertenece a una empresa');
+  }
+
+  if (usuario.alumno.rolEmpresa?.nombreRol !== 'CEO') {
+    throw new Error('Solo un Director Ejecutivo puede modificar roles');
+  }
+
+  const alumno = await alumnoRepository.findByIdWithEmpresaRol(idAlumno);
+
+  if (!alumno) {
+    throw new Error('Alumno inexistente');
+  }
+
+  if (alumno.idEmpresa !== usuario.alumno.idEmpresa) {
+    throw new Error('El alumno no pertenece a la empresa');
+  }
+
+  if (alumno.id === usuario.alumno.id) {
+    throw new Error('No puede modificar su propio rol');
+  }
+
+  if (idRolEmpresa === usuario.alumno.idRolEmpresa) {
+    throw new Error('El Director Ejecutivo no puede asignar el rol CEO');
+  }
+
+  await alumnoRepository.updateRolEmpresa(alumno.id, idRolEmpresa);
+}
+
+export async function modificarRolesEmpresa(
+  user: AuthUser,
+  idEmpresa: number,
+  roles: {
+    idAlumno: string;
+    idRolEmpresa: number;
+  }[]
+) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithProfesorCursos(user.keycloakId);
+
+  if (!usuario) {
+    throw new Error('Usuario inexistente');
+  }
+
+  const empresa = await empresaRepository.findByIdWithAlumnos(idEmpresa);
+
+  if (!empresa) {
+    throw new Error('Empresa inexistente');
+  }
+
+  const dictaCurso = usuario.profesorCursos.some(
+    (profesorCurso) => profesorCurso.idCurso === empresa.idCurso
+  );
+
+  if (!dictaCurso) {
+    throw new Error('El docente no tiene permisos para modificar esta empresa');
+  }
+
+  // Deben enviarse todos los integrantes de la empresa
+  if (roles.length !== empresa.alumnos.length) {
+    throw new Error('Debe enviarse el rol de todos los integrantes de la empresa');
+  }
+
+  // No puede haber alumnos repetidos
+  const idsRecibidos = roles.map((rol) => rol.idAlumno);
+
+  if (new Set(idsRecibidos).size !== idsRecibidos.length) {
+    throw new Error('Hay alumnos repetidos en la solicitud');
+  }
+
+  // Todos los alumnos deben pertenecer a la empresa
+  const idsEmpresa = empresa.alumnos.map((alumno) => alumno.id);
+
+  for (const idAlumno of idsRecibidos) {
+    if (!idsEmpresa.includes(idAlumno)) {
+      throw new Error('Se intentó modificar un alumno que no pertenece a la empresa');
+    }
+  }
+
+  // Verificar que no falte ningún integrante
+  for (const idAlumno of idsEmpresa) {
+    if (!idsRecibidos.includes(idAlumno)) {
+      throw new Error('Debe enviarse el rol de todos los integrantes de la empresa');
+    }
+  }
+
+  // Validar roles existentes
+  const rolesEmpresa = await rolEmpresaRepository.findAll();
+
+  const idsRoles = rolesEmpresa.map((rol) => rol.idRol);
+
+  for (const rol of roles) {
+    if (!idsRoles.includes(rol.idRolEmpresa)) {
+      throw new Error('Rol de empresa inexistente');
+    }
+  }
+
+  // Debe quedar exactamente un CEO
+  const rolCEO = rolesEmpresa.find((rol) => rol.nombreRol === 'CEO');
+
+  if (!rolCEO) {
+    throw new Error('Rol CEO inexistente');
+  }
+
+  const cantidadCEO = roles.filter((rol) => rol.idRolEmpresa === rolCEO.idRol).length;
+
+  if (cantidadCEO !== 1) {
+    throw new Error('La empresa debe tener exactamente un Director Ejecutivo');
+  }
+
+  await alumnoRepository.updateRoles(roles);
 }

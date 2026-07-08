@@ -66,3 +66,14 @@ export async function findByKeycloakIdWithEmpresaFull(keycloakId: string) {
     },
   });
 }
+
+export async function findByKeycloakIdWithProfesorCursos(keycloakId: string) {
+  return prisma.usuario.findUnique({
+    where: {
+      keycloakId,
+    },
+    include: {
+      profesorCursos: true,
+    },
+  });
+}

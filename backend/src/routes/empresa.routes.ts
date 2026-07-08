@@ -9,12 +9,19 @@ import { ROLES } from '../constants/roles';
 import {
   actualizarEmpresa,
   agregarParticipantes,
+  cambiarRolParticipante,
   crearEmpresa,
   getCandidatos,
   getEmpresaActual,
+  modificarRolesEmpresa,
 } from '../controllers/empresa.controller';
 
-import { agregarParticipantesSchema, crearEmpresaSchema } from '../validators/empresa.validator';
+import {
+  agregarParticipantesSchema,
+  cambiarRolParticipanteSchema,
+  crearEmpresaSchema,
+  modificarRolesEmpresaSchema,
+} from '../validators/empresa.validator';
 
 const router = Router();
 
@@ -46,4 +53,19 @@ router.post(
   agregarParticipantes
 );
 
+router.patch(
+  '/me/participantes/:idAlumno/rol',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(cambiarRolParticipanteSchema),
+  cambiarRolParticipante
+);
+
+router.patch(
+  '/:idEmpresa/roles',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(modificarRolesEmpresaSchema),
+  modificarRolesEmpresa
+);
 export default router;

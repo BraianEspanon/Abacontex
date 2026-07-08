@@ -58,3 +58,14 @@ export async function create(
     return empresa;
   });
 }
+
+export async function findByIdWithAlumnos(idEmpresa: number) {
+  return prisma.empresa.findUnique({
+    where: {
+      id: idEmpresa,
+    },
+    include: {
+      alumnos: true,
+    },
+  });
+}

@@ -11,6 +11,12 @@ export async function findCandidatos(idCurso: number, idUsuario: string, search?
         id: idUsuario,
       },
 
+      rolEmpresa: {
+        nombreRol: {
+          not: 'CEO',
+        },
+      },
+
       ...(search
         ? {
             usuario: {
@@ -53,6 +59,10 @@ export async function findByIds(ids: string[]) {
         in: ids,
       },
     },
+    include: {
+      usuario: true,
+      rolEmpresa: true,
+    },
   });
 }
 
@@ -67,4 +77,47 @@ export async function agregarAEmpresa(ids: string[], idEmpresa: number) {
       idEmpresa,
     },
   });
+}
+
+export async function findByIdWithEmpresaRol(id: string) {
+  return prisma.alumno.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      empresa: true,
+      rolEmpresa: true,
+    },
+  });
+}
+
+export async function updateRolEmpresa(id: string, idRolEmpresa: number) {
+  return prisma.alumno.update({
+    where: {
+      id,
+    },
+    data: {
+      idRolEmpresa,
+    },
+  });
+}
+
+export async function updateRoles(
+  roles: {
+    idAlumno: string;
+    idRolEmpresa: number;
+  }[]
+) {
+  return prisma.$transaction(
+    roles.map((rol) =>
+      prisma.alumno.update({
+        where: {
+          id: rol.idAlumno,
+        },
+        data: {
+          idRolEmpresa: rol.idRolEmpresa,
+        },
+      })
+    )
+  );
 }
