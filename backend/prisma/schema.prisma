@@ -33,7 +33,8 @@ model Usuario {
 
   fechaAlta DateTime @default(now())
 
-  profesorCursos ProfesorCursos[]
+  profesorCursos         ProfesorCursos[]
+  movimientosFinancieros MovimientoFinanciero[]
 
   alumno    Alumno?
   auditLogs AuditLog[]
@@ -118,8 +119,9 @@ model Empresa {
   idCicloLectivo Int
   cicloLectivo   CicloLectivo @relation(fields: [idCicloLectivo], references: [id])
 
-  alumnos   Alumno[]
-  auditLogs AuditLog[]
+  alumnos                Alumno[]
+  movimientosFinancieros MovimientoFinanciero[]
+  auditLogs              AuditLog[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
@@ -168,4 +170,82 @@ model AuditLog {
   @@index([createdAt])
   @@index([entity, entityId])
   @@map("audit_logs")
+}
+
+model MovimientoFinanciero {
+  idMovimiento Int @id @default(autoincrement())
+
+  idEmpresa Int
+  empresa   Empresa @relation(fields: [idEmpresa], references: [id])
+
+  idUsuario String
+  usuario   Usuario @relation(fields: [idUsuario], references: [id])
+
+  idCategoria Int
+  categoria   CategoriaMovimiento @relation(fields: [idCategoria], references: [idCategoria])
+
+  idMetodoPago Int
+  metodoPago   MetodoPago @relation(fields: [idMetodoPago], references: [idMetodoPago])
+
+  idEstado Int
+  estado   EstadoMovimiento @relation(fields: [idEstado], references: [idEstado])
+
+  fecha         DateTime @default(now())
+  concepto      String
+  importe       Decimal  @db.Decimal(14, 2)
+  esAutomatico  Boolean  @default(false)
+  observaciones String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([idEmpresa])
+  @@index([idUsuario])
+  @@index([idCategoria])
+  @@index([idMetodoPago])
+  @@index([idEstado])
+  @@index([fecha])
+  @@map("movimientos_financieros")
+}
+
+model TipoMovimiento {
+  idTipoMovimiento Int    @id @default(autoincrement())
+  nombre           String @unique
+
+  categorias CategoriaMovimiento[]
+
+  @@map("tipos_movimiento")
+}
+
+model CategoriaMovimiento {
+  idCategoria Int @id @default(autoincrement())
+
+  nombre      String
+  descripcion String?
+
+  idTipoMovimiento Int
+  tipoMovimiento   TipoMovimiento @relation(fields: [idTipoMovimiento], references: [idTipoMovimiento])
+
+  movimientos MovimientoFinanciero[]
+
+  @@index([idTipoMovimiento])
+  @@map("categorias_movimiento")
+}
+
+model MetodoPago {
+  idMetodoPago Int    @id @default(autoincrement())
+  nombre       String @unique
+
+  movimientos MovimientoFinanciero[]
+
+  @@map("metodos_pago")
+}
+
+model EstadoMovimiento {
+  idEstado Int    @id @default(autoincrement())
+  nombre   String @unique
+
+  movimientos MovimientoFinanciero[]
+
+  @@map("estados_movimiento")
 }

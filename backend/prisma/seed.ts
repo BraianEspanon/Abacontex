@@ -319,6 +319,41 @@ async function main() {
 
   console.log('Alumnos creados');
 
+  await prisma.tipoMovimiento.createMany({
+    data: [{ nombre: 'INGRESO' }, { nombre: 'EGRESO' }],
+    skipDuplicates: true,
+  });
+
+  await prisma.estadoMovimiento.createMany({
+    data: [{ nombre: 'REGISTRADO' }, { nombre: 'ANULADO' }],
+    skipDuplicates: true,
+  });
+
+  await prisma.metodoPago.createMany({
+    data: [{ nombre: 'EFECTIVO' }, { nombre: 'TRANSFERENCIA' }, { nombre: 'TARJETA' }],
+    skipDuplicates: true,
+  });
+
+  const ingreso = await prisma.tipoMovimiento.findUnique({
+    where: { nombre: 'INGRESO' },
+  });
+
+  const egreso = await prisma.tipoMovimiento.findUnique({
+    where: { nombre: 'EGRESO' },
+  });
+
+  if (ingreso && egreso) {
+    await prisma.categoriaMovimiento.createMany({
+      data: [
+        { nombre: 'VENTA', idTipoMovimiento: ingreso.idTipoMovimiento },
+        { nombre: 'APORTE CAPITAL', idTipoMovimiento: ingreso.idTipoMovimiento },
+        { nombre: 'COMPRA INSUMOS', idTipoMovimiento: egreso.idTipoMovimiento },
+        { nombre: 'GASTO OPERATIVO', idTipoMovimiento: egreso.idTipoMovimiento },
+      ],
+      skipDuplicates: true,
+    });
+  }
+
   console.log('====================================');
   console.log('Seed ejecutado correctamente');
   console.log('====================================');
