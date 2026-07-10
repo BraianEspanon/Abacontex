@@ -1,7 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodObject } from 'zod';
+import { z, ZodObject, ZodRawShape } from 'zod';
 
-export function validate(schema: ZodObject<any, any>) {
+type RequestSchema = {
+  body?: unknown;
+  params?: unknown;
+  query?: unknown;
+};
+
+export function validate<
+  TShape extends ZodRawShape,
+  TOutput extends RequestSchema = z.output<ZodObject<TShape>>,
+>(schema: ZodObject<TShape>) {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse({
       body: req.body,
@@ -16,10 +25,18 @@ export function validate(schema: ZodObject<any, any>) {
       });
     }
 
-    req.body = result.data.body;
-    req.params = result.data.params as typeof req.params;
-    if (result.data.query) {
-      Object.assign(req.query, result.data.query);
+    const data = result.data as TOutput;
+
+    if (data.body !== undefined) {
+      req.body = data.body;
+    }
+
+    if (data.params !== undefined) {
+      req.params = data.params as typeof req.params;
+    }
+
+    if (data.query !== undefined) {
+      Object.assign(req.query, data.query);
     }
 
     next();
