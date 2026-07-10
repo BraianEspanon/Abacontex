@@ -151,6 +151,10 @@ export async function getCandidatos(user: AuthUser, search?: string) {
     throw new Error('El usuario no completó el registro');
   }
 
+  if (!usuario.alumno.idEmpresa) {
+    throw new Error('El alumno no pertenece a una empresa');
+  }
+
   const alumnos = await alumnoRepository.findCandidatos(usuario.alumno.idCurso, usuario.id, search);
 
   return alumnos.map((alumno) => ({
