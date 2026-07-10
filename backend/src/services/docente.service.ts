@@ -1,9 +1,10 @@
-import { prisma } from '../lib/prisma';
 import * as keycloakAdminService from './keycloak-admin.service';
-import { ROLES } from '../constants/roles';
 import * as rolSistemaRepository from '../repositories/rol-sistema.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
+
+import { ROLES } from '../constants/roles';
+import { AuthUser } from '../types/express';
 
 export async function crearDocente(data: {
   nombre: string;
@@ -66,4 +67,23 @@ export async function crearDocente(data: {
 
     throw error;
   }
+}
+
+export async function obtenerDocenteActual(user: AuthUser) {
+  const docente = await docenteRepository.findByKeycloakId(user.keycloakId);
+
+  if (!docente) {
+    throw new Error('Docente no encontrado');
+  }
+
+  return {
+    id: docente.id,
+    nombre: docente.nombre,
+    apellido: docente.apellido,
+    email: docente.email,
+    cursos: docente.profesorCursos.map((p) => ({
+      id: p.curso.idCurso,
+      nombre: p.curso.nombreCurso,
+    })),
+  };
 }

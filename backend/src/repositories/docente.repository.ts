@@ -29,3 +29,28 @@ export async function crearDocente(
     return usuario;
   });
 }
+
+export async function findByKeycloakId(keycloakId: string) {
+  return prisma.usuario.findUnique({
+    where: {
+      keycloakId,
+    },
+    select: {
+      id: true,
+      nombre: true,
+      apellido: true,
+      email: true,
+
+      profesorCursos: {
+        select: {
+          curso: {
+            select: {
+              idCurso: true,
+              nombreCurso: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
