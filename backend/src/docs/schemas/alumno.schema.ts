@@ -69,6 +69,10 @@
  *             nombre:
  *               type: string
  *               example: COO
+ *             descripcion:
+ *               type: string
+ *               nullable: true
+ *               example: Rol de empresa para coordinadores
  *
  *         empresa:
  *           nullable: true

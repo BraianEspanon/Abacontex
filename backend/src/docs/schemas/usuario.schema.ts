@@ -17,6 +17,12 @@
  *           type: string
  *         apellido:
  *           type: string
+ *         fotoPerfilUrl:
+ *           type: string
+ *           nullable: true
+ *         fechaAlta:
+ *           type: string
+ *           format: date-time
  *         rolSistema:
  *           type: object
  *           properties:
@@ -24,11 +30,33 @@
  *               type: integer
  *             nombreRol:
  *               type: string
- *         cursos:
- *           type: array
- *           items:
- *             type: object
+ *             descripcion:
+ *               type: string
+ *               nullable: true
  *
+ *     UsuarioSincronizado:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         keycloakId:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         nombre:
+ *           type: string
+ *         apellido:
+ *           type: string
+ *         rolSistemaId:
+ *           type: integer
+ *         fotoPerfilUrl:
+ *           type: string
+ *           nullable: true
+ *         fechaAlta:
+ *           type: string
+ *           format: date-time
  *
  *     UsuarioCrearRequest:
  *       type: object
