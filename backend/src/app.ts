@@ -7,6 +7,7 @@ import usuarioRoutes from './routes/usuario.routes';
 import alumnoRoutes from './routes/alumno.routes';
 import cursoRoutes from './routes/curso.routes';
 import rolEmpresaRoutes from './routes/rol-empresa.routes';
+import empresaRoutes from './routes/empresa.routes';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/usuarios', usuarioRoutes);
 app.use('/alumnos', alumnoRoutes);
 app.use('/cursos', cursoRoutes);
 app.use('/roles-empresa', rolEmpresaRoutes);
+app.use('/empresas', empresaRoutes);
 
 if (process.env.ENVIRONMENT === 'development') {
   import('./docs/scalar').then(({ default: scalarDocs }) => {
