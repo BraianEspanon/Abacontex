@@ -5,6 +5,7 @@ import * as docenteRepository from '../repositories/docente.repository';
 
 import { ROLES } from '../constants/roles';
 import { AuthUser } from '../types/express';
+import { DashboardDocenteDTO } from '../dto/docente-dashboard.dto';
 
 export async function crearDocente(data: {
   nombre: string;
@@ -85,5 +86,33 @@ export async function obtenerDocenteActual(user: AuthUser) {
       id: p.curso.idCurso,
       nombre: p.curso.nombreCurso,
     })),
+  };
+}
+
+export async function obtenerDashboard(user: AuthUser, filtros: any): Promise<DashboardDocenteDTO> {
+  return {
+    resumen: {
+      cursosActivos: 0,
+
+      empresasActivas: 0,
+
+      alumnos: 0,
+
+      ejerciciosPendientes: 0,
+
+      puntajePromedio: null,
+    },
+
+    actividadReciente: [],
+
+    alumnosRiesgo: [],
+
+    ranking: [],
+
+    participacion: [],
+
+    correcciones: [],
+
+    alertas: [],
   };
 }
