@@ -20,9 +20,11 @@ import {
   EvolucionPuntajeDTO,
 } from '../dto/docente-dashboard.dto';
 import { CursoDocenteDTO } from '../dto/docente-curso.dto';
-import { EmpresaDocenteFiltrosDTO } from '../validators/docente.validator';
+import { AlumnoDocenteFiltrosDTO, EmpresaDocenteFiltrosDTO } from '../validators/docente.validator';
 import { EmpresaDetalleDocenteDTO } from '../dto/docente-empresa-detalle.dto';
 import { EmpresasDocenteResponseDTO } from '../dto/docente-empresas-response.dto';
+import { AlumnosDocenteResponseDTO } from '../dto/docente/doc-alumno.dto';
+
 export async function crearDocente(data: {
   nombre: string;
   apellido: string;
@@ -320,6 +322,52 @@ export async function obtenerDetalleEmpresaDocente(
       apellido: alumno.usuario.apellido,
       email: alumno.usuario.email,
       rolEmpresa: alumno.rolEmpresa?.nombreRol ?? null,
+    })),
+  };
+}
+
+export async function obtenerAlumnos(
+  user: AuthUser,
+  filtros: AlumnoDocenteFiltrosDTO
+): Promise<AlumnosDocenteResponseDTO> {
+  const { resumen, totalItems, items } = await alumnoRepository.findByDocente(
+    user.keycloakId,
+    filtros
+  );
+
+  return {
+    resumen,
+
+    totalItems,
+
+    page: filtros.page,
+
+    pageSize: filtros.pageSize,
+
+    totalPages: Math.ceil(totalItems / filtros.pageSize),
+
+    items: items.map((alumno) => ({
+      id: alumno.usuario.id,
+
+      fotoPerfilUrl: alumno.usuario.fotoPerfilUrl,
+
+      nombre: alumno.usuario.nombre,
+
+      apellido: alumno.usuario.apellido,
+
+      email: alumno.usuario.email,
+
+      curso: alumno.curso.nombreCurso,
+
+      empresa: alumno.empresa?.nombre ?? null,
+
+      participacion: null,
+
+      ejerciciosRealizados: null,
+
+      ultimaActividad: null,
+
+      estado: null,
     })),
   };
 }

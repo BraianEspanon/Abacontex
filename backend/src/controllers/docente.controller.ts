@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as docenteService from '../services/docente.service';
 import {
   EmpresaDocenteFiltrosDTO,
+  obtenerAlumnosSchema,
   obtenerEmpresaSchema,
   obtenerEmpresasSchema,
 } from '../validators/docente.validator';
@@ -48,4 +49,14 @@ export async function obtenerDetalleEmpresaDocente(req: Request, res: Response) 
   const empresa = await docenteService.obtenerDetalleEmpresaDocente(req.user!, params.empresaId);
 
   res.json(empresa);
+}
+
+export async function obtenerAlumnos(req: Request, res: Response) {
+  const { query: filtros } = obtenerAlumnosSchema.parse({
+    query: req.query,
+  });
+
+  const alumnos = await docenteService.obtenerAlumnos(req.user!, filtros);
+
+  res.json(alumnos);
 }

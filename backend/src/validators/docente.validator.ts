@@ -33,3 +33,19 @@ export const obtenerEmpresaSchema = z.object({
     empresaId: z.coerce.number().int().positive(),
   }),
 });
+
+export const obtenerAlumnosSchema = z.object({
+  query: z.object({
+    cursoId: z.coerce.number().int().positive().optional(),
+
+    empresaId: z.coerce.number().int().positive().optional(),
+
+    search: z.string().trim().optional(),
+
+    page: z.coerce.number().int().positive().default(1),
+
+    pageSize: z.coerce.number().int().positive().max(100).default(10),
+  }),
+});
+
+export type AlumnoDocenteFiltrosDTO = z.infer<typeof obtenerAlumnosSchema>['query'];

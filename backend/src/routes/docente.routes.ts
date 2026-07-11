@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate.middleware';
 
 import {
   crearDocenteSchema,
+  obtenerAlumnosSchema,
   obtenerEmpresaSchema,
   obtenerEmpresasSchema,
 } from '../validators/docente.validator';
@@ -16,6 +17,7 @@ import {
   obtenerCursosDocente,
   obtenerEmpresasDocente,
   obtenerDetalleEmpresaDocente,
+  obtenerAlumnos,
 } from '../controllers/docente.controller';
 import { ROLES } from '../constants/roles';
 
@@ -44,6 +46,13 @@ router.get(
   requireRole(ROLES.DOCENTE),
   validate(obtenerEmpresaSchema),
   obtenerDetalleEmpresaDocente
+);
+router.get(
+  '/me/alumnos',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(obtenerAlumnosSchema),
+  obtenerAlumnos
 );
 
 export default router;

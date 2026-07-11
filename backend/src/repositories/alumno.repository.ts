@@ -1,4 +1,6 @@
 import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
+import { AlumnoDocenteFiltrosDTO } from '../validators/docente.validator';
 
 export async function findCandidatos(idCurso: number, idUsuario: string, search?: string) {
   return prisma.alumno.findMany({
@@ -138,4 +140,116 @@ export async function countByCurso(idCurso: number): Promise<number> {
       idCurso,
     },
   });
+}
+export async function findByDocente(keycloakId: string, filtros: AlumnoDocenteFiltrosDTO) {
+  const whereResumen: Prisma.AlumnoWhereInput = {
+    curso: {
+      profesores: {
+        some: {
+          profesor: {
+            keycloakId,
+          },
+        },
+      },
+    },
+  };
+
+  if (filtros.cursoId) {
+    whereResumen.idCurso = filtros.cursoId;
+  }
+
+  if (filtros.empresaId) {
+    whereResumen.idEmpresa = filtros.empresaId;
+  }
+
+  const whereListado: Prisma.AlumnoWhereInput = {
+    ...whereResumen,
+  };
+
+  if (filtros.search) {
+    whereListado.usuario = {
+      OR: [
+        {
+          nombre: {
+            contains: filtros.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          apellido: {
+            contains: filtros.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          email: {
+            contains: filtros.search,
+            mode: 'insensitive',
+          },
+        },
+      ],
+    };
+  }
+
+  const [totalAlumnos, totalItems, items] = await prisma.$transaction([
+    prisma.alumno.count({
+      where: whereResumen,
+    }),
+
+    prisma.alumno.count({
+      where: whereListado,
+    }),
+
+    prisma.alumno.findMany({
+      where: whereListado,
+
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            email: true,
+            fotoPerfilUrl: true,
+          },
+        },
+
+        curso: {
+          select: {
+            nombreCurso: true,
+          },
+        },
+
+        empresa: {
+          select: {
+            nombre: true,
+          },
+        },
+      },
+
+      orderBy: {
+        usuario: {
+          apellido: 'asc',
+        },
+      },
+
+      skip: (filtros.page - 1) * filtros.pageSize,
+
+      take: filtros.pageSize,
+    }),
+  ]);
+
+  return {
+    resumen: {
+      total: totalAlumnos,
+      activos: null,
+      enRiesgo: null,
+      tareasPendientes: null,
+      promedioGeneral: null,
+    },
+
+    totalItems,
+
+    items,
+  };
 }
