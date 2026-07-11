@@ -141,4 +141,270 @@
  *           type: array
  *           items:
  *             type: object
+ *
+ *     CursoDocente:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         nombre:
+ *           type: string
+ *           example: 5to Año A
+ *         empresasActivas:
+ *           type: integer
+ *           example: 3
+ *         alumnos:
+ *           type: integer
+ *           example: 18
+ *         participacionPromedio:
+ *           type: number
+ *           nullable: true
+ *           example: null
+ *         puntajePromedioEmpresarial:
+ *           type: number
+ *           nullable: true
+ *           example: null
+ *         ultimaActividad:
+ *           type: object
+ *           nullable: true
+ *           properties:
+ *             fecha:
+ *               type: string
+ *               format: date-time
+ *               example: 2026-07-10T10:30:00.000Z
+ *             descripcion:
+ *               type: string
+ *               example: Empresa actualizada
+ *             empresa:
+ *               type: string
+ *               example: Abacontex S.A.
+ *
+ *     ResumenEmpresasDocente:
+ *       type: object
+ *       properties:
+ *         total:
+ *           type: integer
+ *           example: 12
+ *         activas:
+ *           type: integer
+ *           nullable: true
+ *           example: null
+ *         inactivas:
+ *           type: integer
+ *           nullable: true
+ *           example: null
+ *
+ *     EmpresaDocente:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 7
+ *         nombre:
+ *           type: string
+ *           example: Abacontex S.A.
+ *         actividad:
+ *           type: string
+ *           example: Software
+ *         logoUrl:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *         activa:
+ *           type: boolean
+ *           nullable: true
+ *           example: null
+ *         idCurso:
+ *           type: integer
+ *           example: 1
+ *         curso:
+ *           type: string
+ *           example: 5to Año A
+ *         cantidadIntegrantes:
+ *           type: integer
+ *           example: 4
+ *         contactos:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example:
+ *             - juan.perez@abacontex.com
+ *             - maria.gomez@abacontex.com
+ *
+ *     IntegranteEmpresaDocente:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: 8f2374c4-4a74-4cfe-97ef-c1d7e85e967f
+ *         nombre:
+ *           type: string
+ *           example: Juan
+ *         apellido:
+ *           type: string
+ *           example: Pérez
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: juan.perez@abacontex.com
+ *         rolEmpresa:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *
+ *     EmpresaDocenteDetalle:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 7
+ *         nombre:
+ *           type: string
+ *           example: Abacontex S.A.
+ *         actividad:
+ *           type: string
+ *           example: Software
+ *         logoUrl:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *         activa:
+ *           type: boolean
+ *           nullable: true
+ *           example: null
+ *         idCurso:
+ *           type: integer
+ *           example: 1
+ *         curso:
+ *           type: string
+ *           example: 5to Año A
+ *         fechaCreacion:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *         cantidadIntegrantes:
+ *           type: integer
+ *           example: 4
+ *         contactos:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example:
+ *             - juan.perez@abacontex.com
+ *             - maria.gomez@abacontex.com
+ *         integrantes:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/IntegranteEmpresaDocente'
+ *
+ *     EmpresasDocenteResponse:
+ *       type: object
+ *       properties:
+ *         resumen:
+ *           $ref: '#/components/schemas/ResumenEmpresasDocente'
+ *         items:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/EmpresaDocente'
+ *         page:
+ *           type: integer
+ *           example: 1
+ *         pageSize:
+ *           type: integer
+ *           example: 10
+ *         totalItems:
+ *           type: integer
+ *           example: 12
+ *         totalPages:
+ *           type: integer
+ *           example: 2
+ *
+ *     AlumnoDocente:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: c34f4f5e-2b7f-4da8-bc3b-f7317d62f4d8
+ *         fotoPerfilUrl:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *         nombre:
+ *           type: string
+ *           example: Ana
+ *         apellido:
+ *           type: string
+ *           example: García
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: ana.garcia@abacontex.com
+ *         curso:
+ *           type: string
+ *           example: 5to Año A
+ *         empresa:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *         participacion:
+ *           type: number
+ *           nullable: true
+ *           example: null
+ *         ejerciciosRealizados:
+ *           type: integer
+ *           nullable: true
+ *           example: null
+ *         ultimaActividad:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *         estado:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *
+ *     AlumnosDocenteResponse:
+ *       type: object
+ *       properties:
+ *         resumen:
+ *           type: object
+ *           properties:
+ *             total:
+ *               type: integer
+ *               example: 24
+ *             activos:
+ *               type: integer
+ *               nullable: true
+ *               example: null
+ *             enRiesgo:
+ *               type: integer
+ *               nullable: true
+ *               example: null
+ *             tareasPendientes:
+ *               type: integer
+ *               nullable: true
+ *               example: null
+ *             promedioGeneral:
+ *               type: number
+ *               nullable: true
+ *               example: null
+ *         items:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/AlumnoDocente'
+ *         totalItems:
+ *           type: integer
+ *           example: 24
+ *         page:
+ *           type: integer
+ *           example: 1
+ *         pageSize:
+ *           type: integer
+ *           example: 10
+ *         totalPages:
+ *           type: integer
+ *           example: 3
  */
