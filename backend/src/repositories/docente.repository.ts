@@ -54,3 +54,36 @@ export async function findByKeycloakId(keycloakId: string) {
     },
   });
 }
+
+export async function findCursoIdsByKeycloakId(keycloakId: string): Promise<number[]> {
+  const profesorCursos = await prisma.profesorCursos.findMany({
+    where: {
+      profesor: {
+        keycloakId,
+      },
+    },
+    select: {
+      idCurso: true,
+    },
+  });
+
+  return profesorCursos.map((pc) => pc.idCurso);
+}
+
+export async function findCursosByDocente(keycloakId: string) {
+  return prisma.curso.findMany({
+    where: {
+      profesores: {
+        some: {
+          profesor: {
+            keycloakId,
+          },
+        },
+      },
+    },
+
+    orderBy: {
+      nombreCurso: 'asc',
+    },
+  });
+}

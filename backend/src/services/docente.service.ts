@@ -2,11 +2,27 @@ import * as keycloakAdminService from './keycloak-admin.service';
 import * as rolSistemaRepository from '../repositories/rol-sistema.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
+import * as empresaRepository from '../repositories/empresa.repository';
+import * as alumnoRepository from '../repositories/alumno.repository';
 
 import { ROLES } from '../constants/roles';
 import { AuthUser } from '../types/express';
-import { DashboardDocenteDTO } from '../dto/docente-dashboard.dto';
-
+import {
+  DashboardDocenteDTO,
+  DashboardDocenteFiltrosDTO,
+  DashboardResumenDTO,
+  ActividadRecienteDTO,
+  AlumnoRiesgoDTO,
+  RankingEmpresaDTO,
+  ParticipacionCursoDTO,
+  CorreccionPendienteDTO,
+  AlertaDTO,
+  EvolucionPuntajeDTO,
+} from '../dto/docente-dashboard.dto';
+import { CursoDocenteDTO } from '../dto/docente-curso.dto';
+import { EmpresaDocenteFiltrosDTO } from '../validators/docente.validator';
+import { EmpresaDetalleDocenteDTO } from '../dto/docente-empresa-detalle.dto';
+import { EmpresasDocenteResponseDTO } from '../dto/docente-empresas-response.dto';
 export async function crearDocente(data: {
   nombre: string;
   apellido: string;
@@ -89,30 +105,221 @@ export async function obtenerDocenteActual(user: AuthUser) {
   };
 }
 
-export async function obtenerDashboard(user: AuthUser, filtros: any): Promise<DashboardDocenteDTO> {
+export async function obtenerDashboard(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<DashboardDocenteDTO> {
+  const resumen = await obtenerResumen(user, filtros);
+
+  const evolucionPuntaje = await obtenerEvolucionPuntaje(user, filtros);
+
+  const actividadReciente = await obtenerActividadReciente(user, filtros);
+
+  const alumnosRiesgo = await obtenerAlumnosRiesgo(user, filtros);
+
+  const ranking = await obtenerRankingEmpresas(user, filtros);
+
+  const participacion = await obtenerParticipacionCursos(user, filtros);
+
+  const correcciones = await obtenerCorreccionesPendientes(user, filtros);
+
+  const alertas = await obtenerAlertas(user, filtros);
+
+  return {
+    resumen,
+    evolucionPuntaje,
+    actividadReciente,
+    alumnosRiesgo,
+    ranking,
+    participacion,
+    correcciones,
+    alertas,
+  };
+}
+
+async function obtenerResumen(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<DashboardResumenDTO> {
+  const cursoIds = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+
+  const cursosActivos = cursoIds.length;
+
+  const empresasActivas = await empresaRepository.countByCursos(cursoIds);
+
+  const alumnos = await alumnoRepository.countByCursos(cursoIds);
+
+  return {
+    cursosActivos,
+    empresasActivas,
+    alumnos,
+    ejerciciosPendientes: 0,
+    puntajePromedio: null,
+  };
+}
+async function obtenerEvolucionPuntaje(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<EvolucionPuntajeDTO[]> {
+  return [];
+}
+
+async function obtenerActividadReciente(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<ActividadRecienteDTO[]> {
+  return [];
+}
+
+async function obtenerAlumnosRiesgo(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<AlumnoRiesgoDTO[]> {
+  return [];
+}
+
+async function obtenerRankingEmpresas(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<RankingEmpresaDTO[]> {
+  return [];
+}
+
+async function obtenerParticipacionCursos(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<ParticipacionCursoDTO[]> {
+  return [];
+}
+
+async function obtenerCorreccionesPendientes(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<CorreccionPendienteDTO[]> {
+  return [];
+}
+
+async function obtenerAlertas(
+  user: AuthUser,
+  filtros: DashboardDocenteFiltrosDTO
+): Promise<AlertaDTO[]> {
+  return [];
+}
+
+export async function obtenerCursos(user: AuthUser): Promise<CursoDocenteDTO[]> {
+  const cursos = await docenteRepository.findCursosByDocente(user.keycloakId);
+
+  const resultado: CursoDocenteDTO[] = [];
+
+  for (const curso of cursos) {
+    const empresasActivas = await empresaRepository.countByCurso(curso.idCurso);
+
+    const alumnos = await alumnoRepository.countByCurso(curso.idCurso);
+
+    resultado.push({
+      id: curso.idCurso,
+
+      nombre: curso.nombreCurso,
+
+      empresasActivas,
+
+      alumnos,
+
+      participacionPromedio: null,
+
+      puntajePromedioEmpresarial: null,
+
+      ultimaActividad: null,
+    });
+  }
+
+  return resultado;
+}
+export async function obtenerEmpresas(
+  user: AuthUser,
+  filtros: EmpresaDocenteFiltrosDTO
+): Promise<EmpresasDocenteResponseDTO> {
+  const { totalItems, items } = await empresaRepository.findByDocente(
+    user.keycloakId,
+    filtros.search,
+    filtros.cursoId,
+    filtros.page,
+    filtros.pageSize
+  );
+
   return {
     resumen: {
-      cursosActivos: 0,
-
-      empresasActivas: 0,
-
-      alumnos: 0,
-
-      ejerciciosPendientes: 0,
-
-      puntajePromedio: null,
+      total: totalItems,
+      activas: null,
+      inactivas: null,
     },
 
-    actividadReciente: [],
+    items: items.map((empresa) => ({
+      id: empresa.id,
 
-    alumnosRiesgo: [],
+      nombre: empresa.nombre,
 
-    ranking: [],
+      actividad: empresa.actividad,
 
-    participacion: [],
+      logoUrl: empresa.logoUrl,
 
-    correcciones: [],
+      activa: null,
 
-    alertas: [],
+      idCurso: empresa.curso.idCurso,
+
+      curso: empresa.curso.nombreCurso,
+
+      cantidadIntegrantes: empresa.alumnos.length,
+
+      contactos: empresa.alumnos.map((alumno) => alumno.usuario.email),
+    })),
+
+    page: filtros.page,
+
+    pageSize: filtros.pageSize,
+
+    totalItems,
+
+    totalPages: Math.ceil(totalItems / filtros.pageSize),
+  };
+}
+
+export async function obtenerDetalleEmpresaDocente(
+  user: AuthUser,
+  empresaId: number
+): Promise<EmpresaDetalleDocenteDTO> {
+  const empresa = await empresaRepository.findDetalleByDocente(user.keycloakId, empresaId);
+
+  if (!empresa) {
+    throw new Error('Empresa no encontrada');
+  }
+
+  return {
+    id: empresa.id,
+
+    nombre: empresa.nombre,
+
+    actividad: empresa.actividad,
+
+    logoUrl: empresa.logoUrl,
+
+    activa: null,
+    fechaCreacion: null,
+
+    idCurso: empresa.curso.idCurso,
+
+    curso: empresa.curso.nombreCurso,
+
+    cantidadIntegrantes: empresa.alumnos.length,
+
+    contactos: empresa.alumnos.map((alumno) => alumno.usuario.email),
+
+    integrantes: empresa.alumnos.map((alumno) => ({
+      id: alumno.usuario.id,
+      nombre: alumno.usuario.nombre,
+      apellido: alumno.usuario.apellido,
+      email: alumno.usuario.email,
+      rolEmpresa: alumno.rolEmpresa?.nombreRol ?? null,
+    })),
   };
 }

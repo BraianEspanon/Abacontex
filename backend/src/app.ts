@@ -10,6 +10,8 @@ import rolEmpresaRoutes from './routes/rol-empresa.routes';
 import empresaRoutes from './routes/empresa.routes';
 import docenteRoutes from './routes/docente.routes';
 
+import { errorMiddleware } from './middleware/error.middleware';
+
 const app = express();
 
 app.use(cors());
@@ -29,5 +31,7 @@ if (process.env.ENVIRONMENT === 'development') {
     app.use('/docs', scalarDocs);
   });
 }
+
+app.use(errorMiddleware);
 
 export default app;

@@ -13,3 +13,23 @@ export const crearDocenteSchema = z.object({
     cursoIds: z.array(z.number().int().positive()).min(1, 'Debe seleccionar al menos un curso'),
   }),
 });
+
+export const obtenerEmpresasSchema = z.object({
+  query: z.object({
+    cursoId: z.coerce.number().int().positive().optional(),
+
+    search: z.string().trim().optional(),
+
+    page: z.coerce.number().int().min(1).default(1),
+
+    pageSize: z.coerce.number().int().min(1).max(100).default(10),
+  }),
+});
+
+export type EmpresaDocenteFiltrosDTO = z.infer<typeof obtenerEmpresasSchema>['query'];
+
+export const obtenerEmpresaSchema = z.object({
+  params: z.object({
+    empresaId: z.coerce.number().int().positive(),
+  }),
+});

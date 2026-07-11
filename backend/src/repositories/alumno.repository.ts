@@ -121,3 +121,21 @@ export async function updateRoles(
     )
   );
 }
+
+export async function countByCursos(cursoIds: number[]): Promise<number> {
+  return prisma.alumno.count({
+    where: {
+      idCurso: {
+        in: cursoIds,
+      },
+    },
+  });
+}
+
+export async function countByCurso(idCurso: number): Promise<number> {
+  return prisma.alumno.count({
+    where: {
+      idCurso,
+    },
+  });
+}
