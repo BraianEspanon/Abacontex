@@ -18,11 +18,11 @@ import {
   CorreccionPendienteDTO,
   AlertaDTO,
   EvolucionPuntajeDTO,
-} from '../dto/docente-dashboard.dto';
-import { CursoDocenteDTO } from '../dto/docente-curso.dto';
+} from '../dto/docente/doc-dashboard.dto';
+import { CursoDocenteDTO } from '../dto/docente/doc-curso.dto';
 import { AlumnoDocenteFiltrosDTO, EmpresaDocenteFiltrosDTO } from '../validators/docente.validator';
-import { EmpresaDetalleDocenteDTO } from '../dto/docente-empresa-detalle.dto';
-import { EmpresasDocenteResponseDTO } from '../dto/docente-empresas-response.dto';
+import { EmpresaDetalleDocenteDTO } from '../dto/docente/doc-empresa-detalle.dto';
+import { EmpresasDocenteResponseDTO } from '../dto/docente/doc-empresa.dto';
 import { AlumnosDocenteResponseDTO } from '../dto/docente/doc-alumno.dto';
 
 export async function crearDocente(data: {

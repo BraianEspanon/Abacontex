@@ -1,3 +1,9 @@
+import { PaginatedResponse } from '../paginated-response.dto';
+
+export interface EmpresasDocenteResponseDTO extends PaginatedResponse<EmpresaDocenteDTO> {
+  resumen: ResumenEmpresasDocenteDTO;
+}
+
 export interface ResumenEmpresasDocenteDTO {
   total: number;
   activas: number | null;
