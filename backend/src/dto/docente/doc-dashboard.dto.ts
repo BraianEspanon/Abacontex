@@ -27,10 +27,31 @@ export interface DashboardResumenDTO {
   ejerciciosPendientes: number;
   puntajePromedio: number | null;
 }
-export interface EvolucionPuntajeDTO {}
-export interface ActividadRecienteDTO {}
-export interface AlumnoRiesgoDTO {}
-export interface RankingEmpresaDTO {}
-export interface ParticipacionCursoDTO {}
-export interface CorreccionPendienteDTO {}
-export interface AlertaDTO {}
+export interface EvolucionPuntajeDTO {
+  // TODO: definir cuando se implemente la actividad reciente
+  id: string;
+}
+export interface ActividadRecienteDTO {
+  // TODO: definir cuando se implemente la actividad reciente
+  id: string;
+}
+export interface AlumnoRiesgoDTO {
+  // TODO: definir cuando se implemente la actividad reciente
+  id: string;
+}
+export interface RankingEmpresaDTO {
+  // TODO: definir cuando se implemente la actividad reciente
+  id: string;
+}
+export interface ParticipacionCursoDTO {
+  // TODO: definir cuando se implemente la actividad reciente
+  id: string;
+}
+export interface CorreccionPendienteDTO {
+  // TODO: definir cuando se implemente la actividad reciente
+  id: string;
+}
+export interface AlertaDTO {
+  // TODO: definir cuando se implemente la actividad reciente
+  id: string;
+}

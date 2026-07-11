@@ -9,7 +9,7 @@ import { ROLES } from '../constants/roles';
 import { AuthUser } from '../types/express';
 import {
   DashboardDocenteDTO,
-  DashboardDocenteFiltrosDTO,
+  /*DashboardDocenteFiltrosDTO,*/
   DashboardResumenDTO,
   ActividadRecienteDTO,
   AlumnoRiesgoDTO,
@@ -108,24 +108,26 @@ export async function obtenerDocenteActual(user: AuthUser) {
 }
 
 export async function obtenerDashboard(
-  user: AuthUser,
+  user: AuthUser
+  /*
   filtros: DashboardDocenteFiltrosDTO
+  */
 ): Promise<DashboardDocenteDTO> {
-  const resumen = await obtenerResumen(user, filtros);
+  const resumen = await obtenerResumen(user /*, filtros*/);
 
-  const evolucionPuntaje = await obtenerEvolucionPuntaje(user, filtros);
+  const evolucionPuntaje = await obtenerEvolucionPuntaje(/*user, filtros*/);
 
-  const actividadReciente = await obtenerActividadReciente(user, filtros);
+  const actividadReciente = await obtenerActividadReciente(/*user, filtros*/);
 
-  const alumnosRiesgo = await obtenerAlumnosRiesgo(user, filtros);
+  const alumnosRiesgo = await obtenerAlumnosRiesgo(/*user, filtros*/);
 
-  const ranking = await obtenerRankingEmpresas(user, filtros);
+  const ranking = await obtenerRankingEmpresas(/*user, filtros*/);
 
-  const participacion = await obtenerParticipacionCursos(user, filtros);
+  const participacion = await obtenerParticipacionCursos(/*user, filtros*/);
 
-  const correcciones = await obtenerCorreccionesPendientes(user, filtros);
+  const correcciones = await obtenerCorreccionesPendientes(/*user, filtros*/);
 
-  const alertas = await obtenerAlertas(user, filtros);
+  const alertas = await obtenerAlertas(/*user, filtros*/);
 
   return {
     resumen,
@@ -140,8 +142,10 @@ export async function obtenerDashboard(
 }
 
 async function obtenerResumen(
-  user: AuthUser,
+  user: AuthUser
+  /*
   filtros: DashboardDocenteFiltrosDTO
+  */
 ): Promise<DashboardResumenDTO> {
   const cursoIds = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
 
@@ -159,52 +163,59 @@ async function obtenerResumen(
     puntajePromedio: null,
   };
 }
-async function obtenerEvolucionPuntaje(
+async function obtenerEvolucionPuntaje(): Promise<EvolucionPuntajeDTO[]> {
+  /*
   user: AuthUser,
   filtros: DashboardDocenteFiltrosDTO
-): Promise<EvolucionPuntajeDTO[]> {
+  */
   return [];
 }
 
-async function obtenerActividadReciente(
+async function obtenerActividadReciente(): Promise<ActividadRecienteDTO[]> {
+  /*
   user: AuthUser,
   filtros: DashboardDocenteFiltrosDTO
-): Promise<ActividadRecienteDTO[]> {
+  */
   return [];
 }
 
-async function obtenerAlumnosRiesgo(
+async function obtenerAlumnosRiesgo(): Promise<AlumnoRiesgoDTO[]> {
+  /*
   user: AuthUser,
   filtros: DashboardDocenteFiltrosDTO
-): Promise<AlumnoRiesgoDTO[]> {
+  */
   return [];
 }
 
-async function obtenerRankingEmpresas(
+async function obtenerRankingEmpresas(): Promise<RankingEmpresaDTO[]> {
+  /*
   user: AuthUser,
   filtros: DashboardDocenteFiltrosDTO
-): Promise<RankingEmpresaDTO[]> {
+  */
   return [];
 }
 
-async function obtenerParticipacionCursos(
+async function obtenerParticipacionCursos(): Promise<ParticipacionCursoDTO[]> {
+  /*
   user: AuthUser,
   filtros: DashboardDocenteFiltrosDTO
-): Promise<ParticipacionCursoDTO[]> {
+  */
   return [];
 }
 
-async function obtenerCorreccionesPendientes(
+async function obtenerCorreccionesPendientes(): Promise<CorreccionPendienteDTO[]> {
+  /*
   user: AuthUser,
   filtros: DashboardDocenteFiltrosDTO
-): Promise<CorreccionPendienteDTO[]> {
+  */
   return [];
 }
 
-async function obtenerAlertas(
+async function obtenerAlertas(): Promise<AlertaDTO[]> {
+  /*
   user: AuthUser,
   filtros: DashboardDocenteFiltrosDTO
-): Promise<AlertaDTO[]> {
+  */
   return [];
 }
 

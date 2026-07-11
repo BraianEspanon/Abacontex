@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import * as docenteService from '../services/docente.service';
 import {
-  EmpresaDocenteFiltrosDTO,
   obtenerAlumnosSchema,
   obtenerEmpresaSchema,
   obtenerEmpresasSchema,
@@ -20,7 +19,7 @@ export async function obtenerDocenteActual(req: Request, res: Response) {
 }
 
 export async function obtenerDashboardDocente(req: Request, res: Response) {
-  const dashboard = await docenteService.obtenerDashboard(req.user!, req.query);
+  const dashboard = await docenteService.obtenerDashboard(req.user! /*, req.query*/);
 
   res.json(dashboard);
 }
