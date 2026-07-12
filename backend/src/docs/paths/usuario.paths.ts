@@ -1,43 +1,5 @@
 /**
  * @openapi
- * /usuarios:
- *   post:
- *     summary: Crear un nuevo usuario
- *     description: |
- *       Permite crear un nuevo usuario en el sistema.
- *       Solo los administradores pueden crear usuarios.
- *       El usuario se crea tanto en Keycloak como en la base de datos.
- *
- *     tags:
- *       - Usuarios
- *
- *     security:
- *       - oauth2: []
- *
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UsuarioCrearRequest'
- *
- *     responses:
- *       201:
- *         description: Usuario creado correctamente.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UsuarioActual'
- *
- *       400:
- *         description: Datos inválidos o el usuario ya existe.
- *
- *       401:
- *         description: Token inválido o inexistente.
- *
- *       403:
- *         description: El usuario no posee permisos de administrador.
- *
  * /usuarios/me:
  *   get:
  *     summary: Obtener información del usuario autenticado
