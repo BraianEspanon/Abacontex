@@ -1,0 +1,12 @@
+# Postman
+postman/*.json
+
+# Keycloak
+keycloak/realm-export*.json
+
+# Archivos generados
+dist
+coverage
+
+# Dependencias
+node_modules
