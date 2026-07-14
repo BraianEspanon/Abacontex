@@ -1,4 +1,5 @@
 export enum ErrorCode {
   FORBIDDEN = 'FORBIDDEN',
   UNAUTHORIZED = 'UNAUTHORIZED',
+  BAD_REQUEST = 'BAD_REQUEST',
 }
