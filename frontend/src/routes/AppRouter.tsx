@@ -1,17 +1,18 @@
-import { Routes, Route } from 'react-router-dom';
-import LandingPage from '../pages/LandingPage';
-import RoleSelection from '../pages/RoleSelection';
+import { Route, Routes } from 'react-router-dom';
 import ProtectedRoute from '../guards/ProtectedRoute';
 import EstructuraPanelDocente from '../layouts/EstructuraPanelDocente';
 import InicioDocente from '../pages/docente/InicioDocente';
+import PerfilDocente from '../pages/docente/PerfilDocente';
+import LandingPage from '../pages/LandingPage';
+import RoleSelection from '../pages/RoleSelection';
 
-export default function appRouter() {
+export default function AppRouter() {
   return (
     <Routes>
-      {/* Ruta pública */}
+      {/* Rutas públicas */}
       <Route path="/" element={<LandingPage />} />
 
-      {/* Ruta privada */}
+      {/* Configuración inicial */}
       <Route
         path="/setup"
         element={
@@ -20,18 +21,19 @@ export default function appRouter() {
           </ProtectedRoute>
         }
       />
+
+      {/* Panel docente */}
       <Route
-  path="/docente"
-  element={
-    <ProtectedRoute>
-      <EstructuraPanelDocente />
-    </ProtectedRoute>
-  }
->
-  <Route index element={<InicioDocente />} />
-</Route>
+        path="/docente"
+        element={
+          <ProtectedRoute>
+            <EstructuraPanelDocente />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<InicioDocente />} />
+        <Route path="perfil" element={<PerfilDocente />} />
+      </Route>
     </Routes>
-    
-    
   );
 }

@@ -74,6 +74,7 @@ const opcionesMenu: OpcionMenu[] = [
   {
     etiqueta: 'Perfil',
     icono: UserRound,
+    ruta: '/docente/perfil',
   },
 ];
 
