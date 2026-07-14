@@ -1,4 +1,49 @@
+import { NotFoundError } from '../errors/not-found.error';
 import { prisma } from '../lib/prisma';
+import { ActualizarUsuarioDTO } from '../validators/usuario.validator';
+
+export async function findByKeycloakId(keycloakId: string) {
+  return prisma.usuario.findUnique({
+    where: {
+      keycloakId,
+    },
+  });
+}
+
+export async function findByKeycloakIdOrThrow(keycloakId: string) {
+  const usuario = await findByKeycloakId(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
+}
+
+export async function findByKeycloakIdWithRolSistema(keycloakId: string) {
+  return prisma.usuario.findUnique({
+    where: {
+      keycloakId,
+    },
+    include: {
+      rolSistema: true,
+    },
+  });
+}
+
+export async function findByKeycloakIdWithRolSistemaOrThrow(keycloakId: string) {
+  const usuario = await findByKeycloakIdWithRolSistema(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
+}
 
 export async function findByKeycloakIdWithAlumno(keycloakId: string) {
   return prisma.usuario.findUnique({
@@ -74,6 +119,21 @@ export async function findByKeycloakIdWithProfesorCursos(keycloakId: string) {
     },
     include: {
       profesorCursos: true,
+    },
+  });
+}
+
+export async function update(keycloakId: string, data: ActualizarUsuarioDTO) {
+  return prisma.usuario.update({
+    where: {
+      keycloakId,
+    },
+    data: {
+      nombre: data.nombre,
+      apellido: data.apellido,
+      ...(data.fotoPerfilUrl !== undefined && {
+        fotoPerfilUrl: data.fotoPerfilUrl,
+      }),
     },
   });
 }

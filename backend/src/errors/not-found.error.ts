@@ -1,7 +1,8 @@
 import { AppError } from './app-error';
+import { ErrorCode } from './error-codes';
 
 export class NotFoundError extends AppError {
-  constructor(message: string, code = 'RESOURCE_NOT_FOUND') {
-    super(message, 404, code);
+  constructor(message = 'El recurso solicitado no fue encontrado.', details?: unknown) {
+    super(message, 404, ErrorCode.NOT_FOUND, details);
   }
 }

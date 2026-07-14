@@ -5,6 +5,9 @@ import {
   KEYCLOAK_ADMIN_CLIENT_SECRET,
   KEYCLOAK_FRONTEND_CLIENT_ID,
 } from '../config/keycloak';
+import { AppError } from '../errors/app-error';
+import { BadRequestError } from '../errors/bad-request-error';
+import { ExternalServiceError } from '../errors/external-service.error';
 import { KeycloakGroup } from '../types/keycloak';
 
 export async function getAdminToken() {
@@ -24,10 +27,17 @@ export async function getAdminToken() {
   );
 
   if (!response.ok) {
-    throw new Error('No se pudo obtener token admin');
+    throw new ExternalServiceError(
+      'Keycloak',
+      'No fue posible obtener un token de administración.',
+      {
+        operation: 'GET_ADMIN_TOKEN',
+        status: response.status,
+      }
+    );
   }
 
-  const data = await response.json();
+  const data: { access_token: string } = await response.json();
 
   return data.access_token;
 }
@@ -204,58 +214,97 @@ export async function updateUser(
       }),
     }
   );
-
   if (!response.ok) {
-    const error = await response.text();
-
-    throw new Error(`No se pudo actualizar el usuario en Keycloak: ${error}`);
+    throw new ExternalServiceError('Keycloak', 'No se pudo actualizar el usuario.', {
+      operation: 'UPDATE_USER',
+      status: response.status,
+    });
   }
 }
 
 export async function verifyPassword(email: string, password: string) {
-  const response = await fetch(
-    `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'password',
-        client_id: KEYCLOAK_FRONTEND_CLIENT_ID,
-        username: email,
-        password,
-      }),
-    }
-  );
+  try {
+    const response = await fetch(
+      `${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'password',
+          client_id: KEYCLOAK_FRONTEND_CLIENT_ID,
+          username: email,
+          password,
+        }),
+      }
+    );
 
-  if (!response.ok) {
-    throw new Error('La contraseña actual es incorrecta');
+    switch (response.status) {
+      case 200:
+        return;
+
+      case 400:
+      case 401:
+        throw new BadRequestError('La contraseña actual es incorrecta.');
+
+      default:
+        throw new ExternalServiceError('Keycloak', 'No fue posible verificar la contraseña.', {
+          operation: 'VERIFY_PASSWORD',
+          status: response.status,
+        });
+    }
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
+      operation: 'VERIFY_PASSWORD',
+    });
   }
 }
 
-export async function updatePassword(userId: string, newPassword: string) {
-  const token = await getAdminToken();
+export async function updatePassword(keycloakId: string, newPassword: string) {
+  try {
+    const token = await getAdminToken();
 
-  const response = await fetch(
-    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}/reset-password`,
-    {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type: 'password',
-        value: newPassword,
-        temporary: false,
-      }),
+    const response = await fetch(
+      `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${keycloakId}/reset-password`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'password',
+          value: newPassword,
+          temporary: false,
+        }),
+      }
+    );
+
+    switch (response.status) {
+      case 204:
+        return;
+
+      case 400:
+        throw new BadRequestError('La nueva contraseña no cumple con la política de seguridad.');
+
+      default:
+        throw new ExternalServiceError('Keycloak', 'No fue posible actualizar la contraseña.', {
+          operation: 'UPDATE_PASSWORD',
+          status: response.status,
+        });
     }
-  );
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
 
-  if (!response.ok) {
-    const error = await response.text();
-
-    throw new Error(`No se pudo actualizar la contraseña: ${error}`);
+    throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
+      operation: 'UPDATE_PASSWORD',
+    });
   }
 }

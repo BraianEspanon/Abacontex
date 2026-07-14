@@ -4,12 +4,6 @@ import * as usuarioService from '../services/usuario.service';
 export const obtenerUsuarioActual = async (req: Request, res: Response) => {
   const usuario = await usuarioService.getUsuarioActual(req.user!);
 
-  if (!usuario) {
-    return res.status(404).json({
-      message: 'Usuario no encontrado',
-    });
-  }
-
   res.json(usuario);
 };
 
