@@ -1,3 +1,4 @@
 export enum ErrorCode {
   FORBIDDEN = 'FORBIDDEN',
+  UNAUTHORIZED = 'UNAUTHORIZED',
 }
