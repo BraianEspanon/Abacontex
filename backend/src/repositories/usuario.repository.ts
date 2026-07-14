@@ -56,6 +56,18 @@ export async function findByKeycloakIdWithAlumno(keycloakId: string) {
   });
 }
 
+export async function findByKeycloakIdWithAlumnoOrThrow(keycloakId: string) {
+  const usuario = await findByKeycloakIdWithAlumno(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
+}
+
 export async function findByKeycloakIdWithRolEmpresa(keycloakId: string) {
   return prisma.usuario.findUnique({
     where: {

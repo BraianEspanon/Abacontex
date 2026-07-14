@@ -1,6 +1,50 @@
 import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { AlumnoDocenteFiltrosDTO } from '../validators/docente.validator';
+import { NotFoundError } from '../errors/not-found.error';
+import { CompletarRegistroDTO } from '../validators/alumno.validator';
+
+export async function findByKeycloakIdWithAlumno(keycloakId: string) {
+  return prisma.usuario.findUnique({
+    where: {
+      keycloakId,
+    },
+    include: {
+      alumno: {
+        include: {
+          curso: true,
+          rolEmpresa: true,
+          empresa: true,
+        },
+      },
+    },
+  });
+}
+export async function findByKeycloakIdWithAlumnoOrThrow(keycloakId: string) {
+  const usuario = await findByKeycloakIdWithAlumno(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
+}
+
+export async function create(id: string, data: CompletarRegistroDTO) {
+  await prisma.alumno.create({
+    data: {
+      id,
+      idCurso: data.idCurso,
+      idRolEmpresa: data.idRolEmpresa,
+    },
+    include: {
+      curso: true,
+      rolEmpresa: true,
+    },
+  });
+}
 
 export async function findCandidatos(idCurso: number, idUsuario: string, search?: string) {
   return prisma.alumno.findMany({

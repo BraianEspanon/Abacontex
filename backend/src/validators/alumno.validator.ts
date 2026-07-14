@@ -7,3 +7,5 @@ export const completarRegistroSchema = z.object({
     idRolEmpresa: z.number().int().positive(),
   }),
 });
+
+export type CompletarRegistroDTO = z.infer<typeof completarRegistroSchema>['body'];
