@@ -32,6 +32,6 @@ Si realizaste cambios en una colección y querés compartirlos:
 2. Entrar a la sección **More**.
 3. Seleccionar **Export collection**.
 4. Guardar el archivo dentro de la carpeta **`/postman`**, reemplazando el archivo correspondiente.
-5. Realizar el commit junto con el resto de los cambios del proyecto.
+5. Realizar el commit junto con el resto de los cambios del proyecto. (Recordar política de ramas).
 
 > **Importante:** Los desarrolladores deben actualizar únicamente **`Abacontex.postman_collection.json`**, mientras que el equipo de Testing debe actualizar únicamente **`Abacontex_testing.postman_collection.json`**.
