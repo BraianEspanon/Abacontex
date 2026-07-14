@@ -6,6 +6,7 @@ import { usuariosSeed } from './usuarios.seed';
 import { profesorCursosSeed } from './profesor-cursos.seed';
 import { empresasSeed } from './empresas.seed';
 import { alumnosSeed } from './alumnos.seed';
+import { productosSeed } from './productos.seed';
 
 export const demoSeeds: Seed[] = [
   cicloLectivoSeed,
@@ -14,4 +15,5 @@ export const demoSeeds: Seed[] = [
   profesorCursosSeed,
   empresasSeed,
   alumnosSeed,
+  productosSeed,
 ];
