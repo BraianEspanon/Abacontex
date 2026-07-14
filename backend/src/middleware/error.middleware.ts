@@ -7,6 +7,7 @@ export function errorMiddleware(error: unknown, req: Request, res: Response, _ne
       status: 'error',
       code: error.code,
       message: error.message,
+      details: error.details,
     });
   }
 
