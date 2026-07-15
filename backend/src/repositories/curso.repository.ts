@@ -1,6 +1,18 @@
 import { NotFoundError } from '../errors/not-found.error';
 import { prisma } from '../lib/prisma';
 
+export async function findAll() {
+  return prisma.curso.findMany({
+    orderBy: {
+      nombreCurso: 'asc',
+    },
+    select: {
+      idCurso: true,
+      nombreCurso: true,
+    },
+  });
+}
+
 export async function findById(idCurso: number) {
   return prisma.curso.findUnique({
     where: {

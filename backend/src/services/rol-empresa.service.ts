@@ -1,14 +1,5 @@
-import { prisma } from '../lib/prisma';
+import * as rolesEmpresasRepository from '../repositories/rol-empresa.repository';
 
 export async function getRolesEmpresa() {
-  return prisma.rolesEmpresa.findMany({
-    orderBy: {
-      idRol: 'asc',
-    },
-    select: {
-      idRol: true,
-      nombreRol: true,
-      descripcion: true,
-    },
-  });
+  return rolesEmpresasRepository.findAll();
 }
