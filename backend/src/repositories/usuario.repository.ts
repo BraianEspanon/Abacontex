@@ -1,6 +1,19 @@
 import { NotFoundError } from '../errors/not-found.error';
 import { prisma } from '../lib/prisma';
+import { AuthUser } from '../types/express';
 import { ActualizarUsuarioDTO } from '../validators/usuario.validator';
+
+export async function create(user: AuthUser, rolSistemaId: number) {
+  return await prisma.usuario.create({
+    data: {
+      keycloakId: user.keycloakId,
+      email: user.email,
+      nombre: user.nombre,
+      apellido: user.apellido,
+      rolSistemaId,
+    },
+  });
+}
 
 export async function findByKeycloakId(keycloakId: string) {
   return prisma.usuario.findUnique({

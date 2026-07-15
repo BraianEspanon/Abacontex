@@ -1,4 +1,3 @@
-import { prisma } from '../lib/prisma';
 import { AuthUser } from '../types/express';
 import { getRolSistema } from './role.service';
 import * as keycloakAdminService from './keycloak-admin.service';
@@ -14,15 +13,7 @@ export async function syncUsuario(user: AuthUser) {
 
   const rolSistema = await getRolSistema(user.roles);
 
-  usuario = await prisma.usuario.create({
-    data: {
-      keycloakId: user.keycloakId,
-      email: user.email,
-      nombre: user.nombre,
-      apellido: user.apellido,
-      rolSistemaId: rolSistema.idRol,
-    },
-  });
+  usuario = await usuarioRepository.create(user, rolSistema.idRol);
 
   return usuario;
 }
