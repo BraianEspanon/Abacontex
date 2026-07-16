@@ -6,14 +6,6 @@ import {
   modificarRolesEmpresaSchema,
 } from '../validators/empresa.validator';
 
-type cambiarRolParticipanteParams = {
-  idAlumno: string;
-};
-
-type modificarRolesEmpresaParams = {
-  idEmpresa: string;
-};
-
 export async function crearEmpresa(req: Request, res: Response) {
   const empresa = await empresaService.crearEmpresa(req.user!, req.body);
 
