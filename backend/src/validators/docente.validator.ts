@@ -16,6 +16,17 @@ export const crearDocenteSchema = z.object({
 
 export type CrearDocenteDTO = z.infer<typeof crearDocenteSchema>['body'];
 
+export const actualizarCursosDocenteSchema = z.object({
+  body: z.object({
+    cursoIds: z
+      .array(z.number().int().positive())
+      .min(1, 'Debe seleccionar al menos un curso')
+      .refine((ids) => new Set(ids).size === ids.length, 'No se permiten cursos duplicados'),
+  }),
+});
+
+export type ActualizarCursosDocenteDTO = z.infer<typeof actualizarCursosDocenteSchema>['body'];
+
 export const obtenerEmpresasSchema = z.object({
   query: z.object({
     cursoId: z.coerce.number().int().positive().optional(),

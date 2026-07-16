@@ -34,6 +34,20 @@
  *             - 1
  *             - 2
  *
+ *     DocenteActualizarCursosRequest:
+ *       type: object
+ *       required:
+ *         - cursoIds
+ *       properties:
+ *         cursoIds:
+ *           type: array
+ *           minItems: 1
+ *           items:
+ *             type: integer
+ *           example:
+ *             - 1
+ *             - 2
+ *
  *     DocenteCreado:
  *       type: object
  *       properties:

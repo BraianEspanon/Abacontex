@@ -21,6 +21,7 @@ import {
 } from '../dto/docente/doc-dashboard.dto';
 import { CursoDocenteDTO } from '../dto/docente/doc-curso.dto';
 import {
+  ActualizarCursosDocenteDTO,
   AlumnoDocenteFiltrosDTO,
   CrearDocenteDTO,
   EmpresaDocenteFiltrosDTO,
@@ -31,6 +32,7 @@ import { AlumnosDocenteResponseDTO } from '../dto/docente/doc-alumno.dto';
 import { toDocenteActualResponse } from '../dto/docente/doc.mapper';
 
 import { NotFoundError } from '../errors/not-found.error';
+import { DocenteActualResponseDTO } from '../dto/docente/doc-actual.dto';
 
 export async function crearDocente(data: CrearDocenteDTO) {
   let keycloakId: string | undefined;
@@ -89,6 +91,19 @@ export async function obtenerDocenteActual(user: AuthUser) {
   const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
 
   return toDocenteActualResponse(docente);
+}
+
+export async function actualizarCursosDocenteActual(
+  user: AuthUser,
+  data: ActualizarCursosDocenteDTO
+): Promise<DocenteActualResponseDTO> {
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  await cursoRepository.findByIdsOrThrow(data.cursoIds);
+
+  await docenteRepository.updateCursosProfesor(docente.id, data.cursoIds);
+
+  return obtenerDocenteActual(user);
 }
 
 export async function obtenerDashboard(

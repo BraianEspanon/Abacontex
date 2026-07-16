@@ -102,3 +102,20 @@ export async function findCursosByDocente(keycloakId: string) {
     },
   });
 }
+
+export async function updateCursosProfesor(idUsuario: string, cursoIds: number[]) {
+  await prisma.$transaction(async (tx) => {
+    await tx.profesorCursos.deleteMany({
+      where: {
+        idUsuario,
+      },
+    });
+
+    await tx.profesorCursos.createMany({
+      data: cursoIds.map((idCurso) => ({
+        idCurso,
+        idUsuario,
+      })),
+    });
+  });
+}

@@ -20,6 +20,7 @@ export async function findById(idCurso: number) {
     },
   });
 }
+
 export async function findByIdOrThrow(idCurso: number) {
   const curso = await findById(idCurso);
 
@@ -40,4 +41,20 @@ export async function findByIds(cursoIds: number[]) {
       },
     },
   });
+}
+
+export async function findByIdsOrThrow(ids: number[]) {
+  const cursos = await findByIds(ids);
+
+  if (cursos.length !== ids.length) {
+    const encontrados = new Set(cursos.map((c) => c.idCurso));
+
+    const faltantes = ids.filter((id) => !encontrados.has(id));
+
+    throw new NotFoundError('Uno o más cursos no existen.', {
+      cursos: faltantes,
+    });
+  }
+
+  return cursos;
 }
