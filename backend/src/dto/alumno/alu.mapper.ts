@@ -1,4 +1,5 @@
 import { UsuarioActualResponseDTO } from './alu-actual.dto';
+import { CandidatoResponseDTO } from './alu-candidato-response.dto';
 import { Prisma } from '@prisma/client';
 
 type UsuarioConAlumno = Prisma.UsuarioGetPayload<{
@@ -56,6 +57,34 @@ export function toAlumnoActualResponse(usuario: UsuarioConAlumno): UsuarioActual
       ? {
           id: usuario.alumno.empresa.id,
           nombre: usuario.alumno.empresa.nombre,
+        }
+      : null,
+  };
+}
+
+type Candidato = Prisma.AlumnoGetPayload<{
+  include: {
+    usuario: true;
+    rolEmpresa: true;
+  };
+}>;
+
+export function toCandidatoResponse(alumno: Candidato): CandidatoResponseDTO {
+  return {
+    id: alumno.id,
+
+    nombre: alumno.usuario.nombre,
+
+    apellido: alumno.usuario.apellido,
+
+    email: alumno.usuario.email,
+
+    fotoPerfilUrl: alumno.usuario.fotoPerfilUrl,
+
+    rolEmpresa: alumno.rolEmpresa
+      ? {
+          id: alumno.rolEmpresa.idRol,
+          nombre: alumno.rolEmpresa.nombreRol,
         }
       : null,
   };

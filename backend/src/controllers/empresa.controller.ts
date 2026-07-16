@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 
 import * as empresaService from '../services/empresa.service';
+import {
+  cambiarRolParticipanteSchema,
+  modificarRolesEmpresaSchema,
+} from '../validators/empresa.validator';
 
 type cambiarRolParticipanteParams = {
   idAlumno: string;
@@ -38,33 +42,29 @@ export async function getCandidatos(req: Request, res: Response) {
 }
 
 export async function agregarParticipantes(req: Request, res: Response) {
-  await empresaService.agregarParticipantes(req.user!, req.body.participantes);
+  await empresaService.agregarParticipantes(req.user!, req.body);
 
   res.sendStatus(204);
 }
 
-export async function cambiarRolParticipante(
-  req: Request<cambiarRolParticipanteParams>,
-  res: Response
-) {
-  await empresaService.cambiarRolParticipante(
-    req.user!,
-    req.params.idAlumno,
-    req.body.idRolEmpresa
-  );
+export async function cambiarRolParticipante(req: Request, res: Response) {
+  const { body, params } = cambiarRolParticipanteSchema.parse({
+    body: req.body,
+    params: req.params,
+  });
+
+  await empresaService.cambiarRolParticipante(req.user!, params.idAlumno, body.idRolEmpresa);
 
   res.sendStatus(204);
 }
 
-export async function modificarRolesEmpresa(
-  req: Request<modificarRolesEmpresaParams>,
-  res: Response
-) {
-  await empresaService.modificarRolesEmpresa(
-    req.user!,
-    Number(req.params.idEmpresa),
-    req.body.roles
-  );
+export async function modificarRolesEmpresa(req: Request, res: Response) {
+  const { body, params } = modificarRolesEmpresaSchema.parse({
+    body: req.body,
+    params: req.params,
+  });
+
+  await empresaService.modificarRolesEmpresa(req.user!, params.idEmpresa, body.roles);
 
   res.sendStatus(204);
 }

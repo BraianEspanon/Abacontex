@@ -137,6 +137,18 @@ export async function findByIdWithEmpresaRol(id: string) {
   });
 }
 
+export async function findByIdWithEmpresaRolOrThrow(keycloakId: string) {
+  const usuario = await findByIdWithEmpresaRol(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
+}
+
 export async function updateRolEmpresa(id: string, idRolEmpresa: number) {
   return prisma.alumno.update({
     where: {

@@ -96,6 +96,17 @@ export async function findByKeycloakIdWithRolEmpresa(keycloakId: string) {
   });
 }
 
+export async function findByKeycloakIdWithRolEmpresaOrThrow(keycloakId: string) {
+  const usuario = await findByKeycloakIdWithRolEmpresa(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
+}
 export async function findByKeycloakIdWithEmpresa(keycloakId: string) {
   return prisma.usuario.findUnique({
     where: {
@@ -109,6 +120,18 @@ export async function findByKeycloakIdWithEmpresa(keycloakId: string) {
       },
     },
   });
+}
+
+export async function findByKeycloakIdWithEmpresaOrThrow(keycloakId: string) {
+  const usuario = await findByKeycloakIdWithEmpresa(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
 }
 
 export async function findByKeycloakIdWithEmpresaFull(keycloakId: string) {
@@ -137,6 +160,18 @@ export async function findByKeycloakIdWithEmpresaFull(keycloakId: string) {
   });
 }
 
+export async function findByKeycloakIdWithEmpresaFullOrThrow(keycloakId: string) {
+  const usuario = await findByKeycloakIdWithEmpresaFull(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
+}
+
 export async function findByKeycloakIdWithProfesorCursos(keycloakId: string) {
   return prisma.usuario.findUnique({
     where: {
@@ -146,6 +181,18 @@ export async function findByKeycloakIdWithProfesorCursos(keycloakId: string) {
       profesorCursos: true,
     },
   });
+}
+
+export async function findByKeycloakIdWithProfesorCursosOrThrow(keycloakId: string) {
+  const usuario = await findByKeycloakIdWithProfesorCursos(keycloakId);
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
 }
 
 export async function update(keycloakId: string, data: ActualizarUsuarioDTO) {
