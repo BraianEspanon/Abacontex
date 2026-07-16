@@ -5,8 +5,11 @@ import {
   KEYCLOAK_ADMIN_CLIENT_SECRET,
   KEYCLOAK_FRONTEND_CLIENT_ID,
 } from '../config/keycloak';
+import { CreateKeycloakUserDTO } from '../dto/keycloak/create-user.dto';
 import { AppError } from '../errors/app-error';
 import { BadRequestError } from '../errors/bad-request-error';
+import { ConfigurationError } from '../errors/configuration.error';
+import { ConflictError } from '../errors/conflict.error';
 import { ExternalServiceError } from '../errors/external-service.error';
 import { KeycloakGroup } from '../types/keycloak';
 
@@ -42,152 +45,280 @@ export async function getAdminToken() {
   return data.access_token;
 }
 
-export async function createUser({
-  username,
-  email,
-  firstName,
-  lastName,
-  password,
-}: {
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  password: string;
-}) {
+export async function createUser(data: CreateKeycloakUserDTO) {
   const token = await getAdminToken();
 
-  const response = await fetch(`${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username,
-      email,
-      firstName,
-      lastName,
-      enabled: true,
-      emailVerified: true,
-      credentials: [
-        {
-          type: 'password',
-          value: password,
-          temporary: false,
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-
-    throw new Error(`Error creando usuario: ${error}`);
-  }
-
-  const location = response.headers.get('location');
-
-  if (!location) {
-    throw new Error('No se pudo obtener el ID del usuario');
-  }
-
-  return location.split('/').pop()!;
-}
-
-export async function assignRealmRole(userId: string, roleName: string) {
-  const token = await getAdminToken();
-
-  const roleResponse = await fetch(
-    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/roles/${roleName}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (!roleResponse.ok) {
-    throw new Error(`No existe el rol ${roleName}`);
-  }
-
-  const role = await roleResponse.json();
-
-  const assignResponse = await fetch(
-    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`,
-    {
+  try {
+    const response = await fetch(`${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify([
-        {
-          id: role.id,
-          name: role.name,
-        },
-      ]),
-    }
-  );
+      body: JSON.stringify({
+        username: data.username,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        enabled: true,
+        emailVerified: true,
+        credentials: [
+          {
+            type: 'password',
+            value: data.password,
+            temporary: false,
+          },
+        ],
+      }),
+    });
 
-  if (!assignResponse.ok) {
-    throw new Error(`No se pudo asignar el rol ${roleName}`);
+    if (!response.ok) {
+      const error = await response.text();
+
+      switch (response.status) {
+        case 400:
+          throw new BadRequestError('Los datos enviados a Keycloak son inválidos.', {
+            service: 'Keycloak',
+            details: {
+              operation: 'CREATE_USER',
+              response: error,
+            },
+          });
+
+        case 409:
+          throw new ConflictError(
+            'Ya existe un usuario con ese correo electrónico o nombre de usuario.'
+          );
+
+        default:
+          throw new ExternalServiceError('Keycloak', 'No fue posible crear el usuario.', {
+            details: {
+              operation: 'CREATE_USER',
+              status: response.status,
+              response: error,
+            },
+          });
+      }
+    }
+
+    const location = response.headers.get('location');
+
+    if (!location) {
+      throw new ExternalServiceError(
+        'Keycloak',
+        'Keycloak no devolvió el identificador del usuario creado.',
+        {
+          details: {
+            operation: 'CREATE_USER',
+          },
+        }
+      );
+    }
+
+    return location.split('/').pop()!;
+  } catch (error) {
+    if (
+      error instanceof BadRequestError ||
+      error instanceof ConflictError ||
+      error instanceof ExternalServiceError
+    ) {
+      throw error;
+    }
+
+    throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
+      details: {
+        operation: 'CREATE_USER',
+        cause: error,
+      },
+    });
+  }
+}
+
+export async function assignRealmRole(userId: string, roleName: string) {
+  const token = await getAdminToken();
+
+  try {
+    const roleResponse = await fetch(
+      `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/roles/${roleName}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!roleResponse.ok) {
+      if (roleResponse.status === 404) {
+        throw new ConfigurationError(`El rol "${roleName}" no existe en Keycloak.`, {
+          service: 'Keycloak',
+          roleName,
+        });
+      }
+
+      throw new ExternalServiceError('Keycloak', 'No fue posible consultar el rol en Keycloak.', {
+        details: {
+          operation: 'ASSIGN_ROLE',
+          status: roleResponse.status,
+          roleName,
+        },
+      });
+    }
+
+    const role = await roleResponse.json();
+
+    const assignResponse = await fetch(
+      `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([
+          {
+            id: role.id,
+            name: role.name,
+          },
+        ]),
+      }
+    );
+
+    if (!assignResponse.ok) {
+      throw new ExternalServiceError('Keycloak', 'No fue posible asignar el rol al usuario.', {
+        details: {
+          operation: 'ASSIGN_ROLE',
+          status: assignResponse.status,
+          userId,
+          roleName,
+        },
+      });
+    }
+  } catch (error) {
+    if (error instanceof ConfigurationError || error instanceof ExternalServiceError) {
+      throw error;
+    }
+
+    throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
+      details: {
+        operation: 'ASSIGN_ROLE',
+        cause: error,
+      },
+    });
   }
 }
 
 export async function removeUserFromGroup(userId: string, groupName: string) {
   const token = await getAdminToken();
 
-  const groupResponse = await fetch(
-    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/groups?search=${groupName}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  try {
+    const groupResponse = await fetch(
+      `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/groups?search=${groupName}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!groupResponse.ok) {
+      throw new ExternalServiceError(
+        'Keycloak',
+        'No fue posible consultar los grupos en Keycloak.',
+        {
+          details: {
+            operation: 'SEARCH_GROUP',
+            status: groupResponse.status,
+            groupName,
+          },
+        }
+      );
     }
-  );
 
-  if (!groupResponse.ok) {
-    throw new Error(`Error al buscar el grupo ${groupName}`);
-  }
+    const groups: KeycloakGroup[] = await groupResponse.json();
 
-  const groups: KeycloakGroup[] = await groupResponse.json();
-  const group = groups.find((g) => g.name === groupName);
+    const group = groups.find((g) => g.name === groupName);
 
-  if (!group) {
-    return;
-  }
-
-  const removeResponse = await fetch(
-    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}/groups/${group.id}`,
-    {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    // Si el grupo no existe, no hay nada que remover.
+    if (!group) {
+      return;
     }
-  );
 
-  if (!removeResponse.ok) {
-    throw new Error(`No se pudo remover al usuario del grupo ${groupName}`);
+    const removeResponse = await fetch(
+      `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}/groups/${group.id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!removeResponse.ok) {
+      throw new ExternalServiceError('Keycloak', 'No fue posible remover el usuario del grupo.', {
+        details: {
+          operation: 'REMOVE_USER_FROM_GROUP',
+          status: removeResponse.status,
+          userId,
+          groupName,
+        },
+      });
+    }
+  } catch (error) {
+    if (error instanceof ExternalServiceError) {
+      throw error;
+    }
+
+    throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
+      details: {
+        operation: 'REMOVE_USER_FROM_GROUP',
+        cause: error,
+      },
+    });
   }
 }
-
 export async function deleteUser(userId: string) {
   const token = await getAdminToken();
 
-  const response = await fetch(
-    `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}`,
-    {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  try {
+    const response = await fetch(
+      `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-  if (!response.ok) {
-    throw new Error(`No se pudo eliminar el usuario ${userId}`);
+    // El usuario ya no existe.
+    if (response.status === 404) {
+      return;
+    }
+
+    if (!response.ok) {
+      throw new ExternalServiceError(
+        'Keycloak',
+        'No fue posible eliminar el usuario en Keycloak.',
+        {
+          details: {
+            operation: 'DELETE_USER',
+            status: response.status,
+            userId,
+          },
+        }
+      );
+    }
+  } catch (error) {
+    if (error instanceof ExternalServiceError) {
+      throw error;
+    }
+
+    throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
+      details: {
+        operation: 'DELETE_USER',
+        cause: error,
+      },
+    });
   }
 }
 

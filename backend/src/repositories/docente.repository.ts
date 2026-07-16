@@ -1,3 +1,4 @@
+import { NotFoundError } from '../errors/not-found.error';
 import { prisma } from '../lib/prisma';
 
 export async function crearDocente(
@@ -53,6 +54,20 @@ export async function findByKeycloakId(keycloakId: string) {
       },
     },
   });
+}
+
+export type DocenteActualEntity = NonNullable<Awaited<ReturnType<typeof findByKeycloakId>>>;
+
+export async function findByKeycloakIdOrThrow(keycloakId: string) {
+  const docente = await findByKeycloakId(keycloakId);
+
+  if (!docente) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return docente;
 }
 
 export async function findCursoIdsByKeycloakId(keycloakId: string): Promise<number[]> {

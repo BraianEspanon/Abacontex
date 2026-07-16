@@ -14,6 +14,8 @@ export const crearDocenteSchema = z.object({
   }),
 });
 
+export type CrearDocenteDTO = z.infer<typeof crearDocenteSchema>['body'];
+
 export const obtenerEmpresasSchema = z.object({
   query: z.object({
     cursoId: z.coerce.number().int().positive().optional(),
