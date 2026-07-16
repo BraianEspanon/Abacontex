@@ -94,6 +94,42 @@
  *         description: El usuario no posee el rol DOCENTE.
  *
  * /docentes/me/cursos:
+ *   patch:
+ *     summary: Actualizar cursos del docente autenticado
+ *     description: |
+ *       Permite al docente actualizar la lista de cursos que dicta.
+ *       Se reemplaza la asignación actual por los cursoIds enviados.
+ *
+ *     tags:
+ *       - Docentes
+ *
+ *     security:
+ *       - oauth2: []
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/DocenteActualizarCursosRequest'
+ *
+ *     responses:
+ *       200:
+ *         description: Cursos del docente actualizados correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DocenteActual'
+ *
+ *       400:
+ *         description: Datos inválidos o uno o más cursos no existen.
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ *       403:
+ *         description: El usuario no posee el rol DOCENTE.
+ *
  *   get:
  *     summary: Obtener los cursos asignados al docente autenticado
  *     description: |

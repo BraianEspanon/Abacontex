@@ -20,18 +20,21 @@ import {
   EvolucionPuntajeDTO,
 } from '../dto/docente/doc-dashboard.dto';
 import { CursoDocenteDTO } from '../dto/docente/doc-curso.dto';
-import { AlumnoDocenteFiltrosDTO, EmpresaDocenteFiltrosDTO } from '../validators/docente.validator';
+import {
+  ActualizarCursosDocenteDTO,
+  AlumnoDocenteFiltrosDTO,
+  CrearDocenteDTO,
+  EmpresaDocenteFiltrosDTO,
+} from '../validators/docente.validator';
 import { EmpresaDetalleDocenteDTO } from '../dto/docente/doc-empresa-detalle.dto';
 import { EmpresasDocenteResponseDTO } from '../dto/docente/doc-empresa.dto';
 import { AlumnosDocenteResponseDTO } from '../dto/docente/doc-alumno.dto';
+import { toDocenteActualResponse } from '../dto/docente/doc.mapper';
 
-export async function crearDocente(data: {
-  nombre: string;
-  apellido: string;
-  email: string;
-  password: string;
-  cursoIds: number[];
-}) {
+import { NotFoundError } from '../errors/not-found.error';
+import { DocenteActualResponseDTO } from '../dto/docente/doc-actual.dto';
+
+export async function crearDocente(data: CrearDocenteDTO) {
   let keycloakId: string | undefined;
 
   try {
@@ -47,17 +50,13 @@ export async function crearDocente(data: {
 
     await keycloakAdminService.assignRealmRole(keycloakId, ROLES.DOCENTE);
 
-    const rolSistema = await rolSistemaRepository.findDocente();
-
-    if (!rolSistema) {
-      throw new Error(`No existe el rol ${ROLES.DOCENTE} en la BD`);
-    }
+    const rolSistema = await rolSistemaRepository.findDocenteOrThrow();
 
     // Validar que todos los cursos existan
     const cursos = await cursoRepository.findByIds(data.cursoIds);
 
     if (cursos.length !== data.cursoIds.length) {
-      throw new Error('Uno o más cursos no existen');
+      throw new NotFoundError('Uno o más cursos no existen');
     }
 
     // Crear usuario y asignar cursos en una transacción
@@ -89,22 +88,22 @@ export async function crearDocente(data: {
 }
 
 export async function obtenerDocenteActual(user: AuthUser) {
-  const docente = await docenteRepository.findByKeycloakId(user.keycloakId);
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
 
-  if (!docente) {
-    throw new Error('Docente no encontrado');
-  }
+  return toDocenteActualResponse(docente);
+}
 
-  return {
-    id: docente.id,
-    nombre: docente.nombre,
-    apellido: docente.apellido,
-    email: docente.email,
-    cursos: docente.profesorCursos.map((p) => ({
-      id: p.curso.idCurso,
-      nombre: p.curso.nombreCurso,
-    })),
-  };
+export async function actualizarCursosDocenteActual(
+  user: AuthUser,
+  data: ActualizarCursosDocenteDTO
+): Promise<DocenteActualResponseDTO> {
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  await cursoRepository.findByIdsOrThrow(data.cursoIds);
+
+  await docenteRepository.updateCursosProfesor(docente.id, data.cursoIds);
+
+  return obtenerDocenteActual(user);
 }
 
 export async function obtenerDashboard(

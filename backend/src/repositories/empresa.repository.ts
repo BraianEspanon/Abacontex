@@ -1,5 +1,7 @@
 import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
+import { CrearEmpresaDTO } from '../validators/empresa.validator';
+import { NotFoundError } from '../errors/not-found.error';
 
 export async function findBynombre(nombre: string) {
   return prisma.empresa.findUnique({
@@ -9,28 +11,21 @@ export async function findBynombre(nombre: string) {
   });
 }
 
-export async function update(
-  id: number,
-  nombre: string,
-  actividad: string,
-  logoUrl: string | null
-) {
+export async function update(id: number, data: CrearEmpresaDTO) {
   return prisma.empresa.update({
     where: {
       id,
     },
     data: {
-      nombre: nombre,
-      actividad: actividad,
-      logoUrl: logoUrl,
+      nombre: data.nombre,
+      actividad: data.actividad,
+      logoUrl: data.logoUrl ?? null,
     },
   });
 }
 
 export async function create(
-  nombre: string,
-  actividad: string,
-  logoUrl: string | null,
+  data: CrearEmpresaDTO,
   idCurso: number,
   idCicloLectivo: number,
   idUsuario: string
@@ -38,9 +33,9 @@ export async function create(
   return prisma.$transaction(async (tx) => {
     const empresa = await tx.empresa.create({
       data: {
-        nombre: nombre,
-        actividad: actividad,
-        logoUrl: logoUrl ?? null,
+        nombre: data.nombre,
+        actividad: data.actividad,
+        logoUrl: data.logoUrl ?? null,
         puntos: 0,
         idCurso: idCurso,
         idCicloLectivo: idCicloLectivo,
@@ -70,7 +65,17 @@ export async function findByIdWithAlumnos(idEmpresa: number) {
     },
   });
 }
+export async function findByIdWithAlumnosOrThrow(idEmpresa: number) {
+  const empresa = await findByIdWithAlumnos(idEmpresa);
 
+  if (!empresa) {
+    throw new NotFoundError('Empresa no encontrada en base de datos.', {
+      idEmpresa,
+    });
+  }
+
+  return empresa;
+}
 export async function countByCursos(cursoIds: number[]): Promise<number> {
   return prisma.empresa.count({
     where: {

@@ -8,8 +8,7 @@ import {
   actualizarUsuarioActual,
   actualizarPassword,
 } from '../controllers/usuario.controller';
-import { actualizarPasswordSchema } from '../validators/usuario.validator';
-import { actualizarUsuarioSchema } from '../validators/alumno.validator';
+import { actualizarUsuarioSchema, actualizarPasswordSchema } from '../validators/usuario.validator';
 
 const router = Router();
 
