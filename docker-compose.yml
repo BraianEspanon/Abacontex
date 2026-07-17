@@ -93,6 +93,17 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
 
+      SMTP_DEBUG: ${SMTP_DEBUG}
+      SMTP_STARTTLS: $SMTP_STARTTLS
+      SMTP_AUTH: ${SMTP_AUTH}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+      SMTP_SSL: ${SMTP_SSL}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+
     ports:
       - "${KEYCLOAK_PORT}:8080"
 
@@ -100,6 +111,15 @@ services:
       - ./keycloak/themes:/opt/keycloak/themes
       - ./keycloak/realm-export.dev.json:/opt/keycloak/data/import/realm.json
       - keycloak_data:/opt/keycloak/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+
+    container_name: abacontex-mailpit
+
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
 
 volumes:
   postgres_data:
