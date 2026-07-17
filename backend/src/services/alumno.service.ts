@@ -1,122 +1,34 @@
-import { prisma } from '../lib/prisma';
 import { AuthUser } from '../types/express';
 
-export async function getAlumnoActual(user: AuthUser) {
-  const usuario = await prisma.usuario.findUnique({
-    where: {
-      keycloakId: user.keycloakId,
-    },
-    include: {
-      alumno: {
-        include: {
-          curso: true,
-          rolEmpresa: true,
-          empresa: true,
-        },
-      },
-    },
-  });
+import { CompletarRegistroDTO } from '../validators/alumno.validator';
+import { UsuarioActualResponseDTO } from '../dto/alumno/alu-actual.dto';
+import { toAlumnoActualResponse } from '../dto/alumno/alu.mapper';
 
-  if (!usuario) {
-    throw new Error('Usuario inexistente');
-  }
+import * as alumnoRepository from '../repositories/alumno.repository';
+import * as usuarioRepository from '../repositories/usuario.repository';
+import * as cursoRepository from '../repositories/curso.repository';
+import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
 
-  if (!usuario.alumno) {
-    return {
-      registroCompleto: false,
-      id: usuario.id,
-      nombre: usuario.nombre,
-      apellido: usuario.apellido,
-      email: usuario.email,
-      curso: null,
-      rolEmpresa: null,
-      empresa: null,
-    };
-  }
+import { ConflictError } from '../errors/conflict.error';
 
-  return {
-    registroCompleto: true,
-    id: usuario.id,
-    nombre: usuario.nombre,
-    apellido: usuario.apellido,
-    email: usuario.email,
+export async function getAlumnoActual(user: AuthUser): Promise<UsuarioActualResponseDTO> {
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
 
-    curso: {
-      id: usuario.alumno.curso.idCurso,
-      nombre: usuario.alumno.curso.nombreCurso,
-    },
-
-    rolEmpresa: usuario.alumno.rolEmpresa
-      ? {
-          id: usuario.alumno.rolEmpresa.idRol,
-          nombre: usuario.alumno.rolEmpresa.nombreRol,
-          descripcion: usuario.alumno.rolEmpresa.descripcion,
-        }
-      : null,
-
-    empresa: usuario.alumno.empresa
-      ? {
-          id: usuario.alumno.empresa.id,
-          nombre: usuario.alumno.empresa.nombre,
-        }
-      : null,
-  };
+  return toAlumnoActualResponse(usuario);
 }
 
-export async function completarRegistro(
-  user: AuthUser,
-  data: {
-    idCurso: number;
-    idRolEmpresa: number;
-  }
-) {
-  const usuario = await prisma.usuario.findUnique({
-    where: {
-      keycloakId: user.keycloakId,
-    },
-    include: {
-      alumno: true,
-    },
-  });
-
-  if (!usuario) {
-    throw new Error('Usuario inexistente');
-  }
+export async function completarRegistro(user: AuthUser, data: CompletarRegistroDTO) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
 
   if (usuario.alumno) {
-    throw new Error('El registro ya fue completado');
+    throw new ConflictError('El registro del alumno ya fue completado previamente.');
   }
 
-  const curso = await prisma.curso.findUnique({
-    where: {
-      idCurso: data.idCurso,
-    },
-  });
+  //con un await Promise.all se puede optimizar un poco acá
+  await cursoRepository.findByIdOrThrow(data.idCurso);
+  await rolEmpresaRepository.findByIdOrThrow(data.idRolEmpresa);
 
-  if (!curso) {
-    throw new Error('Curso inexistente');
-  }
+  await alumnoRepository.create(usuario.id, data);
 
-  const rolEmpresa = await prisma.rolesEmpresa.findUnique({
-    where: {
-      idRol: data.idRolEmpresa,
-    },
-  });
-
-  if (!rolEmpresa) {
-    throw new Error('Rol de empresa inexistente');
-  }
-
-  await prisma.alumno.create({
-    data: {
-      id: usuario.id,
-      idCurso: data.idCurso,
-      idRolEmpresa: data.idRolEmpresa,
-    },
-    include: {
-      curso: true,
-      rolEmpresa: true,
-    },
-  });
   return getAlumnoActual(user);
 }

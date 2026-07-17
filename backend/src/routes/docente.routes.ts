@@ -5,6 +5,7 @@ import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
 import {
+  actualizarCursosDocenteSchema,
   crearDocenteSchema,
   obtenerAlumnosSchema,
   obtenerEmpresaSchema,
@@ -18,6 +19,7 @@ import {
   obtenerEmpresasDocente,
   obtenerDetalleEmpresaDocente,
   obtenerAlumnos,
+  actualizarCursosDocenteActual,
 } from '../controllers/docente.controller';
 import { ROLES } from '../constants/roles';
 
@@ -31,6 +33,13 @@ router.post(
   crearDocente
 );
 router.get('/me', authenticate, requireRole(ROLES.DOCENTE), obtenerDocenteActual);
+router.patch(
+  '/me/cursos',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(actualizarCursosDocenteSchema),
+  actualizarCursosDocenteActual
+);
 router.get('/me/dashboard', authenticate, requireRole(ROLES.DOCENTE), obtenerDashboardDocente);
 router.get('/me/cursos', authenticate, requireRole(ROLES.DOCENTE), obtenerCursosDocente);
 router.get(

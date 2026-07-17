@@ -1,3 +1,4 @@
+import { NotFoundError } from '../errors/not-found.error';
 import { prisma } from '../lib/prisma';
 
 export async function crearDocente(
@@ -55,6 +56,20 @@ export async function findByKeycloakId(keycloakId: string) {
   });
 }
 
+export type DocenteActualEntity = NonNullable<Awaited<ReturnType<typeof findByKeycloakId>>>;
+
+export async function findByKeycloakIdOrThrow(keycloakId: string) {
+  const docente = await findByKeycloakId(keycloakId);
+
+  if (!docente) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return docente;
+}
+
 export async function findCursoIdsByKeycloakId(keycloakId: string): Promise<number[]> {
   const profesorCursos = await prisma.profesorCursos.findMany({
     where: {
@@ -85,5 +100,22 @@ export async function findCursosByDocente(keycloakId: string) {
     orderBy: {
       nombreCurso: 'asc',
     },
+  });
+}
+
+export async function updateCursosProfesor(idUsuario: string, cursoIds: number[]) {
+  await prisma.$transaction(async (tx) => {
+    await tx.profesorCursos.deleteMany({
+      where: {
+        idUsuario,
+      },
+    });
+
+    await tx.profesorCursos.createMany({
+      data: cursoIds.map((idCurso) => ({
+        idCurso,
+        idUsuario,
+      })),
+    });
   });
 }
