@@ -35,6 +35,7 @@ model Usuario {
 
   profesorCursos         ProfesorCursos[]
   movimientosFinancieros MovimientoFinanciero[]
+  invitacionesCreadas    InvitacionEmpresa[]
 
   alumno    Alumno?
   auditLogs AuditLog[]
@@ -108,10 +109,12 @@ model Empresa {
   nombre String @unique
 
   actividad String
-
-  logoUrl String?
+  logoUrl   String?
 
   puntos Int @default(0)
+
+  activo        Boolean  @default(true)
+  fechaCreacion DateTime @default(now()) @db.Timestamptz(3)
 
   idCurso Int
   curso   Curso @relation(fields: [idCurso], references: [idCurso])
@@ -123,9 +126,12 @@ model Empresa {
   movimientosFinancieros MovimientoFinanciero[]
   auditLogs              AuditLog[]
   productos              Producto[]
+  invitaciones           InvitacionEmpresa[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
+  @@index([activo])
+  @@index([idCurso, activo])
   @@map("empresas")
 }
 
@@ -275,4 +281,38 @@ model Producto {
   @@unique([empresaId, codigo])
   @@index([empresaId])
   @@map("productos")
+}
+
+enum EstadoInvitacion {
+  PENDIENTE
+  ACEPTADA
+  CANCELADA
+  EXPIRADA
+}
+
+model InvitacionEmpresa {
+  id Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  email String
+  token String @unique
+
+  estado EstadoInvitacion @default(PENDIENTE)
+
+  fechaExpiracion DateTime @db.Timestamptz(3)
+
+  createdById String
+  createdBy   Usuario @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([empresaId, email])
+  @@index([empresaId])
+  @@index([email])
+  @@index([estado])
+  @@index([createdById])
+  @@map("invitaciones_empresa")
 }
