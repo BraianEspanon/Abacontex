@@ -32,12 +32,20 @@ export const empresasSeed: Seed = {
       where: {
         nombre: 'TechNova',
       },
-      update: {},
+      update: {
+        actividad: 'Desarrollo y comercialización de soluciones tecnológicas',
+        logoUrl: null,
+        puntos: 0,
+        activo: true,
+        idCurso: curso5to.idCurso,
+        idCicloLectivo: ciclo2026.id,
+      },
       create: {
         nombre: 'TechNova',
         actividad: 'Desarrollo y comercialización de soluciones tecnológicas',
         logoUrl: null,
         puntos: 0,
+        activo: true,
         idCurso: curso5to.idCurso,
         idCicloLectivo: ciclo2026.id,
       },
@@ -47,12 +55,20 @@ export const empresasSeed: Seed = {
       where: {
         nombre: 'InnovaSoft',
       },
-      update: {},
+      update: {
+        actividad: 'Producción y venta de software educativo',
+        logoUrl: null,
+        puntos: 0,
+        activo: true,
+        idCurso: curso6to.idCurso,
+        idCicloLectivo: ciclo2026.id,
+      },
       create: {
         nombre: 'InnovaSoft',
         actividad: 'Producción y venta de software educativo',
         logoUrl: null,
         puntos: 0,
+        activo: true,
         idCurso: curso6to.idCurso,
         idCicloLectivo: ciclo2026.id,
       },
