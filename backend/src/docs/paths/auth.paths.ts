@@ -20,7 +20,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/UsuarioActual'
+ *               $ref: '#/components/schemas/UsuarioSincronizado'
  *
  *       401:
  *         description: Token inválido o inexistente.

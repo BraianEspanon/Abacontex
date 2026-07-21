@@ -20,6 +20,20 @@ export default defineConfig([
   tseslint.configs.recommended,
 
   {
+    files: ['**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+
+  {
     files: ['jest.config.cjs'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',

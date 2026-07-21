@@ -1,0 +1,625 @@
+{
+  "info": {
+    "_postman_id": "5e4feff8-350f-4d0e-b0be-40a2d8c43fd6",
+    "name": "Abacontex",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "24839019"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sync user",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/auth/sync-user",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "auth",
+                "sync-user"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Usuario",
+      "item": [
+        {
+          "name": "me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/usuarios/me",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "usuarios",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "me",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Braian\",\r\n  \"apellido\": \"Españon\",\r\n  \"fotoPerfilUrl\": \"https://www.example.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/usuarios/me",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "usuarios",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "me password",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"currentPassword\": \"alumnos\",\r\n  \"newPassword\": \"Asdasd12\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/usuarios/me/password",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "usuarios",
+                "me",
+                "password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Alumno",
+      "item": [
+        {
+          "name": "registro",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"idCurso\": 1,\r\n  \"idRolEmpresa\": 2\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/alumnos/me/registro",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "alumnos",
+                "me",
+                "registro"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/alumnos/me",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "alumnos",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Docente",
+      "item": [
+        {
+          "name": "crearDocente",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Juan\",\r\n  \"apellido\": \"Perez\",\r\n  \"email\": \"profe2@profe.com\",\r\n  \"password\": \"Abacontex1\",\r\n  \"cursoIds\": [\r\n    1\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/docentes",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/docentes/me",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/docentes/me/dashboard",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "me",
+                "dashboard"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "cursos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/docentes/me/cursos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "me",
+                "cursos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "empresas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/docentes/me/empresas",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "me",
+                "empresas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "empresa detalle",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/docentes/me/empresas/:idEmpresa",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "me",
+                "empresas",
+                ":idEmpresa"
+              ],
+              "variable": [
+                {
+                  "key": "idEmpresa",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "alumnos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/docentes/me/alumnos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "me",
+                "alumnos"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Empresa",
+      "item": [
+        {
+          "name": "crearEmpresa",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nombre\": \"Abacontex S.A.\",\r\n    \"actividad\": \"Educar y enseñar jijos\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/empresas",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "empresas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/empresas/me",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "empresas",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "me",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nombre\": \"Abacontex S.A.\",\r\n    \"actividad\": \"Plataforma ERP educativa\",\r\n    \"logoUrl\": \"https://www.example.com\"\r\n    }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/empresas/me",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "empresas",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "candidatos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/empresas/candidatos?search=espa",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "empresas",
+                "candidatos"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "espa"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "participantes",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"participantes\": [\r\n        \"8492f11a-4031-4066-9266-088f8a6f1379\"\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/empresas/me/participantes",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "empresas",
+                "me",
+                "participantes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "participantes rol",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"idRolEmpresa\": 4\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/empresas/me/participantes/:idAlumno/rol",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "empresas",
+                "me",
+                "participantes",
+                ":idAlumno",
+                "rol"
+              ],
+              "variable": [
+                {
+                  "key": "idAlumno",
+                  "value": "fe0e9ab9-8938-48fe-862b-9c1eab82c339"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "modificar roles",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"roles\":[\r\n        {\r\n            \"idAlumno\":\"8b29853e-4b85-418a-a1c4-fe3f0b1c4a44\",\r\n            \"idRolEmpresa\":1\r\n        },\r\n        {\r\n            \"idAlumno\":\"309dc8cf-ca71-42d3-90f3-bdbc7d54fad9\",\r\n            \"idRolEmpresa\":1\r\n        },\r\n        {\r\n            \"idAlumno\":\"7b9be7df-714c-4d26-ab30-c9c2aceae713\",\r\n            \"idRolEmpresa\":1\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/empresas/:idEmpresa/roles",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "empresas",
+                ":idEmpresa",
+                "roles"
+              ],
+              "variable": [
+                {
+                  "key": "idEmpresa",
+                  "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Get Generales",
+      "item": [
+        {
+          "name": "Cursos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/cursos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "cursos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Roles empresa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/roles-empresa",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "roles-empresa"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "oauth2",
+    "oauth2": [
+      {
+        "key": "tokenName",
+        "value": "Alumno",
+        "type": "string"
+      },
+      {
+        "key": "clientId",
+        "value": "testing",
+        "type": "string"
+      },
+      {
+        "key": "accessTokenUrl",
+        "value": "http://localhost:8080/realms/abacontex/protocol/openid-connect/token",
+        "type": "string"
+      },
+      {
+        "key": "authUrl",
+        "value": "http://localhost:8080/realms/abacontex/protocol/openid-connect/auth",
+        "type": "string"
+      },
+      {
+        "key": "redirect_uri",
+        "value": "https://oauth.pstmn.io/v1/callback",
+        "type": "string"
+      },
+      {
+        "key": "client_authentication",
+        "value": "body",
+        "type": "string"
+      },
+      {
+        "key": "grant_type",
+        "value": "authorization_code_with_pkce",
+        "type": "string"
+      },
+      {
+        "key": "addTokenTo",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_Url",
+      "value": "http://localhost:3000"
+    }
+  ]
+}

@@ -18,6 +18,10 @@ export const swaggerSpec = swaggerJsdoc({
 
     tags: [
       {
+        name: 'Health',
+        description: 'Endpoints de verificación y monitoreo del servicio.',
+      },
+      {
         name: 'Auth',
         description: 'Autenticación y sincronización de usuarios.',
       },
@@ -32,6 +36,10 @@ export const swaggerSpec = swaggerJsdoc({
       {
         name: 'Empresas',
         description: 'Gestión de empresas y sus integrantes.',
+      },
+      {
+        name: 'Docentes',
+        description: 'Operaciones de creación y consulta para docentes.',
       },
       {
         name: 'Cursos',

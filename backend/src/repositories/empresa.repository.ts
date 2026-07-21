@@ -1,4 +1,7 @@
 import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
+import { CrearEmpresaDTO } from '../validators/empresa.validator';
+import { NotFoundError } from '../errors/not-found.error';
 
 export async function findBynombre(nombre: string) {
   return prisma.empresa.findUnique({
@@ -8,28 +11,21 @@ export async function findBynombre(nombre: string) {
   });
 }
 
-export async function update(
-  id: number,
-  nombre: string,
-  actividad: string,
-  logoUrl: string | null
-) {
+export async function update(id: number, data: CrearEmpresaDTO) {
   return prisma.empresa.update({
     where: {
       id,
     },
     data: {
-      nombre: nombre,
-      actividad: actividad,
-      logoUrl: logoUrl,
+      nombre: data.nombre,
+      actividad: data.actividad,
+      logoUrl: data.logoUrl ?? null,
     },
   });
 }
 
 export async function create(
-  nombre: string,
-  actividad: string,
-  logoUrl: string | null,
+  data: CrearEmpresaDTO,
   idCurso: number,
   idCicloLectivo: number,
   idUsuario: string
@@ -37,9 +33,9 @@ export async function create(
   return prisma.$transaction(async (tx) => {
     const empresa = await tx.empresa.create({
       data: {
-        nombre: nombre,
-        actividad: actividad,
-        logoUrl: logoUrl ?? null,
+        nombre: data.nombre,
+        actividad: data.actividad,
+        logoUrl: data.logoUrl ?? null,
         puntos: 0,
         idCurso: idCurso,
         idCicloLectivo: idCicloLectivo,
@@ -66,6 +62,194 @@ export async function findByIdWithAlumnos(idEmpresa: number) {
     },
     include: {
       alumnos: true,
+    },
+  });
+}
+export async function findByIdWithAlumnosOrThrow(idEmpresa: number) {
+  const empresa = await findByIdWithAlumnos(idEmpresa);
+
+  if (!empresa) {
+    throw new NotFoundError('Empresa no encontrada en base de datos.', {
+      idEmpresa,
+    });
+  }
+
+  return empresa;
+}
+export async function countByCursos(cursoIds: number[]): Promise<number> {
+  return prisma.empresa.count({
+    where: {
+      idCurso: {
+        in: cursoIds,
+      },
+    },
+  });
+}
+
+export async function countByCurso(idCurso: number): Promise<number> {
+  return prisma.empresa.count({
+    where: {
+      idCurso,
+    },
+  });
+}
+export async function findByDocente(
+  keycloakId: string,
+  search: string | undefined,
+  idCurso: number | undefined,
+  page: number,
+  pageSize: number
+) {
+  const where: Prisma.EmpresaWhereInput = {
+    curso: {
+      profesores: {
+        some: {
+          profesor: {
+            keycloakId,
+          },
+        },
+      },
+    },
+  };
+
+  if (idCurso) {
+    where.idCurso = idCurso;
+  }
+
+  if (search) {
+    where.OR = [
+      {
+        nombre: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      },
+      {
+        alumnos: {
+          some: {
+            usuario: {
+              OR: [
+                {
+                  nombre: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+                {
+                  apellido: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    ];
+  }
+
+  const [totalItems, items] = await prisma.$transaction([
+    prisma.empresa.count({
+      where,
+    }),
+
+    prisma.empresa.findMany({
+      where,
+
+      select: {
+        id: true,
+
+        nombre: true,
+
+        actividad: true,
+
+        logoUrl: true,
+
+        curso: {
+          select: {
+            idCurso: true,
+            nombreCurso: true,
+          },
+        },
+
+        alumnos: {
+          select: {
+            usuario: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+
+      orderBy: {
+        nombre: 'asc',
+      },
+
+      skip: (page - 1) * pageSize,
+
+      take: pageSize,
+    }),
+  ]);
+
+  return {
+    totalItems,
+    items,
+  };
+}
+
+export async function findDetalleByDocente(keycloakId: string, empresaId: number) {
+  return prisma.empresa.findFirst({
+    where: {
+      id: empresaId,
+
+      curso: {
+        profesores: {
+          some: {
+            profesor: {
+              keycloakId,
+            },
+          },
+        },
+      },
+    },
+
+    select: {
+      id: true,
+
+      nombre: true,
+
+      actividad: true,
+
+      logoUrl: true,
+
+      curso: {
+        select: {
+          idCurso: true,
+          nombreCurso: true,
+        },
+      },
+
+      alumnos: {
+        select: {
+          usuario: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              email: true,
+            },
+          },
+
+          rolEmpresa: {
+            select: {
+              nombreRol: true,
+            },
+          },
+        },
+      },
     },
   });
 }

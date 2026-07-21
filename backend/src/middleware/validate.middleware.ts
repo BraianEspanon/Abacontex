@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z, ZodObject, ZodRawShape } from 'zod';
+import { BadRequestError } from '../errors/bad-request-error';
+import { formatZodIssues } from '../utils/zod-error.utils';
 
 type RequestSchema = {
   body?: unknown;
@@ -19,9 +21,8 @@ export function validate<
     });
 
     if (!result.success) {
-      return res.status(400).json({
-        message: 'Datos inválidos',
-        errors: result.error.flatten(),
+      throw new BadRequestError('La solicitud contiene datos inválidos.', {
+        errors: formatZodIssues(result.error.issues),
       });
     }
 

@@ -1,13 +1,5 @@
-import { prisma } from '../lib/prisma';
+import * as cursoRepository from '../repositories/curso.repository';
 
 export async function getCursos() {
-  return prisma.curso.findMany({
-    orderBy: {
-      nombreCurso: 'asc',
-    },
-    select: {
-      idCurso: true,
-      nombreCurso: true,
-    },
-  });
+  return cursoRepository.findAll();
 }
