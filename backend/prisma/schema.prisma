@@ -260,26 +260,26 @@ model EstadoMovimiento {
 model Producto {
   id Int @id @default(autoincrement())
 
-  codigo String
-
   empresaId Int
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   nombre      String
-  descripcion String?
+  descripcion String
 
   stock Int @default(0)
 
-  costoUnitario Decimal @db.Decimal(14, 2)
-  precioVenta   Decimal @db.Decimal(14, 2)
+  precioUnitario Decimal @db.Decimal(14, 2)
+
+  fotoUrl String?
 
   activo Boolean @default(true)
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  @@unique([empresaId, codigo])
+  @@unique([empresaId, nombre])
   @@index([empresaId])
+  @@index([activo])
   @@map("productos")
 }
 
