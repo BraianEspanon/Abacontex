@@ -309,3 +309,14 @@ export async function findByDocente(keycloakId: string, filtros: AlumnoDocenteFi
     items,
   };
 }
+
+export async function asignarEmpresa(idAlumno: string, empresaId: number) {
+  return prisma.alumno.update({
+    where: {
+      id: idAlumno,
+    },
+    data: {
+      idEmpresa: empresaId,
+    },
+  });
+}

@@ -1,5 +1,3 @@
-import { boolean } from 'zod';
-
 declare namespace NodeJS {
   interface ProcessEnv {
     KEYCLOAK_BASE_URL: string;
@@ -13,11 +11,13 @@ declare namespace NodeJS {
     ENVIRONMENT: string;
 
     SMTP_HOST: string;
-    SMTP_PORT: number;
-    SMTP_SECURE: boolean;
+    SMTP_PORT: string;
+    SMTP_SECURE: string;
     SMTP_USER: string;
     SMTP_PASSWORD: string;
     SMTP_FROM: string;
     SMTP_FROM_NAME: string;
+
+    FRONTEND_URL: string;
   }
 }

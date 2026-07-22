@@ -67,7 +67,7 @@ export async function getEmpresaActual(user: AuthUser) {
   }
 
   if (!usuario.alumno.empresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
+    return null;
   }
 
   return toEmpresaActualResponse(usuario.alumno.empresa);

@@ -36,6 +36,8 @@ services:
       SMTP_FROM: ${SMTP_FROM}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME}
 
+      FRONTEND_URL: ${FRONTEND_URL}
+
     depends_on:
       postgres:
         condition: service_healthy

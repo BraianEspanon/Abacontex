@@ -209,3 +209,11 @@ export async function update(keycloakId: string, data: ActualizarUsuarioDTO) {
     },
   });
 }
+
+export async function findByEmail(email: string) {
+  return prisma.usuario.findUnique({
+    where: {
+      email,
+    },
+  });
+}
