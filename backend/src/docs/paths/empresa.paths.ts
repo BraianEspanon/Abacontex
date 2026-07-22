@@ -254,4 +254,155 @@
  *
  *       403:
  *         description: El usuario no posee permisos para modificar roles de empresa.
+ *
+ * /empresas/me/invitaciones:
+ *   post:
+ *     summary: Enviar invitaciones a la empresa
+ *     description: |
+ *       Permite al CEO de una empresa enviar invitaciones por email a personas externas.
+ *       El usuario autenticado debe pertenecer a una empresa activa y tener rol CEO.
+ *
+ *     tags:
+ *       - Empresas
+ *
+ *     security:
+ *       - oauth2: []
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CrearInvitacionesRequest'
+ *
+ *     responses:
+ *       201:
+ *         description: Invitaciones enviadas correctamente.
+ *
+ *       400:
+ *         description: Datos inválidos o el usuario no pertenece a una empresa.
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ *       403:
+ *         description: El usuario no posee permisos para enviar invitaciones.
+ *
+ *       409:
+ *         description: El correo ya está registrado o ya existe una invitación pendiente.
+ *
+ *   get:
+ *     summary: Obtener invitaciones pendientes del usuario autenticado
+ *     description: |
+ *       Devuelve las invitaciones pendientes asociadas al email del usuario autenticado.
+ *
+ *     tags:
+ *       - Empresas
+ *
+ *     security:
+ *       - oauth2: []
+ *
+ *     responses:
+ *       200:
+ *         description: Lista de invitaciones pendientes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/InvitacionEmpresa'
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ * /empresas/me/invitaciones/{id}/aceptar:
+ *   post:
+ *     summary: Aceptar una invitación a una empresa
+ *     description: |
+ *       Permite al usuario autenticado aceptar una invitación pendiente.
+ *       Si el usuario ya pertenece a una empresa, no podrá aceptar la invitación.
+ *
+ *     tags:
+ *       - Empresas
+ *
+ *     security:
+ *       - oauth2: []
+ *
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *         description: Identificador de la invitación.
+ *
+ *     responses:
+ *       204:
+ *         description: Invitación aceptada correctamente.
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ *       409:
+ *         description: La invitación ya fue procesada, expiró o el usuario no cumple las reglas de negocio.
+ *
+ * /empresas/me/invitaciones/{id}/rechazar:
+ *   post:
+ *     summary: Rechazar una invitación a una empresa
+ *     description: |
+ *       Permite al usuario autenticado rechazar una invitación pendiente.
+ *
+ *     tags:
+ *       - Empresas
+ *
+ *     security:
+ *       - oauth2: []
+ *
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *         description: Identificador de la invitación.
+ *
+ *     responses:
+ *       204:
+ *         description: Invitación rechazada correctamente.
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ *       409:
+ *         description: La invitación ya fue procesada, expiró o el usuario no cumple las reglas de negocio.
+ *
+ * /empresas/me/invitaciones/enviadas:
+ *   get:
+ *     summary: Obtener invitaciones enviadas por la empresa del CEO autenticado
+ *     description: |
+ *       Devuelve las invitaciones creadas por el CEO para la empresa a la que pertenece.
+ *
+ *     tags:
+ *       - Empresas
+ *
+ *     security:
+ *       - oauth2: []
+ *
+ *     responses:
+ *       200:
+ *         description: Lista de invitaciones enviadas.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/InvitacionEmpresa'
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ *       403:
+ *         description: El usuario no posee permisos para consultar invitaciones enviadas.
  */

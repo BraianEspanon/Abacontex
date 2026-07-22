@@ -1,9 +1,10 @@
-import * as keycloakAdminService from './keycloak-admin.service';
 import * as rolSistemaRepository from '../repositories/rol-sistema.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
 import * as empresaRepository from '../repositories/empresa.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
+import * as emailService from '../integrations/email/email.service';
+import * as keycloakAdminService from '../integrations/keycloak/keycloak-admin.service';
 
 import { ROLES } from '../constants/roles';
 import { AuthUser } from '../types/express';
@@ -70,6 +71,12 @@ export async function crearDocente(data: CrearDocenteDTO) {
     );
 
     console.info(`[DOCENTE] Creado ${usuario.email} con ${data.cursoIds.length} curso(s)`);
+    try {
+      await emailService.sendWelcomeEmail(usuario.email, usuario.nombre);
+      console.info(`[EMAIL] Correo de bienvenida enviado a ${usuario.email}`);
+    } catch (error) {
+      console.error(`[EMAIL] No se pudo enviar el correo de bienvenida a ${usuario.email}`, error);
+    }
 
     return usuario;
   } catch (error) {

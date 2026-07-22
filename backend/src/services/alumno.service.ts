@@ -24,7 +24,6 @@ export async function completarRegistro(user: AuthUser, data: CompletarRegistroD
     throw new ConflictError('El registro del alumno ya fue completado previamente.');
   }
 
-  //con un await Promise.all se puede optimizar un poco acá
   await cursoRepository.findByIdOrThrow(data.idCurso);
   await rolEmpresaRepository.findByIdOrThrow(data.idRolEmpresa);
 
