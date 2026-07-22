@@ -130,8 +130,8 @@ services:
     container_name: abacontex-mailpit
 
     ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web UI
+      - "${SMTP_PORT}:1025" # SMTP
+      - "${MAILPIT_PORT}:8025" # Web UI
 
 volumes:
   postgres_data:
