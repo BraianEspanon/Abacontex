@@ -1,9 +1,9 @@
 import { ChevronRight, GraduationCap, UsersRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import type { CursoAsignado } from '../../../types/usuario.types';
+import type { CursoDocente } from '../../../types/docente.types';
 
 interface CursosAsignadosDocenteProps {
-  cursos: CursoAsignado[];
+  cursos: CursoDocente[];
 }
 
 export default function CursosAsignadosDocente({
@@ -23,27 +23,19 @@ export default function CursosAsignadosDocente({
         <div>
           {cursos.map((curso) => (
             <div
-              key={curso.idCurso}
+              key={curso.id}
               className="flex items-center justify-between border-b border-gray-100 px-6 py-4 last:border-b-0"
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-12 min-w-14 items-center justify-center rounded-lg bg-[#668b61] px-3 text-center text-sm font-semibold text-white">
-                  {curso.nombreCurso}
+                  {curso.nombre}
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-gray-700">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#edf2ea] text-[#668b61]">
-                  <UsersRound size={18} />
-                </div>
-
-                <div className="text-right">
-                  <p className="font-semibold">
-                    {curso.cantidadAlumnos ?? '—'}
-                  </p>
-                  <p className="text-xs text-gray-500">alumnos</p>
-                </div>
-              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+  <UsersRound size={18} />
+  <span>Curso asignado</span>
+</div>
             </div>
           ))}
         </div>

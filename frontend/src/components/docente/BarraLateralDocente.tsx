@@ -102,14 +102,14 @@ export default function BarraLateralDocente() {
   };
 
   return (
-    <aside className="flex min-h-screen w-64 flex-col bg-[#17231b] text-white">
+    <aside className="flex min-h-screen w-64 shrink-0 flex-col bg-abacontex-dark text-white">
       <div className="flex h-20 items-center gap-3 border-b border-white/10 px-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#6d9864]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-abacontex-primary-three">
           <Sparkles size={22} />
         </div>
 
         <div>
-          <p className="font-serif text-lg font-bold tracking-wide">ABACONTEX</p>
+          <p className="font-heading text-lg font-bold tracking-wide">ABACONTEX</p>
           <p className="text-xs text-white/60">Panel docente</p>
         </div>
       </div>
@@ -126,7 +126,7 @@ export default function BarraLateralDocente() {
                   [
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
                     isActive
-                      ? 'bg-[#64895e] font-medium text-white'
+                      ? 'bg-abacontex-primary-three font-medium text-white'
                       : 'text-white/80 hover:bg-white/10 hover:text-white',
                   ].join(' ')
                 }

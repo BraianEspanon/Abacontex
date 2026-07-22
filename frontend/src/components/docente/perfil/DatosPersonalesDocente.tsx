@@ -11,6 +11,7 @@ export default function DatosPersonalesDocente({
 }: DatosPersonalesDocenteProps) {
   const [nombre, setNombre] = useState(usuario.nombre);
   const [apellido, setApellido] = useState(usuario.apellido);
+  const [editando, setEditando] = useState(false);
 
   useEffect(() => {
     setNombre(usuario.nombre);
@@ -20,19 +21,22 @@ export default function DatosPersonalesDocente({
   const restaurarDatos = () => {
     setNombre(usuario.nombre);
     setApellido(usuario.apellido);
+    setEditando(false);
   };
 
   const iniciales =
     `${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}`.toUpperCase();
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <header className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
         <h2 className="font-semibold text-gray-900">Datos personales</h2>
 
         <button
           type="button"
-          className="rounded-lg p-2 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+          onClick={() => setEditando(true)}
+          disabled={editando}
+          className="rounded-lg p-2 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Editar datos personales"
           title="Editar datos personales"
         >
@@ -41,7 +45,7 @@ export default function DatosPersonalesDocente({
       </header>
 
       <div className="p-6">
-        <div className="grid gap-8 lg:grid-cols-[150px_1fr]">
+  <div className="grid gap-8 lg:grid-cols-[150px_1fr]">
           <div className="flex flex-col items-center">
             <div className="relative">
               {usuario.fotoPerfilUrl ? (
@@ -51,16 +55,21 @@ export default function DatosPersonalesDocente({
                   className="h-32 w-32 rounded-full object-cover"
                 />
               ) : (
-                <div className="flex h-32 w-32 items-center justify-center rounded-full bg-[#e7eee3] text-3xl font-semibold text-[#587554]">
+                <div className="flex h-28 w-28 items-center justify-center rounded-full bg-abacontex-primary-three/15 text-2xl font-semibold text-abacontex-primary-two">
                   {iniciales}
                 </div>
               )}
 
               <button
                 type="button"
-                className="absolute right-0 bottom-1 flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50"
+                disabled={!editando}
+                className="absolute right-0 bottom-1 flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Cambiar foto de perfil"
-                title="Cambio de foto pendiente de integración"
+                title={
+                  editando
+                    ? 'Cambio de foto pendiente de integración'
+                    : 'Activá la edición para cambiar la foto'
+                }
               >
                 <Camera size={17} />
               </button>
@@ -87,8 +96,13 @@ export default function DatosPersonalesDocente({
                 id="nombre-docente"
                 type="text"
                 value={nombre}
+                disabled={!editando}
                 onChange={(event) => setNombre(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#668b61] focus:ring-2 focus:ring-[#668b61]/20"
+                className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition ${
+                  editando
+                    ? 'border-gray-300 bg-white text-gray-900 focus:border-[#668b61] focus:ring-2 focus:ring-[#668b61]/20'
+                    : 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-600'
+                }`}
               />
             </div>
 
@@ -104,8 +118,13 @@ export default function DatosPersonalesDocente({
                 id="apellido-docente"
                 type="text"
                 value={apellido}
+                disabled={!editando}
                 onChange={(event) => setApellido(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#668b61] focus:ring-2 focus:ring-[#668b61]/20"
+                className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
+                  editando
+                    ? 'border-gray-300 bg-white text-gray-900 focus:border-[#668b61] focus:ring-2 focus:ring-[#668b61]/20'
+                    : 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-600'
+                }`}
               />
             </div>
 
@@ -126,24 +145,26 @@ export default function DatosPersonalesDocente({
               />
             </div>
 
-            <div className="flex flex-wrap justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={restaurarDatos}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
+            {editando && (
+              <div className="flex flex-wrap justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={restaurarDatos}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
 
-              <button
-                type="submit"
-                disabled
-                title="La actualización del perfil se habilitará cuando exista el endpoint correspondiente"
-                className="cursor-not-allowed rounded-lg bg-[#668b61] px-4 py-2 text-sm font-medium text-white opacity-60"
-              >
-                Guardar cambios
-              </button>
-            </div>
+                <button
+                  type="submit"
+                  disabled
+                  title="La actualización del perfil se habilitará cuando exista el endpoint correspondiente"
+                  className="cursor-not-allowed rounded-lg bg-[#668b61] px-4 py-2 text-sm font-medium text-white opacity-60"
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            )}
           </form>
         </div>
 

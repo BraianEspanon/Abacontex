@@ -34,8 +34,8 @@ export default function InformacionCuentaDocente({
   const estadoCuenta = usuario.activo === false ? 'Inactivo' : 'Activo';
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <header className="border-b border-gray-200 px-6 py-4">
+    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <header className="border-b border-gray-200 px-5 py-4">
         <h2 className="font-semibold text-gray-900">
           Información de la cuenta
         </h2>
@@ -85,7 +85,7 @@ export default function InformacionCuentaDocente({
           type="button"
           disabled
           title="El cambio de contraseña se gestionará mediante Keycloak"
-          className="mx-auto flex cursor-not-allowed items-center gap-2 rounded-lg bg-[#668b61] px-4 py-2 text-sm font-medium text-white opacity-60"
+          className="mx-auto flex cursor-not-allow.ed items-center gap-2 rounded-lg bg-[#668b61] px-4 py-2 text-sm font-medium text-white opacity-60"
         >
           <LockKeyhole size={16} />
           Cambiar contraseña

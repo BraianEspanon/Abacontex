@@ -18,6 +18,6 @@ export interface UsuarioActual {
   fotoPerfilUrl?: string | null;
   fechaAlta?: string;
   activo?: boolean;
-  rolSistema: RolSistema;
-  cursos: CursoAsignado[];
+  rolSistema?: RolSistema;
+  cursos?: CursoAsignado[];
 }
