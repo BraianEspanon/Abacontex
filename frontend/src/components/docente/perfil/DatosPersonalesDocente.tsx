@@ -1,5 +1,5 @@
 import { Camera, Pencil } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { UsuarioActual } from '../../../types/usuario.types';
 
 interface DatosPersonalesDocenteProps {
@@ -13,10 +13,6 @@ export default function DatosPersonalesDocente({
   const [apellido, setApellido] = useState(usuario.apellido);
   const [editando, setEditando] = useState(false);
 
-  useEffect(() => {
-    setNombre(usuario.nombre);
-    setApellido(usuario.apellido);
-  }, [usuario.nombre, usuario.apellido]);
 
   const restaurarDatos = () => {
     setNombre(usuario.nombre);
