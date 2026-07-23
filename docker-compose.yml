@@ -28,9 +28,21 @@ services:
       KEYCLOAK_FRONTEND_CLIENT_ID: ${KEYCLOAK_FRONTEND_CLIENT_ID}
       KEYCLOAK_TESTING_CLIENT_ID: ${KEYCLOAK_TESTING_CLIENT_ID}
 
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+
+      FRONTEND_URL: ${FRONTEND_URL}
+
     depends_on:
       postgres:
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
   frontend:
     build:
@@ -93,6 +105,17 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
 
+      SMTP_DEBUG: ${SMTP_DEBUG}
+      SMTP_STARTTLS: $SMTP_STARTTLS
+      SMTP_AUTH: ${SMTP_AUTH}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+      SMTP_SSL: ${SMTP_SSL}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+
     ports:
       - "${KEYCLOAK_PORT}:8080"
 
@@ -100,6 +123,15 @@ services:
       - ./keycloak/themes:/opt/keycloak/themes
       - ./keycloak/realm-export.dev.json:/opt/keycloak/data/import/realm.json
       - keycloak_data:/opt/keycloak/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+
+    container_name: abacontex-mailpit
+
+    ports:
+      - "${SMTP_PORT}:1025" # SMTP
+      - "${MAILPIT_PORT}:8025" # Web UI
 
 volumes:
   postgres_data:

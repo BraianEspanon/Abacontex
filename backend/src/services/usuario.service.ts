@@ -1,6 +1,6 @@
 import { AuthUser } from '../types/express';
 import { getRolSistema } from './role.service';
-import * as keycloakAdminService from './keycloak-admin.service';
+import * as keycloakAdminService from '../integrations/keycloak/keycloak-admin.service';
 import * as usuarioRepository from '../repositories/usuario.repository';
 import { ActualizarContraseñaDTO, ActualizarUsuarioDTO } from '../validators/usuario.validator';
 

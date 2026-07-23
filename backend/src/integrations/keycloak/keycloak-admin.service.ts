@@ -4,14 +4,14 @@ import {
   KEYCLOAK_ADMIN_CLIENT_ID,
   KEYCLOAK_ADMIN_CLIENT_SECRET,
   KEYCLOAK_FRONTEND_CLIENT_ID,
-} from '../config/keycloak';
-import { CreateKeycloakUserDTO } from '../dto/keycloak/create-user.dto';
-import { AppError } from '../errors/app-error';
-import { BadRequestError } from '../errors/bad-request-error';
-import { ConfigurationError } from '../errors/configuration.error';
-import { ConflictError } from '../errors/conflict.error';
-import { ExternalServiceError } from '../errors/external-service.error';
-import { KeycloakGroup } from '../types/keycloak';
+} from '../../config/keycloak';
+import { CreateKeycloakUserDTO } from '../../dto/keycloak/create-user.dto';
+import { AppError } from '../../errors/app-error';
+import { BadRequestError } from '../../errors/bad-request-error';
+import { ConfigurationError } from '../../errors/configuration.error';
+import { ConflictError } from '../../errors/conflict.error';
+import { ExternalServiceError } from '../../errors/external-service.error';
+import { KeycloakGroup } from '../../types/keycloak';
 
 export async function getAdminToken() {
   const response = await fetch(
