@@ -1,0 +1,30 @@
+import { z } from 'zod';
+
+export const crearProductoSchema = z.object({
+  body: z.object({
+    nombre: z
+      .string()
+      .trim()
+      .min(1, 'El nombre es obligatorio')
+      .max(100, 'El nombre no puede superar los 100 caracteres'),
+
+    stockInicial: z
+      .number('El stock inicial debe ser un número')
+      .int('El stock inicial debe ser un número entero')
+      .min(0, 'El stock inicial no puede ser negativo'),
+
+    precioUnitario: z
+      .number('El precio unitario debe ser un número')
+      .positive('El precio unitario debe ser mayor a cero'),
+
+    descripcion: z
+      .string()
+      .trim()
+      .min(1, 'La descripción es obligatoria')
+      .max(250, 'La descripción no puede superar los 250 caracteres'),
+
+    fotoUrl: z.string().url().optional().nullable(),
+  }),
+});
+
+export type CrearProductoDTO = z.infer<typeof crearProductoSchema>['body'];
