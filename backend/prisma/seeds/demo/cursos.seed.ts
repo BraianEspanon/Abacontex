@@ -11,7 +11,7 @@ export const cursosSeed: Seed = {
       update: {},
 
       create: {
-        nombreCurso: '5to Año A',
+        nombreCurso: '5to II',
       },
     });
 
@@ -21,7 +21,7 @@ export const cursosSeed: Seed = {
       update: {},
 
       create: {
-        nombreCurso: '6to Año B',
+        nombreCurso: '6to III',
       },
     });
   },

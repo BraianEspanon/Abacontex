@@ -14,13 +14,13 @@ export const profesorCursosSeed: Seed = {
 
     const curso5to = await prisma.curso.findUnique({
       where: {
-        nombreCurso: '5to Año A',
+        nombreCurso: '5to II',
       },
     });
 
     const curso6to = await prisma.curso.findUnique({
       where: {
-        nombreCurso: '6to Año B',
+        nombreCurso: '6to III',
       },
     });
 
