@@ -28,3 +28,31 @@ export const crearProductoSchema = z.object({
 });
 
 export type CrearProductoDTO = z.infer<typeof crearProductoSchema>['body'];
+
+export const actualizarProductoSchema = z.object({
+  body: z.object({
+    nombre: z
+      .string()
+      .trim()
+      .min(1, 'El nombre es obligatorio')
+      .max(100, 'El nombre no puede superar los 100 caracteres'),
+
+    precioUnitario: z
+      .number('El precio unitario debe ser un número')
+      .positive('El precio unitario debe ser mayor a cero'),
+
+    descripcion: z
+      .string()
+      .trim()
+      .min(1, 'La descripción es obligatoria')
+      .max(250, 'La descripción no puede superar los 250 caracteres'),
+
+    fotoUrl: z.string().url().optional().nullable(),
+  }),
+
+  params: z.object({
+    idProducto: z.coerce.number().int().positive(),
+  }),
+});
+
+export type ActualizarProductoDTO = z.infer<typeof actualizarProductoSchema>['body'];

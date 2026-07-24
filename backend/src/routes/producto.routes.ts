@@ -6,9 +6,9 @@ import { validate } from '../middleware/validate.middleware';
 
 import { ROLES } from '../constants/roles';
 
-import { crearProducto } from '../controllers/producto.controller';
+import { actualizarProducto, crearProducto } from '../controllers/producto.controller';
 
-import { crearProductoSchema } from '../validators/producto.validator';
+import { actualizarProductoSchema, crearProductoSchema } from '../validators/producto.validator';
 
 const router = Router();
 
@@ -18,6 +18,14 @@ router.post(
   requireRole(ROLES.ALUMNO),
   validate(crearProductoSchema),
   crearProducto
+);
+
+router.patch(
+  '/:idProducto',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(actualizarProductoSchema),
+  actualizarProducto
 );
 
 export default router;
