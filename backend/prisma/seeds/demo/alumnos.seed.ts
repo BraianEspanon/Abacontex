@@ -12,10 +12,12 @@ export const alumnosSeed: Seed = {
       usuarioMartina,
       usuarioLucas,
       usuarioSofia,
+      usuarioAnibal,
       usuarioMateo,
       curso5to,
       curso6to,
       innovaSoft,
+      techNova,
       rolCEO,
       rolCFO,
       rolCOO,
@@ -52,6 +54,12 @@ export const alumnosSeed: Seed = {
 
       prisma.usuario.findUnique({
         where: {
+          email: 'anibal.rodriguez@abacontex.com',
+        },
+      }),
+
+      prisma.usuario.findUnique({
+        where: {
           email: 'mateo.sosa@abacontex.com',
         },
       }),
@@ -71,6 +79,12 @@ export const alumnosSeed: Seed = {
       prisma.empresa.findUnique({
         where: {
           nombre: 'InnovaSoft',
+        },
+      }),
+
+      prisma.empresa.findUnique({
+        where: {
+          nombre: 'TechNova',
         },
       }),
 
@@ -99,10 +113,12 @@ export const alumnosSeed: Seed = {
       !usuarioMartina ||
       !usuarioLucas ||
       !usuarioSofia ||
+      !usuarioAnibal ||
       !usuarioMateo ||
       !curso5to ||
       !curso6to ||
       !innovaSoft ||
+      !techNova ||
       !rolCEO ||
       !rolCFO ||
       !rolCOO
@@ -178,13 +194,30 @@ export const alumnosSeed: Seed = {
       update: {
         idCurso: curso5to.idCurso,
         idEmpresa: null,
-        idRolEmpresa: null,
+        idRolEmpresa: rolCOO.idRol,
       },
       create: {
         id: usuarioSofia.id,
         idCurso: curso5to.idCurso,
         idEmpresa: null,
-        idRolEmpresa: null,
+        idRolEmpresa: rolCOO.idRol,
+      },
+    });
+
+    await prisma.alumno.upsert({
+      where: {
+        id: usuarioAnibal.id,
+      },
+      update: {
+        idCurso: curso5to.idCurso,
+        idEmpresa: techNova.id,
+        idRolEmpresa: rolCFO.idRol,
+      },
+      create: {
+        id: usuarioAnibal.id,
+        idCurso: curso5to.idCurso,
+        idEmpresa: techNova.id,
+        idRolEmpresa: rolCFO.idRol,
       },
     });
 

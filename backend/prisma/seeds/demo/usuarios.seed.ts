@@ -177,6 +177,23 @@ export const usuariosSeed: Seed = {
         rolSistemaId: rolAlumno.idRol,
       },
     });
+    await prisma.usuario.upsert({
+      where: {
+        email: 'anibal.rodriguez@abacontex.com',
+      },
+      update: {
+        nombre: 'Anibal',
+        apellido: 'Rodriguez',
+        rolSistemaId: rolAlumno.idRol,
+      },
+      create: {
+        keycloakId: 'mock-anibal-rodriguez',
+        email: 'anibal.rodriguez@abacontex.com',
+        nombre: 'Anibal',
+        apellido: 'Rodriguez',
+        rolSistemaId: rolAlumno.idRol,
+      },
+    });
 
     await prisma.usuario.upsert({
       where: {
