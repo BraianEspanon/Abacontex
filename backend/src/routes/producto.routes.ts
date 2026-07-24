@@ -6,11 +6,28 @@ import { validate } from '../middleware/validate.middleware';
 
 import { ROLES } from '../constants/roles';
 
-import { actualizarProducto, crearProducto, getProducto } from '../controllers/producto.controller';
+import {
+  actualizarProducto,
+  crearProducto,
+  getProducto,
+  obtenerProductos,
+} from '../controllers/producto.controller';
 
-import { actualizarProductoSchema, crearProductoSchema } from '../validators/producto.validator';
+import {
+  actualizarProductoSchema,
+  crearProductoSchema,
+  obtenerProductosSchema,
+} from '../validators/producto.validator';
 
 const router = Router();
+
+router.get(
+  '/',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(obtenerProductosSchema),
+  obtenerProductos
+);
 
 router.post(
   '/',
@@ -20,6 +37,8 @@ router.post(
   crearProducto
 );
 
+router.get('/:idProducto', authenticate, requireRole(ROLES.ALUMNO), getProducto);
+
 router.patch(
   '/:idProducto',
   authenticate,
@@ -27,7 +46,5 @@ router.patch(
   validate(actualizarProductoSchema),
   actualizarProducto
 );
-
-router.get('/:idProducto', authenticate, requireRole(ROLES.ALUMNO), getProducto);
 
 export default router;

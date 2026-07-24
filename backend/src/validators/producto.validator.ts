@@ -62,3 +62,19 @@ export const getProductoSchema = z.object({
     idProducto: z.coerce.number().int().positive(),
   }),
 });
+
+export const obtenerProductosSchema = z.object({
+  query: z.object({
+    search: z.string().trim().optional(),
+
+    estadoStock: z.enum(['TODOS', 'CON_STOCK', 'SIN_STOCK']).default('TODOS'),
+
+    orden: z.enum(['NOMBRE_ASC', 'NOMBRE_DESC', 'STOCK_ASC', 'STOCK_DESC']).default('NOMBRE_ASC'),
+
+    page: z.coerce.number().int().positive().default(1),
+
+    pageSize: z.coerce.number().int().positive().max(100).default(10),
+  }),
+});
+
+export type ObtenerProductosDTO = z.infer<typeof obtenerProductosSchema>['query'];

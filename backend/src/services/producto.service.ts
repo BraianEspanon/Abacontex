@@ -3,7 +3,11 @@ import { AuthUser } from '../types/express';
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as productoRepository from '../repositories/producto.repository';
 
-import { ActualizarProductoDTO, CrearProductoDTO } from '../validators/producto.validator';
+import {
+  ActualizarProductoDTO,
+  CrearProductoDTO,
+  ObtenerProductosDTO,
+} from '../validators/producto.validator';
 
 import { ConflictError } from '../errors/conflict.error';
 
@@ -63,4 +67,35 @@ export async function getProducto(user: AuthUser, idProducto: number) {
   const empresa = await obtenerEmpresaUsuario(user);
 
   return productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
+}
+
+export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductosDTO) {
+  const empresa = await obtenerEmpresaUsuario(user);
+
+  const { totalItems, resumen, items } = await productoRepository.findByEmpresa(
+    empresa.id,
+    filtros.search,
+    filtros.page,
+    filtros.pageSize,
+    filtros.estadoStock,
+    filtros.orden
+  );
+
+  return {
+    resumen,
+
+    items: items.map((producto) => ({
+      id: producto.id,
+      nombre: producto.nombre,
+      fotoUrl: producto.fotoUrl,
+      precioUnitario: Number(producto.precioUnitario),
+      stock: producto.stock,
+      activo: producto.activo,
+    })),
+
+    page: filtros.page,
+    pageSize: filtros.pageSize,
+    totalItems,
+    totalPages: Math.ceil(totalItems / filtros.pageSize),
+  };
 }

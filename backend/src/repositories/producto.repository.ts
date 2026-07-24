@@ -1,6 +1,11 @@
 import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 
-import { ActualizarProductoDTO, CrearProductoDTO } from '../validators/producto.validator';
+import {
+  ActualizarProductoDTO,
+  CrearProductoDTO,
+  ObtenerProductosDTO,
+} from '../validators/producto.validator';
 
 import { NotFoundError } from '../errors/not-found.error';
 
@@ -49,6 +54,135 @@ export async function findByNombre(empresaId: number, nombre: string) {
       activo: true,
     },
   });
+}
+
+export async function findByEmpresa(
+  empresaId: number,
+  search: string | undefined,
+  page: number,
+  pageSize: number,
+  estadoStock: ObtenerProductosDTO['estadoStock'],
+  orden: ObtenerProductosDTO['orden']
+) {
+  const where: Prisma.ProductoWhereInput = {
+    empresaId,
+  };
+
+  if (search) {
+    where.nombre = {
+      contains: search,
+      mode: 'insensitive',
+    };
+  }
+
+  switch (estadoStock) {
+    case 'CON_STOCK':
+      where.stock = {
+        gt: 0,
+      };
+      break;
+
+    case 'SIN_STOCK':
+      where.stock = 0;
+      break;
+  }
+
+  let orderBy: Prisma.ProductoOrderByWithRelationInput;
+
+  switch (orden) {
+    case 'NOMBRE_DESC':
+      orderBy = { nombre: 'desc' };
+      break;
+
+    case 'STOCK_ASC':
+      orderBy = { stock: 'asc' };
+      break;
+
+    case 'STOCK_DESC':
+      orderBy = { stock: 'desc' };
+      break;
+
+    case 'NOMBRE_ASC':
+    default:
+      orderBy = { nombre: 'asc' };
+  }
+
+  const [totalItems, items, total, conStock, sinStock, productosResumen] =
+    await prisma.$transaction([
+      prisma.producto.count({ where }),
+
+      prisma.producto.findMany({
+        where,
+
+        select: {
+          id: true,
+
+          nombre: true,
+
+          fotoUrl: true,
+
+          precioUnitario: true,
+
+          stock: true,
+
+          activo: true,
+        },
+
+        orderBy,
+
+        skip: (page - 1) * pageSize,
+
+        take: pageSize,
+      }),
+
+      prisma.producto.count({
+        where: { empresaId },
+      }),
+
+      prisma.producto.count({
+        where: {
+          empresaId,
+          stock: {
+            gt: 0,
+          },
+        },
+      }),
+
+      prisma.producto.count({
+        where: {
+          empresaId,
+          stock: 0,
+        },
+      }),
+
+      prisma.producto.findMany({
+        where: {
+          empresaId,
+        },
+        select: {
+          stock: true,
+          precioUnitario: true,
+        },
+      }),
+    ]);
+
+  const valorEstimado = productosResumen.reduce(
+    (total, producto) => total + Number(producto.precioUnitario) * producto.stock,
+    0
+  );
+
+  return {
+    totalItems,
+
+    resumen: {
+      total,
+      conStock,
+      sinStock,
+      valorEstimado,
+    },
+
+    items,
+  };
 }
 
 export async function create(empresaId: number, data: CrearProductoDTO) {

@@ -2,7 +2,11 @@ import { Request, Response } from 'express';
 
 import * as productoService from '../services/producto.service';
 
-import { actualizarProductoSchema, getProductoSchema } from '../validators/producto.validator';
+import {
+  actualizarProductoSchema,
+  getProductoSchema,
+  obtenerProductosSchema,
+} from '../validators/producto.validator';
 
 export async function crearProducto(req: Request, res: Response) {
   const producto = await productoService.crearProducto(req.user!, req.body);
@@ -29,4 +33,14 @@ export async function getProducto(req: Request, res: Response) {
   const producto = await productoService.getProducto(req.user!, params.idProducto);
 
   res.status(200).json(producto);
+}
+
+export async function obtenerProductos(req: Request, res: Response) {
+  const { query } = obtenerProductosSchema.parse({
+    query: req.query,
+  });
+
+  const productos = await productoService.obtenerProductos(req.user!, query);
+
+  res.status(200).json(productos);
 }
