@@ -41,8 +41,9 @@ http://localhost:5173/  (Frontend)
 http://localhost:8080/  (Keycloak)
 http://localhost:3000/  (Backend)
 http://localhost:8025/  (Emails)
-(La base de datos no se puede ver con navegador)
 ```
+
+La base de datos se puede ver con navegador si se hace `npx prisma studio` en la carpeta backend
 
 ## 1.1 Reiniciar entorno Docker
 
@@ -88,37 +89,40 @@ Las validaciones que se ejecutan para poder integrar el código son:
 
 # 3. Testing (Staging)
 
-1. Clonar repositorio
-2. Abrir Docker Desktop (Para que reconozca los comandos)
-3. Generar .env con el comando:
+1. Promover los cambios de rama `develop` a rama `test` (Haciendo Pull request)
+2. Clonar repositorio
+3. Abrir Docker Desktop (Para que reconozca los comandos)
+4. Generar .env con el comando:
 
 ```text
 cp .env.example .env
 ```
 
-4. Modificar datos de .env para entorno de staging.
+5. Modificar datos de .env para entorno de staging.
    Asegurarse de tener los tags configurados con la última versión disponible para testing (Entre otros):
 
 ```text
+VITE_ENVIRONMENT=staging
+
 FRONTEND_PORT=80
 
 BACKEND_TAG=staging
 FRONTEND_TAG=staging
 ```
 
-5. Descargar las últimas imágenes publicadas
+6. Descargar las últimas imágenes publicadas
 
 ```text
 docker compose -f .\docker-compose.test.yml pull
 ```
 
-6. Levantar docker-compose de staging
+7. Levantar docker-compose de staging
 
 ```text
 docker compose -f .\docker-compose.test.yml up
 ```
 
-7. Esperar unos segundos y revisar que se hayan leventado los servicios correctamente
+8. Esperar unos segundos y revisar que se hayan leventado los servicios correctamente
 
 ```text
 URL                     (Por defecto)
@@ -126,8 +130,9 @@ http://localhost:5173/  (Frontend)
 http://localhost:8080/  (Keycloak)
 http://localhost:3000/  (Backend)
 http://localhost:8025/  (Emails)
-(La base de datos no se puede ver con navegador)
 ```
+
+La base de datos se puede ver con navegador si se hace `npx prisma studio` en la carpeta backend
 
 ## 3.1. Reiniciar entorno de testing
 
