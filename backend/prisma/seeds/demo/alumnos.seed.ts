@@ -6,91 +6,228 @@ export const alumnosSeed: Seed = {
   name: 'Alumnos demo',
 
   async run(prisma: PrismaClient) {
-    const alumno1 = await prisma.usuario.findUnique({
-      where: {
-        email: 'alumno@mail.com',
-      },
-    });
+    const [
+      usuarioAlumno,
+      alumno2,
+      usuarioMartina,
+      usuarioLucas,
+      usuarioSofia,
+      usuarioMateo,
+      curso5to,
+      curso6to,
+      innovaSoft,
+      rolCEO,
+      rolCFO,
+      rolCOO,
+    ] = await Promise.all([
+      prisma.usuario.findUnique({
+        where: {
+          email: 'alumno@mail.com',
+        },
+      }),
 
-    const alumno2 = await prisma.usuario.findUnique({
-      where: {
-        email: 'martina.lopez@abacontex.com',
-      },
-    });
+      prisma.usuario.findUnique({
+        where: {
+          email: 'alumno2@mail.com',
+        },
+      }),
 
-    const empresa5to = await prisma.empresa.findUnique({
-      where: {
-        nombre: 'TechNova',
-      },
-    });
+      prisma.usuario.findUnique({
+        where: {
+          email: 'martina.lopez@abacontex.com',
+        },
+      }),
 
-    const empresa6to = await prisma.empresa.findUnique({
-      where: {
-        nombre: 'InnovaSoft',
-      },
-    });
+      prisma.usuario.findUnique({
+        where: {
+          email: 'lucas.gomez@abacontex.com',
+        },
+      }),
 
-    const curso5to = await prisma.curso.findUnique({
-      where: {
-        nombreCurso: '5to Año A',
-      },
-    });
+      prisma.usuario.findUnique({
+        where: {
+          email: 'sofia.romero@abacontex.com',
+        },
+      }),
 
-    const curso6to = await prisma.curso.findUnique({
-      where: {
-        nombreCurso: '6to Año B',
-      },
-    });
+      prisma.usuario.findUnique({
+        where: {
+          email: 'mateo.sosa@abacontex.com',
+        },
+      }),
 
-    const rolCEO = await prisma.rolesEmpresa.findUnique({
-      where: {
-        nombreRol: 'CEO',
-      },
-    });
+      prisma.curso.findUnique({
+        where: {
+          nombreCurso: '5to II',
+        },
+      }),
 
-    const rolCOO = await prisma.rolesEmpresa.findUnique({
-      where: {
-        nombreRol: 'COO',
-      },
-    });
+      prisma.curso.findUnique({
+        where: {
+          nombreCurso: '6to III',
+        },
+      }),
+
+      prisma.empresa.findUnique({
+        where: {
+          nombre: 'InnovaSoft',
+        },
+      }),
+
+      prisma.rolesEmpresa.findUnique({
+        where: {
+          nombreRol: 'CEO',
+        },
+      }),
+
+      prisma.rolesEmpresa.findUnique({
+        where: {
+          nombreRol: 'CFO',
+        },
+      }),
+
+      prisma.rolesEmpresa.findUnique({
+        where: {
+          nombreRol: 'COO',
+        },
+      }),
+    ]);
 
     if (
-      !alumno1 ||
+      !usuarioAlumno ||
       !alumno2 ||
-      !empresa5to ||
-      !empresa6to ||
+      !usuarioMartina ||
+      !usuarioLucas ||
+      !usuarioSofia ||
+      !usuarioMateo ||
       !curso5to ||
       !curso6to ||
+      !innovaSoft ||
       !rolCEO ||
+      !rolCFO ||
       !rolCOO
     ) {
-      throw new Error('No existen todas las entidades necesarias para crear los alumnos.');
+      throw new Error(
+        'No existen los usuarios, cursos, empresa o roles necesarios para crear los alumnos demo.'
+      );
     }
 
+    // ==========================
+    // 5TO II
+    // ==========================
+
+    // Usuario principal: CEO, pero todavía sin empresa.
     await prisma.alumno.upsert({
       where: {
-        id: alumno1.id,
+        id: usuarioAlumno.id,
       },
-      update: {},
-      create: {
-        id: alumno1.id,
+      update: {
         idCurso: curso5to.idCurso,
-        idEmpresa: empresa5to.id,
+        idEmpresa: null,
+        idRolEmpresa: rolCEO.idRol,
+      },
+      create: {
+        id: usuarioAlumno.id,
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
         idRolEmpresa: rolCEO.idRol,
       },
     });
 
+    // Martina: disponible para ser agregada a una empresa.
+    await prisma.alumno.upsert({
+      where: {
+        id: usuarioMartina.id,
+      },
+      update: {
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
+        idRolEmpresa: null,
+      },
+      create: {
+        id: usuarioMartina.id,
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
+        idRolEmpresa: null,
+      },
+    });
+
+    // Lucas: disponible para ser agregado a una empresa.
+    await prisma.alumno.upsert({
+      where: {
+        id: usuarioLucas.id,
+      },
+      update: {
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
+        idRolEmpresa: null,
+      },
+      create: {
+        id: usuarioLucas.id,
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
+        idRolEmpresa: null,
+      },
+    });
+
+    // Sofía: disponible para ser agregada a una empresa.
+    await prisma.alumno.upsert({
+      where: {
+        id: usuarioSofia.id,
+      },
+      update: {
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
+        idRolEmpresa: null,
+      },
+      create: {
+        id: usuarioSofia.id,
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
+        idRolEmpresa: null,
+      },
+    });
+
+    // ==========================
+    // 6TO III
+    // ==========================
+
+    // Alumno2: ya pertenece a InnovaSoft y tiene rol CFO.
     await prisma.alumno.upsert({
       where: {
         id: alumno2.id,
       },
-      update: {},
+      update: {
+        idCurso: curso6to.idCurso,
+        idEmpresa: innovaSoft.id,
+        idRolEmpresa: rolCFO.idRol,
+      },
       create: {
         id: alumno2.id,
         idCurso: curso6to.idCurso,
-        idEmpresa: empresa6to.id,
+        idEmpresa: innovaSoft.id,
+        idRolEmpresa: rolCFO.idRol,
+      },
+    });
+
+    // Mateo: compañero de alumno2 dentro de InnovaSoft.
+    await prisma.alumno.upsert({
+      where: {
+        id: usuarioMateo.id,
+      },
+      update: {
+        idCurso: curso6to.idCurso,
+        idEmpresa: innovaSoft.id,
+        idRolEmpresa: rolCOO.idRol,
+      },
+      create: {
+        id: usuarioMateo.id,
+        idCurso: curso6to.idCurso,
+        idEmpresa: innovaSoft.id,
         idRolEmpresa: rolCOO.idRol,
       },
     });
+
+    console.log('Alumnos demo creados');
   },
 };

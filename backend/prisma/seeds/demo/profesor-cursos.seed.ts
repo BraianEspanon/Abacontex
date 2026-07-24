@@ -24,8 +24,16 @@ export const profesorCursosSeed: Seed = {
       },
     });
 
-    if (!profesor || !curso5to || !curso6to) {
-      throw new Error('No existen el profesor o los cursos.');
+    if (!profesor) {
+      throw new Error('No existe el usuario docente@mail.com.');
+    }
+
+    if (!curso5to) {
+      throw new Error('No existe el curso "5to II".');
+    }
+
+    if (!curso6to) {
+      throw new Error('No existe el curso "6to III".');
     }
 
     await prisma.profesorCursos.upsert({
@@ -55,5 +63,7 @@ export const profesorCursosSeed: Seed = {
         idUsuario: profesor.id,
       },
     });
+
+    console.log('Profesor asignado a los cursos demo');
   },
 };
