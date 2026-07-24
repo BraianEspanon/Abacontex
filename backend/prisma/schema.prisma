@@ -290,6 +290,7 @@ enum EstadoInvitacion {
   EXPIRADA
 }
 
+
 model InvitacionEmpresa {
   id Int @id @default(autoincrement())
 

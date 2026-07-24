@@ -10,6 +10,6 @@ export const JWKS = createRemoteJWKSet(
   new URL(`${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs`)
 );
 
-export const KEYCLOAK_ADMIN_CLIENT_ID = process.env.KEYCLOAK_ADMIN_CLIENT_ID;
-export const KEYCLOAK_ADMIN_CLIENT_SECRET = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
-export const KEYCLOAK_FRONTEND_CLIENT_ID = process.env.KEYCLOAK_FRONTEND_CLIENT_ID;
+export const KEYCLOAK_ADMIN_CLIENT_ID = process.env.KEYCLOAK_ADMIN_CLIENT_ID!;
+export const KEYCLOAK_ADMIN_CLIENT_SECRET = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET!;
+export const KEYCLOAK_FRONTEND_CLIENT_ID = process.env.KEYCLOAK_FRONTEND_CLIENT_ID!;

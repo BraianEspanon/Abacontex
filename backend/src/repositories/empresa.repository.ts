@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { CrearEmpresaDTO } from '../validators/empresa.validator';
 import { NotFoundError } from '../errors/not-found.error';
+import { Empresa } from '@prisma/client';
 
 export async function findBynombre(nombre: string) {
   return prisma.empresa.findUnique({
@@ -93,6 +94,7 @@ export async function countByCurso(idCurso: number): Promise<number> {
     },
   });
 }
+
 export async function findByDocente(
   keycloakId: string,
   search: string | undefined,
@@ -252,4 +254,32 @@ export async function findDetalleByDocente(keycloakId: string, empresaId: number
       },
     },
   });
+}
+
+export async function findMineOrThrow(keycloakId: string): Promise<Empresa> {
+  const empresa = await prisma.empresa.findFirst({
+    where: {
+      alumnos: {
+        some: {
+          usuario: {
+            keycloakId,
+          },
+        },
+      },
+    },
+    include: {
+      alumnos: {
+        include: {
+          usuario: true,
+          rolEmpresa: true,
+        },
+      },
+    },
+  });
+
+  if (!empresa) {
+    throw new NotFoundError('El usuario no pertenece a ninguna empresa');
+  }
+
+  return empresa;
 }

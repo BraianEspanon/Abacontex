@@ -67,7 +67,7 @@ export async function getEmpresaActual(user: AuthUser) {
   }
 
   if (!usuario.alumno.empresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
+    return null;
   }
 
   return toEmpresaActualResponse(usuario.alumno.empresa);
@@ -105,10 +105,6 @@ export async function getCandidatos(user: AuthUser, search?: string) {
 
   if (!usuario.alumno) {
     throw new ConflictError('Debes completar tu registro antes de obtener candidatos.');
-  }
-
-  if (!usuario.alumno.idEmpresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
   }
 
   const alumnos = await alumnoRepository.findCandidatos(usuario.alumno.idCurso, usuario.id, search);

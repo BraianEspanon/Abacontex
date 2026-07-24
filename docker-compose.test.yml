@@ -24,6 +24,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
   frontend:
     image: ghcr.io/braianespanon/abacontex-frontend:${FRONTEND_TAG}
@@ -88,6 +90,15 @@ services:
       - ./keycloak/themes:/opt/keycloak/themes
       - ./keycloak/realm-export.prod.json:/opt/keycloak/data/import/realm.json
       - keycloak_test_data:/opt/keycloak/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+
+    container_name: abacontex-mailpit-test
+
+    ports:
+      - "${SMTP_PORT}:1025" # SMTP
+      - "${MAILPIT_PORT}:8025" # Web UI
 
 volumes:
   postgres_test_data:

@@ -228,4 +228,41 @@
  *               idRolEmpresa:
  *                 type: integer
  *                 example: 2
+ *
+ *     CrearInvitacionesRequest:
+ *       type: object
+ *       required:
+ *         - emails
+ *       properties:
+ *         emails:
+ *           type: array
+ *           minItems: 1
+ *           maxItems: 10
+ *           items:
+ *             type: string
+ *             format: email
+ *           example:
+ *             - juan@example.com
+ *             - maria@example.com
+ *
+ *     InvitacionEmpresa:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 12
+ *         empresaId:
+ *           type: integer
+ *           example: 3
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: juan@example.com
+ *         estado:
+ *           type: string
+ *           example: PENDIENTE
+ *         fechaExpiracion:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-07-23T10:30:00.000Z
  */
