@@ -24,6 +24,23 @@ export async function findByIdOrThrow(id: number) {
   return producto;
 }
 
+export async function findByIdAndEmpresaOrThrow(id: number, empresaId: number) {
+  const producto = await prisma.producto.findFirst({
+    where: {
+      id,
+      empresaId,
+    },
+  });
+
+  if (!producto) {
+    throw new NotFoundError('Producto no encontrado.', {
+      idProducto: id,
+    });
+  }
+
+  return producto;
+}
+
 export async function findByNombre(empresaId: number, nombre: string) {
   return prisma.producto.findFirst({
     where: {

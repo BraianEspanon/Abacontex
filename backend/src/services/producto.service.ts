@@ -7,7 +7,7 @@ import { ActualizarProductoDTO, CrearProductoDTO } from '../validators/producto.
 
 import { ConflictError } from '../errors/conflict.error';
 
-async function obtenerEmpresaActual(user: AuthUser) {
+async function obtenerEmpresaUsuario(user: AuthUser) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaOrThrow(user.keycloakId);
 
   if (!usuario.alumno) {
@@ -24,7 +24,7 @@ async function obtenerEmpresaActual(user: AuthUser) {
 }
 
 export async function crearProducto(user: AuthUser, data: CrearProductoDTO) {
-  const empresa = await obtenerEmpresaActual(user);
+  const empresa = await obtenerEmpresaUsuario(user);
 
   const productoExistente = await productoRepository.findByNombre(empresa.id, data.nombre);
 
@@ -42,13 +42,9 @@ export async function actualizarProducto(
   idProducto: number,
   data: ActualizarProductoDTO
 ) {
-  const empresa = await obtenerEmpresaActual(user);
+  const empresa = await obtenerEmpresaUsuario(user);
 
-  const producto = await productoRepository.findByIdOrThrow(idProducto);
-
-  if (producto.empresaId !== empresa.id) {
-    throw new ConflictError('El producto no pertenece a tu empresa.');
-  }
+  const producto = await productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
 
   if (producto.nombre !== data.nombre) {
     const productoExistente = await productoRepository.findByNombre(empresa.id, data.nombre);
@@ -60,19 +56,11 @@ export async function actualizarProducto(
     }
   }
 
-  await productoRepository.update(idProducto, data);
-
-  return productoRepository.findByIdOrThrow(idProducto);
+  return productoRepository.update(idProducto, data);
 }
 
 export async function getProducto(user: AuthUser, idProducto: number) {
-  const empresa = await obtenerEmpresaActual(user);
+  const empresa = await obtenerEmpresaUsuario(user);
 
-  const producto = await productoRepository.findByIdOrThrow(idProducto);
-
-  if (producto.empresaId !== empresa.id) {
-    throw new ConflictError('El producto no pertenece a tu empresa.');
-  }
-
-  return producto;
+  return productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
 }
