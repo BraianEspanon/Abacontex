@@ -1,7 +1,7 @@
 // src/pages/empresa/CrearEmpresaPage.tsx
 
 import { Building2, ChevronRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DatosEmpresaForm from '../../components/empresa/DatosEmpresaForm';
 import EmpresaCreadaModal from '../../components/empresa/EmpresaCreadaModal';
@@ -24,7 +24,10 @@ export default function CrearEmpresaPage() {
   const [nombre, setNombre] = useState('');
   const [actividad, setActividad] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+const logoPreview = useMemo(() => {
+  return logo ? URL.createObjectURL(logo) : null;
+}, [logo]);
 
   const [seleccionados, setSeleccionados] = useState<AlumnoDisponible[]>(
     [],
@@ -66,17 +69,13 @@ const {
   mutate: ejecutarAgregarParticipantes,
 } = useAgregarParticipantesEmpresa();
 
-  useEffect(() => {
-    if (!logo) {
-      setLogoPreview(null);
-      return;
+ useEffect(() => {
+  return () => {
+    if (logoPreview) {
+      URL.revokeObjectURL(logoPreview);
     }
-
-    const urlTemporal = URL.createObjectURL(logo);
-    setLogoPreview(urlTemporal);
-
-    return () => URL.revokeObjectURL(urlTemporal);
-  }, [logo]);
+  };
+}, [logoPreview]);
 
   const handleToggleAlumno = (alumno: AlumnoDisponible) => {
     setSeleccionados((actuales) => {
