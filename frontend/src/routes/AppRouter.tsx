@@ -5,6 +5,7 @@ import InicioDocente from '../pages/docente/InicioDocente';
 import PerfilDocente from '../pages/docente/PerfilDocente';
 import LandingPage from '../pages/LandingPage';
 import RoleSelection from '../pages/RoleSelection';
+import CrearEmpresaPage from '../pages/empresa/CrearEmpresaPage';
 
 export default function AppRouter() {
   return (
@@ -21,6 +22,14 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       />
+      <Route
+  path="/empresa/crear"
+  element={
+    <ProtectedRoute>
+      <CrearEmpresaPage />
+    </ProtectedRoute>
+  }
+/>
 
       {/* Panel docente */}
       <Route

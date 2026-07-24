@@ -13,16 +13,16 @@ export const empresasSeed: Seed = {
     });
 
     const curso5to = await prisma.curso.findUnique({
-      where: {
-        nombreCurso: '5to Año A',
-      },
-    });
+  where: {
+    nombreCurso: '5to II',
+  },
+});
 
-    const curso6to = await prisma.curso.findUnique({
-      where: {
-        nombreCurso: '6to Año B',
-      },
-    });
+const curso6to = await prisma.curso.findUnique({
+  where: {
+    nombreCurso: '6to III',
+  },
+});
 
     if (!ciclo2026 || !curso5to || !curso6to) {
       throw new Error('No existen el ciclo lectivo o los cursos.');

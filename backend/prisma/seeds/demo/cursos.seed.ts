@@ -6,7 +6,7 @@ export const cursosSeed: Seed = {
 
   async run(prisma: PrismaClient) {
     await prisma.curso.upsert({
-      where: { nombreCurso: '5to Año A' },
+      where: { nombreCurso: '5to II' },
 
       update: {},
 
@@ -16,7 +16,7 @@ export const cursosSeed: Seed = {
     });
 
     await prisma.curso.upsert({
-      where: { nombreCurso: '6to Año B' },
+      where: { nombreCurso: '6to III' },
 
       update: {},
 

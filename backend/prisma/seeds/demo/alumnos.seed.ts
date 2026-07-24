@@ -6,39 +6,21 @@ export const alumnosSeed: Seed = {
   name: 'Alumnos demo',
 
   async run(prisma: PrismaClient) {
-    const alumno1 = await prisma.usuario.findUnique({
+    const usuarioAlumno = await prisma.usuario.findUnique({
       where: {
         email: 'alumno@mail.com',
       },
     });
 
-    const alumno2 = await prisma.usuario.findUnique({
+    const usuarioMartina = await prisma.usuario.findUnique({
       where: {
         email: 'martina.lopez@abacontex.com',
       },
     });
 
-    const empresa5to = await prisma.empresa.findUnique({
-      where: {
-        nombre: 'TechNova',
-      },
-    });
-
-    const empresa6to = await prisma.empresa.findUnique({
-      where: {
-        nombre: 'InnovaSoft',
-      },
-    });
-
     const curso5to = await prisma.curso.findUnique({
       where: {
-        nombreCurso: '5to Año A',
-      },
-    });
-
-    const curso6to = await prisma.curso.findUnique({
-      where: {
-        nombreCurso: '6to Año B',
+        nombreCurso: '5to II',
       },
     });
 
@@ -48,49 +30,54 @@ export const alumnosSeed: Seed = {
       },
     });
 
-    const rolCOO = await prisma.rolesEmpresa.findUnique({
-      where: {
-        nombreRol: 'COO',
-      },
-    });
-
-    if (
-      !alumno1 ||
-      !alumno2 ||
-      !empresa5to ||
-      !empresa6to ||
-      !curso5to ||
-      !curso6to ||
-      !rolCEO ||
-      !rolCOO
-    ) {
-      throw new Error('No existen todas las entidades necesarias para crear los alumnos.');
+    if (!usuarioAlumno || !usuarioMartina || !curso5to || !rolCEO) {
+      throw new Error(
+        'No existen los usuarios, el curso o el rol de empresa necesarios.',
+      );
     }
+
+    // ==========================
+    // ALUMNO (CEO)
+    // ==========================
 
     await prisma.alumno.upsert({
       where: {
-        id: alumno1.id,
+        id: usuarioAlumno.id,
       },
-      update: {},
-      create: {
-        id: alumno1.id,
+      update: {
         idCurso: curso5to.idCurso,
-        idEmpresa: empresa5to.id,
+        idEmpresa: null,
+        idRolEmpresa: rolCEO.idRol,
+      },
+      create: {
+        id: usuarioAlumno.id,
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
         idRolEmpresa: rolCEO.idRol,
       },
     });
 
+    // ==========================
+    // MARTINA
+    // ==========================
+
     await prisma.alumno.upsert({
       where: {
-        id: alumno2.id,
+        id: usuarioMartina.id,
       },
-      update: {},
+      update: {
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
+        idRolEmpresa: null,
+      },
       create: {
-        id: alumno2.id,
-        idCurso: curso6to.idCurso,
-        idEmpresa: empresa6to.id,
-        idRolEmpresa: rolCOO.idRol,
+        id: usuarioMartina.id,
+        idCurso: curso5to.idCurso,
+        idEmpresa: null,
+        idRolEmpresa: null,
       },
     });
+
+    console.log('Alumnos demo creados');
   },
 };
