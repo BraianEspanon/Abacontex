@@ -8,6 +8,8 @@ import EmpresaCreadaModal from '../../components/empresa/EmpresaCreadaModal';
 import SelectorIntegrantes from '../../components/empresa/SelectorIntegrantes';
 import { useCandidatosEmpresa } from '../../hooks/useCandidatosEmpresa';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useCrearEmpresa } from '../../hooks/useCrearEmpresa';
+import { useAgregarParticipantesEmpresa } from '../../hooks/useAgregarParticipantesEmpresa';
 import type {
   AlumnoDisponible,
   InvitacionPendiente,
@@ -48,7 +50,21 @@ const {
   refetch: recargarCandidatos,
 } = useCandidatosEmpresa(busquedaDebounced);
 
+
+
+
 const cargandoAlumnos = cargandoCandidatos || buscandoCandidatos;
+
+const {
+  mutate: ejecutarCreacionEmpresa,
+  isPending: creandoEmpresa,
+  isError: errorCreandoEmpresa,
+  error: errorCreacionEmpresa,
+} = useCrearEmpresa();
+
+const {
+  mutate: ejecutarAgregarParticipantes,
+} = useAgregarParticipantesEmpresa();
 
   useEffect(() => {
     if (!logo) {
@@ -116,20 +132,38 @@ const cargandoAlumnos = cargandoCandidatos || buscandoCandidatos;
   };
 
   const handleFundarEmpresa = () => {
-    if (!validarFormulario()) return;
+  if (!validarFormulario()) return;
 
-    const datosEmpresa = {
+  ejecutarCreacionEmpresa(
+    {
       nombre: nombre.trim(),
       actividad: actividad.trim(),
-      logo,
-      integrantesIds: seleccionados.map((alumno) => alumno.id),
-      invitaciones: invitaciones.map((invitacion) => invitacion.email),
-    };
+      logoUrl: null,
+    },
+    {
+      onSuccess: (empresaCreada) => {
+  console.log('Empresa creada:', empresaCreada);
 
-    console.log('Empresa a crear:', datosEmpresa);
-
+  if (seleccionados.length === 0) {
     setModalAbierto(true);
-  };
+    return;
+  }
+
+  ejecutarAgregarParticipantes(
+    {
+      participantes: seleccionados.map((alumno) => alumno.id),
+    },
+    {
+      onSuccess: () => {
+        console.log('Participantes agregados');
+        setModalAbierto(true);
+      },
+    },
+  );
+},
+    },
+  );
+};
 
   
 
@@ -188,13 +222,24 @@ const cargandoAlumnos = cargandoCandidatos || buscandoCandidatos;
 />
 
             <button
-              type="button"
-              onClick={handleFundarEmpresa}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-abacontex-primary px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-abacontex-primary-two"
-            >
-              Fundar mi empresa
-              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </button>
+  type="button"
+  onClick={handleFundarEmpresa}
+  disabled={creandoEmpresa}
+  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-abacontex-primary px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-60"
+>
+  {creandoEmpresa ? 'Creando empresa...' : 'Fundar mi empresa'}
+
+  {!creandoEmpresa && (
+    <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+  )}
+</button>
+{errorCreandoEmpresa && (
+  <p className="text-center text-sm text-red-600">
+    {errorCreacionEmpresa instanceof Error
+      ? errorCreacionEmpresa.message
+      : 'No se pudo crear la empresa.'}
+  </p>
+)}
           </div>
         </div>
       </main>

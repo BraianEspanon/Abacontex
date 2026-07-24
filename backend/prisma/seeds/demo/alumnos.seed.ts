@@ -6,35 +6,18 @@ export const alumnosSeed: Seed = {
   name: 'Alumnos demo',
 
   async run(prisma: PrismaClient) {
-<<<<<<< HEAD
-    const usuarioAlumno = await prisma.usuario.findUnique({
-      where: {
-        email: 'alumno@mail.com',
-      },
-    });
-
-    const usuarioMartina = await prisma.usuario.findUnique({
-      where: {
-        email: 'martina.lopez@abacontex.com',
-      },
-    });
-
-    const curso5to = await prisma.curso.findUnique({
-      where: {
-        nombreCurso: '5to II',
-      },
-    });
-=======
     const [
       usuarioAlumno,
       alumno2,
       usuarioMartina,
       usuarioLucas,
       usuarioSofia,
+      usuarioAnibal,
       usuarioMateo,
       curso5to,
       curso6to,
       innovaSoft,
+      techNova,
       rolCEO,
       rolCFO,
       rolCOO,
@@ -71,10 +54,15 @@ export const alumnosSeed: Seed = {
 
       prisma.usuario.findUnique({
         where: {
+          email: 'anibal.rodriguez@abacontex.com',
+        },
+      }), 
+
+      prisma.usuario.findUnique({
+        where: {
           email: 'mateo.sosa@abacontex.com',
         },
       }),
->>>>>>> develop
 
       prisma.curso.findUnique({
         where: {
@@ -82,11 +70,6 @@ export const alumnosSeed: Seed = {
         },
       }),
 
-<<<<<<< HEAD
-    if (!usuarioAlumno || !usuarioMartina || !curso5to || !rolCEO) {
-      throw new Error(
-        'No existen los usuarios, el curso o el rol de empresa necesarios.',
-=======
       prisma.curso.findUnique({
         where: {
           nombreCurso: '6to III',
@@ -96,6 +79,12 @@ export const alumnosSeed: Seed = {
       prisma.empresa.findUnique({
         where: {
           nombre: 'InnovaSoft',
+        },
+      }),
+
+      prisma.empresa.findUnique({
+        where: {
+          nombre: 'TechNova',
         },
       }),
 
@@ -124,31 +113,26 @@ export const alumnosSeed: Seed = {
       !usuarioMartina ||
       !usuarioLucas ||
       !usuarioSofia ||
+      !usuarioAnibal ||
       !usuarioMateo ||
       !curso5to ||
       !curso6to ||
       !innovaSoft ||
+      !techNova ||
       !rolCEO ||
       !rolCFO ||
       !rolCOO
     ) {
       throw new Error(
         'No existen los usuarios, cursos, empresa o roles necesarios para crear los alumnos demo.'
->>>>>>> develop
       );
     }
 
     // ==========================
-<<<<<<< HEAD
-    // ALUMNO (CEO)
-    // ==========================
-
-=======
     // 5TO II
     // ==========================
 
     // Usuario principal: CEO, pero todavía sin empresa.
->>>>>>> develop
     await prisma.alumno.upsert({
       where: {
         id: usuarioAlumno.id,
@@ -166,12 +150,6 @@ export const alumnosSeed: Seed = {
       },
     });
 
-<<<<<<< HEAD
-    // ==========================
-    // MARTINA
-    // ==========================
-
-=======
     // Martina: disponible para ser agregada a una empresa.
     await prisma.alumno.upsert({
       where: {
@@ -216,13 +194,30 @@ export const alumnosSeed: Seed = {
       update: {
         idCurso: curso5to.idCurso,
         idEmpresa: null,
-        idRolEmpresa: null,
+        idRolEmpresa: rolCOO.idRol,
       },
       create: {
         id: usuarioSofia.id,
         idCurso: curso5to.idCurso,
         idEmpresa: null,
-        idRolEmpresa: null,
+        idRolEmpresa: rolCOO.idRol,
+      },
+    });
+
+    await prisma.alumno.upsert({
+      where: {
+        id: usuarioAnibal.id,
+      },
+      update: {
+        idCurso: curso5to.idCurso,
+        idEmpresa: techNova.id,
+        idRolEmpresa: rolCFO.idRol,
+      },
+      create: {
+        id: usuarioAnibal.id,
+        idCurso: curso5to.idCurso,
+        idEmpresa: techNova.id,
+        idRolEmpresa: rolCFO.idRol,
       },
     });
 
@@ -231,23 +226,10 @@ export const alumnosSeed: Seed = {
     // ==========================
 
     // Alumno2: ya pertenece a InnovaSoft y tiene rol CFO.
->>>>>>> develop
     await prisma.alumno.upsert({
       where: {
-        id: usuarioMartina.id,
+        id: alumno2.id,
       },
-      update: {
-        idCurso: curso5to.idCurso,
-        idEmpresa: null,
-        idRolEmpresa: null,
-      },
-<<<<<<< HEAD
-      create: {
-        id: usuarioMartina.id,
-        idCurso: curso5to.idCurso,
-        idEmpresa: null,
-        idRolEmpresa: null,
-=======
       update: {
         idCurso: curso6to.idCurso,
         idEmpresa: innovaSoft.id,
@@ -276,7 +258,6 @@ export const alumnosSeed: Seed = {
         idCurso: curso6to.idCurso,
         idEmpresa: innovaSoft.id,
         idRolEmpresa: rolCOO.idRol,
->>>>>>> develop
       },
     });
 

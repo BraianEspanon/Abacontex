@@ -7,14 +7,9 @@ export const cursosSeed: Seed = {
 
   async run(prisma: PrismaClient) {
     await prisma.curso.upsert({
-<<<<<<< HEAD
-      where: { nombreCurso: '5to II' },
-
-=======
       where: {
         nombreCurso: '5to II',
       },
->>>>>>> develop
       update: {},
       create: {
         nombreCurso: '5to II',
@@ -22,14 +17,9 @@ export const cursosSeed: Seed = {
     });
 
     await prisma.curso.upsert({
-<<<<<<< HEAD
-      where: { nombreCurso: '6to III' },
-
-=======
       where: {
         nombreCurso: '6to III',
       },
->>>>>>> develop
       update: {},
       create: {
         nombreCurso: '6to III',
