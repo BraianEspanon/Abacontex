@@ -6,7 +6,7 @@ import { validate } from '../middleware/validate.middleware';
 
 import { ROLES } from '../constants/roles';
 
-import { actualizarProducto, crearProducto } from '../controllers/producto.controller';
+import { actualizarProducto, crearProducto, getProducto } from '../controllers/producto.controller';
 
 import { actualizarProductoSchema, crearProductoSchema } from '../validators/producto.validator';
 
@@ -27,5 +27,7 @@ router.patch(
   validate(actualizarProductoSchema),
   actualizarProducto
 );
+
+router.get('/:idProducto', authenticate, requireRole(ROLES.ALUMNO), getProducto);
 
 export default router;

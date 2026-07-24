@@ -56,3 +56,9 @@ export const actualizarProductoSchema = z.object({
 });
 
 export type ActualizarProductoDTO = z.infer<typeof actualizarProductoSchema>['body'];
+
+export const getProductoSchema = z.object({
+  params: z.object({
+    idProducto: z.coerce.number().int().positive(),
+  }),
+});

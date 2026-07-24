@@ -7,18 +7,24 @@ import { ActualizarProductoDTO, CrearProductoDTO } from '../validators/producto.
 
 import { ConflictError } from '../errors/conflict.error';
 
-export async function crearProducto(user: AuthUser, data: CrearProductoDTO) {
+async function obtenerEmpresaActual(user: AuthUser) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaOrThrow(user.keycloakId);
 
   if (!usuario.alumno) {
-    throw new ConflictError('Debes completar tu registro antes de registrar un producto.');
+    throw new ConflictError(
+      'Debes completar tu registro antes de realizar operaciones sobre productos.'
+    );
   }
 
   if (!usuario.alumno.empresa) {
     throw new ConflictError('No perteneces a ninguna empresa.');
   }
 
-  const empresa = usuario.alumno.empresa;
+  return usuario.alumno.empresa;
+}
+
+export async function crearProducto(user: AuthUser, data: CrearProductoDTO) {
+  const empresa = await obtenerEmpresaActual(user);
 
   const productoExistente = await productoRepository.findByNombre(empresa.id, data.nombre);
 
@@ -36,17 +42,7 @@ export async function actualizarProducto(
   idProducto: number,
   data: ActualizarProductoDTO
 ) {
-  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaOrThrow(user.keycloakId);
-
-  if (!usuario.alumno) {
-    throw new ConflictError('Debes completar tu registro antes de modificar un producto.');
-  }
-
-  if (!usuario.alumno.empresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
-  }
-
-  const empresa = usuario.alumno.empresa;
+  const empresa = await obtenerEmpresaActual(user);
 
   const producto = await productoRepository.findByIdOrThrow(idProducto);
 
@@ -67,4 +63,16 @@ export async function actualizarProducto(
   await productoRepository.update(idProducto, data);
 
   return productoRepository.findByIdOrThrow(idProducto);
+}
+
+export async function getProducto(user: AuthUser, idProducto: number) {
+  const empresa = await obtenerEmpresaActual(user);
+
+  const producto = await productoRepository.findByIdOrThrow(idProducto);
+
+  if (producto.empresaId !== empresa.id) {
+    throw new ConflictError('El producto no pertenece a tu empresa.');
+  }
+
+  return producto;
 }
