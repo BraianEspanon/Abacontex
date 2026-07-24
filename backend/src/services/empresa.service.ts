@@ -107,10 +107,6 @@ export async function getCandidatos(user: AuthUser, search?: string) {
     throw new ConflictError('Debes completar tu registro antes de obtener candidatos.');
   }
 
-  if (!usuario.alumno.idEmpresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
-  }
-
   const alumnos = await alumnoRepository.findCandidatos(usuario.alumno.idCurso, usuario.id, search);
 
   return alumnos.map(toCandidatoResponse);
