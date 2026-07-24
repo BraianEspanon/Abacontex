@@ -176,8 +176,8 @@ export const usuariosSeed: Seed = {
         apellido: 'Romero',
         rolSistemaId: rolAlumno.idRol,
       },
-
-    });await prisma.usuario.upsert({
+    });
+    await prisma.usuario.upsert({
       where: {
         email: 'anibal.rodriguez@abacontex.com',
       },

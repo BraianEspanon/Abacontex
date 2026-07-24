@@ -227,7 +227,7 @@ export default function EditarEmpresaPage() {
             ? 'Guardando...'
             : 'Guardar cambios'}
         </button>
-      </div>
+      </div> 
 
       {isSuccess && (
         <p className="mt-3 max-w-6xl text-right text-sm text-green-700">

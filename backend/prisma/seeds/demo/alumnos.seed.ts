@@ -56,7 +56,7 @@ export const alumnosSeed: Seed = {
         where: {
           email: 'anibal.rodriguez@abacontex.com',
         },
-      }), 
+      }),
 
       prisma.usuario.findUnique({
         where: {
