@@ -120,9 +120,9 @@ export const usuariosSeed: Seed = {
       },
     });
 
-    // ==========================
+    // =========================
     // ALUMNOS DEMO
-    // ==========================
+    // =========================
 
     await prisma.usuario.upsert({
       where: {
