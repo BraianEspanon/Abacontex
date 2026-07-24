@@ -108,7 +108,7 @@ export const alumnosSeed: Seed = {
       !rolCOO
     ) {
       throw new Error(
-        'No existen los usuarios, cursos, empresa o roles necesarios para crear los alumnos demo.',
+        'No existen los usuarios, cursos, empresa o roles necesarios para crear los alumnos demo.'
       );
     }
 

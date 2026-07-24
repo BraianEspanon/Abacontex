@@ -98,27 +98,27 @@ export const usuariosSeed: Seed = {
     });
 
     // ==========================
-// ALUMNO 2 CON KEYCLOAK
-// ==========================
+    // ALUMNO 2 CON KEYCLOAK
+    // ==========================
 
-await prisma.usuario.upsert({
-  where: {
-    email: 'alumno2@mail.com',
-  },
-  update: {
-    keycloakId: 'pendiente-keycloak-alumno2',
-    nombre: 'alumno2',
-    apellido: 'alumno2',
-    rolSistemaId: rolAlumno.idRol,
-  },
-  create: {
-    keycloakId: 'pendiente-keycloak-alumno2',
-    email: 'alumno2@mail.com',
-    nombre: 'alumno2',
-    apellido: 'alumno2',
-    rolSistemaId: rolAlumno.idRol,
-  },
-});
+    await prisma.usuario.upsert({
+      where: {
+        email: 'alumno2@mail.com',
+      },
+      update: {
+        keycloakId: 'pendiente-keycloak-alumno2',
+        nombre: 'alumno2',
+        apellido: 'alumno2',
+        rolSistemaId: rolAlumno.idRol,
+      },
+      create: {
+        keycloakId: 'pendiente-keycloak-alumno2',
+        email: 'alumno2@mail.com',
+        nombre: 'alumno2',
+        apellido: 'alumno2',
+        rolSistemaId: rolAlumno.idRol,
+      },
+    });
 
     // ==========================
     // ALUMNOS DEMO
