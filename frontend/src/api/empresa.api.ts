@@ -21,11 +21,40 @@ export interface AgregarParticipantesRequest {
   participantes: string[];
 }
 
-export interface ParticipanteAgregado {
+export interface RolEmpresaActual {
+  id: number;
+  nombre: string;
+}
+
+export interface IntegranteEmpresa {
   id: string;
   nombre: string;
   apellido: string;
   email: string;
+  rolEmpresa: RolEmpresaActual | null;
+}
+
+export interface EmpresaActual {
+  id: number;
+  nombre: string;
+  actividad: string;
+  logoUrl: string | null;
+  puntos: number;
+  curso: {
+    id: number;
+    nombre: string;
+  };
+  cicloLectivo: {
+    id: number;
+    nombre: number;
+  };
+  integrantes: IntegranteEmpresa[];
+}
+
+export interface ActualizarEmpresaRequest {
+  nombre: string;
+  actividad: string;
+  logoUrl: string | null;
 }
 
 export async function obtenerCandidatosEmpresa(
@@ -61,4 +90,22 @@ export async function agregarParticipantesEmpresa(
     '/empresas/me/participantes',
     datos,
   );
+}
+
+export async function obtenerEmpresaActual(): Promise<EmpresaActual> {
+  const respuesta =
+    await clienteApi.get<EmpresaActual>('/empresas/me');
+
+  return respuesta.data;
+}
+
+export async function actualizarEmpresa(
+  datos: ActualizarEmpresaRequest,
+): Promise<EmpresaActual> {
+  const respuesta = await clienteApi.patch<EmpresaActual>(
+    '/empresas/me',
+    datos,
+  );
+
+  return respuesta.data;
 }
