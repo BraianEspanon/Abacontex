@@ -9,6 +9,7 @@ import { ROLES } from '../constants/roles';
 import {
   actualizarProducto,
   crearProducto,
+  eliminarProducto,
   getProducto,
   obtenerProductos,
 } from '../controllers/producto.controller';
@@ -16,6 +17,7 @@ import {
 import {
   actualizarProductoSchema,
   crearProductoSchema,
+  eliminarProductoSchema,
   obtenerProductosSchema,
 } from '../validators/producto.validator';
 
@@ -47,4 +49,11 @@ router.patch(
   actualizarProducto
 );
 
+router.delete(
+  '/:idProducto',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(eliminarProductoSchema),
+  eliminarProducto
+);
 export default router;

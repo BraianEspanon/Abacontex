@@ -4,6 +4,7 @@ import * as productoService from '../services/producto.service';
 
 import {
   actualizarProductoSchema,
+  eliminarProductoSchema,
   getProductoSchema,
   obtenerProductosSchema,
 } from '../validators/producto.validator';
@@ -43,4 +44,14 @@ export async function obtenerProductos(req: Request, res: Response) {
   const productos = await productoService.obtenerProductos(req.user!, query);
 
   res.status(200).json(productos);
+}
+
+export async function eliminarProducto(req: Request, res: Response) {
+  const { params } = eliminarProductoSchema.parse({
+    params: req.params,
+  });
+
+  await productoService.eliminarProducto(req.user!, params.idProducto);
+
+  res.sendStatus(204);
 }

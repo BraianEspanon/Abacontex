@@ -78,3 +78,9 @@ export const obtenerProductosSchema = z.object({
 });
 
 export type ObtenerProductosDTO = z.infer<typeof obtenerProductosSchema>['query'];
+
+export const eliminarProductoSchema = z.object({
+  params: z.object({
+    idProducto: z.coerce.number().int().positive(),
+  }),
+});

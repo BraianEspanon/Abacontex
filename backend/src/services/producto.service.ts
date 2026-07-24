@@ -90,7 +90,6 @@ export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductos
       fotoUrl: producto.fotoUrl,
       precioUnitario: Number(producto.precioUnitario),
       stock: producto.stock,
-      activo: producto.activo,
     })),
 
     page: filtros.page,
@@ -98,4 +97,12 @@ export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductos
     totalItems,
     totalPages: Math.ceil(totalItems / filtros.pageSize),
   };
+}
+
+export async function eliminarProducto(user: AuthUser, idProducto: number) {
+  const empresa = await obtenerEmpresaUsuario(user);
+
+  await productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
+
+  await productoRepository.remove(idProducto);
 }

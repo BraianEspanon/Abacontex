@@ -9,31 +9,12 @@ import {
 
 import { NotFoundError } from '../errors/not-found.error';
 
-export async function findById(id: number) {
-  return prisma.producto.findUnique({
-    where: {
-      id,
-    },
-  });
-}
-
-export async function findByIdOrThrow(id: number) {
-  const producto = await findById(id);
-
-  if (!producto) {
-    throw new NotFoundError('Producto no encontrado.', {
-      idProducto: id,
-    });
-  }
-
-  return producto;
-}
-
 export async function findByIdAndEmpresaOrThrow(id: number, empresaId: number) {
   const producto = await prisma.producto.findFirst({
     where: {
       id,
       empresaId,
+      activo: true,
     },
   });
 
@@ -66,6 +47,7 @@ export async function findByEmpresa(
 ) {
   const where: Prisma.ProductoWhereInput = {
     empresaId,
+    activo: true,
   };
 
   if (search) {
@@ -109,8 +91,10 @@ export async function findByEmpresa(
 
   const [totalItems, items, total, conStock, sinStock, productosResumen] =
     await prisma.$transaction([
+      //totalItems
       prisma.producto.count({ where }),
 
+      //items
       prisma.producto.findMany({
         where,
 
@@ -124,8 +108,6 @@ export async function findByEmpresa(
           precioUnitario: true,
 
           stock: true,
-
-          activo: true,
         },
 
         orderBy,
@@ -135,29 +117,36 @@ export async function findByEmpresa(
         take: pageSize,
       }),
 
+      //total
       prisma.producto.count({
-        where: { empresaId },
+        where: { empresaId, activo: true },
       }),
 
+      //conStock,
       prisma.producto.count({
         where: {
           empresaId,
+          activo: true,
           stock: {
             gt: 0,
           },
         },
       }),
 
+      //sinStock
       prisma.producto.count({
         where: {
           empresaId,
+          activo: true,
           stock: 0,
         },
       }),
 
+      //productosResumen
       prisma.producto.findMany({
         where: {
           empresaId,
+          activo: true,
         },
         select: {
           stock: true,
@@ -213,6 +202,17 @@ export async function update(id: number, data: ActualizarProductoDTO) {
       descripcion: data.descripcion,
       precioUnitario: data.precioUnitario,
       fotoUrl: data.fotoUrl ?? null,
+    },
+  });
+}
+
+export async function remove(idProducto: number) {
+  return prisma.producto.update({
+    where: {
+      id: idProducto,
+    },
+    data: {
+      activo: false,
     },
   });
 }
