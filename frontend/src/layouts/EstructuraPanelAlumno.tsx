@@ -23,8 +23,7 @@ const titulosPorRuta: Record<string, string> = {
 export default function EstructuraPanelAlumno() {
   const location = useLocation();
 
-  const titulo =
-    titulosPorRuta[location.pathname] ?? 'Panel del alumno';
+  const titulo = titulosPorRuta[location.pathname] ?? 'Panel del alumno';
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#f7f5f1]">

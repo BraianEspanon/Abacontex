@@ -61,19 +61,14 @@ export default function AlumnosEnRiesgo() {
     <article className="rounded-xl border border-black/10 bg-white p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-[#20251f]">
-            Alumnos en riesgo
-          </h3>
+          <h3 className="text-sm font-semibold text-[#20251f]">Alumnos en riesgo</h3>
 
           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-semibold text-white">
             {alumnosEnRiesgo.length}
           </span>
         </div>
 
-        <button
-          type="button"
-          className="text-xs font-medium text-[#557650] hover:underline"
-        >
+        <button type="button" className="text-xs font-medium text-[#557650] hover:underline">
           Ver todos
         </button>
       </div>
@@ -93,17 +88,13 @@ export default function AlumnosEnRiesgo() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-[#20251f]">
-                {alumno.nombre}
-              </p>
+              <p className="truncate text-sm font-medium text-[#20251f]">{alumno.nombre}</p>
 
               <p className="truncate text-xs text-gray-500">
                 {alumno.curso} · {alumno.empresa}
               </p>
 
-              <p className="truncate text-xs text-gray-400">
-                {alumno.motivo}
-              </p>
+              <p className="truncate text-xs text-gray-400">{alumno.motivo}</p>
             </div>
 
             <span

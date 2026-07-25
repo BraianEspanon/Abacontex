@@ -57,55 +57,36 @@ export interface ActualizarEmpresaRequest {
   logoUrl: string | null;
 }
 
-export async function obtenerCandidatosEmpresa(
-  search?: string,
-): Promise<AlumnoDisponible[]> {
+export async function obtenerCandidatosEmpresa(search?: string): Promise<AlumnoDisponible[]> {
   const termino = search?.trim();
 
-  const respuesta = await clienteApi.get<AlumnoDisponible[]>(
-    '/empresas/candidatos',
-    {
-      params: termino ? { search: termino } : undefined,
-    },
-  );
+  const respuesta = await clienteApi.get<AlumnoDisponible[]>('/empresas/candidatos', {
+    params: termino ? { search: termino } : undefined,
+  });
 
   return respuesta.data;
 }
 
-export async function crearEmpresa(
-  datos: CrearEmpresaRequest,
-): Promise<EmpresaCreada> {
-  const respuesta = await clienteApi.post<EmpresaCreada>(
-    '/empresas',
-    datos,
-  );
+export async function crearEmpresa(datos: CrearEmpresaRequest): Promise<EmpresaCreada> {
+  const respuesta = await clienteApi.post<EmpresaCreada>('/empresas', datos);
 
   return respuesta.data;
 }
 
 export async function agregarParticipantesEmpresa(
-  datos: AgregarParticipantesRequest,
+  datos: AgregarParticipantesRequest
 ): Promise<void> {
-  await clienteApi.post(
-    '/empresas/me/participantes',
-    datos,
-  );
+  await clienteApi.post('/empresas/me/participantes', datos);
 }
 
 export async function obtenerEmpresaActual(): Promise<EmpresaActual> {
-  const respuesta =
-    await clienteApi.get<EmpresaActual>('/empresas/me');
+  const respuesta = await clienteApi.get<EmpresaActual>('/empresas/me');
 
   return respuesta.data;
 }
 
-export async function actualizarEmpresa(
-  datos: ActualizarEmpresaRequest,
-): Promise<EmpresaActual> {
-  const respuesta = await clienteApi.patch<EmpresaActual>(
-    '/empresas/me',
-    datos,
-  );
+export async function actualizarEmpresa(datos: ActualizarEmpresaRequest): Promise<EmpresaActual> {
+  const respuesta = await clienteApi.patch<EmpresaActual>('/empresas/me', datos);
 
   return respuesta.data;
 }

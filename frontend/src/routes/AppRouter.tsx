@@ -58,23 +58,13 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       >
-        <Route
-          path="empresa/editar"
-          element={<EditarEmpresaPage />}
-        />
+        <Route path="empresa/editar" element={<EditarEmpresaPage />} />
       </Route>
       <Route path="/alumno" element={<EstructuraPanelAlumno />}>
-  <Route
-    path="empresa"
-    element={<MiEmpresaPage />}
-  />
+        <Route path="empresa" element={<MiEmpresaPage />} />
 
-  <Route
-    path="empresa/editar"
-    element={<EditarEmpresaPage />}
-  />
-</Route>
+        <Route path="empresa/editar" element={<EditarEmpresaPage />} />
+      </Route>
     </Routes>
-    
   );
 }

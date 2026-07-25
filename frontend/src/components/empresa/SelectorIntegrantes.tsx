@@ -2,10 +2,7 @@
 
 import { Mail, Search, UserRoundPlus, X } from 'lucide-react';
 import { useState } from 'react';
-import type {
-  AlumnoDisponible,
-  InvitacionPendiente,
-} from '../../types/empresa.types';
+import type { AlumnoDisponible, InvitacionPendiente } from '../../types/empresa.types';
 
 interface SelectorIntegrantesProps {
   alumnos: AlumnoDisponible[];
@@ -36,14 +33,11 @@ export default function SelectorIntegrantes({
   onAgregarInvitacion,
   onEliminarInvitacion,
 }: SelectorIntegrantesProps) {
-  const [pestanaActiva, setPestanaActiva] = useState<
-    'registrados' | 'invitacion'
-  >('registrados');
+  const [pestanaActiva, setPestanaActiva] = useState<'registrados' | 'invitacion'>('registrados');
   const [email, setEmail] = useState('');
   const [errorEmail, setErrorEmail] = useState('');
 
-  const estaSeleccionado = (id: string) =>
-    seleccionados.some((alumno) => alumno.id === id);
+  const estaSeleccionado = (id: string) => seleccionados.some((alumno) => alumno.id === id);
 
   const handleAgregarInvitacion = () => {
     const correo = email.trim().toLowerCase();
@@ -60,9 +54,7 @@ export default function SelectorIntegrantes({
       return;
     }
 
-    const yaInvitado = invitaciones.some(
-      (invitacion) => invitacion.email === correo,
-    );
+    const yaInvitado = invitaciones.some((invitacion) => invitacion.email === correo);
 
     if (yaInvitado) {
       setErrorEmail('Ese correo ya fue agregado.');
@@ -123,81 +115,79 @@ export default function SelectorIntegrantes({
             <input
               type="search"
               value={busqueda}
-               onChange={(event) => onBusquedaChange(event.target.value)}
+              onChange={(event) => onBusquedaChange(event.target.value)}
               placeholder="Buscá por nombre, apellido, correo o curso..."
               className="w-full rounded-xl border border-gray-300 py-3 pr-4 pl-10 text-sm outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20"
             />
           </div>
 
           <div className="max-h-72 overflow-y-auto rounded-xl border border-gray-200">
-  {cargandoAlumnos ? (
-    <div className="flex items-center justify-center p-6">
-      <div className="h-5 w-5 animate-spin rounded-full border-2 border-abacontex-primary border-t-transparent" />
+            {cargandoAlumnos ? (
+              <div className="flex items-center justify-center p-6">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-abacontex-primary border-t-transparent" />
 
-      <p className="ml-3 text-sm text-abacontex-gray-text">
-        Buscando alumnos disponibles...
-      </p>
-    </div>
-  ) : errorAlumnos ? (
-    <div className="p-6 text-center">
-      <p className="text-sm text-red-600">
-        No se pudieron cargar los alumnos disponibles.
-      </p>
+                <p className="ml-3 text-sm text-abacontex-gray-text">
+                  Buscando alumnos disponibles...
+                </p>
+              </div>
+            ) : errorAlumnos ? (
+              <div className="p-6 text-center">
+                <p className="text-sm text-red-600">
+                  No se pudieron cargar los alumnos disponibles.
+                </p>
 
-      <button
-        type="button"
-        onClick={onReintentarBusqueda}
-        className="mt-3 text-sm font-semibold text-abacontex-primary hover:underline"
-      >
-        Intentar nuevamente
-      </button>
-    </div>
-  ) : alumnos.length === 0 ? (
-    <div className="p-6 text-center">
-      <p className="text-sm text-abacontex-gray-text">
-        {busqueda.trim()
-          ? 'No se encontraron alumnos con ese criterio.'
-          : 'No hay alumnos disponibles en tu curso.'}
-      </p>
-    </div>
-  ) : (
-    alumnos.map((alumno) => {
-      const seleccionado = estaSeleccionado(alumno.id);
+                <button
+                  type="button"
+                  onClick={onReintentarBusqueda}
+                  className="mt-3 text-sm font-semibold text-abacontex-primary hover:underline"
+                >
+                  Intentar nuevamente
+                </button>
+              </div>
+            ) : alumnos.length === 0 ? (
+              <div className="p-6 text-center">
+                <p className="text-sm text-abacontex-gray-text">
+                  {busqueda.trim()
+                    ? 'No se encontraron alumnos con ese criterio.'
+                    : 'No hay alumnos disponibles en tu curso.'}
+                </p>
+              </div>
+            ) : (
+              alumnos.map((alumno) => {
+                const seleccionado = estaSeleccionado(alumno.id);
 
-      return (
-        <label
-          key={alumno.id}
-          className="flex cursor-pointer items-center gap-3 border-b border-gray-100 px-4 py-3 last:border-b-0 hover:bg-abacontext-light-bg"
-        >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-abacontex-primary text-xs font-semibold text-white">
-            {alumno.nombre.charAt(0)}
-            {alumno.apellido.charAt(0)}
+                return (
+                  <label
+                    key={alumno.id}
+                    className="flex cursor-pointer items-center gap-3 border-b border-gray-100 px-4 py-3 last:border-b-0 hover:bg-abacontext-light-bg"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-abacontex-primary text-xs font-semibold text-white">
+                      {alumno.nombre.charAt(0)}
+                      {alumno.apellido.charAt(0)}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-abacontex-black-text">
+                        {alumno.nombre} {alumno.apellido}
+                      </p>
+
+                      <p className="truncate text-xs text-abacontex-gray-text">
+                        {alumno.rolEmpresa?.nombre ? `${alumno.rolEmpresa.nombre} · ` : ''}
+                        {alumno.email}
+                      </p>
+                    </div>
+
+                    <input
+                      type="checkbox"
+                      checked={seleccionado}
+                      onChange={() => onToggleAlumno(alumno)}
+                      className="h-4 w-4 accent-abacontex-primary"
+                    />
+                  </label>
+                );
+              })
+            )}
           </div>
-
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-abacontex-black-text">
-              {alumno.nombre} {alumno.apellido}
-            </p>
-
-            <p className="truncate text-xs text-abacontex-gray-text">
-              {alumno.rolEmpresa?.nombre
-                ? `${alumno.rolEmpresa.nombre} · `
-                : ''}
-              {alumno.email}
-            </p>
-          </div>
-
-          <input
-            type="checkbox"
-            checked={seleccionado}
-            onChange={() => onToggleAlumno(alumno)}
-            className="h-4 w-4 accent-abacontex-primary"
-          />
-        </label>
-      );
-    })
-  )}
-</div>
         </>
       ) : (
         <div>
@@ -226,9 +216,7 @@ export default function SelectorIntegrantes({
             </button>
           </div>
 
-          {errorEmail && (
-            <p className="mt-2 text-sm text-red-600">{errorEmail}</p>
-          )}
+          {errorEmail && <p className="mt-2 text-sm text-red-600">{errorEmail}</p>}
         </div>
       )}
 

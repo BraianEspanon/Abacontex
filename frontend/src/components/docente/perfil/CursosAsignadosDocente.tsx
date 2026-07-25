@@ -6,9 +6,7 @@ interface CursosAsignadosDocenteProps {
   cursos: CursoDocente[];
 }
 
-export default function CursosAsignadosDocente({
-  cursos,
-}: CursosAsignadosDocenteProps) {
+export default function CursosAsignadosDocente({ cursos }: CursosAsignadosDocenteProps) {
   return (
     <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
@@ -33,9 +31,9 @@ export default function CursosAsignadosDocente({
               </div>
 
               <div className="flex items-center gap-2 text-sm text-gray-500">
-  <UsersRound size={18} />
-  <span>Curso asignado</span>
-</div>
+                <UsersRound size={18} />
+                <span>Curso asignado</span>
+              </div>
             </div>
           ))}
         </div>
@@ -45,13 +43,10 @@ export default function CursosAsignadosDocente({
             <GraduationCap size={24} />
           </div>
 
-          <p className="mt-3 font-medium text-gray-800">
-            No hay cursos disponibles
-          </p>
+          <p className="mt-3 font-medium text-gray-800">No hay cursos disponibles</p>
 
           <p className="mt-1 max-w-xs text-sm text-gray-500">
-            Los cursos asignados aparecerán cuando estén disponibles desde el
-            backend.
+            Los cursos asignados aparecerán cuando estén disponibles desde el backend.
           </p>
         </div>
       )}
