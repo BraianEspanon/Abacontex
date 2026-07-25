@@ -106,13 +106,13 @@ export const usuariosSeed: Seed = {
         email: 'alumno2@mail.com',
       },
       update: {
-        keycloakId: 'pendiente-keycloak-alumno2',
+        keycloakId: '73cc3dc2-4a4f-4bfa-8589-6905cb1c01a8',
         nombre: 'alumno2',
         apellido: 'alumno2',
         rolSistemaId: rolAlumno.idRol,
       },
       create: {
-        keycloakId: 'pendiente-keycloak-alumno2',
+        keycloakId: '73cc3dc2-4a4f-4bfa-8589-6905cb1c01a8',
         email: 'alumno2@mail.com',
         nombre: 'alumno2',
         apellido: 'alumno2',
