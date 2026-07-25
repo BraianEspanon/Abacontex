@@ -20,9 +20,7 @@ const correcciones = [
 export default function CorreccionesPendientes() {
   return (
     <article className="rounded-xl border border-black/10 bg-white p-4 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold text-[#20251f]">
-        Correcciones pendientes
-      </h3>
+      <h3 className="mb-4 text-sm font-semibold text-[#20251f]">Correcciones pendientes</h3>
 
       <div className="space-y-3">
         {correcciones.map((correccion) => {
@@ -38,9 +36,7 @@ export default function CorreccionesPendientes() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-[#20251f]">
-                  {correccion.titulo}
-                </p>
+                <p className="truncate text-sm font-medium text-[#20251f]">{correccion.titulo}</p>
 
                 <span
                   className={[
@@ -54,9 +50,7 @@ export default function CorreccionesPendientes() {
                 </span>
               </div>
 
-              <span className="text-lg font-semibold text-[#20251f]">
-                {correccion.cantidad}
-              </span>
+              <span className="text-lg font-semibold text-[#20251f]">{correccion.cantidad}</span>
             </div>
           );
         })}

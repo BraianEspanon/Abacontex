@@ -10,89 +10,68 @@ import { useCandidatosEmpresa } from '../../hooks/useCandidatosEmpresa';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useCrearEmpresa } from '../../hooks/useCrearEmpresa';
 import { useAgregarParticipantesEmpresa } from '../../hooks/useAgregarParticipantesEmpresa';
-import type {
-  AlumnoDisponible,
-  InvitacionPendiente,
-} from '../../types/empresa.types';
-
-
+import type { AlumnoDisponible, InvitacionPendiente } from '../../types/empresa.types';
 
 export default function CrearEmpresaPage() {
-  
   const navigate = useNavigate();
 
   const [nombre, setNombre] = useState('');
   const [actividad, setActividad] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
 
-const logoPreview = useMemo(() => {
-  return logo ? URL.createObjectURL(logo) : null;
-}, [logo]);
+  const logoPreview = useMemo(() => {
+    return logo ? URL.createObjectURL(logo) : null;
+  }, [logo]);
 
-  const [seleccionados, setSeleccionados] = useState<AlumnoDisponible[]>(
-    [],
-  );
-  const [invitaciones, setInvitaciones] = useState<InvitacionPendiente[]>(
-    [],
-  );
+  const [seleccionados, setSeleccionados] = useState<AlumnoDisponible[]>([]);
+  const [invitaciones, setInvitaciones] = useState<InvitacionPendiente[]>([]);
 
   const [errorNombre, setErrorNombre] = useState('');
   const [errorActividad, setErrorActividad] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
 
-
   const [busquedaCandidato, setBusquedaCandidato] = useState('');
 
-const busquedaDebounced = useDebounce(busquedaCandidato, 400);
+  const busquedaDebounced = useDebounce(busquedaCandidato, 400);
 
-const {
-  data: candidatos = [],
-  isLoading: cargandoCandidatos,
-  isFetching: buscandoCandidatos,
-  isError: errorCandidatos,
-  refetch: recargarCandidatos,
-} = useCandidatosEmpresa(busquedaDebounced);
+  const {
+    data: candidatos = [],
+    isLoading: cargandoCandidatos,
+    isFetching: buscandoCandidatos,
+    isError: errorCandidatos,
+    refetch: recargarCandidatos,
+  } = useCandidatosEmpresa(busquedaDebounced);
 
+  const cargandoAlumnos = cargandoCandidatos || buscandoCandidatos;
 
+  const {
+    mutate: ejecutarCreacionEmpresa,
+    isPending: creandoEmpresa,
+    isError: errorCreandoEmpresa,
+    error: errorCreacionEmpresa,
+  } = useCrearEmpresa();
 
+  const { mutate: ejecutarAgregarParticipantes } = useAgregarParticipantesEmpresa();
 
-const cargandoAlumnos = cargandoCandidatos || buscandoCandidatos;
-
-const {
-  mutate: ejecutarCreacionEmpresa,
-  isPending: creandoEmpresa,
-  isError: errorCreandoEmpresa,
-  error: errorCreacionEmpresa,
-} = useCrearEmpresa();
-
-const {
-  mutate: ejecutarAgregarParticipantes,
-} = useAgregarParticipantesEmpresa();
-
- useEffect(() => {
-  return () => {
-    if (logoPreview) {
-      URL.revokeObjectURL(logoPreview);
-    }
-  };
-}, [logoPreview]);
+  useEffect(() => {
+    return () => {
+      if (logoPreview) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
+  }, [logoPreview]);
 
   const handleToggleAlumno = (alumno: AlumnoDisponible) => {
     setSeleccionados((actuales) => {
-      const yaSeleccionado = actuales.some(
-        (integrante) => integrante.id === alumno.id,
-      );
+      const yaSeleccionado = actuales.some((integrante) => integrante.id === alumno.id);
 
       if (yaSeleccionado) {
-        return actuales.filter(
-          (integrante) => integrante.id !== alumno.id,
-        );
+        return actuales.filter((integrante) => integrante.id !== alumno.id);
       }
 
       return [...actuales, alumno];
     });
   };
-  
 
   const handleAgregarInvitacion = (email: string) => {
     setInvitaciones((actuales) => [
@@ -105,9 +84,7 @@ const {
   };
 
   const handleEliminarInvitacion = (id: string) => {
-    setInvitaciones((actuales) =>
-      actuales.filter((invitacion) => invitacion.id !== id),
-    );
+    setInvitaciones((actuales) => actuales.filter((invitacion) => invitacion.id !== id));
   };
 
   const validarFormulario = () => {
@@ -131,40 +108,38 @@ const {
   };
 
   const handleFundarEmpresa = () => {
-  if (!validarFormulario()) return;
+    if (!validarFormulario()) return;
 
-  ejecutarCreacionEmpresa(
-    {
-      nombre: nombre.trim(),
-      actividad: actividad.trim(),
-      logoUrl: null,
-    },
-    {
-      onSuccess: (empresaCreada) => {
-  console.log('Empresa creada:', empresaCreada);
-
-  if (seleccionados.length === 0) {
-    setModalAbierto(true);
-    return;
-  }
-
-  ejecutarAgregarParticipantes(
-    {
-      participantes: seleccionados.map((alumno) => alumno.id),
-    },
-    {
-      onSuccess: () => {
-        console.log('Participantes agregados');
-        setModalAbierto(true);
+    ejecutarCreacionEmpresa(
+      {
+        nombre: nombre.trim(),
+        actividad: actividad.trim(),
+        logoUrl: null,
       },
-    },
-  );
-},
-    },
-  );
-};
+      {
+        onSuccess: (empresaCreada) => {
+          console.log('Empresa creada:', empresaCreada);
 
-  
+          if (seleccionados.length === 0) {
+            setModalAbierto(true);
+            return;
+          }
+
+          ejecutarAgregarParticipantes(
+            {
+              participantes: seleccionados.map((alumno) => alumno.id),
+            },
+            {
+              onSuccess: () => {
+                console.log('Participantes agregados');
+                setModalAbierto(true);
+              },
+            }
+          );
+        },
+      }
+    );
+  };
 
   return (
     <>
@@ -180,8 +155,8 @@ const {
             </h1>
 
             <p className="mx-auto mt-3 max-w-xl text-abacontex-gray-text">
-              Completá los datos principales y conformá el equipo que
-              participará de la simulación empresarial.
+              Completá los datos principales y conformá el equipo que participará de la simulación
+              empresarial.
             </p>
           </header>
 
@@ -205,40 +180,40 @@ const {
             />
 
             <SelectorIntegrantes
-  alumnos={candidatos}
-  seleccionados={seleccionados}
-  invitaciones={invitaciones}
-  busqueda={busquedaCandidato}
-  cargandoAlumnos={cargandoAlumnos}
-  errorAlumnos={errorCandidatos}
-  onBusquedaChange={setBusquedaCandidato}
-  onReintentarBusqueda={() => {
-    void recargarCandidatos();
-  }}
-  onToggleAlumno={handleToggleAlumno}
-  onAgregarInvitacion={handleAgregarInvitacion}
-  onEliminarInvitacion={handleEliminarInvitacion}
-/>
+              alumnos={candidatos}
+              seleccionados={seleccionados}
+              invitaciones={invitaciones}
+              busqueda={busquedaCandidato}
+              cargandoAlumnos={cargandoAlumnos}
+              errorAlumnos={errorCandidatos}
+              onBusquedaChange={setBusquedaCandidato}
+              onReintentarBusqueda={() => {
+                void recargarCandidatos();
+              }}
+              onToggleAlumno={handleToggleAlumno}
+              onAgregarInvitacion={handleAgregarInvitacion}
+              onEliminarInvitacion={handleEliminarInvitacion}
+            />
 
             <button
-  type="button"
-  onClick={handleFundarEmpresa}
-  disabled={creandoEmpresa}
-  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-abacontex-primary px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-60"
->
-  {creandoEmpresa ? 'Creando empresa...' : 'Fundar mi empresa'}
+              type="button"
+              onClick={handleFundarEmpresa}
+              disabled={creandoEmpresa}
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-abacontex-primary px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {creandoEmpresa ? 'Creando empresa...' : 'Fundar mi empresa'}
 
-  {!creandoEmpresa && (
-    <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-  )}
-</button>
-{errorCreandoEmpresa && (
-  <p className="text-center text-sm text-red-600">
-    {errorCreacionEmpresa instanceof Error
-      ? errorCreacionEmpresa.message
-      : 'No se pudo crear la empresa.'}
-  </p>
-)}
+              {!creandoEmpresa && (
+                <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              )}
+            </button>
+            {errorCreandoEmpresa && (
+              <p className="text-center text-sm text-red-600">
+                {errorCreacionEmpresa instanceof Error
+                  ? errorCreacionEmpresa.message
+                  : 'No se pudo crear la empresa.'}
+              </p>
+            )}
           </div>
         </div>
       </main>

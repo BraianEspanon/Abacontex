@@ -3,30 +3,20 @@ import { Link } from 'react-router-dom';
 import { useEmpresaActual } from '../../hooks/useEmpresaActual';
 
 export default function MiEmpresaPage() {
-  const {
-    data: empresa,
-    isLoading,
-    isError,
-  } = useEmpresaActual();
+  const { data: empresa, isLoading, isError } = useEmpresaActual();
 
   if (isLoading) {
     return <div className="p-6">Cargando empresa...</div>;
   }
 
   if (isError || !empresa) {
-    return (
-      <div className="p-6">
-        No se pudo cargar la empresa.
-      </div>
-    );
+    return <div className="p-6">No se pudo cargar la empresa.</div>;
   }
 
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-abacontex-black-text">
-          Mi empresa
-        </h1>
+        <h1 className="text-2xl font-bold text-abacontex-black-text">Mi empresa</h1>
 
         <p className="mt-1 text-sm text-abacontex-gray-text">
           Consultá la información principal de tu empresa.
@@ -54,15 +44,11 @@ export default function MiEmpresaPage() {
               {empresa.nombre}
             </h2>
 
-            <p className="mt-2 text-sm text-abacontex-gray-text">
-              {empresa.actividad}
-            </p>
+            <p className="mt-2 text-sm text-abacontex-gray-text">{empresa.actividad}</p>
 
             <p className="mt-3 text-sm text-abacontex-gray-text">
               {empresa.integrantes.length}{' '}
-              {empresa.integrantes.length === 1
-                ? 'integrante'
-                : 'integrantes'}
+              {empresa.integrantes.length === 1 ? 'integrante' : 'integrantes'}
             </p>
           </div>
 

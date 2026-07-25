@@ -68,12 +68,7 @@ export default function DesempenoPorCurso() {
               radius={[4, 4, 0, 0]}
             />
 
-            <Bar
-              dataKey="empresas"
-              name="Empresas a tiempo"
-              fill="#a9bba3"
-              radius={[4, 4, 0, 0]}
-            />
+            <Bar dataKey="empresas" name="Empresas a tiempo" fill="#a9bba3" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

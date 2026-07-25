@@ -1,9 +1,4 @@
-import {
-  CalendarDays,
-  CircleCheck,
-  LockKeyhole,
-  UserRound,
-} from 'lucide-react';
+import { CalendarDays, CircleCheck, LockKeyhole, UserRound } from 'lucide-react';
 import type { UsuarioActual } from '../../../types/usuario.types';
 
 interface InformacionCuentaDocenteProps {
@@ -28,17 +23,13 @@ function formatearFecha(fecha?: string) {
   }).format(fechaConvertida);
 }
 
-export default function InformacionCuentaDocente({
-  usuario,
-}: InformacionCuentaDocenteProps) {
+export default function InformacionCuentaDocente({ usuario }: InformacionCuentaDocenteProps) {
   const estadoCuenta = usuario.activo === false ? 'Inactivo' : 'Activo';
 
   return (
     <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <header className="border-b border-gray-200 px-5 py-4">
-        <h2 className="font-semibold text-gray-900">
-          Información de la cuenta
-        </h2>
+        <h2 className="font-semibold text-gray-900">Información de la cuenta</h2>
       </header>
 
       <div className="px-6">
@@ -73,9 +64,7 @@ export default function InformacionCuentaDocente({
 
           <div>
             <p className="text-sm text-gray-500">Fecha de alta</p>
-            <p className="font-medium text-gray-900">
-              {formatearFecha(usuario.fechaAlta)}
-            </p>
+            <p className="font-medium text-gray-900">{formatearFecha(usuario.fechaAlta)}</p>
           </div>
         </div>
       </div>
@@ -92,8 +81,7 @@ export default function InformacionCuentaDocente({
         </button>
 
         <p className="mt-4 text-center text-xs text-gray-400">
-          Te recomendamos mantener tu contraseña segura y no compartirla con
-          otras personas.
+          Te recomendamos mantener tu contraseña segura y no compartirla con otras personas.
         </p>
       </div>
     </section>

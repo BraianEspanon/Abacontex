@@ -42,14 +42,9 @@ export default function RankingEmpresarial() {
   return (
     <article className="rounded-xl border border-black/10 bg-white p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#20251f]">
-          Ranking empresarial
-        </h3>
+        <h3 className="text-sm font-semibold text-[#20251f]">Ranking empresarial</h3>
 
-        <button
-          type="button"
-          className="text-xs font-medium text-[#557650] hover:underline"
-        >
+        <button type="button" className="text-xs font-medium text-[#557650] hover:underline">
           Ver ranking completo
         </button>
       </div>
@@ -90,25 +85,13 @@ export default function RankingEmpresarial() {
             key={empresa.posicion}
             className="grid grid-cols-[40px_1fr_70px_70px] items-center border-t border-gray-100 px-3 py-2 text-xs"
           >
-            <span className="font-semibold text-[#20251f]">
-              {empresa.posicion}°
-            </span>
+            <span className="font-semibold text-[#20251f]">{empresa.posicion}°</span>
 
-            <span className="truncate text-gray-700">
-              {empresa.empresa}
-            </span>
+            <span className="truncate text-gray-700">{empresa.empresa}</span>
 
-            <span className="font-medium text-[#20251f]">
-              {empresa.puntaje.toFixed(1)}
-            </span>
+            <span className="font-medium text-[#20251f]">{empresa.puntaje.toFixed(1)}</span>
 
-            <span
-              className={
-                empresa.variacion >= 0
-                  ? 'text-green-600'
-                  : 'text-red-600'
-              }
-            >
+            <span className={empresa.variacion >= 0 ? 'text-green-600' : 'text-red-600'}>
               {empresa.variacion >= 0 ? '+' : ''}
               {empresa.variacion.toFixed(1)} pts
             </span>
