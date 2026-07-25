@@ -225,7 +225,7 @@ export const alumnosSeed: Seed = {
     // 6TO III
     // ==========================
 
-    // Alumno2: ya pertenece a InnovaSoft y tiene rol CFO.
+    // Alumno2: ya pertenece a InnovaSoft y tiene rol CEO.
     await prisma.alumno.upsert({
       where: {
         id: alumno2.id,
@@ -233,13 +233,13 @@ export const alumnosSeed: Seed = {
       update: {
         idCurso: curso6to.idCurso,
         idEmpresa: innovaSoft.id,
-        idRolEmpresa: rolCFO.idRol,
+        idRolEmpresa: rolCEO.idRol,
       },
       create: {
         id: alumno2.id,
         idCurso: curso6to.idCurso,
         idEmpresa: innovaSoft.id,
-        idRolEmpresa: rolCFO.idRol,
+        idRolEmpresa: rolCEO.idRol,
       },
     });
 

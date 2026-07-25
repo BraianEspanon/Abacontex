@@ -460,6 +460,29 @@
     "notBefore" : 0,
     "groups" : [ ]
   }, {
+    "id" : "73cc3dc2-4a4f-4bfa-8589-6905cb1c01a8",
+    "username" : "alumno2",
+    "firstName" : "alumno2",
+    "lastName" : "alumno2",
+    "email" : "alumno2@mail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1784940198117,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "c9c78395-03d0-40aa-9a9e-719d14905d1e",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1784940219775,
+      "secretData" : "{\"value\":\"96eYzfLrwRwdBxpepArJZFxOmQgO+4fyeZzRNnxxIx0=\",\"salt\":\"dEx8EtKsL++Jowvm/7rgig==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-abacontex" ],
+    "notBefore" : 0,
+    "groups" : [ "/Grupo_Alumnos" ]
+  }, {
     "id" : "aa59f67b-570a-4ec6-96f7-bd7d2749a77c",
     "username" : "docente",
     "firstName" : "docente",
@@ -1536,7 +1559,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "oidc-address-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper" ]
       }
     }, {
       "id" : "2c9cb6f1-4eb3-4a7f-b28c-a555ad622efa",
@@ -1561,7 +1584,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-address-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "saml-user-property-mapper", "oidc-usermodel-property-mapper", "saml-user-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper" ]
       }
     }, {
       "id" : "f80f11ab-d364-4643-801c-677f5adce56e",
