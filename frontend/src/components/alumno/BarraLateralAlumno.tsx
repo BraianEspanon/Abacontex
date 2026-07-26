@@ -31,9 +31,9 @@ const opcionesMenu = [
     icono: Building2,
   },
   {
-    nombre: 'Inventario',
-    ruta: '/alumno/inventario',
-    icono: Boxes,
+    nombre: 'Productos',
+    ruta: '/alumno/productos',
+    icono: Package,
   },
   {
     nombre: 'Pedidos',
