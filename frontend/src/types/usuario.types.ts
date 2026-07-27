@@ -21,3 +21,13 @@ export interface UsuarioActual {
   rolSistema?: RolSistema;
   cursos?: CursoAsignado[];
 }
+export interface ActualizarUsuarioActualRequest {
+  nombre: string;
+  apellido: string;
+  idRolEmpresa: number | null;
+}
+
+export interface ActualizarPasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}

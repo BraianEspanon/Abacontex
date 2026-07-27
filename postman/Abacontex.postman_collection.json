@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "5e4feff8-350f-4d0e-b0be-40a2d8c43fd6",
+    "_postman_id": "7238f3e4-3462-464c-9533-5bfc9d173c40",
     "name": "Abacontex",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "24839019"
@@ -117,7 +117,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"idCurso\": 1,\r\n  \"idRolEmpresa\": 2\r\n}",
+              "raw": "{\r\n  \"idCurso\": 1,\r\n  \"idRolEmpresa\": 3\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -168,7 +168,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Juan\",\r\n  \"apellido\": \"Perez\",\r\n  \"email\": \"profe2@profe.com\",\r\n  \"password\": \"Abacontex1\",\r\n  \"cursoIds\": [\r\n    1\r\n  ]\r\n}",
+              "raw": "{\r\n  \"nombre\": \"Franco\",\r\n  \"apellido\": \"Prado\",\r\n  \"email\": \"f.prado@profe.com\",\r\n  \"password\": \"Abacontex1\",\r\n  \"cursoIds\": [\r\n    1,2\r\n  ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -182,6 +182,34 @@
               ],
               "path": [
                 "docentes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "me cursos",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"cursoIds\": [1, 2]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/docentes/me/cursos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "me",
+                "cursos"
               ]
             }
           },
@@ -313,13 +341,172 @@
       "name": "Empresa",
       "item": [
         {
+          "name": "Invitaciones",
+          "item": [
+            {
+              "name": "Enviar invitaciones",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"emails\": [\r\n    \"aaa@aaa.com\"\r\n  ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/empresas/me/invitaciones",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "empresas",
+                    "me",
+                    "invitaciones"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver invitaciones enviadas",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"emails\": [\r\n    \"juan@test.com\",\r\n    \"ana@test.com\"\r\n  ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/empresas/me/invitaciones/enviadas",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "empresas",
+                    "me",
+                    "invitaciones",
+                    "enviadas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver invitacion propia",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"emails\": [\r\n    \"juan@test.com\",\r\n    \"ana@test.com\"\r\n  ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/empresas/me/invitaciones",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "empresas",
+                    "me",
+                    "invitaciones"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Aceptar invitacion",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/empresas/me/invitaciones/:id/aceptar",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "empresas",
+                    "me",
+                    "invitaciones",
+                    ":id",
+                    "aceptar"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "42"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Rechazar invitacion",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"emails\": [\r\n    \"juan@test.com\",\r\n    \"ana@test.com\"\r\n  ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/empresas/me/invitaciones/:id/rechazar",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "empresas",
+                    "me",
+                    "invitaciones",
+                    ":id",
+                    "rechazar"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "42"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
           "name": "crearEmpresa",
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"nombre\": \"Abacontex S.A.\",\r\n    \"actividad\": \"Educar y enseñar jijos\"\r\n}",
+              "raw": "{\r\n    \"nombre\": \"Abacontex S.A.\",\r\n    \"actividad\": \"Educar y enseñar finanzas\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -389,7 +576,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_Url}}/empresas/candidatos?search=espa",
+              "raw": "{{base_Url}}/empresas/candidatos",
               "host": [
                 "{{base_Url}}"
               ],
@@ -400,7 +587,8 @@
               "query": [
                 {
                   "key": "search",
-                  "value": "espa"
+                  "value": "",
+                  "disabled": true
                 }
               ]
             }
@@ -414,7 +602,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"participantes\": [\r\n        \"8492f11a-4031-4066-9266-088f8a6f1379\"\r\n    ]\r\n}",
+              "raw": "{\r\n    \"participantes\": [\r\n        \"6c720679-0533-4908-a41f-f2bb64bfe018\"\r\n    ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -436,7 +624,7 @@
           "response": []
         },
         {
-          "name": "participantes rol",
+          "name": "rol participante",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -464,7 +652,7 @@
               "variable": [
                 {
                   "key": "idAlumno",
-                  "value": "fe0e9ab9-8938-48fe-862b-9c1eab82c339"
+                  "value": "ac3347c3-c8c4-46ea-9709-92d81cc0e9ed"
                 }
               ]
             }
@@ -472,13 +660,13 @@
           "response": []
         },
         {
-          "name": "modificar roles",
+          "name": "roles empresa",
           "request": {
             "method": "PATCH",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"roles\":[\r\n        {\r\n            \"idAlumno\":\"8b29853e-4b85-418a-a1c4-fe3f0b1c4a44\",\r\n            \"idRolEmpresa\":1\r\n        },\r\n        {\r\n            \"idAlumno\":\"309dc8cf-ca71-42d3-90f3-bdbc7d54fad9\",\r\n            \"idRolEmpresa\":1\r\n        },\r\n        {\r\n            \"idAlumno\":\"7b9be7df-714c-4d26-ab30-c9c2aceae713\",\r\n            \"idRolEmpresa\":1\r\n        }\r\n    ]\r\n}",
+              "raw": "{\r\n    \"roles\":[\r\n        {\r\n            \"idAlumno\":\"ff15a554-ffe1-4dc9-ad93-805ecd5f7423\",\r\n            \"idRolEmpresa\":2\r\n        },\r\n        {\r\n            \"idAlumno\":\"6c720679-0533-4908-a41f-f2bb64bfe018\",\r\n            \"idRolEmpresa\":1\r\n        },\r\n        {\r\n            \"idAlumno\":\"ac3347c3-c8c4-46ea-9709-92d81cc0e9ed\",\r\n            \"idRolEmpresa\":5\r\n        }\r\n    ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -498,7 +686,167 @@
               "variable": [
                 {
                   "key": "idEmpresa",
-                  "value": "7"
+                  "value": "3"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Producto",
+      "item": [
+        {
+          "name": "ver productos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/productos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "productos"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Cel",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "3",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "2",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "estadoStock",
+                  "value": "SIN_STOCK",
+                  "disabled": true
+                },
+                {
+                  "key": "orden",
+                  "value": "STOCK_DESC",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ver producto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/productos/:idProducto",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "productos",
+                ":idProducto"
+              ],
+              "variable": [
+                {
+                  "key": "idProducto",
+                  "value": "6"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "crear",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Yerba mate 1kg\",\r\n  \"stockInicial\": 10,\r\n  \"precioUnitario\": 1000,\r\n  \"descripcion\": \"Salen esos Leo Matioli\",\r\n  \"fotoUrl\": \"http://example.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/productos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "editar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Yerba mate 3kg\",\r\n  \"precioUnitario\": 200,\r\n  \"descripcion\": \"Buenarda la yerbancia\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/productos/:idProducto",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "productos",
+                ":idProducto"
+              ],
+              "variable": [
+                {
+                  "key": "idProducto",
+                  "value": "6"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eliminar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/productos/:idProducto",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "productos",
+                ":idProducto"
+              ],
+              "variable": [
+                {
+                  "key": "idProducto",
+                  "value": "6"
                 }
               ]
             }
