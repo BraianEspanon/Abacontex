@@ -77,8 +77,6 @@ export default function EditarProductoPage() {
       descripcion: producto.descripcion,
       precioUnitario: producto.precioUnitario,
     });
-
-    setImagenSeleccionada(null);
   }, [producto, reset]);
 
   const handleCancelar = () => {

@@ -1,5 +1,5 @@
 import { ImageOff, LockKeyhole, Save, Upload, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
@@ -58,7 +58,13 @@ export default function EditarProductoForm({
   hayCambios,
   onCancelar,
 }: EditarProductoFormProps) {
-  const [imagenPreviewUrl, setImagenPreviewUrl] = useState<string | null>(fotoActualUrl);
+  const imagenPreviewUrl = useMemo(() => {
+    if (!imagenSeleccionada) {
+      return fotoActualUrl;
+    }
+
+    return URL.createObjectURL(imagenSeleccionada);
+  }, [imagenSeleccionada, fotoActualUrl]);
 
   const [errorImagen, setErrorImagen] = useState<string | null>(null);
 
@@ -83,19 +89,12 @@ export default function EditarProductoForm({
     }) ?? 0;
 
   useEffect(() => {
-    if (!imagenSeleccionada) {
-      setImagenPreviewUrl(fotoActualUrl);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(imagenSeleccionada);
-
-    setImagenPreviewUrl(objectUrl);
-
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      if (imagenSeleccionada && imagenPreviewUrl) {
+        URL.revokeObjectURL(imagenPreviewUrl);
+      }
     };
-  }, [imagenSeleccionada, fotoActualUrl]);
+  }, [imagenSeleccionada, imagenPreviewUrl]);
 
   const validarImagen = (archivo: File) => {
     if (!TIPOS_IMAGEN_PERMITIDOS.includes(archivo.type)) {

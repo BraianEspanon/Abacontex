@@ -1,5 +1,5 @@
 import { ImagePlus, Trash2, UploadCloud } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
@@ -58,26 +58,25 @@ export default function RegistrarProductoForm({
 }: RegistrarProductoFormProps) {
   const inputArchivoRef = useRef<HTMLInputElement | null>(null);
 
-  const [imagenPreviewUrl, setImagenPreviewUrl] = useState<string | null>(null);
+  const imagenPreviewUrl = useMemo(() => {
+    if (!imagenSeleccionada) {
+      return null;
+    }
+
+    return URL.createObjectURL(imagenSeleccionada);
+  }, [imagenSeleccionada]);
 
   const [imagenError, setImagenError] = useState<string | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
-    if (!imagenSeleccionada) {
-      setImagenPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(imagenSeleccionada);
-
-    setImagenPreviewUrl(objectUrl);
-
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      if (imagenPreviewUrl) {
+        URL.revokeObjectURL(imagenPreviewUrl);
+      }
     };
-  }, [imagenSeleccionada]);
+  }, [imagenPreviewUrl]);
 
   const validarYSeleccionarImagen = (archivo?: File) => {
     setImagenError(null);

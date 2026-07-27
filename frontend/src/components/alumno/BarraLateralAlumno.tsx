@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom';
 import { useKeycloak } from '@react-keycloak/web';
 import {
   BookOpen,
-  Boxes,
   Building2,
   ClipboardList,
   Factory,
