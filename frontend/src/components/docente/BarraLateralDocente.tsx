@@ -82,9 +82,7 @@ export default function BarraLateralDocente() {
   const { keycloak } = useKeycloak();
   const { data: usuario, isLoading: cargandoUsuario } = useUsuarioActual();
 
-  const nombreCompleto = usuario
-    ? `${usuario.nombre} ${usuario.apellido}`
-    : 'Docente';
+  const nombreCompleto = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Docente';
 
   const iniciales = usuario
     ? `${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}`.toUpperCase()
@@ -93,7 +91,7 @@ export default function BarraLateralDocente() {
   const nombreRol =
     usuario?.rolSistema?.nombreRol === 'DOCENTE'
       ? 'Docente'
-      : usuario?.rolSistema?.nombreRol ?? 'Docente';
+      : (usuario?.rolSistema?.nombreRol ?? 'Docente');
 
   const cerrarSesion = () => {
     void keycloak.logout({
@@ -159,7 +157,9 @@ export default function BarraLateralDocente() {
           </div>
 
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{cargandoUsuario ? 'Cargando...' : nombreCompleto}</p>
+            <p className="truncate text-sm font-medium">
+              {cargandoUsuario ? 'Cargando...' : nombreCompleto}
+            </p>
             <p className="text-xs text-white/60">{cargandoUsuario ? '...' : nombreRol}</p>
           </div>
         </div>

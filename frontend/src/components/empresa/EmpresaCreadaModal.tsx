@@ -20,13 +20,10 @@ export default function EmpresaCreadaModal({
       <div className="w-full max-w-md rounded-3xl bg-abacontex-dark px-8 py-10 text-center shadow-2xl">
         <PartyPopper className="mx-auto mb-5 h-12 w-12 text-abacontex-primary-three" />
 
-        <h2 className="font-heading text-4xl font-bold text-white">
-          ¡Empresa fundada!
-        </h2>
+        <h2 className="font-heading text-4xl font-bold text-white">¡Empresa fundada!</h2>
 
         <p className="mt-4 text-sm text-white/75">
-          Tu empresa <strong>{nombreEmpresa}</strong> fue registrada
-          correctamente.
+          Tu empresa <strong>{nombreEmpresa}</strong> fue registrada correctamente.
         </p>
 
         <button

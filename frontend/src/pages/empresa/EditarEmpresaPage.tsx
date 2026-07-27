@@ -1,76 +1,56 @@
+import { isAxiosError } from 'axios';
+import { ChevronRight, House, Save } from 'lucide-react';
 import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  ChevronRight,
-  House,
-} from 'lucide-react';
-import {
-  Link,
-  useNavigate,
-} from 'react-router-dom';
-
-import { useEmpresaActual } from '../../hooks/useEmpresaActual';
-import { useActualizarEmpresa } from '../../hooks/useActualizarEmpresa';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import EditarEmpresaForm, {
   type EditarEmpresaFormData,
 } from '../../components/empresa/EditarEmpresaForm';
-import VistaPreviaEmpresa from '../../components/empresa/VistaPreviaEmpresa';
 import ResumenIntegrantes from '../../components/empresa/ResumenIntegrantes';
+import VistaPreviaEmpresa from '../../components/empresa/VistaPreviaEmpresa';
+import { useActualizarEmpresa } from '../../hooks/useActualizarEmpresa';
+import { useEmpresaActual } from '../../hooks/useEmpresaActual';
 
 const editarEmpresaSchema = z.object({
   nombre: z
     .string()
     .trim()
     .min(1, 'El nombre es obligatorio')
-    .max(
-      100,
-      'El nombre no puede superar los 100 caracteres',
-    ),
+    .max(100, 'El nombre no puede superar los 100 caracteres'),
 
   actividad: z
     .string()
     .trim()
     .min(1, 'La actividad es obligatoria')
-    .max(
-      255,
-      'La actividad no puede superar los 255 caracteres',
-    ),
+    .max(255, 'La actividad no puede superar los 255 caracteres'),
 
-  logoUrl: z
-    .string()
-    .trim()
-    .url('Ingresá una URL válida')
-    .or(z.literal('')),
+  logoUrl: z.string().trim().url('Ingresá una URL válida').or(z.literal('')),
 });
+
+interface RespuestaErrorApi {
+  message?: string;
+  error?: string;
+  code?: string;
+}
 
 export default function EditarEmpresaPage() {
   const navigate = useNavigate();
 
-  const {
-    data: empresa,
-    isLoading,
-    isError,
-  } = useEmpresaActual();
+  const { data: empresa, isLoading, isError } = useEmpresaActual();
 
-  const {
-    mutate: actualizarEmpresa,
-    isPending,
-    isSuccess,
-    isError: isErrorActualizacion,
-  } = useActualizarEmpresa();
+  const { mutate: actualizarEmpresa, isPending, isSuccess } = useActualizarEmpresa();
 
   const {
     register,
     handleSubmit,
     reset,
     control,
-    formState: {
-      errors,
-      isDirty,
-    },
+    setError,
+    clearErrors,
+    formState: { errors, isDirty },
   } = useForm<EditarEmpresaFormData>({
     resolver: zodResolver(editarEmpresaSchema),
     defaultValues: {
@@ -96,45 +76,70 @@ export default function EditarEmpresaPage() {
     });
   }, [empresa, reset]);
 
-  const onSubmit = (
-    datos: EditarEmpresaFormData,
-  ) => {
+  const onSubmit = (datos: EditarEmpresaFormData) => {
+    clearErrors();
+
     actualizarEmpresa(
       {
         nombre: datos.nombre.trim(),
         actividad: datos.actividad.trim(),
-        logoUrl:
-          datos.logoUrl.trim() || null,
+        logoUrl: datos.logoUrl.trim() || null,
       },
       {
         onSuccess: (empresaActualizada) => {
           reset({
             nombre: empresaActualizada.nombre,
-            actividad:
-              empresaActualizada.actividad,
-            logoUrl:
-              empresaActualizada.logoUrl ?? '',
+            actividad: empresaActualizada.actividad,
+            logoUrl: empresaActualizada.logoUrl ?? '',
           });
         },
-      },
+
+        onError: (error) => {
+          if (isAxiosError<RespuestaErrorApi>(error)) {
+            const status = error.response?.status;
+
+            const mensajeBackend = error.response?.data?.message ?? error.response?.data?.error;
+
+            if (status === 409) {
+              setError('nombre', {
+                type: 'server',
+                message:
+                  mensajeBackend ?? 'Ya existe una empresa con ese nombre. Ingresá uno diferente.',
+              });
+
+              return;
+            }
+
+            setError('root', {
+              type: 'server',
+              message: mensajeBackend ?? 'No se pudo actualizar la empresa. Intentá nuevamente.',
+            });
+
+            return;
+          }
+
+          setError('root', {
+            type: 'server',
+            message: 'Ocurrió un error inesperado. Intentá nuevamente.',
+          });
+        },
+      }
     );
   };
 
   if (isLoading) {
-    return (
-      <div className="p-6">
-        Cargando empresa...
-      </div>
-    );
+    return <div className="p-6">Cargando empresa...</div>;
   }
 
   if (isError || !empresa) {
-    return (
-      <div className="p-6">
-        Error al cargar la empresa.
-      </div>
-    );
+    return <div className="p-6">Error al cargar la empresa.</div>;
   }
+
+  const nombreActual = valoresFormulario.nombre ?? empresa.nombre;
+
+  const actividadActual = valoresFormulario.actividad ?? empresa.actividad;
+
+  const logoActual = valoresFormulario.logoUrl || empresa.logoUrl;
 
   return (
     <div className="p-6">
@@ -143,18 +148,13 @@ export default function EditarEmpresaPage() {
 
         <ChevronRight size={14} />
 
-        <Link
-          to="/alumno/empresa"
-          className="transition hover:text-abacontex-primary"
-        >
+        <Link to="/alumno/empresa" className="transition hover:text-abacontex-primary">
           Mi empresa
         </Link>
 
         <ChevronRight size={14} />
 
-        <span className="font-medium text-abacontex-black-text">
-          Editar empresa
-        </span>
+        <span className="font-medium text-abacontex-black-text">Editar empresa</span>
       </nav>
 
       <div className="mb-6">
@@ -163,8 +163,7 @@ export default function EditarEmpresaPage() {
         </h1>
 
         <p className="mt-1 text-sm text-abacontex-gray-text">
-          Actualizá la información principal de tu
-          empresa.
+          Actualizá la información principal de tu empresa.
         </p>
       </div>
 
@@ -173,45 +172,33 @@ export default function EditarEmpresaPage() {
           Información
         </h2>
 
-        <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+        <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(340px,1fr)]">
           <EditarEmpresaForm
             register={register}
             errors={errors}
+            nombre={nombreActual}
+            actividad={actividadActual}
+            logoUrl={logoActual}
             onSubmit={handleSubmit(onSubmit)}
           />
 
-          <aside className="space-y-5 border-gray-200 lg:border-l lg:pl-8">
+          <aside className="space-y-4 border-gray-200 lg:border-l lg:pl-8">
             <VistaPreviaEmpresa
-              nombre={
-                valoresFormulario.nombre ??
-                empresa.nombre
-              }
-              actividad={
-                valoresFormulario.actividad ??
-                empresa.actividad
-              }
-              logoUrl={
-                valoresFormulario.logoUrl ||
-                empresa.logoUrl
-              }
-              cantidadIntegrantes={
-                empresa.integrantes.length
-              }
+              nombre={nombreActual}
+              actividad={actividadActual}
+              logoUrl={logoActual}
+              cantidadIntegrantes={empresa.integrantes.length}
             />
 
-            <ResumenIntegrantes
-              integrantes={empresa.integrantes}
-            />
+            <ResumenIntegrantes integrantes={empresa.integrantes} />
           </aside>
         </div>
       </section>
 
-      <div className="mt-6 flex max-w-6xl justify-end gap-3">
+      <div className="mt-4 flex max-w-6xl justify-end gap-3">
         <button
           type="button"
-          onClick={() =>
-            navigate('/alumno/empresa')
-          }
+          onClick={() => navigate('/alumno/empresa')}
           className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-abacontex-black-text transition hover:bg-gray-50"
         >
           Cancelar
@@ -221,13 +208,13 @@ export default function EditarEmpresaPage() {
           type="submit"
           form="editar-empresa-form"
           disabled={isPending || !isDirty}
-          className="rounded-lg bg-abacontex-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-abacontex-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isPending
-            ? 'Guardando...'
-            : 'Guardar cambios'}
+          <Save size={16} />
+
+          {isPending ? 'Guardando...' : 'Guardar cambios'}
         </button>
-      </div> 
+      </div>
 
       {isSuccess && (
         <p className="mt-3 max-w-6xl text-right text-sm text-green-700">
@@ -235,10 +222,8 @@ export default function EditarEmpresaPage() {
         </p>
       )}
 
-      {isErrorActualizacion && (
-        <p className="mt-3 max-w-6xl text-right text-sm text-red-600">
-          No se pudo actualizar la empresa.
-        </p>
+      {errors.root?.message && (
+        <p className="mt-3 max-w-6xl text-right text-sm text-red-600">{errors.root.message}</p>
       )}
     </div>
   );

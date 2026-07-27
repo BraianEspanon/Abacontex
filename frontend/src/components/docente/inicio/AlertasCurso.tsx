@@ -25,14 +25,9 @@ export default function AlertasCurso() {
   return (
     <article className="rounded-xl border border-black/10 bg-white p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#20251f]">
-          Alertas del curso
-        </h3>
+        <h3 className="text-sm font-semibold text-[#20251f]">Alertas del curso</h3>
 
-        <button
-          type="button"
-          className="text-xs font-medium text-[#557650] hover:underline"
-        >
+        <button type="button" className="text-xs font-medium text-[#557650] hover:underline">
           Ver todas
         </button>
       </div>
@@ -53,9 +48,7 @@ export default function AlertasCurso() {
                 <Icono size={17} />
               </div>
 
-              <span className="flex-1 text-xs text-gray-700">
-                {alerta.texto}
-              </span>
+              <span className="flex-1 text-xs text-gray-700">{alerta.texto}</span>
 
               <span className="text-gray-400">›</span>
             </button>

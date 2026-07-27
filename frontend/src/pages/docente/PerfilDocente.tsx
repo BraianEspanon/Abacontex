@@ -25,9 +25,7 @@ export default function PerfilDocente() {
   if (cargandoUsuario) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm text-gray-500">
-          Cargando información del perfil...
-        </p>
+        <p className="text-sm text-gray-500">Cargando información del perfil...</p>
       </div>
     );
   }
@@ -35,9 +33,7 @@ export default function PerfilDocente() {
   if (errorUsuario || !usuario) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-        <h1 className="font-semibold text-red-800">
-          No se pudo cargar el perfil
-        </h1>
+        <h1 className="font-semibold text-red-800">No se pudo cargar el perfil</h1>
 
         <p className="mt-2 text-sm text-red-700">
           Ocurrió un problema al obtener la información del usuario.
@@ -56,14 +52,8 @@ export default function PerfilDocente() {
 
   return (
     <div className="mx-auto w-full max-w-[1450px]">
-      <nav
-        aria-label="Migas de pan"
-        className="mb-6 flex items-center gap-2 text-sm text-gray-500"
-      >
-        <Link
-          to="/docente"
-          className="flex items-center gap-1 transition hover:text-gray-800"
-        >
+      <nav aria-label="Migas de pan" className="mb-6 flex items-center gap-2 text-sm text-gray-500">
+        <Link to="/docente" className="flex items-center gap-1 transition hover:text-gray-800">
           <Home size={16} />
           Inicio
         </Link>

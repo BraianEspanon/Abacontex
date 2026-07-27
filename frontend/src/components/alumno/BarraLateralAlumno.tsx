@@ -104,9 +104,7 @@ export default function BarraLateralAlumno() {
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col bg-[#172019] text-white">
       <div className="border-b border-white/10 px-6 py-5">
-        <h1 className="font-serif text-xl font-semibold">
-          Abacontex
-        </h1>
+        <h1 className="font-serif text-xl font-semibold">Abacontex</h1>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">

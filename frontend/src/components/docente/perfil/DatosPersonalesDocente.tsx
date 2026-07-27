@@ -6,13 +6,10 @@ interface DatosPersonalesDocenteProps {
   usuario: UsuarioActual;
 }
 
-export default function DatosPersonalesDocente({
-  usuario,
-}: DatosPersonalesDocenteProps) {
+export default function DatosPersonalesDocente({ usuario }: DatosPersonalesDocenteProps) {
   const [nombre, setNombre] = useState(usuario.nombre);
   const [apellido, setApellido] = useState(usuario.apellido);
   const [editando, setEditando] = useState(false);
-
 
   const restaurarDatos = () => {
     setNombre(usuario.nombre);
@@ -20,8 +17,7 @@ export default function DatosPersonalesDocente({
     setEditando(false);
   };
 
-  const iniciales =
-    `${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}`.toUpperCase();
+  const iniciales = `${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}`.toUpperCase();
 
   return (
     <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -41,7 +37,7 @@ export default function DatosPersonalesDocente({
       </header>
 
       <div className="p-6">
-  <div className="grid gap-8 lg:grid-cols-[150px_1fr]">
+        <div className="grid gap-8 lg:grid-cols-[150px_1fr]">
           <div className="flex flex-col items-center">
             <div className="relative">
               {usuario.fotoPerfilUrl ? (
@@ -71,15 +67,10 @@ export default function DatosPersonalesDocente({
               </button>
             </div>
 
-            <p className="mt-3 text-center text-xs text-gray-400">
-              JPG o PNG. Máx. 2 MB
-            </p>
+            <p className="mt-3 text-center text-xs text-gray-400">JPG o PNG. Máx. 2 MB</p>
           </div>
 
-          <form
-            className="space-y-5"
-            onSubmit={(event) => event.preventDefault()}
-          >
+          <form className="space-y-5" onSubmit={(event) => event.preventDefault()}>
             <div>
               <label
                 htmlFor="nombre-docente"
@@ -165,8 +156,7 @@ export default function DatosPersonalesDocente({
         </div>
 
         <p className="mt-6 text-xs text-gray-500">
-          Los campos marcados con <span className="text-red-500">*</span> son
-          obligatorios.
+          Los campos marcados con <span className="text-red-500">*</span> son obligatorios.
         </p>
       </div>
     </section>
