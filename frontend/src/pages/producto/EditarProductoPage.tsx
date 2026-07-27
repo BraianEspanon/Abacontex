@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft } from 'lucide-react';
-import { useEffect } from 'react';
+import { ChevronRight, Home } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 
 import EditarProductoForm from '../../components/producto/EditarProductoForm';
+
 import { useActualizarProducto } from '../../hooks/useActualizarProducto';
 import { useProductoDetalle } from '../../hooks/useProductoDetalle';
 
@@ -31,19 +32,13 @@ const editarProductoSchema = z.object({
     })
     .finite('El precio unitario debe ser un número válido.')
     .positive('El precio unitario debe ser mayor que cero.'),
-
-  fotoUrl: z
-    .string()
-    .trim()
-    .refine(
-      (value) => value === '' || z.string().url().safeParse(value).success,
-      'Ingresá una URL válida.'
-    ),
 });
 
 export default function EditarProductoPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const [imagenSeleccionada, setImagenSeleccionada] = useState<File | null>(null);
 
   const productoId = Number(id);
   const productoIdValido = Number.isInteger(productoId) && productoId > 0;
@@ -59,16 +54,16 @@ export default function EditarProductoPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<EditarProductoFormData>({
     resolver: zodResolver(editarProductoSchema),
     defaultValues: {
       nombre: '',
       descripcion: '',
       precioUnitario: 0,
-      fotoUrl: '',
     },
   });
 
@@ -81,8 +76,9 @@ export default function EditarProductoPage() {
       nombre: producto.nombre,
       descripcion: producto.descripcion,
       precioUnitario: producto.precioUnitario,
-      fotoUrl: producto.fotoUrl ?? '',
     });
+
+    setImagenSeleccionada(null);
   }, [producto, reset]);
 
   const handleCancelar = () => {
@@ -90,7 +86,7 @@ export default function EditarProductoPage() {
   };
 
   const onSubmit = async (data: EditarProductoFormData) => {
-    if (!productoIdValido) {
+    if (!productoIdValido || !producto) {
       return;
     }
 
@@ -98,7 +94,12 @@ export default function EditarProductoPage() {
       nombre: data.nombre.trim(),
       descripcion: data.descripcion.trim(),
       precioUnitario: data.precioUnitario,
-      fotoUrl: data.fotoUrl.trim() || undefined,
+
+      /*
+       * Mientras el backend no soporte la carga de archivos,
+       * se conserva la imagen actual del producto.
+       */
+      fotoUrl: producto.fotoUrl ?? undefined,
     };
 
     try {
@@ -109,83 +110,127 @@ export default function EditarProductoPage() {
 
       navigate('/alumno/productos');
     } catch {
-      // El estado de error se muestra desde la mutación.
+      // El error se muestra dentro del formulario.
     }
   };
 
   if (!productoIdValido) {
     return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-abacontex-black-text">Producto inválido</h1>
+      <div className="px-6 py-8 lg:px-10">
+        <div className="mx-auto max-w-5xl">
+          <h1 className="text-2xl font-bold text-abacontex-black-text">Producto inválido</h1>
 
-        <p className="mt-3 text-sm text-gray-500">El identificador del producto no es válido.</p>
+          <p className="mt-3 text-sm text-gray-500">El identificador del producto no es válido.</p>
 
-        <Link
-          to="/alumno/productos"
-          className="mt-5 inline-flex text-sm font-semibold text-[#4f6f52]"
-        >
-          Volver a productos
-        </Link>
+          <Link
+            to="/alumno/productos"
+            className="mt-5 inline-flex text-sm font-semibold text-[#4f6f52]"
+          >
+            Volver a productos
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="p-8">
-        <p>Cargando producto...</p>
+      <div className="px-6 py-8 lg:px-10">
+        <div className="mx-auto max-w-5xl animate-pulse">
+          <div className="h-5 w-52 rounded bg-gray-200" />
+
+          <div className="mt-7 h-7 w-48 rounded bg-gray-200" />
+
+          <div className="mt-4 h-4 w-80 rounded bg-gray-200" />
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="h-[580px] rounded-2xl bg-white shadow-sm" />
+
+            <div className="h-[430px] rounded-2xl bg-white shadow-sm" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (isError || !producto) {
     return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-abacontex-black-text">
-          No fue posible cargar el producto
-        </h1>
+      <div className="px-6 py-8 lg:px-10">
+        <div className="mx-auto max-w-5xl">
+          <h1 className="text-2xl font-bold text-abacontex-black-text">
+            No fue posible cargar el producto
+          </h1>
 
-        <p className="mt-3 text-sm text-red-600">
-          Ocurrió un error al obtener los datos del producto.
-        </p>
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-5">
+            <p className="text-sm font-medium text-red-700">
+              Ocurrió un error al obtener los datos del producto.
+            </p>
 
-        {error instanceof Error && <p className="mt-2 text-sm text-gray-500">{error.message}</p>}
+            {error instanceof Error && <p className="mt-2 text-sm text-red-600">{error.message}</p>}
+          </div>
 
-        <Link
-          to="/alumno/productos"
-          className="mt-5 inline-flex text-sm font-semibold text-[#4f6f52]"
-        >
-          Volver a productos
-        </Link>
+          <Link
+            to="/alumno/productos"
+            className="mt-5 inline-flex text-sm font-semibold text-[#4f6f52]"
+          >
+            Volver a productos
+          </Link>
+        </div>
       </div>
     );
   }
 
+  const hayCambios = isDirty || imagenSeleccionada !== null;
+
   return (
-    <div className="p-8">
-      <Link
-        to="/alumno/productos"
-        className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-[#4f6f52]"
-      >
-        <ArrowLeft size={17} />
-        Volver a productos
-      </Link>
+    <div className="min-h-full px-6 py-8 lg:px-10">
+      <div className="mx-auto max-w-5xl">
+        <nav aria-label="Migas de pan" className="mb-7 flex flex-wrap items-center gap-2 text-sm">
+          <Link
+            to="/alumno"
+            aria-label="Ir al inicio"
+            className="inline-flex items-center text-gray-500 transition hover:text-[#4f6f52]"
+          >
+            <Home size={18} />
+          </Link>
 
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-abacontex-black-text">Editar producto</h1>
+          <ChevronRight size={15} className="text-gray-400" />
 
-        <p className="mt-2 text-sm text-gray-500">Modificá los datos generales del producto.</p>
+          <Link to="/alumno/productos" className="text-gray-500 transition hover:text-[#4f6f52]">
+            Productos
+          </Link>
+
+          <ChevronRight size={15} className="text-gray-400" />
+
+          <span aria-current="page" className="font-semibold text-gray-900">
+            Editar producto
+          </span>
+        </nav>
+
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-950">Editar producto</h1>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Actualizá la información del producto seleccionado.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <EditarProductoForm
+            register={register}
+            control={control}
+            errors={errors}
+            stock={producto.stock}
+            fotoActualUrl={producto.fotoUrl}
+            imagenSeleccionada={imagenSeleccionada}
+            onImagenSeleccionada={setImagenSeleccionada}
+            isPending={actualizarProductoMutation.isPending}
+            isError={actualizarProductoMutation.isError}
+            hayCambios={hayCambios}
+            onCancelar={handleCancelar}
+          />
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <EditarProductoForm
-          register={register}
-          errors={errors}
-          isPending={actualizarProductoMutation.isPending}
-          isError={actualizarProductoMutation.isError}
-          onCancelar={handleCancelar}
-        />
-      </form>
     </div>
   );
 }

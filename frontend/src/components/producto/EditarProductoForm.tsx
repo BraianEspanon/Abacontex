@@ -1,147 +1,429 @@
-import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import { ImageOff, LockKeyhole, Save, Upload, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useWatch } from 'react-hook-form';
+
+import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 
 export interface EditarProductoFormData {
   nombre: string;
   descripcion: string;
   precioUnitario: number;
-  fotoUrl: string;
 }
 
 interface EditarProductoFormProps {
   register: UseFormRegister<EditarProductoFormData>;
+  control: Control<EditarProductoFormData>;
   errors: FieldErrors<EditarProductoFormData>;
+
+  stock: number;
+  fotoActualUrl: string | null;
+
+  imagenSeleccionada: File | null;
+  onImagenSeleccionada: (archivo: File | null) => void;
+
   isPending: boolean;
   isError: boolean;
+  hayCambios: boolean;
+
   onCancelar: () => void;
+}
+
+const TIPOS_IMAGEN_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
+
+const TAMANIO_MAXIMO_IMAGEN = 5 * 1024 * 1024;
+
+function formatearPrecio(precio: number) {
+  if (!Number.isFinite(precio)) {
+    return '$ 0,00';
+  }
+
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(precio);
 }
 
 export default function EditarProductoForm({
   register,
+  control,
   errors,
+  stock,
+  fotoActualUrl,
+  imagenSeleccionada,
+  onImagenSeleccionada,
   isPending,
   isError,
+  hayCambios,
   onCancelar,
 }: EditarProductoFormProps) {
+  const [imagenPreviewUrl, setImagenPreviewUrl] = useState<string | null>(fotoActualUrl);
+
+  const [errorImagen, setErrorImagen] = useState<string | null>(null);
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const nombre =
+    useWatch({
+      control,
+      name: 'nombre',
+    }) ?? '';
+
+  const descripcion =
+    useWatch({
+      control,
+      name: 'descripcion',
+    }) ?? '';
+
+  const precioUnitario =
+    useWatch({
+      control,
+      name: 'precioUnitario',
+    }) ?? 0;
+
+  useEffect(() => {
+    if (!imagenSeleccionada) {
+      setImagenPreviewUrl(fotoActualUrl);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(imagenSeleccionada);
+
+    setImagenPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imagenSeleccionada, fotoActualUrl]);
+
+  const validarImagen = (archivo: File) => {
+    if (!TIPOS_IMAGEN_PERMITIDOS.includes(archivo.type)) {
+      setErrorImagen('Seleccioná una imagen JPG, PNG o WebP.');
+
+      return false;
+    }
+
+    if (archivo.size > TAMANIO_MAXIMO_IMAGEN) {
+      setErrorImagen('La imagen no puede superar los 5 MB.');
+
+      return false;
+    }
+
+    setErrorImagen(null);
+
+    return true;
+  };
+
+  const handleArchivo = (archivo: File | undefined) => {
+    if (!archivo) {
+      return;
+    }
+
+    if (!validarImagen(archivo)) {
+      return;
+    }
+
+    onImagenSeleccionada(archivo);
+  };
+
+  const handleQuitarNuevaImagen = () => {
+    onImagenSeleccionada(null);
+    setErrorImagen(null);
+  };
+
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm">
-      <div className="grid gap-5 md:grid-cols-2">
-        <div className="md:col-span-2">
-          <label htmlFor="nombre" className="mb-2 block text-sm font-medium text-gray-700">
-            Nombre del producto
-          </label>
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+        <div className="space-y-5">
+          <div>
+            <label htmlFor="nombre" className="block text-sm font-semibold text-gray-900">
+              Nombre
+              <span className="ml-1 text-red-500">*</span>
+            </label>
 
-          <input
-            id="nombre"
-            type="text"
-            {...register('nombre')}
-            className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
-              errors.nombre
-                ? 'border-red-500 focus:border-red-500'
-                : 'border-gray-300 focus:border-[#4f6f52]'
-            }`}
-          />
+            <p className="mt-1 text-xs text-gray-500">Ingresá un nombre claro y descriptivo.</p>
 
-          {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre.message}</p>}
+            <input
+              id="nombre"
+              type="text"
+              disabled={isPending}
+              {...register('nombre')}
+              className={`mt-2 w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+                errors.nombre
+                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+                  : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+              }`}
+            />
+
+            {errors.nombre && (
+              <p className="mt-1.5 text-xs text-red-600">{errors.nombre.message}</p>
+            )}
+          </div>
+
+          <div className="max-w-xs">
+            <label htmlFor="precioUnitario" className="block text-sm font-semibold text-gray-900">
+              Precio unitario
+              <span className="ml-1 text-red-500">*</span>
+            </label>
+
+            <p className="mt-1 text-xs text-gray-500">Debe ser mayor que cero.</p>
+
+            <div className="relative mt-2">
+              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm font-semibold text-gray-700">
+                $
+              </span>
+
+              <input
+                id="precioUnitario"
+                type="number"
+                min="0"
+                step="0.01"
+                disabled={isPending}
+                {...register('precioUnitario', {
+                  valueAsNumber: true,
+                })}
+                className={`w-full rounded-lg border bg-white py-2.5 pr-3 pl-8 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+                  errors.precioUnitario
+                    ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+                    : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+                }`}
+              />
+            </div>
+
+            {errors.precioUnitario && (
+              <p className="mt-1.5 text-xs text-red-600">{errors.precioUnitario.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="descripcion" className="block text-sm font-semibold text-gray-900">
+              Descripción
+              <span className="ml-1 text-red-500">*</span>
+            </label>
+
+            <p className="mt-1 text-xs text-gray-500">
+              Contá las características principales del producto.
+            </p>
+
+            <textarea
+              id="descripcion"
+              rows={4}
+              maxLength={500}
+              disabled={isPending}
+              {...register('descripcion')}
+              className={`mt-2 w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm leading-6 text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+                errors.descripcion
+                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+                  : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+              }`}
+            />
+
+            <div className="mt-1 flex items-start justify-between gap-4">
+              <div>
+                {errors.descripcion && (
+                  <p className="text-xs text-red-600">{errors.descripcion.message}</p>
+                )}
+              </div>
+
+              <span className="shrink-0 text-xs text-gray-400">{descripcion.length}/500</span>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              Fotografía del producto
+              <span className="ml-1 font-normal text-gray-400">(opcional)</span>
+            </p>
+
+            <p className="mt-1 text-xs text-gray-500">
+              Podés preparar una nueva imagen para el producto.
+            </p>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="flex h-36 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-[#f7f6f2]">
+                {imagenPreviewUrl ? (
+                  <img
+                    src={imagenPreviewUrl}
+                    alt={`Vista previa de ${nombre || 'producto'}`}
+                    className="h-full w-full object-contain p-2"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center text-center text-gray-400">
+                    <ImageOff size={30} strokeWidth={1.5} />
+
+                    <span className="mt-2 text-xs">Sin imagen</span>
+                  </div>
+                )}
+              </div>
+
+              <label
+                htmlFor="imagen-producto"
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={(event) => {
+                  event.preventDefault();
+                  setIsDragging(false);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setIsDragging(false);
+
+                  handleArchivo(event.dataTransfer.files[0]);
+                }}
+                className={`flex h-36 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition ${
+                  isDragging
+                    ? 'border-[#769a75] bg-[#eef5ed]'
+                    : 'border-gray-300 bg-white hover:border-[#9caf9c] hover:bg-[#f8faf7]'
+                }`}
+              >
+                <Upload size={21} className="text-gray-500" />
+
+                <span className="mt-2 text-xs font-semibold text-gray-700">
+                  {imagenPreviewUrl ? 'Reemplazar imagen' : 'Seleccionar imagen'}
+                </span>
+
+                <span className="mt-1 text-[11px] leading-4 text-gray-400">
+                  JPG, PNG o WebP
+                  <br />
+                  Máximo 5 MB
+                </span>
+
+                <input
+                  id="imagen-producto"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={isPending}
+                  onChange={(event) => handleArchivo(event.target.files?.[0])}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+
+            {imagenSeleccionada && (
+              <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2">
+                <p className="min-w-0 truncate text-xs text-gray-600">{imagenSeleccionada.name}</p>
+
+                <button
+                  type="button"
+                  onClick={handleQuitarNuevaImagen}
+                  disabled={isPending}
+                  className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-red-500 transition hover:text-red-600"
+                >
+                  <X size={14} />
+                  Quitar
+                </button>
+              </div>
+            )}
+
+            {errorImagen && <p className="mt-2 text-xs text-red-600">{errorImagen}</p>}
+
+            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
+              <p className="text-xs leading-5 text-amber-800">
+                La carga de imágenes todavía está pendiente en el backend. La imagen seleccionada se
+                utiliza únicamente como vista previa y no se guardará por el momento.
+              </p>
+            </div>
+          </div>
+
+          <div className="max-w-xs">
+            <label htmlFor="stock" className="block text-sm font-semibold text-gray-900">
+              Stock disponible
+            </label>
+
+            <p className="mt-1 text-xs text-gray-500">
+              El stock se modifica mediante los movimientos de inventario.
+            </p>
+
+            <div className="relative mt-2">
+              <input
+                id="stock"
+                type="text"
+                value={`${stock} unidades`}
+                readOnly
+                className="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 py-2.5 pr-10 text-sm text-gray-500 outline-none"
+              />
+
+              <LockKeyhole
+                size={16}
+                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="md:col-span-2">
-          <label htmlFor="descripcion" className="mb-2 block text-sm font-medium text-gray-700">
-            Descripción
-          </label>
+        {isError && (
+          <div
+            role="alert"
+            className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            No fue posible actualizar el producto. Revisá los datos e intentá nuevamente.
+          </div>
+        )}
 
-          <textarea
-            id="descripcion"
-            rows={4}
-            {...register('descripcion')}
-            className={`w-full resize-none rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
-              errors.descripcion
-                ? 'border-red-500 focus:border-red-500'
-                : 'border-gray-300 focus:border-[#4f6f52]'
-            }`}
-          />
+        <div className="mt-7 flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onCancelar}
+            disabled={isPending}
+            className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancelar
+          </button>
 
-          {errors.descripcion && (
-            <p className="mt-1 text-sm text-red-600">{errors.descripcion.message}</p>
+          <button
+            type="submit"
+            disabled={isPending || !hayCambios}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#769a75] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#638563] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Save size={16} />
+
+            {isPending ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
+      </section>
+
+      <aside className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:sticky lg:top-6">
+        <h2 className="text-sm font-semibold text-gray-900">Vista previa del producto</h2>
+
+        <div className="mt-5 flex aspect-[4/3] items-center justify-center overflow-hidden bg-[#f2f2ef]">
+          {imagenPreviewUrl ? (
+            <img
+              src={imagenPreviewUrl}
+              alt={`Vista previa de ${nombre || 'producto'}`}
+              className="h-full w-full object-contain p-4"
+            />
+          ) : (
+            <ImageOff size={64} strokeWidth={1.2} className="text-gray-300" />
           )}
         </div>
 
-        <div>
-          <label htmlFor="precioUnitario" className="mb-2 block text-sm font-medium text-gray-700">
-            Precio unitario
-          </label>
+        <div className="mt-5">
+          <p className="text-xs font-semibold text-gray-900">Nombre del producto</p>
 
-          <input
-            id="precioUnitario"
-            type="number"
-            min="0"
-            step="0.01"
-            {...register('precioUnitario', {
-              valueAsNumber: true,
-            })}
-            className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
-              errors.precioUnitario
-                ? 'border-red-500 focus:border-red-500'
-                : 'border-gray-300 focus:border-[#4f6f52]'
-            }`}
-          />
-
-          {errors.precioUnitario && (
-            <p className="mt-1 text-sm text-red-600">{errors.precioUnitario.message}</p>
-          )}
+          <p className="mt-2 min-h-5 text-sm text-gray-600">{nombre.trim() || 'Sin nombre'}</p>
         </div>
 
-        <div>
-          <label htmlFor="fotoUrl" className="mb-2 block text-sm font-medium text-gray-700">
-            URL de la imagen <span className="font-normal text-gray-400">(opcional)</span>
-          </label>
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <p className="text-xs font-semibold text-gray-900">Precio unitario</p>
 
-          <input
-            id="fotoUrl"
-            type="url"
-            placeholder="https://ejemplo.com/producto.jpg"
-            {...register('fotoUrl')}
-            className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
-              errors.fotoUrl
-                ? 'border-red-500 focus:border-red-500'
-                : 'border-gray-300 focus:border-[#4f6f52]'
-            }`}
-          />
-
-          {errors.fotoUrl && <p className="mt-1 text-sm text-red-600">{errors.fotoUrl.message}</p>}
-
-          <p className="mt-1 text-xs text-gray-500">
-            Por el momento, la imagen se actualiza mediante una URL.
+          <p className="mt-2 text-sm font-medium text-gray-700">
+            {formatearPrecio(precioUnitario)}
           </p>
         </div>
-      </div>
 
-      {isError && (
-        <div
-          role="alert"
-          className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-        >
-          No fue posible actualizar el producto. Revisá los datos e intentá nuevamente.
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <p className="text-xs font-semibold text-gray-900">Stock disponible</p>
+
+          <p className="mt-2 text-sm text-gray-600">{stock} unidades</p>
         </div>
-      )}
-
-      <div className="mt-8 flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={onCancelar}
-          disabled={isPending}
-          className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-lg bg-[#4f6f52] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#405c43] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isPending ? 'Guardando...' : 'Guardar cambios'}
-        </button>
-      </div>
+      </aside>
     </div>
   );
 }
