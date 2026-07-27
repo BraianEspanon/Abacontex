@@ -17,7 +17,6 @@ export async function obtenerUsuarioActual(): Promise<UsuarioActual> {
 
   return respuesta.data;
 }
-
 export async function actualizarUsuarioActual(
   datos: ActualizarUsuarioActualRequest
 ): Promise<UsuarioActual> {

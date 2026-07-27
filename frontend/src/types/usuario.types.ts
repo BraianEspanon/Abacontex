@@ -21,7 +21,6 @@ export interface UsuarioActual {
   rolSistema?: RolSistema;
   cursos?: CursoAsignado[];
 }
-
 export interface ActualizarUsuarioActualRequest {
   nombre: string;
   apellido: string;

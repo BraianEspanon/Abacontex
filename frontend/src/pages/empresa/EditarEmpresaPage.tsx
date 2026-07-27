@@ -1,18 +1,18 @@
+import { isAxiosError } from 'axios';
+import { ChevronRight, House, Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { ChevronRight, House } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-
-import { useEmpresaActual } from '../../hooks/useEmpresaActual';
-import { useActualizarEmpresa } from '../../hooks/useActualizarEmpresa';
+import { useForm, useWatch } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import EditarEmpresaForm, {
   type EditarEmpresaFormData,
 } from '../../components/empresa/EditarEmpresaForm';
-import VistaPreviaEmpresa from '../../components/empresa/VistaPreviaEmpresa';
 import ResumenIntegrantes from '../../components/empresa/ResumenIntegrantes';
+import VistaPreviaEmpresa from '../../components/empresa/VistaPreviaEmpresa';
+import { useActualizarEmpresa } from '../../hooks/useActualizarEmpresa';
+import { useEmpresaActual } from '../../hooks/useEmpresaActual';
 
 const editarEmpresaSchema = z.object({
   nombre: z
@@ -30,23 +30,26 @@ const editarEmpresaSchema = z.object({
   logoUrl: z.string().trim().url('Ingresá una URL válida').or(z.literal('')),
 });
 
+interface RespuestaErrorApi {
+  message?: string;
+  error?: string;
+  code?: string;
+}
+
 export default function EditarEmpresaPage() {
   const navigate = useNavigate();
 
   const { data: empresa, isLoading, isError } = useEmpresaActual();
 
-  const {
-    mutate: actualizarEmpresa,
-    isPending,
-    isSuccess,
-    isError: isErrorActualizacion,
-  } = useActualizarEmpresa();
+  const { mutate: actualizarEmpresa, isPending, isSuccess } = useActualizarEmpresa();
 
   const {
     register,
     handleSubmit,
     reset,
     control,
+    setError,
+    clearErrors,
     formState: { errors, isDirty },
   } = useForm<EditarEmpresaFormData>({
     resolver: zodResolver(editarEmpresaSchema),
@@ -74,6 +77,8 @@ export default function EditarEmpresaPage() {
   }, [empresa, reset]);
 
   const onSubmit = (datos: EditarEmpresaFormData) => {
+    clearErrors();
+
     actualizarEmpresa(
       {
         nombre: datos.nombre.trim(),
@@ -88,6 +93,36 @@ export default function EditarEmpresaPage() {
             logoUrl: empresaActualizada.logoUrl ?? '',
           });
         },
+
+        onError: (error) => {
+          if (isAxiosError<RespuestaErrorApi>(error)) {
+            const status = error.response?.status;
+
+            const mensajeBackend = error.response?.data?.message ?? error.response?.data?.error;
+
+            if (status === 409) {
+              setError('nombre', {
+                type: 'server',
+                message:
+                  mensajeBackend ?? 'Ya existe una empresa con ese nombre. Ingresá uno diferente.',
+              });
+
+              return;
+            }
+
+            setError('root', {
+              type: 'server',
+              message: mensajeBackend ?? 'No se pudo actualizar la empresa. Intentá nuevamente.',
+            });
+
+            return;
+          }
+
+          setError('root', {
+            type: 'server',
+            message: 'Ocurrió un error inesperado. Intentá nuevamente.',
+          });
+        },
       }
     );
   };
@@ -99,6 +134,12 @@ export default function EditarEmpresaPage() {
   if (isError || !empresa) {
     return <div className="p-6">Error al cargar la empresa.</div>;
   }
+
+  const nombreActual = valoresFormulario.nombre ?? empresa.nombre;
+
+  const actividadActual = valoresFormulario.actividad ?? empresa.actividad;
+
+  const logoActual = valoresFormulario.logoUrl || empresa.logoUrl;
 
   return (
     <div className="p-6">
@@ -131,18 +172,21 @@ export default function EditarEmpresaPage() {
           Información
         </h2>
 
-        <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+        <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(340px,1fr)]">
           <EditarEmpresaForm
             register={register}
             errors={errors}
+            nombre={nombreActual}
+            actividad={actividadActual}
+            logoUrl={logoActual}
             onSubmit={handleSubmit(onSubmit)}
           />
 
-          <aside className="space-y-5 border-gray-200 lg:border-l lg:pl-8">
+          <aside className="space-y-4 border-gray-200 lg:border-l lg:pl-8">
             <VistaPreviaEmpresa
-              nombre={valoresFormulario.nombre ?? empresa.nombre}
-              actividad={valoresFormulario.actividad ?? empresa.actividad}
-              logoUrl={valoresFormulario.logoUrl || empresa.logoUrl}
+              nombre={nombreActual}
+              actividad={actividadActual}
+              logoUrl={logoActual}
               cantidadIntegrantes={empresa.integrantes.length}
             />
 
@@ -151,7 +195,7 @@ export default function EditarEmpresaPage() {
         </div>
       </section>
 
-      <div className="mt-6 flex max-w-6xl justify-end gap-3">
+      <div className="mt-4 flex max-w-6xl justify-end gap-3">
         <button
           type="button"
           onClick={() => navigate('/alumno/empresa')}
@@ -164,8 +208,10 @@ export default function EditarEmpresaPage() {
           type="submit"
           form="editar-empresa-form"
           disabled={isPending || !isDirty}
-          className="rounded-lg bg-abacontex-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-abacontex-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
         >
+          <Save size={16} />
+
           {isPending ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </div>
@@ -176,10 +222,8 @@ export default function EditarEmpresaPage() {
         </p>
       )}
 
-      {isErrorActualizacion && (
-        <p className="mt-3 max-w-6xl text-right text-sm text-red-600">
-          No se pudo actualizar la empresa.
-        </p>
+      {errors.root?.message && (
+        <p className="mt-3 max-w-6xl text-right text-sm text-red-600">{errors.root.message}</p>
       )}
     </div>
   );

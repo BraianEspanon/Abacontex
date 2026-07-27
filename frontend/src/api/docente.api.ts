@@ -6,7 +6,6 @@ export async function obtenerDocenteActual(): Promise<DocenteActual> {
 
   return respuesta.data;
 }
-
 export async function obtenerCursosDocente(): Promise<CursoDocenteResumen[]> {
   const response = await clienteApi.get<CursoDocenteResumen[]>('/docentes/me/cursos');
 
