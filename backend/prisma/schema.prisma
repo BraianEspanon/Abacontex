@@ -1,0 +1,320 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model CicloLectivo {
+  id     Int     @id @default(autoincrement())
+  año   Int
+  activo Boolean @default(true)
+
+  empresas Empresa[]
+
+  @@map("ciclo_lectivo")
+}
+
+model Usuario {
+  id String @id @default(uuid())
+
+  keycloakId String @unique
+  email      String @unique
+
+  nombre   String
+  apellido String
+
+  rolSistemaId Int
+
+  rolSistema RolesSistema @relation(fields: [rolSistemaId], references: [idRol])
+
+  fotoPerfilUrl String?
+
+  fechaAlta DateTime @default(now())
+
+  profesorCursos         ProfesorCursos[]
+  movimientosFinancieros MovimientoFinanciero[]
+  invitacionesCreadas    InvitacionEmpresa[]
+
+  alumno    Alumno?
+  auditLogs AuditLog[]
+
+  @@map("usuarios")
+}
+
+model Alumno {
+  id String @id
+
+  usuario Usuario @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  idCurso Int
+  curso   Curso @relation(fields: [idCurso], references: [idCurso])
+
+  idRolEmpresa Int?
+  rolEmpresa   RolesEmpresa? @relation(fields: [idRolEmpresa], references: [idRol])
+
+  idEmpresa Int?
+  empresa   Empresa? @relation(fields: [idEmpresa], references: [id], onDelete: SetNull)
+
+  auditLogs AuditLog[]
+
+  @@index([idCurso])
+  @@index([idEmpresa])
+  @@index([idRolEmpresa])
+  @@map("alumnos")
+}
+
+model Curso {
+  idCurso Int @id @default(autoincrement())
+
+  nombreCurso String @unique
+
+  alumnos Alumno[]
+
+  profesores ProfesorCursos[]
+
+  empresas Empresa[]
+
+  @@map("cursos")
+}
+
+model ProfesorCursos {
+  idCurso Int
+
+  idUsuario String
+
+  curso Curso @relation(fields: [idCurso], references: [idCurso], onDelete: Cascade)
+
+  profesor Usuario @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+
+  @@id([idCurso, idUsuario])
+  @@map("profesor_cursos")
+}
+
+model RolesSistema {
+  idRol Int @id @default(autoincrement())
+
+  nombreRol   String  @unique
+  descripcion String?
+
+  usuarios Usuario[]
+
+  @@map("roles_sistema")
+}
+
+model Empresa {
+  id Int @id @default(autoincrement())
+
+  nombre String @unique
+
+  actividad String
+  logoUrl   String?
+
+  puntos Int @default(0)
+
+  activo        Boolean  @default(true)
+  fechaCreacion DateTime @default(now()) @db.Timestamptz(3)
+
+  idCurso Int
+  curso   Curso @relation(fields: [idCurso], references: [idCurso])
+
+  idCicloLectivo Int
+  cicloLectivo   CicloLectivo @relation(fields: [idCicloLectivo], references: [id])
+
+  alumnos                Alumno[]
+  movimientosFinancieros MovimientoFinanciero[]
+  auditLogs              AuditLog[]
+  productos              Producto[]
+  invitaciones           InvitacionEmpresa[]
+
+  @@index([idCurso])
+  @@index([idCicloLectivo])
+  @@index([activo])
+  @@index([idCurso, activo])
+  @@map("empresas")
+}
+
+model RolesEmpresa {
+  idRol Int @id @default(autoincrement())
+
+  nombreRol String @unique
+
+  descripcion String?
+
+  alumnos Alumno[]
+
+  @@map("roles_empresa")
+}
+
+model AuditLog {
+  id Int @id @default(autoincrement())
+
+  createdAt DateTime @default(now())
+
+  performedById String
+  performedBy   Usuario @relation(fields: [performedById], references: [id])
+
+  action String
+
+  entity   String
+  entityId String
+
+  empresaId Int?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  alumnoId String?
+  alumno   Alumno? @relation(fields: [alumnoId], references: [id], onDelete: SetNull)
+
+  oldValues Json?
+  newValues Json?
+
+  description String?
+
+  @@index([performedById])
+  @@index([empresaId])
+  @@index([alumnoId])
+  @@index([createdAt])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}
+
+model MovimientoFinanciero {
+  idMovimiento Int @id @default(autoincrement())
+
+  idEmpresa Int
+  empresa   Empresa @relation(fields: [idEmpresa], references: [id])
+
+  idUsuario String
+  usuario   Usuario @relation(fields: [idUsuario], references: [id])
+
+  idCategoria Int
+  categoria   CategoriaMovimiento @relation(fields: [idCategoria], references: [idCategoria])
+
+  idMetodoPago Int
+  metodoPago   MetodoPago @relation(fields: [idMetodoPago], references: [idMetodoPago])
+
+  idEstado Int
+  estado   EstadoMovimiento @relation(fields: [idEstado], references: [idEstado])
+
+  fecha         DateTime @default(now())
+  concepto      String
+  importe       Decimal  @db.Decimal(14, 2)
+  esAutomatico  Boolean  @default(false)
+  observaciones String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([idEmpresa])
+  @@index([idUsuario])
+  @@index([idCategoria])
+  @@index([idMetodoPago])
+  @@index([idEstado])
+  @@index([fecha])
+  @@map("movimientos_financieros")
+}
+
+model TipoMovimiento {
+  idTipoMovimiento Int    @id @default(autoincrement())
+  nombre           String @unique
+
+  categorias CategoriaMovimiento[]
+
+  @@map("tipos_movimiento")
+}
+
+model CategoriaMovimiento {
+  idCategoria Int @id @default(autoincrement())
+
+  nombre      String
+  descripcion String?
+
+  idTipoMovimiento Int
+  tipoMovimiento   TipoMovimiento @relation(fields: [idTipoMovimiento], references: [idTipoMovimiento])
+
+  movimientos MovimientoFinanciero[]
+
+  @@index([idTipoMovimiento])
+  @@map("categorias_movimiento")
+}
+
+model MetodoPago {
+  idMetodoPago Int    @id @default(autoincrement())
+  nombre       String @unique
+
+  movimientos MovimientoFinanciero[]
+
+  @@map("metodos_pago")
+}
+
+model EstadoMovimiento {
+  idEstado Int    @id @default(autoincrement())
+  nombre   String @unique
+
+  movimientos MovimientoFinanciero[]
+
+  @@map("estados_movimiento")
+}
+
+model Producto {
+  id Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  nombre      String
+  descripcion String
+
+  stock Int @default(0)
+
+  precioUnitario Decimal @db.Decimal(14, 2)
+
+  fotoUrl String?
+
+  activo Boolean @default(true)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([empresaId, nombre], where: { activo: true })
+  @@index([empresaId])
+  @@index([activo])
+  @@map("productos")
+}
+
+enum EstadoInvitacion {
+  PENDIENTE
+  ACEPTADA
+  CANCELADA
+  EXPIRADA
+}
+
+
+model InvitacionEmpresa {
+  id Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  email String
+  token String @unique
+
+  estado EstadoInvitacion @default(PENDIENTE)
+
+  fechaExpiracion DateTime @db.Timestamptz(3)
+
+  createdById String
+  createdBy   Usuario @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([empresaId, email])
+  @@index([empresaId])
+  @@index([email])
+  @@index([estado])
+  @@index([createdById])
+  @@map("invitaciones_empresa")
+}

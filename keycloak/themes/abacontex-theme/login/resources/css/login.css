@@ -1,0 +1,765 @@
+@font-face {
+    font-family: 'Playfair Display';
+    src: url('../fonts/PlayfairDisplay-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Playfair Display';
+    src: url('../fonts/PlayfairDisplay-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Outfit';
+    src: url('../fonts/Outfit-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Outfit';
+    src: url('../fonts/Outfit-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Outfit';
+    src: url('../fonts/Outfit-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Outfit';
+    src: url('../fonts/Outfit-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'MuseoModerno';
+    src: url('../fonts/MuseoModerno-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── OCULTAR HEADER NATIVO DE KEYCLOAK ────────── */
+#kc-header,
+#kc-header-wrapper,
+.login-pf-header,
+.pf-c-page__header,
+.pf-v5-c-page__header,
+nav.pf-c-nav,
+nav.pf-v5-c-nav,
+header,
+.navbar,
+.navbar-header,
+.navbar-pf,
+[class*="navbar"],
+[id*="kc-header"] {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Resetear todos los wrappers que Keycloak inyecta */
+body,
+body.login-pf,
+.login-pf-page {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #1e2a1f !important;
+    font-family: 'Playfair Display', serif, 'Segoe UI', system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.1em;
+    overflow-x: hidden;
+}
+
+#kc-container,
+#kc-container-wrapper,
+.container-fluid,
+.login-pf-page .container-fluid,
+.row,
+.card-pf,
+.login-pf-page .card-pf {
+    all: unset !important;
+    display: contents !important;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    height: 100%;
+}
+
+/* ── MAIN WRAPPER ────────────────────────────── */
+.login-page-wrapper {
+    display: flex;
+    width: 100vw;
+    min-height: 100vh;
+}
+
+/* ── LEFT PANEL ──────────────────────────────── */
+.left-panel {
+    flex: 0 0 48%;
+    background: #1A1F1A;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.blob-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.blob-img {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    inset: 0;
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+    object-position: right center;
+    
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+
+    -webkit-user-drag: none;
+
+    pointer-events: none;
+}
+
+.mascota-img {
+    position: fixed;
+    top: 50%;
+    left: 1vw; /* Opcional: por si también la quieres centrar horizontalmente */
+    transform: translateY(-50%); /* Si solo es vertical, usa: translateY(-50%) */
+    z-index: 2;
+    width: 40vw;
+    min-width: 400px;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,.15));
+
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+
+    -webkit-user-drag: none;
+
+    pointer-events: none;
+}
+
+/* ── RIGHT PANEL ─────────────────────────────── */
+.right-panel {
+    flex: 1;
+    background: #1A1F1A;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1rem 1rem;
+    box-sizing: border-box;
+    min-height: 100vh;
+}
+
+.login-title {
+    font-size: 4rem;
+    font-weight: 800;
+    color: #F8F6F2;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+    text-align: center;
+    max-width: 480px;
+    min-width: 400px;
+}
+
+/* ── FORM ────────────────────────────────────── */
+#kc-form,
+#kc-form-wrapper {
+    width: 100%;
+    max-width: 480px;
+}
+
+.field-group {
+    margin-bottom: 0.70rem;
+}
+
+.field-group label {
+    display: block;
+    font-size: 1.33rem;
+    font-weight: 500;
+    color: #F8F6F2;
+    margin-left: 1rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: .03em;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #949694;
+    border-radius: 999px;
+    padding: 0 1.1rem;
+    height: 55px;
+    transition: box-shadow .2s;
+    font-family: 'MuseoModerno';
+    box-shadow:
+        inset 0 3px 6px rgba(0,0,0,.25),
+        inset 0 -1px 2px rgba(255,255,255,.08);
+}
+
+.input-wrapper:focus-within {
+    box-shadow: 0 0 0 2px #5A7956;
+}
+
+.input-icon {
+    position: absolute;
+    left: 20px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    color: #F8F6F2;
+    flex-shrink: 0;
+    margin-right: .75rem;
+}
+
+.input-icon svg { 
+    width: 35px; 
+    height: 35px;
+}
+
+.input-wrapper input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #2c2c2c;
+    font-size: 1.33rem;
+    font-family: inherit;
+    min-width: 0;
+    text-align: center;
+    height: 55px;
+
+}
+
+.input-wrapper input::placeholder { 
+    color: #2c2c2c90;
+}
+
+#username::placeholder {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-skip-ink: all;
+    text-underline-offset: 4px;
+}
+
+.toggle-password {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #F8F6F2;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin-left: .5rem;
+    flex-shrink: 0;
+    transition: color .15s;
+
+    position: absolute;
+    right: 20px;
+    margin: 0;
+}
+
+.toggle-password:hover { color: #e8e4dc; }
+.toggle-password svg { width: 35px; height: 35px; }
+
+.forgot-password {
+    text-align: center;
+    margin: .8rem 0 1.2rem;
+}
+
+.forgot-password a {
+    color: #F8F6F2;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: color .15s;
+}
+
+.forgot-password a:hover { color: #e8e4dc; }
+
+.error-message {
+    background: rgba(220, 80, 80, .12);
+    border: 1px solid rgba(220, 80, 80, .3);
+    border-radius: 8px;
+    padding: .7rem 1rem;
+    margin-bottom: 1rem;
+    color: #ff0000;
+    font-size: .85rem;
+}
+
+/* ── BOTONES ─────────────────────────────────── */
+.form-actions { 
+    margin-top: 1.25rem;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-login {
+    width: 100%;
+    height: 55px;
+    border-radius: 999px;
+    background: #5A7956;
+    width: 70%;
+    color: #F8F6F2;
+    font-size: 22px;
+    font-weight: 500;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    letter-spacing: .04em;
+    transition: background .2s, transform .1s;
+}
+
+.btn-login:hover  { background: #3A5137; }
+.btn-login:active { transform: scale(.98); }
+
+.social-divider {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin: 1rem 0;
+    width: 70%;
+    margin: 5px auto;
+}
+
+.social-divider span:not(.divider-circle) {
+    flex: 1;
+    height: 2px;
+    background: #949694;
+}
+
+.divider-circle {
+    color: #F8F6F2;
+    font-size: 2rem;
+    line-height: 1;
+    position: relative;
+    top: -3px; /* prueba 1px o 2px */
+}
+
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    width: 70%;
+    margin: 0 auto;
+    height: 55px;
+    border-radius: 999px;
+    background: #5A7956;
+    color: #F8F6F2;
+    font-size: 22px;
+    font-weight: 500;
+    font-family: inherit;
+    text-decoration: none;
+    letter-spacing: .04em;
+    transition: background .2s, transform .1s;
+    
+}
+
+.btn-google:hover  { 
+    background: #3A5137; 
+    text-decoration: none;
+    color: #FFFFFF;
+}
+.btn-google:active { transform: scale(.98); }
+
+.google-icon { 
+    width: 33px; 
+    height: 33px; 
+    flex-shrink: 0;
+
+    filter: saturate(60%) brightness(1.05);
+}
+
+.btn-login,
+.btn-google {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    box-shadow:
+        inset 0 3px 6px rgba(0,0,0,.25),
+        inset 0 -1px 2px rgba(255,255,255,.08);
+}
+
+.register-link {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #F8F6F2;
+    margin-top: 20px;
+}
+
+.register-link a {
+    color: #F8F6F2;
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-skip-ink: all;
+    text-underline-offset: 2px;
+    transition: color .15s;
+}
+
+.register-link a:hover { color: #8faf6f; }
+a:focus{
+    outline: none;
+}
+#kc-page-title,
+.kc-feedback-text,
+.pf-v5-c-alert,
+.pf-c-alert {
+    display: none !important;
+}
+html,
+body,
+body.login-pf,
+.login-pf-page {
+    background: #1A1F1A !important;
+    background-image: none !important;
+}
+
+@media(max-width: 768px) {
+    .left-panel{
+        display: none;
+    }
+    .login-title{
+        font-size: 2.5rem;
+    }
+
+    .btn-login,
+    .btn-google {
+        font-size: 18px;
+    }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────────────── */
+/* ── ADAPTACIONES PARA REGISTRO ──────────────── */
+/* ───────────────────────────────────────────────────────────────────────────────────── */
+/* Títulos dentro del panel izquierdo */
+.left-panel-text-wrapper {
+    position: fixed;
+    top: 10%;
+    left: 1%;
+    z-index: 3;
+    font-family: 'Playfair Display', serif;
+    align-items: center;
+    width: 40%;
+}
+
+.register-main-title {
+    font-size: 4.5rem;
+    font-weight: 700;
+    color: #1A1F1A; /* Color oscuro sobre fondo blanco */
+    margin-bottom: 0.75rem;
+    letter-spacing: 0;
+    text-align: center;
+}
+
+.register-subtitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2rem;
+    color: #555555;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-align: center;
+}
+
+/* Modificación de posición de mascota en registro para no tapar texto */
+.register-mascota {
+    top: 65%;
+    left: 5vw;
+    width: 35vw;
+}
+
+/* Stepper de Progreso (1 -------- 2) */
+.stepper-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 440px; /* Le damos un poco más de ancho para que luzca estirado como en Figma */
+    margin: 0.5rem auto;
+}
+
+.step {
+    width: 44px; 
+    height: 44px;
+    border-radius: 50%;
+    background: #949694;
+    color: #1A1F1A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.6rem; 
+    z-index: 2;
+    flex-shrink: 0;
+
+    line-height: 1;             
+    padding-bottom: 4px;        
+    padding-right: 1px;         
+}
+
+/* Paso 1 Activo (Verde Oliva apagado de Figma) */
+.step.active {
+    background: #6A8F65;
+    color: #F8F6F2;
+}
+
+/* Paso 2 Inactivo (Gris muy claro / crema de Figma con número verde) */
+.step.step-two {
+    background: #D1D5D1; 
+    color: #6A8F65; 
+}
+
+/* Estructura base de las líneas */
+.step-line {
+    flex: 1;
+    height: 3px;
+    margin: 0; 
+}
+
+/* Mitad izquierda: Conectada al paso activo (Verde) */
+.line-left-active {
+    background: #6A8F65;
+    margin-left: -2px; 
+}
+
+/* Mitad derecha: Progreso faltante (Blanco/Crema) */
+.line-right-inactive {
+    background: #F8F6F2;
+    margin-right: -2px;
+}
+
+/* Grid para Nombre y Apellido en paralelo */
+.field-row-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+}
+
+/* Modificador de inputs sin icono interno (según tu mockup) */
+.input-wrapper.no-icon {
+    padding: 0 1.5rem;
+}
+
+/* Botón con flecha */
+.btn-register {
+    position: relative; 
+    width: 55%;
+    height: 55px;
+    background: #6A8F65;
+    color: #F8F6F2;
+    font-size: 22px;
+    font-weight: 500;
+    font-family: 'Outfit', sans-serif;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: .04em;
+    transition: background .2s, transform .1s;
+    
+    /* Centrado de texto clásico y puro */
+    text-align: center;
+    line-height: 55px; /* Alinea el texto verticalmente al centro exacto */
+}
+
+.arrow-style {
+    font-family: 'Outfit', sans-serif !important; /* Forzamos fuente limpia */
+    font-weight: 400;
+    display: inline-block;
+    line-height: 1;
+    vertical-align: middle;
+}
+/* Volver al inicio (abajo del todo) */
+.back-to-home {
+    width: 100%;        
+    text-align: center; 
+    margin-top: 20px;  
+    display: block;      
+}
+
+.back-to-home a {
+    color: #F8F6F2;
+    text-decoration: none;
+    font-family: 'Playfair Display', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;         
+    
+    transition: color .15s;
+}
+
+/* Posicionamiento absoluto de la flecha del botón para que NO empuje el texto */
+.btn-register .arrow-style {
+    position: absolute;
+    right: 24px; /* Ajusta este valor si la quieres más pegada o despegada del borde derecho */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px; /* Mismo tamaño que el texto para mantener proporción */
+}
+
+/* Ajuste fino para la flecha de volver (como va al revés |←) */
+.back-to-home .arrow-style {
+    position: static !important; /* Mantiene el flujo inline flex al lado del texto */
+    transform: none !important;
+    font-size: 1.2rem;
+}
+
+/* Forzamos a que si el icono interno tiene estilos heredados molestos, se limpie aquí */
+.back-to-home a svg,
+.back-to-home a i,
+.back-to-home a span {
+    position: static !important;  /* Rompe cualquier 'position: absolute' heredado */
+    transform: none !important;   /* Evita desequilibrios por traslaciones previas */
+    display: inline-block;
+    line-height: 1;
+}
+/* Contenedor de las políticas de contraseña */
+.password-policies-box {
+    margin-top: 0.6rem;
+    padding: 0 1rem;
+    font-family: 'Outfit', sans-serif;
+}
+
+.policy-title {
+    font-size: 0.95rem;
+    color: #949694; /* Gris suave de tu paleta */
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+}
+
+.policy-list {list-style: none;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;       /* Si la pantalla se achica, los elementos bajan ordenadamente en vez de desbordar */
+    justify-content: center; /* Centra los requisitos horizontalmente debajo del título */
+    gap: 0.5rem 1.2rem;    /* Separación de 0.5rem si bajan de fila, y 1.2rem entre ellos */
+    padding: 0;
+    width: 100%;
+}
+
+.policy-item {
+    font-size: 0.65rem;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Estado cuando NO cumple el requisito */
+.policy-item.invalid {
+    color: #b0b3b0; /* Gris apagado */
+}
+
+/* Estado cuando SÍ cumple el requisito (Verde de tu paleta) */
+.policy-item.valid {
+    color: #8faf6f; /* El verde destacado que usas en el hover de los links */
+    font-weight: 500;
+}
+
+/* Estado de error para el contenedor del input */
+.input-wrapper.has-error {
+    border-color: #E06D6D !important; /* Rojo suave/coral */
+}
+
+/* Cambia el color del icono si hay un error para dar más feedback */
+.input-wrapper.has-error .input-icon svg {
+    color: #E06D6D;
+}
+
+/* Texto del error debajo del input */
+.field-error-text {
+    display: block;
+    color: #E06D6D;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    margin-top: 0.4rem;
+    font-weight: 400;
+    padding-left: 0.5rem;
+    animation: fadeInError 0.2s ease-in-out;
+}
+/* Fulminamos el div residual vacío de Keycloak que empuja con su margin-top */
+#kc-info, .login-pf-signup {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Ajustes Responsive */
+@media(max-width: 768px) {
+    .field-row-grid {
+        grid-template-columns: 1fr; /* Pasa a vertical en móviles */
+        gap: 0;
+    }
+}
+
+@media(max-width: 1300px) {
+
+    .left-panel-text-wrapper{
+        left: 1%;
+    }
+    .register-main-title {
+        font-size: 3rem;
+    }
+
+    .register-subtitle {
+        font-size: 1.5rem;
+    }
+}
+
+@media(max-width: 1000px) {
+
+    .left-panel-text-wrapper{
+        left: 0%;
+    }
+    .register-main-title {
+        font-size: 2.5rem;
+    }
+
+    .register-subtitle {
+        font-size: 1.25rem;
+    }
+}
+
+@media(max-width: 850px) {
+    .register-main-title {
+        font-size: 2rem;
+    }
+
+    .register-subtitle {
+        font-size: 1rem;
+    }
+}

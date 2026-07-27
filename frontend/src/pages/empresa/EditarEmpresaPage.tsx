@@ -1,0 +1,230 @@
+import { isAxiosError } from 'axios';
+import { ChevronRight, House, Save } from 'lucide-react';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm, useWatch } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import EditarEmpresaForm, {
+  type EditarEmpresaFormData,
+} from '../../components/empresa/EditarEmpresaForm';
+import ResumenIntegrantes from '../../components/empresa/ResumenIntegrantes';
+import VistaPreviaEmpresa from '../../components/empresa/VistaPreviaEmpresa';
+import { useActualizarEmpresa } from '../../hooks/useActualizarEmpresa';
+import { useEmpresaActual } from '../../hooks/useEmpresaActual';
+
+const editarEmpresaSchema = z.object({
+  nombre: z
+    .string()
+    .trim()
+    .min(1, 'El nombre es obligatorio')
+    .max(100, 'El nombre no puede superar los 100 caracteres'),
+
+  actividad: z
+    .string()
+    .trim()
+    .min(1, 'La actividad es obligatoria')
+    .max(255, 'La actividad no puede superar los 255 caracteres'),
+
+  logoUrl: z.string().trim().url('Ingresá una URL válida').or(z.literal('')),
+});
+
+interface RespuestaErrorApi {
+  message?: string;
+  error?: string;
+  code?: string;
+}
+
+export default function EditarEmpresaPage() {
+  const navigate = useNavigate();
+
+  const { data: empresa, isLoading, isError } = useEmpresaActual();
+
+  const { mutate: actualizarEmpresa, isPending, isSuccess } = useActualizarEmpresa();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    setError,
+    clearErrors,
+    formState: { errors, isDirty },
+  } = useForm<EditarEmpresaFormData>({
+    resolver: zodResolver(editarEmpresaSchema),
+    defaultValues: {
+      nombre: '',
+      actividad: '',
+      logoUrl: '',
+    },
+  });
+
+  const valoresFormulario = useWatch({
+    control,
+  });
+
+  useEffect(() => {
+    if (!empresa) {
+      return;
+    }
+
+    reset({
+      nombre: empresa.nombre,
+      actividad: empresa.actividad,
+      logoUrl: empresa.logoUrl ?? '',
+    });
+  }, [empresa, reset]);
+
+  const onSubmit = (datos: EditarEmpresaFormData) => {
+    clearErrors();
+
+    actualizarEmpresa(
+      {
+        nombre: datos.nombre.trim(),
+        actividad: datos.actividad.trim(),
+        logoUrl: datos.logoUrl.trim() || null,
+      },
+      {
+        onSuccess: (empresaActualizada) => {
+          reset({
+            nombre: empresaActualizada.nombre,
+            actividad: empresaActualizada.actividad,
+            logoUrl: empresaActualizada.logoUrl ?? '',
+          });
+        },
+
+        onError: (error) => {
+          if (isAxiosError<RespuestaErrorApi>(error)) {
+            const status = error.response?.status;
+
+            const mensajeBackend = error.response?.data?.message ?? error.response?.data?.error;
+
+            if (status === 409) {
+              setError('nombre', {
+                type: 'server',
+                message:
+                  mensajeBackend ?? 'Ya existe una empresa con ese nombre. Ingresá uno diferente.',
+              });
+
+              return;
+            }
+
+            setError('root', {
+              type: 'server',
+              message: mensajeBackend ?? 'No se pudo actualizar la empresa. Intentá nuevamente.',
+            });
+
+            return;
+          }
+
+          setError('root', {
+            type: 'server',
+            message: 'Ocurrió un error inesperado. Intentá nuevamente.',
+          });
+        },
+      }
+    );
+  };
+
+  if (isLoading) {
+    return <div className="p-6">Cargando empresa...</div>;
+  }
+
+  if (isError || !empresa) {
+    return <div className="p-6">Error al cargar la empresa.</div>;
+  }
+
+  const nombreActual = valoresFormulario.nombre ?? empresa.nombre;
+
+  const actividadActual = valoresFormulario.actividad ?? empresa.actividad;
+
+  const logoActual = valoresFormulario.logoUrl || empresa.logoUrl;
+
+  return (
+    <div className="p-6">
+      <nav className="mb-5 flex items-center gap-2 text-sm text-abacontex-gray-text">
+        <House size={16} />
+
+        <ChevronRight size={14} />
+
+        <Link to="/alumno/empresa" className="transition hover:text-abacontex-primary">
+          Mi empresa
+        </Link>
+
+        <ChevronRight size={14} />
+
+        <span className="font-medium text-abacontex-black-text">Editar empresa</span>
+      </nav>
+
+      <div className="mb-6">
+        <h1 className="font-heading text-3xl font-semibold text-abacontex-black-text">
+          Editar empresa
+        </h1>
+
+        <p className="mt-1 text-sm text-abacontex-gray-text">
+          Actualizá la información principal de tu empresa.
+        </p>
+      </div>
+
+      <section className="max-w-6xl rounded-2xl bg-white p-6 shadow-md">
+        <h2 className="border-b border-gray-200 pb-3 text-sm font-semibold text-gray-800">
+          Información
+        </h2>
+
+        <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(340px,1fr)]">
+          <EditarEmpresaForm
+            register={register}
+            errors={errors}
+            nombre={nombreActual}
+            actividad={actividadActual}
+            logoUrl={logoActual}
+            onSubmit={handleSubmit(onSubmit)}
+          />
+
+          <aside className="space-y-4 border-gray-200 lg:border-l lg:pl-8">
+            <VistaPreviaEmpresa
+              nombre={nombreActual}
+              actividad={actividadActual}
+              logoUrl={logoActual}
+              cantidadIntegrantes={empresa.integrantes.length}
+            />
+
+            <ResumenIntegrantes integrantes={empresa.integrantes} />
+          </aside>
+        </div>
+      </section>
+
+      <div className="mt-4 flex max-w-6xl justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => navigate('/alumno/empresa')}
+          className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-abacontex-black-text transition hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          form="editar-empresa-form"
+          disabled={isPending || !isDirty}
+          className="flex items-center gap-2 rounded-lg bg-abacontex-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Save size={16} />
+
+          {isPending ? 'Guardando...' : 'Guardar cambios'}
+        </button>
+      </div>
+
+      {isSuccess && (
+        <p className="mt-3 max-w-6xl text-right text-sm text-green-700">
+          Empresa actualizada correctamente.
+        </p>
+      )}
+
+      {errors.root?.message && (
+        <p className="mt-3 max-w-6xl text-right text-sm text-red-600">{errors.root.message}</p>
+      )}
+    </div>
+  );
+}
