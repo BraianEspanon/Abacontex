@@ -33,11 +33,9 @@ function CardResumen({
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-700">{titulo}</p>
 
-          <p
-  className={`mt-1 break-words text-2xl font-bold leading-tight ${colorTexto}`}
->
-  {valor}
-</p>
+          <p className={`mt-1 break-words text-2xl font-bold leading-tight ${colorTexto}`}>
+            {valor}
+          </p>
 
           <p className="mt-2 text-xs text-gray-500">{descripcion}</p>
         </div>

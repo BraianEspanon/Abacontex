@@ -1,13 +1,6 @@
-export type EstadoStockProducto =
-  | 'TODOS'
-  | 'CON_STOCK'
-  | 'SIN_STOCK';
+export type EstadoStockProducto = 'TODOS' | 'CON_STOCK' | 'SIN_STOCK';
 
-export type OrdenProductos =
-  | 'NOMBRE_ASC'
-  | 'NOMBRE_DESC'
-  | 'STOCK_ASC'
-  | 'STOCK_DESC';
+export type OrdenProductos = 'NOMBRE_ASC' | 'NOMBRE_DESC' | 'STOCK_ASC' | 'STOCK_DESC';
 
 export interface ProductoResumen {
   total: number;

@@ -13,10 +13,7 @@ export function useActualizarProducto() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      productoId,
-      producto,
-    }: ActualizarProductoParams) =>
+    mutationFn: ({ productoId, producto }: ActualizarProductoParams) =>
       actualizarProducto(productoId, producto),
 
     onSuccess: async (_, variables) => {
@@ -26,11 +23,7 @@ export function useActualizarProducto() {
         }),
 
         queryClient.invalidateQueries({
-          queryKey: [
-            'productos',
-            'detalle',
-            variables.productoId,
-          ],
+          queryKey: ['productos', 'detalle', variables.productoId],
         }),
       ]);
     },

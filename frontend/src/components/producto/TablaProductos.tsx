@@ -48,11 +48,7 @@ export default function TablaProductos({
   onLimpiarFiltros,
 }: TablaProductosProps) {
   const handleCambiarPagina = (nuevaPagina: number) => {
-    if (
-      nuevaPagina < 1 ||
-      nuevaPagina > totalPages ||
-      nuevaPagina === page
-    ) {
+    if (nuevaPagina < 1 || nuevaPagina > totalPages || nuevaPagina === page) {
       return;
     }
 
@@ -166,11 +162,7 @@ export default function TablaProductos({
                             className="h-full w-full object-contain p-1.5"
                           />
                         ) : (
-                          <ImageOff
-                            size={21}
-                            className="text-gray-400"
-                            strokeWidth={1.6}
-                          />
+                          <ImageOff size={21} className="text-gray-400" strokeWidth={1.6} />
                         )}
                       </div>
 
@@ -179,9 +171,7 @@ export default function TablaProductos({
                           {producto.nombre}
                         </p>
 
-                        <p className="mt-1 text-xs text-gray-400">
-                          Código #{producto.id}
-                        </p>
+                        <p className="mt-1 text-xs text-gray-400">Código #{producto.id}</p>
                       </div>
                     </div>
                   </td>
@@ -193,17 +183,13 @@ export default function TablaProductos({
                   </td>
 
                   <td className="px-6 py-4">
-                    <span className="text-sm text-gray-700">
-                      {producto.stock} unidades
-                    </span>
+                    <span className="text-sm text-gray-700">{producto.stock} unidades</span>
                   </td>
 
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                        tieneStock
-                          ? 'bg-[#eaf4e9] text-[#4f6f52]'
-                          : 'bg-[#fce9e8] text-[#b84545]'
+                        tieneStock ? 'bg-[#eaf4e9] text-[#4f6f52]' : 'bg-[#fce9e8] text-[#b84545]'
                       }`}
                     >
                       {tieneStock ? 'Con stock' : 'Sin stock'}

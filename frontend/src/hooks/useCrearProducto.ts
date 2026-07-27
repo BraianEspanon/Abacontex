@@ -8,8 +8,7 @@ export function useCrearProducto() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (producto: CrearProductoPayload) =>
-      crearProducto(producto),
+    mutationFn: (producto: CrearProductoPayload) => crearProducto(producto),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({

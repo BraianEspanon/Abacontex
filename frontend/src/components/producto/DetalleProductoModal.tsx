@@ -1,11 +1,4 @@
-import {
-  BadgeCheck,
-  BadgeDollarSign,
-  Boxes,
-  ImageOff,
-  Pencil,
-  X,
-} from 'lucide-react';
+import { BadgeCheck, BadgeDollarSign, Boxes, ImageOff, Pencil, X } from 'lucide-react';
 
 import type { Producto } from '../../types/producto.types';
 
@@ -49,10 +42,7 @@ export default function DetalleProductoModal({
     >
       <div className="w-full max-w-[620px] overflow-hidden rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between px-6 pt-5">
-          <h2
-            id="titulo-detalle-producto"
-            className="text-lg font-bold text-gray-950"
-          >
+          <h2 id="titulo-detalle-producto" className="text-lg font-bold text-gray-950">
             Detalle del producto
           </h2>
 
@@ -78,17 +68,13 @@ export default function DetalleProductoModal({
               <div className="flex flex-col items-center justify-center text-center text-gray-400">
                 <ImageOff size={34} strokeWidth={1.6} />
 
-                <span className="mt-2 text-xs">
-                  Sin imagen disponible
-                </span>
+                <span className="mt-2 text-xs">Sin imagen disponible</span>
               </div>
             )}
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-base font-semibold text-gray-950">
-              {producto.nombre}
-            </h3>
+            <h3 className="truncate text-base font-semibold text-gray-950">{producto.nombre}</h3>
 
             <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
               {producto.descripcion}
@@ -97,10 +83,7 @@ export default function DetalleProductoModal({
             <dl className="mt-4 space-y-3">
               <div className="grid grid-cols-[1fr_auto] items-center gap-5">
                 <dt className="flex items-center gap-2 text-xs font-medium text-gray-800">
-                  <BadgeDollarSign
-                    size={15}
-                    className="shrink-0 text-gray-700"
-                  />
+                  <BadgeDollarSign size={15} className="shrink-0 text-gray-700" />
                   Precio unitario
                 </dt>
 
@@ -111,10 +94,7 @@ export default function DetalleProductoModal({
 
               <div className="grid grid-cols-[1fr_auto] items-center gap-5">
                 <dt className="flex items-center gap-2 text-xs font-medium text-gray-800">
-                  <Boxes
-                    size={15}
-                    className="shrink-0 text-gray-700"
-                  />
+                  <Boxes size={15} className="shrink-0 text-gray-700" />
                   Stock disponible
                 </dt>
 
@@ -125,19 +105,14 @@ export default function DetalleProductoModal({
 
               <div className="grid grid-cols-[1fr_auto] items-center gap-5">
                 <dt className="flex items-center gap-2 text-xs font-medium text-gray-800">
-                  <BadgeCheck
-                    size={15}
-                    className="shrink-0 text-gray-700"
-                  />
+                  <BadgeCheck size={15} className="shrink-0 text-gray-700" />
                   Estado
                 </dt>
 
                 <dd>
                   <span
                     className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                      tieneStock
-                        ? 'bg-[#eaf4e9] text-[#4f6f52]'
-                        : 'bg-[#fce9e8] text-[#b84545]'
+                      tieneStock ? 'bg-[#eaf4e9] text-[#4f6f52]' : 'bg-[#fce9e8] text-[#b84545]'
                     }`}
                   >
                     {tieneStock ? 'Con stock' : 'Sin stock'}

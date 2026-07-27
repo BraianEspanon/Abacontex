@@ -6,8 +6,7 @@ export function useEliminarProducto() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (productoId: number) =>
-      eliminarProducto(productoId),
+    mutationFn: (productoId: number) => eliminarProducto(productoId),
 
     onSuccess: async (_, productoId) => {
       await Promise.all([
