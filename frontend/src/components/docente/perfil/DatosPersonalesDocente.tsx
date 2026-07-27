@@ -1,5 +1,5 @@
 import { Camera, Pencil } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useActualizarUsuarioActual } from '../../../hooks/useActualizarUsuarioActual';
 import type { UsuarioActual } from '../../../types/usuario.types';
@@ -25,11 +25,6 @@ export default function DatosPersonalesDocente({ usuario }: DatosPersonalesDocen
     reset: reiniciarMutacion,
   } = useActualizarUsuarioActual();
 
-  useEffect(() => {
-    setNombre(usuario.nombre);
-    setApellido(usuario.apellido);
-  }, [usuario.nombre, usuario.apellido]);
-
   const nombreLimpio = nombre.trim();
   const apellidoLimpio = apellido.trim();
 
@@ -52,6 +47,8 @@ export default function DatosPersonalesDocente({ usuario }: DatosPersonalesDocen
   };
 
   const activarEdicion = () => {
+    setNombre(usuario.nombre);
+    setApellido(usuario.apellido);
     setEditando(true);
     setMensajeExito(null);
     setMensajeValidacion(null);

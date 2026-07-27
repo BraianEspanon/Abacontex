@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios';
 import { Eye, EyeOff, LockKeyhole, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useActualizarPassword } from '../../../hooks/useActualizarPassword';
 
@@ -9,11 +9,15 @@ interface CambiarPasswordModalProps {
   onCerrar: () => void;
 }
 
+interface ContenidoCambiarPasswordModalProps {
+  onCerrar: () => void;
+}
+
 const LONGITUD_MINIMA_PASSWORD = 8;
 
 const PASSWORD_SEGURA = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-export default function CambiarPasswordModal({ abierto, onCerrar }: CambiarPasswordModalProps) {
+function ContenidoCambiarPasswordModal({ onCerrar }: ContenidoCambiarPasswordModalProps) {
   const [passwordActual, setPasswordActual] = useState('');
   const [passwordNueva, setPasswordNueva] = useState('');
   const [confirmacionPassword, setConfirmacionPassword] = useState('');
@@ -33,14 +37,18 @@ export default function CambiarPasswordModal({ abierto, onCerrar }: CambiarPassw
     reset: reiniciarMutacion,
   } = useActualizarPassword();
 
-  useEffect(() => {
-    if (!abierto) {
+  const cerrarModal = useCallback(() => {
+    if (isPending) {
       return;
     }
 
+    onCerrar();
+  }, [isPending, onCerrar]);
+
+  useEffect(() => {
     const manejarEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !isPending) {
-        onCerrar();
+      if (event.key === 'Escape') {
+        cerrarModal();
       }
     };
 
@@ -49,25 +57,7 @@ export default function CambiarPasswordModal({ abierto, onCerrar }: CambiarPassw
     return () => {
       document.removeEventListener('keydown', manejarEscape);
     };
-  }, [abierto, isPending, onCerrar]);
-
-  useEffect(() => {
-    if (!abierto) {
-      setPasswordActual('');
-      setPasswordNueva('');
-      setConfirmacionPassword('');
-      setMensajeValidacion(null);
-      setMensajeExito(null);
-      setMostrarPasswordActual(false);
-      setMostrarPasswordNueva(false);
-      setMostrarConfirmacion(false);
-      reiniciarMutacion();
-    }
-  }, [abierto, reiniciarMutacion]);
-
-  if (!abierto) {
-    return null;
-  }
+  }, [cerrarModal]);
 
   const obtenerMensajeError = () => {
     if (!isError) {
@@ -89,14 +79,6 @@ export default function CambiarPasswordModal({ abierto, onCerrar }: CambiarPassw
     }
 
     return 'No se pudo cambiar la contraseña. Intentá nuevamente.';
-  };
-
-  const cerrarModal = () => {
-    if (isPending) {
-      return;
-    }
-
-    onCerrar();
   };
 
   const guardarPassword = () => {
@@ -356,4 +338,12 @@ export default function CambiarPasswordModal({ abierto, onCerrar }: CambiarPassw
       </div>
     </div>
   );
+}
+
+export default function CambiarPasswordModal({ abierto, onCerrar }: CambiarPasswordModalProps) {
+  if (!abierto) {
+    return null;
+  }
+
+  return <ContenidoCambiarPasswordModal onCerrar={onCerrar} />;
 }
