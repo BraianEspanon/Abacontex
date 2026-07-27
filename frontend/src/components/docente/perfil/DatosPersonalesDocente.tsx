@@ -154,7 +154,6 @@ export default function DatosPersonalesDocente({ usuario }: DatosPersonalesDocen
             )}
           </form>
         </div>
-
         <p className="mt-6 text-xs text-gray-500">
           Los campos marcados con <span className="text-red-500">*</span> son obligatorios.
         </p>
