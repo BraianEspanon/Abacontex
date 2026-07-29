@@ -56,7 +56,7 @@
                                     </svg>
                                 </span>
                                 <input tabindex="1" id="username" name="username" type="text" 
-                                       placeholder="usuario@mail.com" 
+                                       placeholder="usuario@ipgsanmartin.edu.ar" 
                                        value="${(auth.attemptedUsername!'')}" 
                                        autofocus autocomplete="off" />
                             </div>
