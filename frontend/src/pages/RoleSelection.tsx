@@ -1,6 +1,6 @@
-// src/pages/RoleSelection.tsx
 import { useState } from 'react';
 import { useKeycloak } from '@react-keycloak/web';
+import { useNavigate } from 'react-router-dom';
 import {
   Briefcase,
   Settings,
@@ -10,133 +10,196 @@ import {
   Network,
   Target,
   GraduationCap,
-  BookOpen,
-  Library,
-  School,
   ArrowRightFromLine,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
 import RoleCard from '../components/ui/RoleCard';
 import Button from '../components/ui/Button';
+import { useCursos } from '../hooks/useCursos';
+import { useRolesEmpresa } from '../hooks/useRolesEmpresa';
 import { useAssignRole } from '../hooks/useAssignRole';
 
-// 1. Lista de Roles Actualizada
-const ROLES_DATA = [
-  { id: 'ceo', title: 'CEO', icon: Briefcase, description: 'Director Ejecutivo' },
-  { id: 'coo', title: 'COO', icon: Settings, description: 'Director de Operaciones' },
-  { id: 'cfo', title: 'CFO', icon: Wallet, description: 'Director Financiero' },
-  { id: 'cto', title: 'CTO', icon: Cpu, description: 'Director Tecnológico' },
-  { id: 'cco', title: 'CCO', icon: Megaphone, description: 'Director de Comunicación' },
-  { id: 'cio', title: 'CIO', icon: Network, description: 'Director de Sistemas de Información' },
-  { id: 'cmo', title: 'CMO', icon: Target, description: 'Director de Marketing' },
-];
-
-// 2. Lista de Cursos
-const COURSES_DATA = [
-  { id: '5II', title: '5to Año - Div II', icon: BookOpen },
-  { id: '5III', title: '5to Año - Div III', icon: Library },
-  { id: '6II', title: '6to Año - Div II', icon: School },
-  { id: '6III', title: '6to Año - Div III', icon: GraduationCap },
-];
+const ROLE_ICONS: Record<string, LucideIcon> = {
+  CEO: Briefcase,
+  COO: Settings,
+  CFO: Wallet,
+  CTO: Cpu,
+  CCO: Megaphone,
+  CIO: Network,
+  CMO: Target,
+};
 
 export default function RoleSelection() {
   const { keycloak } = useKeycloak();
+  const navigate = useNavigate();
+
   const firstName =
     keycloak.tokenParsed?.given_name || keycloak.tokenParsed?.preferred_username || 'Alumno';
 
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-
-  const { mutate: setupAccount, isPending } = useAssignRole();
+  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+  const { data: cursos = [], isLoading: isLoadingCourses, isError: isCoursesError } = useCursos();
+  const { data: roles = [], isLoading: isLoadingRoles, isError: isRolesError } = useRolesEmpresa();
+  const { mutate: completeRegistration, isPending, isError: isRegistrationError } = useAssignRole();
+  const selectedRole = roles.find((role) => role.idRol === selectedRoleId);
+  const isFormValid = selectedRoleId !== null && selectedCourseId !== null && !isPending;
 
   const handleContinue = () => {
-    if (!selectedRole || !selectedCourse) return;
-    setupAccount({ roleId: selectedRole, courseId: selectedCourse });
+    if (selectedRoleId === null || selectedCourseId === null) {
+      return;
+    }
+
+    completeRegistration(
+      {
+        idCurso: selectedCourseId,
+        idRolEmpresa: selectedRoleId,
+      },
+      {
+        onSuccess: () => {
+          if (selectedRole?.nombreRol.toUpperCase() === 'CEO') {
+            navigate('/onboarding/ceo');
+            return;
+          }
+
+          navigate('/dashboard');
+        },
+      }
+    );
   };
 
-  const isFormValid = selectedRole !== null && selectedCourse !== null;
+  if (isLoadingCourses || isLoadingRoles) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-abacontext-light-bg">
+        <p className="text-lg text-abacontex-gray-text">Cargando cursos y roles...</p>
+      </div>
+    );
+  }
+
+  if (isCoursesError || isRolesError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-abacontext-light-bg px-4">
+        <div className="max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
+          <h1 className="mb-2 text-xl font-bold text-abacontex-black-text">
+            No pudimos cargar la información
+          </h1>
+
+          <p className="text-abacontex-gray-text">
+            Ocurrió un error al obtener los cursos o los roles empresariales. Intentá nuevamente.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-abacontext-light-bg flex flex-col items-center py-10 px-4 sm:px-6 font-sans">
-      <div className="w-full max-w-4xl bg-white rounded-4xl shadow-xl shadow-abacontex-dark/5 overflow-hidden mb-8">
-        {/* --- HEADER --- */}
-        <div className="relative bg-[#1d2620] px-8 py-10 md:px-12 md:py-14 overflow-hidden text-center">
-          <div className="absolute -top-16 -right-12 w-48 h-48 bg-[#2d3a31] rounded-full opacity-80 mix-blend-screen"></div>
-          <div className="absolute -bottom-16 -left-12 w-40 h-40 bg-[#2d3a31] rounded-full opacity-80 mix-blend-screen"></div>
+    <div className="min-h-screen bg-abacontext-light-bg flex flex-col items-center px-4 py-10 font-sans sm:px-6">
+      <div className="mb-8 w-full max-w-4xl overflow-hidden rounded-4xl bg-white shadow-xl shadow-abacontex-dark/5">
+        {/* HEADER */}
+        <div className="relative overflow-hidden bg-[#1d2620] px-8 py-10 text-center md:px-12 md:py-14">
+          <div className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[#2d3a31] opacity-80 mix-blend-screen" />
+          <div className="absolute -bottom-16 -left-12 h-40 w-40 rounded-full bg-[#2d3a31] opacity-80 mix-blend-screen" />
 
           <div className="relative z-10 flex flex-col items-center">
-            <div className="flex items-center w-full max-w-87.5 mb-8">
-              <div className="w-14 h-14 rounded-full bg-[#6a9071] text-white flex items-center justify-center font-bold text-2xl font-heading shadow-lg">
+            <div className="mb-8 flex w-full max-w-87.5 items-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#6a9071] font-heading text-2xl font-bold text-white shadow-lg">
                 1
               </div>
-              <div className="flex-1 h-1 bg-[#6a9071] opacity-70"></div>
-              <div className="w-14 h-14 rounded-full bg-[#6a9071] text-white flex items-center justify-center font-bold text-2xl font-heading shadow-lg">
+
+              <div className="h-1 flex-1 bg-[#6a9071] opacity-70" />
+
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#6a9071] font-heading text-2xl font-bold text-white shadow-lg">
                 2
               </div>
             </div>
 
-            <h1 className="font-heading font-extrabold text-5xl text-white mb-3 tracking-tight">
+            <h1 className="mb-3 font-heading text-5xl font-extrabold tracking-tight text-white">
               ¡Casi listo, {firstName}!
             </h1>
-            <p className="text-abacontex-light/80 text-xl max-w-lg font-heading font-light">
+
+            <p className="max-w-lg font-heading text-xl font-light text-abacontex-light/80">
               Elegí tu rol en la empresa y tu curso para completar el registro
             </p>
           </div>
         </div>
 
-        {/* --- CONTENIDO --- */}
+        {/* CONTENIDO */}
         <div className="p-8 md:p-10">
           {/* CURSOS */}
-          <div className="mb-10">
-            <h2 className="font-heading font-bold text-xl text-abacontex-black-text mb-5 border-b border-abacontex-gray/20 pb-2">
+          <section className="mb-10">
+            <h2 className="mb-5 border-b border-abacontex-gray/20 pb-2 font-heading text-xl font-bold text-abacontex-black-text">
               Seleccioná tu curso
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {COURSES_DATA.map((course) => (
-                <RoleCard
-                  key={course.id}
-                  id={course.id}
-                  title={course.title}
-                  icon={course.icon}
-                  isSelected={selectedCourse === course.id}
-                  onClick={setSelectedCourse}
-                />
-              ))}
-            </div>
-          </div>
+
+            {cursos.length === 0 ? (
+              <p className="text-abacontex-gray-text">No hay cursos disponibles.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                {cursos.map((curso) => (
+                  <RoleCard
+                    key={curso.idCurso}
+                    id={curso.idCurso}
+                    title={curso.nombreCurso}
+                    description="Curso académico"
+                    icon={GraduationCap}
+                    isSelected={selectedCourseId === curso.idCurso}
+                    onClick={setSelectedCourseId}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
 
           {/* ROLES */}
-          <div className="mb-8">
-            <h2 className="font-heading font-bold text-xl text-abacontex-black-text mb-5 border-b border-abacontex-gray/20 pb-2">
-              Seleccioná tu departamento
+          <section className="mb-8">
+            <h2 className="mb-5 border-b border-abacontex-gray/20 pb-2 font-heading text-xl font-bold text-abacontex-black-text">
+              Seleccioná tu rol
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {ROLES_DATA.map((role) => (
-                <RoleCard
-                  key={role.id}
-                  id={role.id}
-                  title={role.title}
-                  description={role.description}
-                  icon={role.icon}
-                  isSelected={selectedRole === role.id}
-                  onClick={setSelectedRole}
-                />
-              ))}
-            </div>
-          </div>
+
+            {roles.length === 0 ? (
+              <p className="text-abacontex-gray-text">No hay roles empresariales disponibles.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                {roles.map((role) => {
+                  const Icon = ROLE_ICONS[role.nombreRol.toUpperCase()] ?? Briefcase;
+
+                  return (
+                    <RoleCard
+                      key={role.idRol}
+                      id={role.idRol}
+                      title={role.nombreRol}
+                      description={role.descripcion}
+                      icon={Icon}
+                      isSelected={selectedRoleId === role.idRol}
+                      onClick={setSelectedRoleId}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {isRegistrationError && (
+            <p className="mb-4 text-center text-sm font-medium text-red-600">
+              No pudimos guardar tu curso y rol. Intentá nuevamente.
+            </p>
+          )}
 
           {/* BOTÓN */}
-          <div className="flex flex-col justify-end pt-6 items-center">
+          <div className="flex flex-col items-center justify-end pt-6">
             <div
-              className={`transition-all duration-300 ${!isFormValid ? 'opacity-50 grayscale cursor-not-allowed' : 'opacity-100'}`}
+              className={`transition-all duration-300 ${
+                !isFormValid ? 'cursor-not-allowed opacity-50 grayscale' : 'opacity-100'
+              }`}
             >
               <Button
-                label={isPending ? 'Guardando...' : 'Completar Registro'}
+                label={isPending ? 'Guardando...' : 'Completar registro'}
                 variant={isFormValid ? 'solid' : 'outline'}
                 icon={
-                  <ArrowRightFromLine className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+                  <ArrowRightFromLine className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 }
                 onClick={handleContinue}
-                disabled={isPending || !isFormValid}
+                disabled={!isFormValid}
               />
             </div>
           </div>

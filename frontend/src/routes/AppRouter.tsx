@@ -17,6 +17,7 @@ import ProductosPage from '../pages/producto/ProductosPage';
 import RegistrarProductoPage from '../pages/producto/RegistrarProductoPage';
 import RoleSelection from '../pages/RoleSelection';
 import EditarProductoPage from '../pages/producto/EditarProductoPage';
+import CEOBienvenida from '../pages/onboarding/CEOBienvenida';
 
 export default function AppRouter() {
   return (
@@ -76,6 +77,14 @@ export default function AppRouter() {
 
         <Route path="productos/:id/editar" element={<EditarProductoPage />} />
       </Route>
+      <Route
+        path="/onboarding/ceo"
+        element={
+          <ProtectedRoute>
+            <CEOBienvenida />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
