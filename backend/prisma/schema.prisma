@@ -31,6 +31,7 @@ model Usuario {
   rolSistema RolesSistema @relation(fields: [rolSistemaId], references: [idRol])
 
   fotoPerfilUrl String?
+  fotoPerfilPublicId String?
 
   fechaAlta DateTime @default(now())
 
@@ -111,6 +112,7 @@ model Empresa {
 
   actividad String
   logoUrl   String?
+  logoPublicId String?
 
   puntos Int @default(0)
 
@@ -272,6 +274,7 @@ model Producto {
   precioUnitario Decimal @db.Decimal(14, 2)
 
   fotoUrl String?
+  fotoPublicId String?
 
   activo Boolean @default(true)
 
