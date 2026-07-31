@@ -79,7 +79,11 @@ export async function findAceptadaByEmail(email: string) {
       estado: EstadoInvitacion.ACEPTADA,
     },
     include: {
-      empresa: true,
+      empresa: {
+        include: {
+          curso: true,
+        },
+      },
     },
   });
 }

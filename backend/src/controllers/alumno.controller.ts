@@ -6,6 +6,11 @@ export async function getAlumnoActual(req: Request, res: Response) {
 
   res.status(200).json(alumno);
 }
+export async function getRegistro(req: Request, res: Response) {
+  const registro = await alumnoService.getRegistro(req.user!);
+
+  res.status(200).json(registro);
+}
 
 export async function completarRegistro(req: Request, res: Response) {
   const alumno = await alumnoService.completarRegistro(req.user!, req.body);

@@ -2,6 +2,7 @@ import { AuthUser } from '../types/express';
 
 import { CompletarRegistroDTO } from '../validators/alumno.validator';
 import { UsuarioActualResponseDTO } from '../dto/alumno/alu-actual.dto';
+import { RegistroResponseDTO } from '../dto/alumno/alu-registro.dto';
 import { toAlumnoActualResponse } from '../dto/alumno/alu.mapper';
 
 import * as alumnoRepository from '../repositories/alumno.repository';
@@ -84,6 +85,52 @@ export async function rechazarInvitacion(user: AuthUser, idInvitacion: number) {
   const { invitacion } = await getInvitacionPendienteDelUsuarioOrThrow(user, idInvitacion);
 
   await invitacionRepository.rechazar(invitacion.id);
+}
+
+export async function getRegistro(user: AuthUser): Promise<RegistroResponseDTO> {
+  const usuario = await usuarioRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  if (usuario.alumno) {
+    throw new ConflictError('El registro del alumno ya fue completado.');
+  }
+
+  const invitacion = await invitacionRepository.findAceptadaByEmail(usuario.email);
+
+  if (invitacion) {
+    if (!invitacion.empresa.activo) {
+      throw new ConflictError('La empresa ya no se encuentra activa.');
+    }
+
+    const roles = await rolEmpresaRepository.findAllExceptCEO();
+
+    return {
+      tipo: 'INVITACION',
+
+      empresa: {
+        id: invitacion.empresa.id,
+        nombre: invitacion.empresa.nombre,
+      },
+
+      curso: {
+        idCurso: invitacion.empresa.curso.idCurso,
+        nombreCurso: invitacion.empresa.curso.nombreCurso,
+      },
+
+      rolesEmpresa: roles,
+    };
+  }
+
+  const cursos = await cursoRepository.findAll();
+
+  const roles = await rolEmpresaRepository.findAll();
+
+  return {
+    tipo: 'NORMAL',
+
+    cursos,
+
+    rolesEmpresa: roles,
+  };
 }
 
 export async function completarRegistro(

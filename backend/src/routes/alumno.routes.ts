@@ -7,6 +7,7 @@ import { requireRole } from '../middleware/role.middleware';
 
 import {
   getAlumnoActual,
+  getRegistro,
   completarRegistro,
   getInvitacion,
   aceptarInvitacion,
@@ -35,6 +36,8 @@ router.post(
 );
 
 // ===== REGISTRO =====
+router.get('/me/registro', authenticate, requireRole(ROLES.ALUMNO), getRegistro);
+
 router.patch(
   '/me/registro',
   authenticate,
