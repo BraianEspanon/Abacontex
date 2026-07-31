@@ -72,6 +72,17 @@ export async function findPendienteByEmail(email: string) {
     },
   });
 }
+export async function findAceptadaByEmail(email: string) {
+  return prisma.invitacionEmpresa.findFirst({
+    where: {
+      email,
+      estado: EstadoInvitacion.ACEPTADA,
+    },
+    include: {
+      empresa: true,
+    },
+  });
+}
 
 export async function findByEmpresaAndEmail(empresaId: number, email: string) {
   return prisma.invitacionEmpresa.findUnique({
@@ -141,6 +152,17 @@ export async function expirar(id: number) {
     },
     data: {
       estado: EstadoInvitacion.EXPIRADA,
+    },
+  });
+}
+
+export async function finalizar(idInvitacion: number) {
+  await prisma.invitacionEmpresa.update({
+    where: {
+      id: idInvitacion,
+    },
+    data: {
+      estado: EstadoInvitacion.FINALIZADA,
     },
   });
 }

@@ -12,6 +12,7 @@ import * as invitacionRepository from '../repositories/invitacion.repository';
 
 import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
+import { BadRequestError } from '../errors/bad-request-error';
 
 export async function getAlumnoActual(user: AuthUser): Promise<UsuarioActualResponseDTO> {
   const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
@@ -84,17 +85,52 @@ export async function rechazarInvitacion(user: AuthUser, idInvitacion: number) {
   await invitacionRepository.rechazar(invitacion.id);
 }
 
-export async function completarRegistro(user: AuthUser, data: CompletarRegistroDTO) {
+export async function completarRegistro(
+  user: AuthUser,
+  data: CompletarRegistroDTO
+): Promise<UsuarioActualResponseDTO> {
   const usuario = await usuarioRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
 
   if (usuario.alumno) {
     throw new ConflictError('El registro del alumno ya fue completado previamente.');
   }
 
-  await cursoRepository.findByIdOrThrow(data.idCurso);
-  await rolEmpresaRepository.findByIdOrThrow(data.idRolEmpresa);
+  const invitacion = await invitacionRepository.findAceptadaByEmail(usuario.email);
 
-  await alumnoRepository.create(usuario.id, data);
+  const rol = await rolEmpresaRepository.findByIdOrThrow(data.idRolEmpresa);
+
+  if (invitacion) {
+    if (!invitacion.empresa.activo) {
+      throw new ConflictError('La empresa ya no se encuentra activa.');
+    }
+
+    if (rol.nombreRol === 'CEO') {
+      throw new ConflictError('No puedes registrarte como CEO mediante una invitación.');
+    }
+
+    await alumnoRepository.create(usuario.id, {
+      idCurso: invitacion.empresa.idCurso,
+      idEmpresa: invitacion.empresa.id,
+      idRolEmpresa: data.idRolEmpresa,
+    });
+
+    /*
+    Este método entra cuando esté el estado FINALIZADA en la BD
+    await invitacionRepository.finalizar(invitacion.id); 
+    */
+  } else {
+    if (!data.idCurso) {
+      throw new BadRequestError('Debe seleccionar un curso.');
+    }
+
+    await cursoRepository.findByIdOrThrow(data.idCurso);
+
+    await alumnoRepository.create(usuario.id, {
+      idCurso: data.idCurso,
+      idEmpresa: null,
+      idRolEmpresa: data.idRolEmpresa,
+    });
+  }
 
   return getAlumnoActual(user);
 }

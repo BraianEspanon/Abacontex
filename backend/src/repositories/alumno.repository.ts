@@ -31,17 +31,19 @@ export async function findByKeycloakIdWithAlumnoOrThrow(keycloakId: string) {
 
   return usuario;
 }
+type CrearAlumnoData = {
+  idCurso: number;
+  idEmpresa: number | null;
+  idRolEmpresa: number;
+};
 
-export async function create(id: string, data: CompletarRegistroDTO) {
+export async function create(id: string, data: CrearAlumnoData) {
   await prisma.alumno.create({
     data: {
       id,
       idCurso: data.idCurso,
+      idEmpresa: data.idEmpresa,
       idRolEmpresa: data.idRolEmpresa,
-    },
-    include: {
-      curso: true,
-      rolEmpresa: true,
     },
   });
 }
