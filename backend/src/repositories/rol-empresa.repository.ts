@@ -28,3 +28,13 @@ export async function findAll() {
     },
   });
 }
+
+export async function findAllExceptCEO() {
+  return prisma.rolesEmpresa.findMany({
+    where: {
+      nombreRol: {
+        not: 'CEO',
+      },
+    },
+  });
+}

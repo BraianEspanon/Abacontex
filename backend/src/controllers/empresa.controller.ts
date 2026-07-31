@@ -60,3 +60,15 @@ export async function modificarRolesEmpresa(req: Request, res: Response) {
 
   res.sendStatus(204);
 }
+
+export async function crearInvitaciones(req: Request, res: Response) {
+  const invitaciones = await empresaService.crearInvitaciones(req.user!, req.body);
+
+  res.status(201).json(invitaciones);
+}
+
+export async function getInvitacionesEnviadas(req: Request, res: Response) {
+  const invitaciones = await empresaService.getInvitacionesEnviadas(req.user!);
+
+  res.json(invitaciones);
+}
