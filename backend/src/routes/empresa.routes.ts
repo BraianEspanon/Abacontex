@@ -14,6 +14,8 @@ import {
   getCandidatos,
   getEmpresaActual,
   modificarRolesEmpresa,
+  crearInvitaciones,
+  getInvitacionesEnviadas,
 } from '../controllers/empresa.controller';
 
 import {
@@ -23,13 +25,6 @@ import {
   modificarRolesEmpresaSchema,
 } from '../validators/empresa.validator';
 
-import {
-  aceptarInvitacion,
-  crearInvitaciones,
-  getInvitacionesEnviadas,
-  getInvitacionesPendientes,
-  rechazarInvitacion,
-} from '../controllers/invitacion.controller';
 import { crearInvitacionesSchema } from '../validators/invitacion.validator';
 
 const router = Router();
@@ -88,19 +83,6 @@ router.post(
   crearInvitaciones
 );
 
-router.get('/me/invitaciones', authenticate, requireRole(ROLES.ALUMNO), getInvitacionesPendientes);
-router.post(
-  '/me/invitaciones/:id/aceptar',
-  authenticate,
-  requireRole(ROLES.ALUMNO),
-  aceptarInvitacion
-);
-router.post(
-  '/me/invitaciones/:id/rechazar',
-  authenticate,
-  requireRole(ROLES.ALUMNO),
-  rechazarInvitacion
-);
 router.get(
   '/me/invitaciones/enviadas',
   authenticate,

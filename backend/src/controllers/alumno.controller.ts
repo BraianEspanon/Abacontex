@@ -12,3 +12,21 @@ export async function completarRegistro(req: Request, res: Response) {
 
   res.status(200).json(alumno);
 }
+
+export async function getInvitacion(req: Request, res: Response) {
+  const invitaciones = await alumnoService.getInvitacion(req.user!);
+
+  res.status(200).json(invitaciones);
+}
+
+export async function aceptarInvitacion(req: Request, res: Response) {
+  await alumnoService.aceptarInvitacion(req.user!, Number(req.params.id));
+
+  res.sendStatus(204);
+}
+
+export async function rechazarInvitacion(req: Request, res: Response) {
+  await alumnoService.rechazarInvitacion(req.user!, Number(req.params.id));
+
+  res.sendStatus(204);
+}
