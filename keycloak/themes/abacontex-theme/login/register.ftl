@@ -47,17 +47,37 @@
                     ¿Ya tienes cuenta? <a href="${url.loginUrl}">Iniciar sesión</a>
                 </div>
             </div>
+            
+            <#-- 1. Verificamos si hay cualquier error en el formulario -->
+            <#assign formHasErrors = messagesPerField.existsError
+            ('firstName','lastName','email','password','password-confirm') || 
+            (message?? && message.type == 'error')>
+
+            <#-- 2. Memoria de estado: Determinamos si es una invitación -->
+            <#-- Es invitación si es la primera carga (sin errores) y el email tiene contenido -->
+            <#-- O si ya habíamos marcado que era invitación en un intento fallido previo -->
+            <#if (!formHasErrors && register.formData.email?? && register.formData.email?has_content)>
+                <#assign isInvitation = "true">
+            <#elseif (register.formData['isInvitation']?? && register.formData['isInvitation'] == "true")>
+                <#assign isInvitation = "true">
+            <#else>
+                <#assign isInvitation = "false">
+            </#if>
+
+            <#-- 3. Bloqueamos el email SOLO si confirmamos que es una invitación -->
+            <#assign emailBloqueado = (isInvitation == "true")>
 
             <div id="kc-form">
                 <div id="kc-form-wrapper">
 
                     <form id="kc-register-form" action="${url.registrationAction}" method="post">
                         
+                        <input type="hidden" name="isInvitation" value="${isInvitation}"/>
                         <div class="field-row-grid">
                             <div class="field-group">
                                 <label for="firstName">Nombre</label>
                                 <div class="input-wrapper <#if messagesPerField.existsError('firstName')>has-error</#if>">
-                                    <input tabindex="1" id="firstName" name="firstName" type="text" placeholder="nombre" value="${(register.formData.firstName!'')}" maxlength="50"/>
+                                    <input tabindex="1" id="firstName" name="firstName" type="text" value="${(register.formData.firstName!'')}" maxlength="50"/>
                                 </div>
                                 <#if messagesPerField.existsError('firstName')>
                                     <span class="field-error-text">${kcSanitize(messagesPerField.get('firstName'))?no_esc}</span>
@@ -67,7 +87,7 @@
                             <div class="field-group">
                                 <label for="lastName">Apellido</label>
                                 <div class="input-wrapper <#if messagesPerField.existsError('lastName')>has-error</#if>">
-                                    <input tabindex="2" id="lastName" name="lastName" type="text" placeholder="apellido" value="${(register.formData.lastName!'')}"  maxlength="50" />
+                                    <input tabindex="2" id="lastName" name="lastName" type="text" value="${(register.formData.lastName!'')}"  maxlength="50" />
                                 </div>
                                 <#if messagesPerField.existsError('lastName')>
                                     <span class="field-error-text">${kcSanitize(messagesPerField.get('lastName'))?no_esc}</span>
@@ -78,8 +98,36 @@
                         <div class="field-group">
                             <label for="email">Correo electrónico</label>
                             <div class="input-wrapper <#if messagesPerField.existsError('email')>has-error</#if>">
-                                <input tabindex="3" id="email" name="email" type="email" placeholder="agus@mail.com" value="${(register.formData.email!'')}"  maxlength="254"/>
+                                <input
+                                    tabindex="3"
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value="${(register.formData.email!'')}"
+                                    maxlength="254"
+                                    required
+                                    <#if emailBloqueado>
+                                        readonly
+                                    </#if>
+                                />
+                                <#if emailBloqueado>
+                                    <span class="readonly-lock">
+                                        <svg
+                                            id="lock-icon"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <rect x="5" y="11" width="14" height="10" rx="2" ry="2"/>
+                                            <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+                                        </svg>
+                                    </span>
+                                </#if>
                             </div>
+
                             <#if messagesPerField.existsError('email')>
                                 <span class="field-error-text">${kcSanitize(messagesPerField.get('email'))?no_esc}</span>
                             </#if>
@@ -88,7 +136,7 @@
                         <div class="field-group">
                             <label for="password">Contraseña</label>
                             <div class="input-wrapper <#if messagesPerField.existsError('password')>has-error</#if>">
-                                <input tabindex="4" id="password" name="password" type="password" placeholder="***********" autocomplete="new-password" maxlength="64" />
+                                <input tabindex="4" id="password" name="password" type="password" autocomplete="new-password" maxlength="64" />
                                 <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password', 'eye-icon-main')">
                                     <svg id="eye-icon-main" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>

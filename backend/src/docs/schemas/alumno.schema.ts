@@ -6,22 +6,20 @@
  *     CompletarRegistroRequest:
  *       type: object
  *       required:
- *         - idCurso
  *         - idRolEmpresa
  *       properties:
  *         idCurso:
  *           type: integer
+ *           nullable: true
  *           example: 1
  *           description: |
- *              Identificador del curso del alumno.
- *              Se recomienda enviarlo como integer.
+ *             Requerido solo para el flujo normal. No se envía en el flujo por invitación.
  *
  *         idRolEmpresa:
  *           type: integer
  *           example: 2
  *           description: |
- *               Identificador del rol empresarial.
- *               Se recomienda enviarlo como integer.
+ *             Identificador del rol empresarial seleccionado por el alumno.
  *
  *     AlumnoActual:
  *       type: object
@@ -84,4 +82,127 @@
  *             nombre:
  *               type: string
  *               example: Abacontex S.A.
+ *
+ *     CursoRegistro:
+ *       type: object
+ *       properties:
+ *         idCurso:
+ *           type: integer
+ *           example: 2
+ *         nombreCurso:
+ *           type: string
+ *           example: 6° A
+ *
+ *     RolEmpresaRegistro:
+ *       type: object
+ *       properties:
+ *         idRol:
+ *           type: integer
+ *           example: 2
+ *         nombreRol:
+ *           type: string
+ *           example: CTO
+ *         descripcion:
+ *           type: string
+ *           nullable: true
+ *           example: Rol de empresa para tecnología
+ *
+ *     RegistroNormalResponse:
+ *       type: object
+ *       required:
+ *         - tipo
+ *         - cursos
+ *         - rolesEmpresa
+ *       properties:
+ *         tipo:
+ *           type: string
+ *           enum: [NORMAL]
+ *           example: NORMAL
+ *         cursos:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/CursoRegistro'
+ *         rolesEmpresa:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/RolEmpresaRegistro'
+ *
+ *     RegistroInvitacionResponse:
+ *       type: object
+ *       required:
+ *         - tipo
+ *         - empresa
+ *         - curso
+ *         - rolesEmpresa
+ *       properties:
+ *         tipo:
+ *           type: string
+ *           enum: [INVITACION]
+ *           example: INVITACION
+ *         empresa:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 3
+ *             nombre:
+ *               type: string
+ *               example: EcoHarmony
+ *         curso:
+ *           $ref: '#/components/schemas/CursoRegistro'
+ *         rolesEmpresa:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/RolEmpresaRegistro'
+ *
+ *     RegistroResponse:
+ *       oneOf:
+ *         - $ref: '#/components/schemas/RegistroNormalResponse'
+ *         - $ref: '#/components/schemas/RegistroInvitacionResponse'
+ *
+ *     InvitacionAlumno:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 15
+ *         estado:
+ *           type: string
+ *           example: PENDIENTE
+ *         empresa:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 3
+ *             nombre:
+ *               type: string
+ *               example: EcoHarmony
+ *             actividad:
+ *               type: string
+ *               nullable: true
+ *               example: Tecnología
+ *             logoUrl:
+ *               type: string
+ *               nullable: true
+ *               example: https://cdn.example.com/logo.png
+ *             idCurso:
+ *               type: integer
+ *               example: 2
+ *             activo:
+ *               type: boolean
+ *               example: true
+ *         createdBy:
+ *           type: object
+ *           properties:
+ *             nombre:
+ *               type: string
+ *               example: Juan
+ *             apellido:
+ *               type: string
+ *               example: Pérez
+ *         fechaExpiracion:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-08-01T12:00:00.000Z
  */

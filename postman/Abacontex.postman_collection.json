@@ -111,19 +111,101 @@
       "name": "Alumno",
       "item": [
         {
+          "name": "me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/alumnos/me",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "alumnos",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "invitacion me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/alumnos/me/invitacion",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "alumnos",
+                "me",
+                "invitacion"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "invitacion aceptar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/alumnos/me/invitacion/:idInvitacion/aceptar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "alumnos",
+                "me",
+                "invitacion",
+                ":idInvitacion",
+                "aceptar"
+              ],
+              "variable": [
+                {
+                  "key": "idInvitacion",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "invitacion rechazar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/alumnos/me/invitacion/:idInvitacion/rechazar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "alumnos",
+                "me",
+                "invitacion",
+                ":idInvitacion",
+                "rechazar"
+              ],
+              "variable": [
+                {
+                  "key": "idInvitacion",
+                  "value": "4"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "registro",
           "request": {
-            "method": "PATCH",
+            "method": "GET",
             "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"idCurso\": 1,\r\n  \"idRolEmpresa\": 3\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
             "url": {
               "raw": "{{base_Url}}/alumnos/me/registro",
               "host": [
@@ -139,18 +221,28 @@
           "response": []
         },
         {
-          "name": "me",
+          "name": "registro",
           "request": {
-            "method": "GET",
+            "method": "PATCH",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"idCurso\": 2,\r\n  \"idRolEmpresa\": 2\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "{{base_Url}}/alumnos/me",
+              "raw": "{{base_Url}}/alumnos/me/registro",
               "host": [
                 "{{base_Url}}"
               ],
               "path": [
                 "alumnos",
-                "me"
+                "me",
+                "registro"
               ]
             }
           },
@@ -350,7 +442,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n  \"emails\": [\r\n    \"aaa@aaa.com\"\r\n  ]\r\n}",
+                  "raw": "{\r\n  \"emails\": [\r\n    \"bbb@ipgsanmartin.edu.ar\"\r\n  ]\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -372,7 +464,7 @@
               "response": []
             },
             {
-              "name": "Ver invitaciones enviadas",
+              "name": "Invitaciones enviadas",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -398,100 +490,6 @@
                     "me",
                     "invitaciones",
                     "enviadas"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Ver invitacion propia",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\r\n  \"emails\": [\r\n    \"juan@test.com\",\r\n    \"ana@test.com\"\r\n  ]\r\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_Url}}/empresas/me/invitaciones",
-                  "host": [
-                    "{{base_Url}}"
-                  ],
-                  "path": [
-                    "empresas",
-                    "me",
-                    "invitaciones"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Aceptar invitacion",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "url": {
-                  "raw": "{{base_Url}}/empresas/me/invitaciones/:id/aceptar",
-                  "host": [
-                    "{{base_Url}}"
-                  ],
-                  "path": [
-                    "empresas",
-                    "me",
-                    "invitaciones",
-                    ":id",
-                    "aceptar"
-                  ],
-                  "variable": [
-                    {
-                      "key": "id",
-                      "value": "42"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Rechazar invitacion",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\r\n  \"emails\": [\r\n    \"juan@test.com\",\r\n    \"ana@test.com\"\r\n  ]\r\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_Url}}/empresas/me/invitaciones/:id/rechazar",
-                  "host": [
-                    "{{base_Url}}"
-                  ],
-                  "path": [
-                    "empresas",
-                    "me",
-                    "invitaciones",
-                    ":id",
-                    "rechazar"
-                  ],
-                  "variable": [
-                    {
-                      "key": "id",
-                      "value": "42"
-                    }
                   ]
                 }
               },

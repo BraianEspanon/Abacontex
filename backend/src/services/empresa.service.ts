@@ -4,19 +4,28 @@ import * as usuarioRepository from '../repositories/usuario.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as empresaRepository from '../repositories/empresa.repository';
 import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
+import * as invitacionRepository from '../repositories/invitacion.repository';
 
 import {
   AgregarParticipantesDTO,
   CrearEmpresaDTO,
   ModificarRolesDTO,
 } from '../validators/empresa.validator';
+import { CrearInvitacionesDTO } from '../validators/invitacion.validator';
+
+import { InvitacionDTO } from '../dto/invitacion/inv-crear.dto';
+import { toEmpresaActualResponse } from '../dto/empresa/emp.mapper';
+import { toCandidatoResponse } from '../dto/alumno/alu.mapper';
 
 import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
-
-import { toEmpresaActualResponse } from '../dto/empresa/emp.mapper';
-import { toCandidatoResponse } from '../dto/alumno/alu.mapper';
 import { NotFoundError } from '../errors/not-found.error';
+import { BadRequestError } from '../errors/bad-request-error';
+
+import { generarTokenInvitacion } from '../utils/token.util';
+import { obtenerFechaExpiracionInvitacion } from '../utils/date.util';
+
+import { sendInvitationEmail } from '../integrations/email/email.service';
 
 export async function crearEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
   const usuario = await usuarioRepository.findByKeycloakIdWithRolEmpresaOrThrow(user.keycloakId);
@@ -267,4 +276,96 @@ export async function modificarRolesEmpresa(
   }
 
   await alumnoRepository.updateRoles(roles);
+}
+
+export async function crearInvitaciones(user: AuthUser, data: CrearInvitacionesDTO) {
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  const alumno = usuario.alumno;
+
+  if (!alumno) {
+    throw new ConflictError('Debes completar el registro de alumno antes de crear una empresa.');
+  }
+
+  if (!alumno.empresa) {
+    throw new BadRequestError('El usuario no pertenece a ninguna empresa');
+  }
+
+  if (alumno.rolEmpresa?.nombreRol !== 'CEO') {
+    throw new ForbiddenError('Solo el Director Ejecutivo puede enviar invitaciones');
+  }
+
+  if (!alumno.empresa.activo) {
+    throw new ConflictError('La empresa no se encuentra activa.');
+  }
+
+  await validarCorreosInvitacion(usuario.email, alumno.empresa.id, data.emails);
+
+  const invitaciones: InvitacionDTO[] = data.emails.map((email) => ({
+    empresaId: alumno.empresa!.id,
+    createdById: usuario.id,
+    email,
+    token: generarTokenInvitacion(),
+    fechaExpiracion: obtenerFechaExpiracionInvitacion(),
+  }));
+
+  await invitacionRepository.crearInvitaciones(invitaciones);
+
+  await Promise.all(
+    invitaciones.map((invitacion) =>
+      sendInvitationEmail(invitacion.email, alumno.empresa!.nombre, invitacion.fechaExpiracion)
+    )
+  );
+}
+
+async function validarCorreosInvitacion(emailUsuario: string, empresaId: number, emails: string[]) {
+  for (const email of emails) {
+    if (email === emailUsuario) {
+      throw new ConflictError('No puedes enviarte una invitación a ti mismo.', {
+        email,
+      });
+    }
+
+    const usuarioExistente = await usuarioRepository.findByEmail(email);
+
+    if (usuarioExistente) {
+      throw new ConflictError('El correo ya pertenece a un usuario registrado.', {
+        email,
+      });
+    }
+
+    const invitacionExistente = await invitacionRepository.findPendienteByEmail(email);
+
+    if (
+      invitacionExistente &&
+      invitacionExistente.estado === 'PENDIENTE' &&
+      invitacionExistente.fechaExpiracion > new Date()
+    ) {
+      throw new ConflictError(`Ya existe una invitación pendiente para ${email}.`, {
+        email,
+      });
+    }
+  }
+}
+
+export async function getInvitacionesEnviadas(user: AuthUser) {
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  const alumno = usuario.alumno;
+
+  if (!alumno) {
+    throw new ConflictError(
+      'Debes completar el registro de alumno para consultar las invitaciones.'
+    );
+  }
+
+  if (!alumno.empresa) {
+    throw new BadRequestError('El usuario no pertenece a ninguna empresa.');
+  }
+
+  if (alumno.rolEmpresa?.nombreRol !== 'CEO') {
+    throw new ForbiddenError('Solo el Director Ejecutivo puede consultar las invitaciones.');
+  }
+
+  return invitacionRepository.findByEmpresa(alumno.empresa.id);
 }
