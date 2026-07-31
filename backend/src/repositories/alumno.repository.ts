@@ -2,7 +2,6 @@ import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { AlumnoDocenteFiltrosDTO } from '../validators/docente.validator';
 import { NotFoundError } from '../errors/not-found.error';
-import { CompletarRegistroDTO } from '../validators/alumno.validator';
 
 export async function findByKeycloakIdWithAlumno(keycloakId: string) {
   return prisma.usuario.findUnique({
