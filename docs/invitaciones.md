@@ -13,34 +13,51 @@ El frontend nunca deberá intentar deducir el flujo por sí solo.
 # Flujo general
 
 ```text
-Correo
-   │
-   ▼
-Keycloak (Registro)
-   │
-   ▼
-Login
-   │
-   ▼
 GET /alumnos/me
-   │
-   ├── registroCompleto = true
-   │         │
-   │         ▼
-   │     Aplicación normal
-   │
-   └── registroCompleto = false
-             │
-             ▼
+      │
+      ▼
+registroCompleto?
+      │
+      ├── Sí ─────────────► Aplicación
+      │
+      └── No
+            │
+            ▼
 GET /alumnos/me/invitacion
-             │
-      ┌──────┴─────────┐
-      │                │
-      ▼                ▼
-Hay invitación     No hay invitación
-      │                │
-      ▼                ▼
-Flujo invitado     Registro normal
+            │
+  ┌─────────┴──────────────┐
+  │                        │
+ 404                      200
+  │                        │
+  │                        ▼
+  │                  Pantalla de
+  │                   invitación
+  │                       │
+  │             ┌─────────┴──────┐
+  │             │                │
+  │             ▼                ▼
+  │         Rechazar          Aceptar
+  │     (POST rechazar)   (POST aceptar)
+  │             │                │
+  │             ▼                ▼
+  └────►Registro normal   Registro por invitación
+                │             │
+                │             │
+                ▼             ▼
+            GET /alumnos/me/registro
+           El backend determina el flujo
+          y devuelve los datos necesarios
+            (tipo = NORMAL | INVITACION)
+                      │
+                      ▼
+          PATCH /alumnos/me/registro
+                      │
+                      ▼
+              GET /alumnos/me
+          (registroCompleto = true)
+                      │
+                      ▼
+                Aplicación
 ```
 
 ---
@@ -333,6 +350,7 @@ No puede utilizarse nuevamente.
 El usuario continúa el flujo de registro normal.
 
 ---
+
 # Responsabilidades del backend
 
 ## `GET /alumnos/me`
@@ -449,3 +467,32 @@ La fecha de expiración únicamente aplica mientras la invitación se encuentra 
 Una vez que el alumno acepta la invitación, esta deja de estar sujeta a la fecha de expiración y podrá completar su registro en cualquier momento.
 
 El único requisito para finalizar el registro será que la empresa continúe activa.
+
+# Obtener datos para completar el registro
+
+Antes de mostrar la pantalla "Completar registro", el frontend consulta:
+
+GET /alumnos/me/registro
+
+Este endpoint devuelve toda la información necesaria para construir la pantalla según el flujo correspondiente.
+
+## Registro normal
+
+Respuesta:
+
+{
+"tipo": "NORMAL",
+"roles": [...],
+"cursos": [...]
+}
+
+## Registro por invitación
+
+Respuesta:
+
+{
+"tipo": "INVITACION",
+"empresa": {...},
+"curso": {...},
+"roles": [...]
+}
