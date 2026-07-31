@@ -13,6 +13,7 @@ import * as invitacionRepository from '../repositories/invitacion.repository';
 import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
 import { BadRequestError } from '../errors/bad-request-error';
+import { NotFoundError } from '../errors/not-found.error';
 
 export async function getAlumnoActual(user: AuthUser): Promise<UsuarioActualResponseDTO> {
   const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
@@ -26,17 +27,17 @@ export async function getInvitacion(user: AuthUser) {
   const invitacion = await invitacionRepository.findByEmail(usuario.email);
 
   if (!invitacion) {
-    return null;
+    throw new NotFoundError('El usuario no posee invitaciones activas.');
   }
 
   if (invitacion.estado === 'PENDIENTE' && invitacion.fechaExpiracion <= new Date()) {
     await invitacionRepository.expirar(invitacion.id);
 
-    return null;
+    throw new NotFoundError('El usuario no posee invitaciones activas.');
   }
 
   if (!invitacion.empresa.activo) {
-    return null;
+    throw new NotFoundError('El usuario no posee invitaciones activas.');
   }
 
   return invitacion;
@@ -114,10 +115,7 @@ export async function completarRegistro(
       idRolEmpresa: data.idRolEmpresa,
     });
 
-    /*
-    Este método entra cuando esté el estado FINALIZADA en la BD
-    await invitacionRepository.finalizar(invitacion.id); 
-    */
+    await invitacionRepository.finalizar(invitacion.id);
   } else {
     if (!data.idCurso) {
       throw new BadRequestError('Debe seleccionar un curso.');
