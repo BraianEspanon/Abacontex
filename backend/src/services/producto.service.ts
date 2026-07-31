@@ -1,5 +1,7 @@
 import { AuthUser } from '../types/express';
 
+import * as storageService from '../integrations/storage/storage.service';
+
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as productoRepository from '../repositories/producto.repository';
 
@@ -8,6 +10,8 @@ import {
   CrearProductoDTO,
   ObtenerProductosDTO,
 } from '../validators/producto.validator';
+
+import { STORAGE_FOLDERS } from '../constants/storage-folders';
 
 import { ConflictError } from '../errors/conflict.error';
 
@@ -27,7 +31,11 @@ async function obtenerEmpresaUsuario(user: AuthUser) {
   return usuario.alumno.empresa;
 }
 
-export async function crearProducto(user: AuthUser, data: CrearProductoDTO) {
+export async function crearProducto(
+  user: AuthUser,
+  data: CrearProductoDTO,
+  foto?: Express.Multer.File
+) {
   const empresa = await obtenerEmpresaUsuario(user);
 
   const productoExistente = await productoRepository.findByNombre(empresa.id, data.nombre);
@@ -38,7 +46,17 @@ export async function crearProducto(user: AuthUser, data: CrearProductoDTO) {
     });
   }
 
-  return productoRepository.create(empresa.id, data);
+  let fotoUrl: string | null = null;
+  let fotoPublicId: string | null = null;
+
+  if (foto) {
+    const uploaded = await storageService.upload(foto, STORAGE_FOLDERS.PRODUCTOS);
+
+    fotoUrl = uploaded.url;
+    fotoPublicId = uploaded.publicId;
+  }
+
+  return productoRepository.create(empresa.id, data, fotoUrl, fotoPublicId);
 }
 
 export async function actualizarProducto(

@@ -174,7 +174,12 @@ export async function findByEmpresa(
   };
 }
 
-export async function create(empresaId: number, data: CrearProductoDTO) {
+export async function create(
+  empresaId: number,
+  data: CrearProductoDTO,
+  fotoUrl: string | null,
+  fotoPublicId: string | null
+) {
   return prisma.producto.create({
     data: {
       empresaId,
@@ -186,7 +191,8 @@ export async function create(empresaId: number, data: CrearProductoDTO) {
 
       precioUnitario: data.precioUnitario,
 
-      fotoUrl: data.fotoUrl ?? null,
+      fotoUrl,
+      fotoPublicId,
     },
   });
 }
