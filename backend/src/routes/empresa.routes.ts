@@ -20,6 +20,7 @@ import {
 } from '../controllers/empresa.controller';
 
 import {
+  actualizarEmpresaSchema,
   agregarParticipantesSchema,
   cambiarRolParticipanteSchema,
   crearEmpresaSchema,
@@ -45,7 +46,8 @@ router.patch(
   '/me',
   authenticate,
   requireRole(ROLES.ALUMNO),
-  validate(crearEmpresaSchema),
+  upload.single('logo'),
+  validate(actualizarEmpresaSchema),
   actualizarEmpresa
 );
 

@@ -12,6 +12,7 @@ import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
 import * as invitacionRepository from '../repositories/invitacion.repository';
 
 import {
+  ActualizarEmpresaDTO,
   AgregarParticipantesDTO,
   CrearEmpresaDTO,
   ModificarRolesDTO,
@@ -107,7 +108,11 @@ export async function getEmpresaActual(user: AuthUser) {
   return toEmpresaActualResponse(usuario.alumno.empresa);
 }
 
-export async function actualizarEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
+export async function actualizarEmpresa(
+  user: AuthUser,
+  data: ActualizarEmpresaDTO,
+  logo?: Express.Multer.File
+) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaOrThrow(user.keycloakId);
 
   if (!usuario.alumno) {
@@ -129,9 +134,50 @@ export async function actualizarEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
     }
   }
 
-  await empresaRepository.update(empresa.id, data);
+  if (logo && data.eliminarLogo) {
+    throw new BadRequestError('No puedes reemplazar y eliminar el logo al mismo tiempo.');
+  }
 
-  return getEmpresaActual(user);
+  let logoUrl = empresa.logoUrl;
+  let logoPublicId = empresa.logoPublicId;
+
+  let uploaded: UploadedFile | undefined;
+
+  try {
+    if (logo) {
+      uploaded = await storageService.upload(logo, STORAGE_FOLDERS.EMPRESAS);
+
+      logoUrl = uploaded.url;
+      logoPublicId = uploaded.publicId;
+    }
+
+    if (data.eliminarLogo) {
+      logoUrl = null;
+      logoPublicId = null;
+    }
+
+    const empresaActualizada = await empresaRepository.update(empresa.id, {
+      ...data,
+      logoUrl,
+      logoPublicId,
+    });
+
+    if (logo && empresa.logoPublicId) {
+      await storageService.deleteFile(empresa.logoPublicId);
+    }
+
+    if (data.eliminarLogo && empresa.logoPublicId) {
+      await storageService.deleteFile(empresa.logoPublicId);
+    }
+
+    return getEmpresaActual(user);
+  } catch (error) {
+    if (uploaded) {
+      await storageService.deleteFile(uploaded.publicId);
+    }
+
+    throw error;
+  }
 }
 
 export async function getCandidatos(user: AuthUser, search?: string) {

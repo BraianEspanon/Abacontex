@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
-import { CrearEmpresaDTO } from '../validators/empresa.validator';
+import { ActualizarEmpresaDTO, CrearEmpresaDTO } from '../validators/empresa.validator';
 import { NotFoundError } from '../errors/not-found.error';
 import { Empresa } from '@prisma/client';
 
@@ -12,7 +12,12 @@ export async function findBynombre(nombre: string) {
   });
 }
 
-export async function update(id: number, data: CrearEmpresaDTO) {
+type ActualizarEmpresaPersistenceDTO = ActualizarEmpresaDTO & {
+  logoUrl: string | null;
+  logoPublicId: string | null;
+};
+
+export async function update(id: number, data: ActualizarEmpresaPersistenceDTO) {
   return prisma.empresa.update({
     where: {
       id,
@@ -20,7 +25,8 @@ export async function update(id: number, data: CrearEmpresaDTO) {
     data: {
       nombre: data.nombre,
       actividad: data.actividad,
-      logoUrl: data.logoUrl ?? null,
+      logoUrl: data.logoUrl,
+      logoPublicId: data.logoPublicId,
     },
   });
 }

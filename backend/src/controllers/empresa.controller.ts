@@ -19,7 +19,7 @@ export async function getEmpresaActual(req: Request, res: Response) {
 }
 
 export async function actualizarEmpresa(req: Request, res: Response) {
-  const empresa = await empresaService.actualizarEmpresa(req.user!, req.body);
+  const empresa = await empresaService.actualizarEmpresa(req.user!, req.body, req.file);
 
   res.status(200).json(empresa);
 }

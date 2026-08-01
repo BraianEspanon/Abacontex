@@ -10,6 +10,18 @@ export const crearEmpresaSchema = z.object({
 
 export type CrearEmpresaDTO = z.infer<typeof crearEmpresaSchema>['body'];
 
+export const actualizarEmpresaSchema = z.object({
+  body: z.object({
+    nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(100),
+
+    actividad: z.string().trim().min(1, 'La actividad es obligatoria').max(255),
+
+    eliminarLogo: z.coerce.boolean().optional(),
+  }),
+});
+
+export type ActualizarEmpresaDTO = z.infer<typeof actualizarEmpresaSchema>['body'];
+
 export const agregarParticipantesSchema = z.object({
   body: z.object({
     participantes: z.array(z.string()).min(1),
