@@ -69,7 +69,10 @@ export async function actualizarProducto(
 ) {
   const empresa = await obtenerEmpresaUsuario(user);
 
-  const producto = await productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
+  const producto = await productoRepository.findByIdAndEmpresaWithStorageOrThrow(
+    idProducto,
+    empresa.id
+  );
 
   if (producto.nombre !== data.nombre) {
     const productoExistente = await productoRepository.findByNombre(empresa.id, data.nombre);

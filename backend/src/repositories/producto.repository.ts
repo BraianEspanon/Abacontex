@@ -9,12 +9,43 @@ import {
 
 import { NotFoundError } from '../errors/not-found.error';
 
+export async function findByIdAndEmpresaWithStorageOrThrow(id: number, empresaId: number) {
+  const producto = await prisma.producto.findFirst({
+    where: {
+      id,
+      empresaId,
+      activo: true,
+    },
+  });
+
+  if (!producto) {
+    throw new NotFoundError('Producto no encontrado.', {
+      idProducto: id,
+    });
+  }
+
+  return producto;
+}
+
 export async function findByIdAndEmpresaOrThrow(id: number, empresaId: number) {
   const producto = await prisma.producto.findFirst({
     where: {
       id,
       empresaId,
       activo: true,
+    },
+
+    select: {
+      id: true,
+      empresaId: true,
+      nombre: true,
+      descripcion: true,
+      stock: true,
+      precioUnitario: true,
+      fotoUrl: true,
+      activo: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 
