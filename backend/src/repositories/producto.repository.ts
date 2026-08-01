@@ -103,6 +103,8 @@ export async function findByEmpresa(
 
           nombre: true,
 
+          descripcion: true,
+
           fotoUrl: true,
 
           precioUnitario: true,

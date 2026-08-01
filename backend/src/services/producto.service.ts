@@ -160,6 +160,7 @@ export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductos
     items: items.map((producto) => ({
       id: producto.id,
       nombre: producto.nombre,
+      descripcion: producto.descripcion,
       fotoUrl: producto.fotoUrl,
       precioUnitario: Number(producto.precioUnitario),
       stock: producto.stock,
