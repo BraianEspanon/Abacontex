@@ -33,7 +33,7 @@ export const actualizarProductoSchema = z.object({
       .min(1, 'El nombre es obligatorio')
       .max(100, 'El nombre no puede superar los 100 caracteres'),
 
-    precioUnitario: z
+    precioUnitario: z.coerce
       .number('El precio unitario debe ser un número')
       .positive('El precio unitario debe ser mayor a cero'),
 
@@ -43,7 +43,7 @@ export const actualizarProductoSchema = z.object({
       .min(1, 'La descripción es obligatoria')
       .max(250, 'La descripción no puede superar los 250 caracteres'),
 
-    fotoUrl: z.string().url().optional().nullable(),
+    eliminarFoto: z.coerce.boolean().optional(),
   }),
 
   params: z.object({

@@ -20,7 +20,12 @@ export async function actualizarProducto(req: Request, res: Response) {
     params: req.params,
   });
 
-  const producto = await productoService.actualizarProducto(req.user!, params.idProducto, body);
+  const producto = await productoService.actualizarProducto(
+    req.user!,
+    params.idProducto,
+    body,
+    req.file
+  );
 
   res.status(200).json(producto);
 }

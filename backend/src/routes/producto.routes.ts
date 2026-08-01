@@ -47,6 +47,7 @@ router.patch(
   '/:idProducto',
   authenticate,
   requireRole(ROLES.ALUMNO),
+  upload.single('foto'),
   validate(actualizarProductoSchema),
   actualizarProducto
 );

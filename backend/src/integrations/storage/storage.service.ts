@@ -27,3 +27,13 @@ export async function upload(file: Express.Multer.File, folder: string): Promise
     streamifier.createReadStream(file.buffer).pipe(uploadStream);
   });
 }
+
+export async function deleteFile(publicId: string): Promise<void> {
+  const result = await cloudinary.uploader.destroy(publicId);
+
+  if (result.result !== 'ok' && result.result !== 'not found') {
+    throw new Error(
+      `No fue posible eliminar el archivo de Cloudinary. Resultado: ${result.result}`
+    );
+  }
+}

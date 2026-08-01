@@ -197,7 +197,12 @@ export async function create(
   });
 }
 
-export async function update(id: number, data: ActualizarProductoDTO) {
+type ActualizarProductoPersistenceDTO = ActualizarProductoDTO & {
+  fotoUrl: string | null;
+  fotoPublicId: string | null;
+};
+
+export async function update(id: number, data: ActualizarProductoPersistenceDTO) {
   return prisma.producto.update({
     where: {
       id,
@@ -207,7 +212,9 @@ export async function update(id: number, data: ActualizarProductoDTO) {
       nombre: data.nombre,
       descripcion: data.descripcion,
       precioUnitario: data.precioUnitario,
-      fotoUrl: data.fotoUrl ?? null,
+
+      fotoUrl: data.fotoUrl,
+      fotoPublicId: data.fotoPublicId,
     },
   });
 }

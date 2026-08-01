@@ -14,6 +14,8 @@ import {
 import { STORAGE_FOLDERS } from '../constants/storage-folders';
 
 import { ConflictError } from '../errors/conflict.error';
+import { BadRequestError } from '../errors/bad-request-error';
+import { UploadedFile } from '../integrations/storage/storage.types';
 
 async function obtenerEmpresaUsuario(user: AuthUser) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaOrThrow(user.keycloakId);
@@ -62,7 +64,8 @@ export async function crearProducto(
 export async function actualizarProducto(
   user: AuthUser,
   idProducto: number,
-  data: ActualizarProductoDTO
+  data: ActualizarProductoDTO,
+  foto?: Express.Multer.File
 ) {
   const empresa = await obtenerEmpresaUsuario(user);
 
@@ -78,7 +81,59 @@ export async function actualizarProducto(
     }
   }
 
-  return productoRepository.update(idProducto, data);
+  if (foto && data.eliminarFoto) {
+    throw new BadRequestError('No puedes reemplazar y eliminar la imagen al mismo tiempo.');
+  }
+
+  let fotoUrl = producto.fotoUrl;
+  let fotoPublicId = producto.fotoPublicId;
+  let uploaded: UploadedFile | undefined;
+
+  try {
+    // Subir imagen nueva
+    if (foto) {
+      uploaded = await storageService.upload(foto, STORAGE_FOLDERS.PRODUCTOS);
+
+      fotoUrl = uploaded.url;
+      fotoPublicId = uploaded.publicId;
+    }
+
+    // Eliminar imagen
+    if (data.eliminarFoto) {
+      fotoUrl = null;
+      fotoPublicId = null;
+    }
+
+    const productoActualizado = await productoRepository.update(idProducto, {
+      ...data,
+      fotoUrl,
+      fotoPublicId,
+    });
+
+    // Si reemplazamos, recién ahora borrar la vieja
+    if (foto && producto.fotoPublicId) {
+      await storageService.deleteFile(producto.fotoPublicId);
+    }
+
+    // Si eliminamos, recién ahora borrar la vieja
+    if (data.eliminarFoto && producto.fotoPublicId) {
+      await storageService.deleteFile(producto.fotoPublicId);
+    }
+
+    return productoActualizado;
+  } catch (error) {
+    // Si subimos una nueva imagen y la BD falló,
+    // limpiamos la subida.
+    if (uploaded) {
+      try {
+        await storageService.deleteFile(uploaded.publicId);
+      } catch {
+        // No ocultamos el error original si falla la limpieza.
+      }
+    }
+
+    throw error;
+  }
 }
 
 export async function getProducto(user: AuthUser, idProducto: number) {
