@@ -7,7 +7,7 @@ import {
 } from '../validators/empresa.validator';
 
 export async function crearEmpresa(req: Request, res: Response) {
-  const empresa = await empresaService.crearEmpresa(req.user!, req.body);
+  const empresa = await empresaService.crearEmpresa(req.user!, req.body, req.file);
 
   res.status(201).json(empresa);
 }

@@ -25,8 +25,13 @@ export async function update(id: number, data: CrearEmpresaDTO) {
   });
 }
 
+type CrearEmpresaPersistenceDTO = CrearEmpresaDTO & {
+  logoUrl: string | null;
+  logoPublicId: string | null;
+};
+
 export async function create(
-  data: CrearEmpresaDTO,
+  data: CrearEmpresaPersistenceDTO,
   idCurso: number,
   idCicloLectivo: number,
   idUsuario: string
@@ -36,7 +41,8 @@ export async function create(
       data: {
         nombre: data.nombre,
         actividad: data.actividad,
-        logoUrl: data.logoUrl ?? null,
+        logoUrl: data.logoUrl,
+        logoPublicId: data.logoPublicId,
         puntos: 0,
         idCurso: idCurso,
         idCicloLectivo: idCicloLectivo,

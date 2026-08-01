@@ -1,5 +1,10 @@
 import { AuthUser } from '../types/express';
 
+import { STORAGE_FOLDERS } from '../constants/storage-folders';
+
+import * as storageService from '../integrations/storage/storage.service';
+import { UploadedFile } from '../integrations/storage/storage.types';
+
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as empresaRepository from '../repositories/empresa.repository';
@@ -27,7 +32,11 @@ import { obtenerFechaExpiracionInvitacion } from '../utils/date.util';
 
 import { sendInvitationEmail } from '../integrations/email/email.service';
 
-export async function crearEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
+export async function crearEmpresa(
+  user: AuthUser,
+  data: CrearEmpresaDTO,
+  logo?: Express.Multer.File
+) {
   const usuario = await usuarioRepository.findByKeycloakIdWithRolEmpresaOrThrow(user.keycloakId);
   const alumno = usuario.alumno;
 
@@ -56,14 +65,30 @@ export async function crearEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
     });
   }
 
-  const empresa = await empresaRepository.create(
-    data,
-    alumno.idCurso,
-    1, //CAMBIAR CICLO LECTIVO CUANDO SE IMPLEMENTE REALMENTE
-    usuario.id
-  );
+  let uploaded: UploadedFile | undefined;
 
-  return empresa;
+  try {
+    if (logo) {
+      uploaded = await storageService.upload(logo, STORAGE_FOLDERS.EMPRESAS);
+    }
+
+    return await empresaRepository.create(
+      {
+        ...data,
+        logoUrl: uploaded?.url ?? null,
+        logoPublicId: uploaded?.publicId ?? null,
+      },
+      alumno.idCurso,
+      1, //REVISAR CUANDO ESTÉ CICLO LECTIVO
+      usuario.id
+    );
+  } catch (error) {
+    if (uploaded) {
+      await storageService.deleteFile(uploaded.publicId);
+    }
+
+    throw error;
+  }
 }
 
 export async function getEmpresaActual(user: AuthUser) {

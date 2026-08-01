@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
+import { upload } from '../middleware/upload.middleware';
 
 import { ROLES } from '../constants/roles';
 
@@ -33,6 +34,7 @@ router.post(
   '/',
   authenticate,
   requireRole(ROLES.ALUMNO),
+  upload.single('logo'),
   validate(crearEmpresaSchema),
   crearEmpresa
 );
