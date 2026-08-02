@@ -1,109 +1,87 @@
-import { Building2, Users, ArrowRight, TrophyIcon } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { useKeycloak } from '@react-keycloak/web';
 import { useNavigate } from 'react-router-dom';
 
+import BokehContainer from '../../components/ui/BokehContainer';
 import Button from '../../components/ui/Button';
+
+const PASOS_CEO = [
+  {
+    numero: 1,
+    titulo: 'Creá tu empresa',
+    descripcion: 'Definí el nombre, rubro y logo que va a representarlos.',
+  },
+  {
+    numero: 2,
+    titulo: 'Sumá a tu equipo',
+    descripcion: 'Buscá a tus compañeros registrados o invitalos por correo.',
+  },
+  {
+    numero: 3,
+    titulo: '¡A competir!',
+    descripcion: 'Empezá la simulación y tomá las primeras decisiones estratégicas.',
+  },
+];
 
 export default function CEOBienvenida() {
   const navigate = useNavigate();
+  const { keycloak } = useKeycloak();
+
+  const firstName =
+    keycloak.tokenParsed?.given_name ?? keycloak.tokenParsed?.name?.split(' ')[0] ?? 'CEO';
 
   const handleContinue = () => {
-    navigate('/onboarding/empresa');
+    navigate('/empresa/crear');
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-abacontext-light-bg px-4 py-10 font-sans sm:px-6">
-      <section className="w-full max-w-4xl overflow-hidden rounded-4xl bg-white shadow-xl shadow-abacontex-dark/5">
-        <header className="relative overflow-hidden bg-abacontex-dark px-8 py-12 text-center md:px-14 md:py-16">
-          <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-abacontex-primary opacity-20" />
-          <div className="absolute -bottom-20 -left-16 h-52 w-52 rounded-full bg-abacontex-primary-three opacity-20" />
-
-          <div className="relative z-10">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-abacontex-primary-three text-white shadow-lg">
-              <Building2 className="h-10 w-10" />
-            </div>
-
-            <h1 className="mb-4 font-heading text-4xl font-extrabold tracking-tight text-white md:text-5xl">
-              ¡Bienvenido, CEO!
+    <main className="min-h-screen bg-abacontex-dark font-sans text-white">
+      <BokehContainer className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
+        <section className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center">
+          {/* PRESENTACIÓN */}
+          <header className="mb-12 max-w-4xl text-center md:mb-16">
+            <h1 className="mb-6 font-heading text-4xl font-extrabold leading-tight tracking-wide text-abacontex-light sm:text-5xl lg:text-6xl">
+              ¡Bienvenid@, {firstName}!
             </h1>
 
-            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-abacontex-light/80">
-              Como CEO de tu equipo, tu misión es crear la empresa, armar el equipo y liderar la
-              simulación. ¡Empecemos!
+            <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 sm:text-xl">
+              Como <strong className="font-bold">CEO</strong> de tu equipo, tu misión es crear la
+              empresa, armar el equipo y liderar la simulación. ¡Empecemos!
             </p>
-          </div>
-        </header>
+          </header>
 
-        <div className="p-8 md:p-12">
-          <h2 className="mb-8 text-center font-heading text-2xl font-bold text-abacontex-black-text">
-            Tus próximos pasos
-          </h2>
+          {/* PASOS */}
+          <div className="mb-10 grid w-full max-w-4xl gap-8 md:grid-cols-3">
+            {PASOS_CEO.map((paso) => (
+              <article
+                key={paso.numero}
+                className="relative flex min-h-60 flex-col items-center rounded-2xl bg-abacontex-light/60 px-5 pb-7 pt-20 text-center text-abacontex-black-text shadow-lg backdrop-blur-sm"
+              >
+                <div className="absolute -top-7 flex h-24 w-24 items-center justify-center rounded-full bg-[#9A7A61] font-heading text-6xl font-extrabold text-white shadow-md">
+                  {paso.numero}
+                </div>
 
-          <div className="mb-10 grid gap-6 md:grid-cols-2">
-            <article className="rounded-3xl border border-abacontex-gray/20 bg-abacontex-light-bg p-7">
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-abacontex-primary text-white">
-                <Building2 className="h-7 w-7" />
-              </div>
+                <h2 className="mb-4 font-heading text-2xl font-extrabold leading-tight">
+                  {paso.titulo}
+                </h2>
 
-              <span className="mb-2 block text-sm font-bold uppercase tracking-wider text-abacontex-primary-three">
-                Paso 1
-              </span>
-
-              <h3 className="mb-3 font-heading text-xl font-bold text-abacontex-black-text">
-                Crear la empresa
-              </h3>
-
-              <p className="leading-relaxed text-abacontex-gray-text">
-                Definí el nombre, rubro y logo que va a representarlos.
-              </p>
-            </article>
-
-            <article className="rounded-3xl border border-abacontex-gray/20 bg-abacontex-light-bg p-7">
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-abacontex-primary text-white">
-                <Users className="h-7 w-7" />
-              </div>
-
-              <span className="mb-2 block text-sm font-bold uppercase tracking-wider text-abacontex-primary-three">
-                Paso 2
-              </span>
-
-              <h3 className="mb-3 font-heading text-xl font-bold text-abacontex-black-text">
-                Sumá a tu equipo
-              </h3>
-
-              <p className="leading-relaxed text-abacontex-gray-text">
-                Buscá a tus compañeros registrados o invitalos por correo.
-              </p>
-            </article>
-
-            <article className="rounded-3xl border border-abacontex-gray/20 bg-abacontex-light-bg p-7">
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-abacontex-primary text-white">
-                <TrophyIcon className="h-7 w-7" />
-              </div>
-
-              <span className="mb-2 block text-sm font-bold uppercase tracking-wider text-abacontex-primary-three">
-                Paso 3
-              </span>
-
-              <h3 className="mb-3 font-heading text-xl font-bold text-abacontex-black-text">
-                ¡A competir!
-              </h3>
-
-              <p className="leading-relaxed text-abacontex-gray-text">
-                Empezá la simulación y tomá las primeras decisiones estratégicas.
-              </p>
-            </article>
+                <p className="text-base leading-snug text-[#2C2C2C] sm:text-lg">
+                  {paso.descripcion}
+                </p>
+              </article>
+            ))}
           </div>
 
-          <div className="flex justify-center">
-            <Button
-              label="Crear mi empresa"
-              variant="solid"
-              icon={<ArrowRight className="ml-2 h-5 w-5" />}
-              onClick={handleContinue}
-            />
-          </div>
-        </div>
-      </section>
+          {/* ACCIÓN */}
+          <Button
+            label="Crear mi empresa"
+            variant="solid"
+            icon={<ArrowRight className="h-5 w-5" />}
+            className="rounded-full px-8"
+            onClick={handleContinue}
+          />
+        </section>
+      </BokehContainer>
     </main>
   );
 }

@@ -10,15 +10,16 @@ import {
   Network,
   Target,
   GraduationCap,
+  Building2,
   ArrowRightFromLine,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import RoleCard from '../components/ui/RoleCard';
 import Button from '../components/ui/Button';
-import { useCursos } from '../hooks/useCursos';
-import { useRolesEmpresa } from '../hooks/useRolesEmpresa';
-import { useAssignRole } from '../hooks/useAssignRole';
+import { useDatosRegistro } from '../hooks/useDatosRegistro';
+import { useCompletarRegistro } from '../hooks/useCompletarRegistro';
+import InvitacionRoleSelection from './onboarding/InvitacionRoleSelection';
 
 const ROLE_ICONS: Record<string, LucideIcon> = {
   CEO: Briefcase,
@@ -39,65 +40,109 @@ export default function RoleSelection() {
 
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
-  const { data: cursos = [], isLoading: isLoadingCourses, isError: isCoursesError } = useCursos();
-  const { data: roles = [], isLoading: isLoadingRoles, isError: isRolesError } = useRolesEmpresa();
-  const { mutate: completeRegistration, isPending, isError: isRegistrationError } = useAssignRole();
-  const selectedRole = roles.find((role) => role.idRol === selectedRoleId);
-  const isFormValid = selectedRoleId !== null && selectedCourseId !== null && !isPending;
 
-  const handleContinue = () => {
-    if (selectedRoleId === null || selectedCourseId === null) {
-      return;
-    }
+  const { data: datosRegistro, isLoading, isError } = useDatosRegistro();
 
-    completeRegistration(
-      {
-        idCurso: selectedCourseId,
-        idRolEmpresa: selectedRoleId,
-      },
-      {
-        onSuccess: () => {
-          if (selectedRole?.nombreRol.toUpperCase() === 'CEO') {
-            navigate('/onboarding/ceo');
-            return;
-          }
+  const {
+    mutate: completarRegistro,
+    isPending,
+    isError: isRegistrationError,
+  } = useCompletarRegistro();
 
-          navigate('/dashboard');
-        },
-      }
-    );
-  };
-
-  if (isLoadingCourses || isLoadingRoles) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-abacontext-light-bg">
+      <div className="flex min-h-screen items-center justify-center bg-abacontext-light-bg">
         <p className="text-lg text-abacontex-gray-text">Cargando cursos y roles...</p>
       </div>
     );
   }
 
-  if (isCoursesError || isRolesError) {
+  if (isError || !datosRegistro) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-abacontext-light-bg px-4">
+      <div className="flex min-h-screen items-center justify-center bg-abacontext-light-bg px-4">
         <div className="max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
           <h1 className="mb-2 text-xl font-bold text-abacontex-black-text">
             No pudimos cargar la información
           </h1>
 
           <p className="text-abacontex-gray-text">
-            Ocurrió un error al obtener los cursos o los roles empresariales. Intentá nuevamente.
+            Ocurrió un error al obtener los datos del registro. Intentá nuevamente.
           </p>
         </div>
       </div>
     );
   }
 
+  const roles = datosRegistro.rolesEmpresa;
+
+  const selectedRole = roles.find((role) => role.idRol === selectedRoleId);
+
+  const isFormValid = selectedRoleId !== null && selectedCourseId !== null && !isPending;
+
+  const handleContinue = () => {
+    if (selectedRoleId === null) {
+      return;
+    }
+
+    if (datosRegistro.tipo === 'NORMAL') {
+      if (selectedCourseId === null) {
+        return;
+      }
+
+      completarRegistro(
+        {
+          idCurso: selectedCourseId,
+          idRolEmpresa: selectedRoleId,
+        },
+        {
+          onSuccess: () => {
+            if (selectedRole?.nombreRol.toUpperCase() === 'CEO') {
+              navigate('/onboarding/ceo', { replace: true });
+              return;
+            }
+
+            navigate('/alumno/empresa', { replace: true });
+          },
+        }
+      );
+
+      return;
+    }
+
+    completarRegistro(
+      {
+        idRolEmpresa: selectedRoleId,
+      },
+      {
+        onSuccess: () => {
+          navigate('/alumno/empresa', { replace: true });
+        },
+      }
+    );
+  };
+
+  if (datosRegistro.tipo === 'INVITACION') {
+    return (
+      <InvitacionRoleSelection
+        firstName={firstName}
+        datosRegistro={datosRegistro}
+        selectedRoleId={selectedRoleId}
+        isPending={isPending}
+        hasError={isRegistrationError}
+        onSelectRole={setSelectedRoleId}
+        onComplete={handleContinue}
+        onCancel={() => navigate('/inicio', { replace: true })}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-abacontext-light-bg flex flex-col items-center px-4 py-10 font-sans sm:px-6">
+    <div className="flex min-h-screen flex-col items-center bg-abacontext-light-bg px-4 py-10 font-sans sm:px-6">
       <div className="mb-8 w-full max-w-4xl overflow-hidden rounded-4xl bg-white shadow-xl shadow-abacontex-dark/5">
         {/* HEADER */}
         <div className="relative overflow-hidden bg-[#1d2620] px-8 py-10 text-center md:px-12 md:py-14">
           <div className="absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[#2d3a31] opacity-80 mix-blend-screen" />
+
           <div className="absolute -bottom-16 -left-12 h-40 w-40 rounded-full bg-[#2d3a31] opacity-80 mix-blend-screen" />
 
           <div className="relative z-10 flex flex-col items-center">
@@ -125,30 +170,32 @@ export default function RoleSelection() {
 
         {/* CONTENIDO */}
         <div className="p-8 md:p-10">
-          {/* CURSOS */}
-          <section className="mb-10">
-            <h2 className="mb-5 border-b border-abacontex-gray/20 pb-2 font-heading text-xl font-bold text-abacontex-black-text">
-              Seleccioná tu curso
-            </h2>
+          {/* CURSOS: SOLO REGISTRO NORMAL */}
+          {datosRegistro.tipo === 'NORMAL' && (
+            <section className="mb-10">
+              <h2 className="mb-5 border-b border-abacontex-gray/20 pb-2 font-heading text-xl font-bold text-abacontex-black-text">
+                Seleccioná tu curso
+              </h2>
 
-            {cursos.length === 0 ? (
-              <p className="text-abacontex-gray-text">No hay cursos disponibles.</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {cursos.map((curso) => (
-                  <RoleCard
-                    key={curso.idCurso}
-                    id={curso.idCurso}
-                    title={curso.nombreCurso}
-                    description="Curso académico"
-                    icon={GraduationCap}
-                    isSelected={selectedCourseId === curso.idCurso}
-                    onClick={setSelectedCourseId}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
+              {datosRegistro.cursos.length === 0 ? (
+                <p className="text-abacontex-gray-text">No hay cursos disponibles.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  {datosRegistro.cursos.map((curso) => (
+                    <RoleCard
+                      key={curso.idCurso}
+                      id={curso.idCurso}
+                      title={curso.nombreCurso}
+                      description="Curso académico"
+                      icon={GraduationCap}
+                      isSelected={selectedCourseId === curso.idCurso}
+                      onClick={setSelectedCourseId}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
           {/* ROLES */}
           <section className="mb-8">
@@ -159,7 +206,7 @@ export default function RoleSelection() {
             {roles.length === 0 ? (
               <p className="text-abacontex-gray-text">No hay roles empresariales disponibles.</p>
             ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {roles.map((role) => {
                   const Icon = ROLE_ICONS[role.nombreRol.toUpperCase()] ?? Briefcase;
 

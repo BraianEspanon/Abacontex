@@ -1,4 +1,7 @@
-export interface CompletarRegistroAlumnoPayload {
-  idCurso: number;
-  idRolEmpresa: number;
+export interface AlumnoActualResponse {
+  id: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  registroCompleto: boolean;
 }

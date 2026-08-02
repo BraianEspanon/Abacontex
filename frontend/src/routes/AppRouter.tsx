@@ -18,6 +18,8 @@ import RegistrarProductoPage from '../pages/producto/RegistrarProductoPage';
 import RoleSelection from '../pages/RoleSelection';
 import EditarProductoPage from '../pages/producto/EditarProductoPage';
 import CEOBienvenida from '../pages/onboarding/CEOBienvenida';
+import RedireccionInicial from '../pages/onboarding/RedireccionIncial';
+import InvitacionPage from '../pages/onboarding/InvitacionPage';
 
 export default function AppRouter() {
   return (
@@ -25,12 +27,40 @@ export default function AppRouter() {
       {/* Rutas públicas */}
       <Route path="/" element={<LandingPage />} />
 
+      {/* Decide a dónde redireccionar */}
+      <Route
+        path="/inicio"
+        element={
+          <ProtectedRoute>
+            <RedireccionInicial />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="onboarding/invitacion"
+        element={
+          <ProtectedRoute>
+            <InvitacionPage />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Configuración inicial */}
       <Route
         path="/setup"
         element={
           <ProtectedRoute>
             <RoleSelection />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/onboarding/ceo"
+        element={
+          <ProtectedRoute>
+            <CEOBienvenida />
           </ProtectedRoute>
         }
       />
@@ -77,14 +107,6 @@ export default function AppRouter() {
 
         <Route path="productos/:id/editar" element={<EditarProductoPage />} />
       </Route>
-      <Route
-        path="/onboarding/ceo"
-        element={
-          <ProtectedRoute>
-            <CEOBienvenida />
-          </ProtectedRoute>
-        }
-      />
     </Routes>
   );
 }

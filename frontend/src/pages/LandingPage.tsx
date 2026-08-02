@@ -24,7 +24,7 @@ export default function LandingPage() {
   const { keycloak, initialized } = useKeycloak();
 
   if (initialized && keycloak.authenticated) {
-    return <Navigate to="/setup" replace />;
+    return <Navigate to="/inicio" replace />;
   }
 
   return (
