@@ -3,7 +3,11 @@ import { z } from 'zod';
 export const crearInvitacionesSchema = z.object({
   body: z.object({
     emails: z
-      .array(z.email())
+      .array(
+        z.email().refine((email) => email.toLowerCase().endsWith('@ipgsanmartin.edu.ar'), {
+          message: 'Solo se permiten correos institucionales (@ipgsanmartin.edu.ar).',
+        })
+      )
       .min(1, 'Debe ingresar al menos un correo')
       .max(10, 'No puede invitar más de 10 personas a la vez')
       .refine((emails) => new Set(emails).size === emails.length, {
