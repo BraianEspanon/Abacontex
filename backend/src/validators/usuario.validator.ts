@@ -31,11 +31,7 @@ export const actualizarUsuarioSchema = z.object({
 
     apellido: z.string().trim().min(1, 'El apellido es obligatorio').max(100),
 
-    fotoPerfilUrl: z
-      .url('La URL de la foto de perfil no es válida.')
-      .max(500)
-      .nullable()
-      .optional(),
+    eliminarFoto: z.coerce.boolean().optional(),
   }),
 });
 

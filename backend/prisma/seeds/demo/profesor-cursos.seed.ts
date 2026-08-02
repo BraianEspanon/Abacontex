@@ -8,7 +8,7 @@ export const profesorCursosSeed: Seed = {
   async run(prisma: PrismaClient) {
     const profesor = await prisma.usuario.findUnique({
       where: {
-        email: 'docente@mail.com',
+        email: 'docente@ipgsanmartin.edu.ar',
       },
     });
 
@@ -25,7 +25,7 @@ export const profesorCursosSeed: Seed = {
     });
 
     if (!profesor) {
-      throw new Error('No existe el usuario docente@mail.com.');
+      throw new Error('No existe el usuario docente@ipgsanmartin.edu.ar.');
     }
 
     if (!curso5to) {

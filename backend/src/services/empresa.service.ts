@@ -156,7 +156,7 @@ export async function actualizarEmpresa(
       logoPublicId = null;
     }
 
-    const empresaActualizada = await empresaRepository.update(empresa.id, {
+    await empresaRepository.update(empresa.id, {
       ...data,
       logoUrl,
       logoPublicId,

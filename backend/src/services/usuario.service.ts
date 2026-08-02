@@ -1,8 +1,14 @@
 import { AuthUser } from '../types/express';
 import { getRolSistema } from './role.service';
+import { UploadedFile } from '../integrations/storage/storage.types';
+import { STORAGE_FOLDERS } from '../constants/storage-folders';
+
 import * as keycloakAdminService from '../integrations/keycloak/keycloak-admin.service';
 import * as usuarioRepository from '../repositories/usuario.repository';
+import * as storageService from '../integrations/storage/storage.service';
+
 import { ActualizarContraseñaDTO, ActualizarUsuarioDTO } from '../validators/usuario.validator';
+import { BadRequestError } from '../errors/bad-request-error';
 
 export async function syncUsuario(user: AuthUser) {
   let usuario = await usuarioRepository.findByKeycloakId(user.keycloakId);
@@ -19,20 +25,65 @@ export async function syncUsuario(user: AuthUser) {
 }
 
 export async function getUsuarioActual(user: AuthUser) {
-  return usuarioRepository.findByKeycloakIdWithRolSistemaOrThrow(user.keycloakId);
+  return usuarioRepository.findByKeycloakIdWithRolSistemaOrThrowForResponse(user.keycloakId);
 }
 
-export async function actualizarUsuarioActual(user: AuthUser, data: ActualizarUsuarioDTO) {
-  await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+export async function actualizarUsuarioActual(
+  user: AuthUser,
+  data: ActualizarUsuarioDTO,
+  foto?: Express.Multer.File
+) {
+  const usuario = await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
 
-  await keycloakAdminService.updateUser(user.keycloakId, {
-    firstName: data.nombre,
-    lastName: data.apellido,
-  });
+  if (foto && data.eliminarFoto) {
+    throw new BadRequestError('No puedes reemplazar y eliminar la foto al mismo tiempo.');
+  }
 
-  await usuarioRepository.update(user.keycloakId, data);
+  let fotoPerfilUrl = usuario.fotoPerfilUrl;
+  let fotoPerfilPublicId = usuario.fotoPerfilPublicId;
 
-  return getUsuarioActual(user);
+  let uploaded: UploadedFile | undefined;
+
+  try {
+    if (foto) {
+      uploaded = await storageService.upload(foto, STORAGE_FOLDERS.USUARIOS);
+
+      fotoPerfilUrl = uploaded.url;
+      fotoPerfilPublicId = uploaded.publicId;
+    }
+
+    if (data.eliminarFoto) {
+      fotoPerfilUrl = null;
+      fotoPerfilPublicId = null;
+    }
+
+    await keycloakAdminService.updateUser(user.keycloakId, {
+      firstName: data.nombre,
+      lastName: data.apellido,
+    });
+
+    await usuarioRepository.update(user.keycloakId, {
+      ...data,
+      fotoPerfilUrl,
+      fotoPerfilPublicId,
+    });
+
+    if (foto && usuario.fotoPerfilPublicId) {
+      await storageService.deleteFile(usuario.fotoPerfilPublicId);
+    }
+
+    if (data.eliminarFoto && usuario.fotoPerfilPublicId) {
+      await storageService.deleteFile(usuario.fotoPerfilPublicId);
+    }
+
+    return getUsuarioActual(user);
+  } catch (error) {
+    if (uploaded) {
+      await storageService.deleteFile(uploaded.publicId);
+    }
+
+    throw error;
+  }
 }
 
 export async function actualizarPassword(user: AuthUser, data: ActualizarContraseñaDTO) {

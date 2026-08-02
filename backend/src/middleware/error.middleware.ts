@@ -7,7 +7,7 @@ import { AppError } from '../errors/app-error';
 
 export function errorMiddleware(error: unknown, req: Request, res: Response, _next: NextFunction) {
   if (error instanceof multer.MulterError) {
-    let message = 'Error al procesar el archivo.';
+    let message;
 
     switch (error.code) {
       case 'LIMIT_FILE_SIZE':
