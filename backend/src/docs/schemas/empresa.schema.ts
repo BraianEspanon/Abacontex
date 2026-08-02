@@ -23,7 +23,7 @@
  *         logo:
  *           type: string
  *           format: binary
- *           description: Archivo de imagen para el logo de la empresa. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
+ *           description: Archivo de imagen para el logo de la empresa. Formatos permitidos JPG, PNG y WEBP. Tamaño máximo 5 MB.
  *
  *     EmpresaCreada:
  *       type: object
@@ -70,7 +70,7 @@
  *         logo:
  *           type: string
  *           format: binary
- *           description: Nuevo archivo de imagen para reemplazar el logo actual. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
+ *           description: Nuevo archivo de imagen para reemplazar el logo actual. Formatos permitidos JPG, PNG y WEBP. Tamaño máximo 5 MB.
  *
  *         eliminarLogo:
  *           type: boolean

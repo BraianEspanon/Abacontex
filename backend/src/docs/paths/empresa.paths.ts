@@ -15,6 +15,9 @@
  *
  *     requestBody:
  *       required: true
+ *       description: |
+ *         Debe enviarse como multipart/form-data con los campos de texto `nombre` y `actividad`,
+ *         y el archivo de imagen opcional `logo`.
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -81,6 +84,9 @@
  *
  *     requestBody:
  *       required: true
+ *       description: |
+ *         Debe enviarse como multipart/form-data con los campos de texto `nombre` y `actividad`,
+ *         y el archivo de imagen opcional `logo`. También puedes enviar `eliminarLogo=true` para quitar el logo actual.
  *       content:
  *         multipart/form-data:
  *           schema:

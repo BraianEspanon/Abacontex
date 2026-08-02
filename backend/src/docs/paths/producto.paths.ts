@@ -90,6 +90,9 @@
  *
  *     requestBody:
  *       required: true
+ *       description: |
+ *         Debe enviarse como multipart/form-data con los campos de texto `nombre`, `stockInicial`,
+ *         `precioUnitario`, `descripcion` y la imagen opcional `foto`.
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -176,6 +179,9 @@
  *
  *     requestBody:
  *       required: true
+ *       description: |
+ *         Debe enviarse como multipart/form-data con los campos de texto `nombre`, `precioUnitario`,
+ *         `descripcion`, la imagen opcional `foto` y el flag `eliminarFoto` si corresponde.
  *       content:
  *         multipart/form-data:
  *           schema:

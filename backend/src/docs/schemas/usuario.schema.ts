@@ -115,7 +115,7 @@
  *         foto:
  *           type: string
  *           format: binary
- *           description: Archivo de imagen para la foto de perfil. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
+ *           description: Archivo de imagen para la foto de perfil. Formatos permitidos JPG, PNG y WEBP. Tamaño máximo 5 MB.
  *
  *         eliminarFoto:
  *           type: boolean

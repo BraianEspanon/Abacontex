@@ -29,7 +29,7 @@
  *         foto:
  *           type: string
  *           format: binary
- *           description: Archivo de imagen para la foto del producto. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
+ *           description: Archivo de imagen para la foto del producto. Formatos permitidos JPG, PNG y WEBP. Tamaño máximo 5 MB.
  *
  *     ProductoActualizarRequest:
  *       type: object
@@ -53,7 +53,7 @@
  *         foto:
  *           type: string
  *           format: binary
- *           description: Nuevo archivo de imagen para reemplazar la foto actual. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
+ *           description: Nuevo archivo de imagen para reemplazar la foto actual. Formatos permitidos JPG, PNG y WEBP. Tamaño máximo 5 MB.
  *         eliminarFoto:
  *           type: boolean
  *           example: false

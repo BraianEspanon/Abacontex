@@ -41,6 +41,9 @@
  *
  *     requestBody:
  *       required: true
+ *       description: |
+ *         Debe enviarse como multipart/form-data con los campos de texto `nombre` y `apellido`,
+ *         la imagen opcional `foto` y el flag `eliminarFoto` si corresponde.
  *       content:
  *         multipart/form-data:
  *           schema:
