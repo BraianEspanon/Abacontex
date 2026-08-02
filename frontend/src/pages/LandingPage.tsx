@@ -65,9 +65,9 @@ export default function LandingPage() {
 
         <div className="relative w-full flex items-center justify-center">
           <img
-            src="/img/hero-image.png"
+            src="img\hero-image (2).png"
             alt="Flujo de simulación de ABACONTEX"
-            className="w-full h-auto max-h-162.5 scale-125 object-contain drop-shadow-2xl"
+            className="w-full h-auto scale-125 object-contain drop-shadow-2xl"
           />
         </div>
       </main>

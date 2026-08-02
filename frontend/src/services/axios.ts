@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { config } from '../config';
-import keycloak from './keycloak';
+import keycloak from '../keycloak';
 
 const api = axios.create({
   baseURL: config.API_URL,
