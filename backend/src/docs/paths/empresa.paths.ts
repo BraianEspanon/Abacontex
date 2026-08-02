@@ -16,7 +16,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/EmpresaCrearRequest'
  *
@@ -71,6 +71,7 @@
  *     summary: Actualizar datos de la empresa del usuario autenticado
  *     description: |
  *       Permite modificar los datos principales de la empresa a la que pertenece el alumno autenticado.
+ *       Admite subir un nuevo logo en el campo `logo` o eliminarlo con `eliminarLogo`.
  *
  *     tags:
  *       - Empresas
@@ -81,7 +82,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/EmpresaActualizarRequest'
  *

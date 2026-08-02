@@ -80,6 +80,7 @@
  *     description: |
  *       Crea un nuevo producto para la empresa asociada al usuario autenticado.
  *       El producto no puede duplicar el nombre dentro de la misma empresa.
+ *       Admite subir una imagen en el campo `foto`.
  *
  *     tags:
  *       - Productos
@@ -90,7 +91,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/ProductoCrearRequest'
  *
@@ -156,6 +157,7 @@
  *     summary: Actualizar un producto
  *     description: |
  *       Actualiza los datos de un producto perteneciente a la empresa del usuario autenticado.
+ *       Admite subir una nueva imagen en el campo `foto` o eliminar la actual con `eliminarFoto`.
  *
  *     tags:
  *       - Productos
@@ -175,7 +177,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/ProductoActualizarRequest'
  *

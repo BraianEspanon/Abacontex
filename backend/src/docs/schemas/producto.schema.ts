@@ -26,11 +26,10 @@
  *           type: string
  *           maxLength: 250
  *           example: Cinta adhesiva para embalaje industrial.
- *         fotoUrl:
+ *         foto:
  *           type: string
- *           format: uri
- *           nullable: true
- *           example: https://cdn.example.com/productos/cinta.jpg
+ *           format: binary
+ *           description: Archivo de imagen para la foto del producto. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
  *
  *     ProductoActualizarRequest:
  *       type: object
@@ -51,11 +50,14 @@
  *           type: string
  *           maxLength: 250
  *           example: Cinta adhesiva premium para embalaje.
- *         fotoUrl:
+ *         foto:
  *           type: string
- *           format: uri
- *           nullable: true
- *           example: https://cdn.example.com/productos/cinta-premium.jpg
+ *           format: binary
+ *           description: Nuevo archivo de imagen para reemplazar la foto actual. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
+ *         eliminarFoto:
+ *           type: boolean
+ *           example: false
+ *           description: Si es true, elimina la foto actual sin reemplazarla por una nueva.
  *
  *     Producto:
  *       type: object

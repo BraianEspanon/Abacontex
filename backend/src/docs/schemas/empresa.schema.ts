@@ -20,12 +20,10 @@
  *           example: Desarrollo de software
  *           description: Actividad económica o descripción de la empresa.
  *
- *         logoUrl:
+ *         logo:
  *           type: string
- *           format: uri
- *           nullable: true
- *           example: https://cdn.example.com/logo.png
- *           description: URL del logo de la empresa. Opcional.
+ *           format: binary
+ *           description: Archivo de imagen para el logo de la empresa. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
  *
  *     EmpresaCreada:
  *       type: object
@@ -69,11 +67,15 @@
  *           maxLength: 255
  *           example: Desarrollo de software
  *
- *         logoUrl:
+ *         logo:
  *           type: string
- *           format: uri
- *           nullable: true
- *           example: https://cdn.example.com/logo.png
+ *           format: binary
+ *           description: Nuevo archivo de imagen para reemplazar el logo actual. Formatos permitidos: JPG, PNG y WEBP. Tamaño máximo: 5 MB.
+ *
+ *         eliminarLogo:
+ *           type: boolean
+ *           example: false
+ *           description: Si es true, elimina el logo actual sin reemplazarlo por uno nuevo.
  *
  *     EmpresaActual:
  *       type: object

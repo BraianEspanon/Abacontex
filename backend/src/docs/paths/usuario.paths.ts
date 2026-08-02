@@ -31,7 +31,7 @@
  *     summary: Actualizar datos del usuario autenticado
  *     description: |
  *       Permite modificar los datos personales del usuario autenticado.
- *       Pueden actualizarse el nombre, apellido y el rol dentro de la empresa.
+ *       Pueden actualizarse el nombre, apellido, la foto de perfil y eliminarla si corresponde.
  *
  *     tags:
  *       - Usuarios
@@ -42,7 +42,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/UsuarioActualizarRequest'
  *
