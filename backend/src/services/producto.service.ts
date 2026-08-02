@@ -1,5 +1,7 @@
 import { AuthUser } from '../types/express';
 
+import * as storageService from '../integrations/storage/storage.service';
+
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as productoRepository from '../repositories/producto.repository';
 
@@ -9,7 +11,11 @@ import {
   ObtenerProductosDTO,
 } from '../validators/producto.validator';
 
+import { STORAGE_FOLDERS } from '../constants/storage-folders';
+
 import { ConflictError } from '../errors/conflict.error';
+import { BadRequestError } from '../errors/bad-request-error';
+import { UploadedFile } from '../integrations/storage/storage.types';
 
 async function obtenerEmpresaUsuario(user: AuthUser) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaOrThrow(user.keycloakId);
@@ -27,7 +33,11 @@ async function obtenerEmpresaUsuario(user: AuthUser) {
   return usuario.alumno.empresa;
 }
 
-export async function crearProducto(user: AuthUser, data: CrearProductoDTO) {
+export async function crearProducto(
+  user: AuthUser,
+  data: CrearProductoDTO,
+  foto?: Express.Multer.File
+) {
   const empresa = await obtenerEmpresaUsuario(user);
 
   const productoExistente = await productoRepository.findByNombre(empresa.id, data.nombre);
@@ -38,17 +48,31 @@ export async function crearProducto(user: AuthUser, data: CrearProductoDTO) {
     });
   }
 
-  return productoRepository.create(empresa.id, data);
+  let fotoUrl: string | null = null;
+  let fotoPublicId: string | null = null;
+
+  if (foto) {
+    const uploaded = await storageService.upload(foto, STORAGE_FOLDERS.PRODUCTOS);
+
+    fotoUrl = uploaded.url;
+    fotoPublicId = uploaded.publicId;
+  }
+
+  return productoRepository.create(empresa.id, data, fotoUrl, fotoPublicId);
 }
 
 export async function actualizarProducto(
   user: AuthUser,
   idProducto: number,
-  data: ActualizarProductoDTO
+  data: ActualizarProductoDTO,
+  foto?: Express.Multer.File
 ) {
   const empresa = await obtenerEmpresaUsuario(user);
 
-  const producto = await productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
+  const producto = await productoRepository.findByIdAndEmpresaWithStorageOrThrow(
+    idProducto,
+    empresa.id
+  );
 
   if (producto.nombre !== data.nombre) {
     const productoExistente = await productoRepository.findByNombre(empresa.id, data.nombre);
@@ -60,7 +84,59 @@ export async function actualizarProducto(
     }
   }
 
-  return productoRepository.update(idProducto, data);
+  if (foto && data.eliminarFoto) {
+    throw new BadRequestError('No puedes reemplazar y eliminar la imagen al mismo tiempo.');
+  }
+
+  let fotoUrl = producto.fotoUrl;
+  let fotoPublicId = producto.fotoPublicId;
+  let uploaded: UploadedFile | undefined;
+
+  try {
+    // Subir imagen nueva
+    if (foto) {
+      uploaded = await storageService.upload(foto, STORAGE_FOLDERS.PRODUCTOS);
+
+      fotoUrl = uploaded.url;
+      fotoPublicId = uploaded.publicId;
+    }
+
+    // Eliminar imagen
+    if (data.eliminarFoto) {
+      fotoUrl = null;
+      fotoPublicId = null;
+    }
+
+    const productoActualizado = await productoRepository.update(idProducto, {
+      ...data,
+      fotoUrl,
+      fotoPublicId,
+    });
+
+    // Si reemplazamos, recién ahora borrar la vieja
+    if (foto && producto.fotoPublicId) {
+      await storageService.deleteFile(producto.fotoPublicId);
+    }
+
+    // Si eliminamos, recién ahora borrar la vieja
+    if (data.eliminarFoto && producto.fotoPublicId) {
+      await storageService.deleteFile(producto.fotoPublicId);
+    }
+
+    return productoActualizado;
+  } catch (error) {
+    // Si subimos una nueva imagen y la BD falló,
+    // limpiamos la subida.
+    if (uploaded) {
+      try {
+        await storageService.deleteFile(uploaded.publicId);
+      } catch {
+        // No ocultamos el error original si falla la limpieza.
+      }
+    }
+
+    throw error;
+  }
 }
 
 export async function getProducto(user: AuthUser, idProducto: number) {
@@ -87,6 +163,7 @@ export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductos
     items: items.map((producto) => ({
       id: producto.id,
       nombre: producto.nombre,
+      descripcion: producto.descripcion,
       fotoUrl: producto.fotoUrl,
       precioUnitario: Number(producto.precioUnitario),
       stock: producto.stock,

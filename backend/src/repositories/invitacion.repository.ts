@@ -34,8 +34,13 @@ export async function findByEmail(email: string) {
           nombre: true,
           actividad: true,
           logoUrl: true,
-          idCurso: true,
           activo: true,
+          curso: {
+            select: {
+              idCurso: true,
+              nombreCurso: true,
+            },
+          },
         },
       },
       createdBy: {

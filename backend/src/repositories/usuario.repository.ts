@@ -58,6 +58,40 @@ export async function findByKeycloakIdWithRolSistemaOrThrow(keycloakId: string) 
   return usuario;
 }
 
+export async function findByKeycloakIdWithRolSistemaOrThrowForResponse(keycloakId: string) {
+  const usuario = await prisma.usuario.findUnique({
+    where: {
+      keycloakId,
+    },
+    select: {
+      id: true,
+      keycloakId: true,
+      email: true,
+      nombre: true,
+      apellido: true,
+      rolSistemaId: true,
+      fotoPerfilUrl: true,
+      fechaAlta: true,
+
+      rolSistema: {
+        select: {
+          idRol: true,
+          nombreRol: true,
+          descripcion: true,
+        },
+      },
+    },
+  });
+
+  if (!usuario) {
+    throw new NotFoundError('Usuario no encontrado en base de datos.', {
+      keycloakId,
+    });
+  }
+
+  return usuario;
+}
+
 export async function findByKeycloakIdWithAlumno(keycloakId: string) {
   return prisma.usuario.findUnique({
     where: {
@@ -195,7 +229,12 @@ export async function findByKeycloakIdWithProfesorCursosOrThrow(keycloakId: stri
   return usuario;
 }
 
-export async function update(keycloakId: string, data: ActualizarUsuarioDTO) {
+type ActualizarUsuarioPersistenceDTO = ActualizarUsuarioDTO & {
+  fotoPerfilUrl: string | null;
+  fotoPerfilPublicId: string | null;
+};
+
+export async function update(keycloakId: string, data: ActualizarUsuarioPersistenceDTO) {
   return prisma.usuario.update({
     where: {
       keycloakId,
@@ -203,9 +242,9 @@ export async function update(keycloakId: string, data: ActualizarUsuarioDTO) {
     data: {
       nombre: data.nombre,
       apellido: data.apellido,
-      ...(data.fotoPerfilUrl !== undefined && {
-        fotoPerfilUrl: data.fotoPerfilUrl,
-      }),
+
+      fotoPerfilUrl: data.fotoPerfilUrl,
+      fotoPerfilPublicId: data.fotoPerfilPublicId,
     },
   });
 }
