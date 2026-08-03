@@ -1,24 +1,43 @@
 import { AuthUser } from '../types/express';
 
+import { STORAGE_FOLDERS } from '../constants/storage-folders';
+
+import * as storageService from '../integrations/storage/storage.service';
+import { UploadedFile } from '../integrations/storage/storage.types';
+
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as empresaRepository from '../repositories/empresa.repository';
 import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
+import * as invitacionRepository from '../repositories/invitacion.repository';
 
 import {
+  ActualizarEmpresaDTO,
   AgregarParticipantesDTO,
   CrearEmpresaDTO,
   ModificarRolesDTO,
 } from '../validators/empresa.validator';
+import { CrearInvitacionesDTO } from '../validators/invitacion.validator';
+
+import { InvitacionDTO } from '../dto/invitacion/inv-crear.dto';
+import { toEmpresaActualResponse } from '../dto/empresa/emp.mapper';
+import { toCandidatoResponse } from '../dto/alumno/alu.mapper';
 
 import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
-
-import { toEmpresaActualResponse } from '../dto/empresa/emp.mapper';
-import { toCandidatoResponse } from '../dto/alumno/alu.mapper';
 import { NotFoundError } from '../errors/not-found.error';
+import { BadRequestError } from '../errors/bad-request-error';
 
-export async function crearEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
+import { generarTokenInvitacion } from '../utils/token.util';
+import { obtenerFechaExpiracionInvitacion } from '../utils/date.util';
+
+import { sendInvitationEmail } from '../integrations/email/email.service';
+
+export async function crearEmpresa(
+  user: AuthUser,
+  data: CrearEmpresaDTO,
+  logo?: Express.Multer.File
+) {
   const usuario = await usuarioRepository.findByKeycloakIdWithRolEmpresaOrThrow(user.keycloakId);
   const alumno = usuario.alumno;
 
@@ -47,14 +66,30 @@ export async function crearEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
     });
   }
 
-  const empresa = await empresaRepository.create(
-    data,
-    alumno.idCurso,
-    1, //CAMBIAR CICLO LECTIVO CUANDO SE IMPLEMENTE REALMENTE
-    usuario.id
-  );
+  let uploaded: UploadedFile | undefined;
 
-  return empresa;
+  try {
+    if (logo) {
+      uploaded = await storageService.upload(logo, STORAGE_FOLDERS.EMPRESAS);
+    }
+
+    return await empresaRepository.create(
+      {
+        ...data,
+        logoUrl: uploaded?.url ?? null,
+        logoPublicId: uploaded?.publicId ?? null,
+      },
+      alumno.idCurso,
+      1, //REVISAR CUANDO ESTÉ CICLO LECTIVO
+      usuario.id
+    );
+  } catch (error) {
+    if (uploaded) {
+      await storageService.deleteFile(uploaded.publicId);
+    }
+
+    throw error;
+  }
 }
 
 export async function getEmpresaActual(user: AuthUser) {
@@ -73,7 +108,11 @@ export async function getEmpresaActual(user: AuthUser) {
   return toEmpresaActualResponse(usuario.alumno.empresa);
 }
 
-export async function actualizarEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
+export async function actualizarEmpresa(
+  user: AuthUser,
+  data: ActualizarEmpresaDTO,
+  logo?: Express.Multer.File
+) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaOrThrow(user.keycloakId);
 
   if (!usuario.alumno) {
@@ -95,9 +134,50 @@ export async function actualizarEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
     }
   }
 
-  await empresaRepository.update(empresa.id, data);
+  if (logo && data.eliminarLogo) {
+    throw new BadRequestError('No puedes reemplazar y eliminar el logo al mismo tiempo.');
+  }
 
-  return getEmpresaActual(user);
+  let logoUrl = empresa.logoUrl;
+  let logoPublicId = empresa.logoPublicId;
+
+  let uploaded: UploadedFile | undefined;
+
+  try {
+    if (logo) {
+      uploaded = await storageService.upload(logo, STORAGE_FOLDERS.EMPRESAS);
+
+      logoUrl = uploaded.url;
+      logoPublicId = uploaded.publicId;
+    }
+
+    if (data.eliminarLogo) {
+      logoUrl = null;
+      logoPublicId = null;
+    }
+
+    await empresaRepository.update(empresa.id, {
+      ...data,
+      logoUrl,
+      logoPublicId,
+    });
+
+    if (logo && empresa.logoPublicId) {
+      await storageService.deleteFile(empresa.logoPublicId);
+    }
+
+    if (data.eliminarLogo && empresa.logoPublicId) {
+      await storageService.deleteFile(empresa.logoPublicId);
+    }
+
+    return getEmpresaActual(user);
+  } catch (error) {
+    if (uploaded) {
+      await storageService.deleteFile(uploaded.publicId);
+    }
+
+    throw error;
+  }
 }
 
 export async function getCandidatos(user: AuthUser, search?: string) {
@@ -267,4 +347,96 @@ export async function modificarRolesEmpresa(
   }
 
   await alumnoRepository.updateRoles(roles);
+}
+
+export async function crearInvitaciones(user: AuthUser, data: CrearInvitacionesDTO) {
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  const alumno = usuario.alumno;
+
+  if (!alumno) {
+    throw new ConflictError('Debes completar el registro de alumno antes de crear una empresa.');
+  }
+
+  if (!alumno.empresa) {
+    throw new BadRequestError('El usuario no pertenece a ninguna empresa');
+  }
+
+  if (alumno.rolEmpresa?.nombreRol !== 'CEO') {
+    throw new ForbiddenError('Solo el Director Ejecutivo puede enviar invitaciones');
+  }
+
+  if (!alumno.empresa.activo) {
+    throw new ConflictError('La empresa no se encuentra activa.');
+  }
+
+  await validarCorreosInvitacion(usuario.email, alumno.empresa.id, data.emails);
+
+  const invitaciones: InvitacionDTO[] = data.emails.map((email) => ({
+    empresaId: alumno.empresa!.id,
+    createdById: usuario.id,
+    email,
+    token: generarTokenInvitacion(),
+    fechaExpiracion: obtenerFechaExpiracionInvitacion(),
+  }));
+
+  await invitacionRepository.crearInvitaciones(invitaciones);
+
+  await Promise.all(
+    invitaciones.map((invitacion) =>
+      sendInvitationEmail(invitacion.email, alumno.empresa!.nombre, invitacion.fechaExpiracion)
+    )
+  );
+}
+
+async function validarCorreosInvitacion(emailUsuario: string, empresaId: number, emails: string[]) {
+  for (const email of emails) {
+    if (email === emailUsuario) {
+      throw new ConflictError('No puedes enviarte una invitación a ti mismo.', {
+        email,
+      });
+    }
+
+    const usuarioExistente = await usuarioRepository.findByEmail(email);
+
+    if (usuarioExistente) {
+      throw new ConflictError('El correo ya pertenece a un usuario registrado.', {
+        email,
+      });
+    }
+
+    const invitacionExistente = await invitacionRepository.findPendienteByEmail(email);
+
+    if (
+      invitacionExistente &&
+      invitacionExistente.estado === 'PENDIENTE' &&
+      invitacionExistente.fechaExpiracion > new Date()
+    ) {
+      throw new ConflictError(`Ya existe una invitación pendiente para ${email}.`, {
+        email,
+      });
+    }
+  }
+}
+
+export async function getInvitacionesEnviadas(user: AuthUser) {
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  const alumno = usuario.alumno;
+
+  if (!alumno) {
+    throw new ConflictError(
+      'Debes completar el registro de alumno para consultar las invitaciones.'
+    );
+  }
+
+  if (!alumno.empresa) {
+    throw new BadRequestError('El usuario no pertenece a ninguna empresa.');
+  }
+
+  if (alumno.rolEmpresa?.nombreRol !== 'CEO') {
+    throw new ForbiddenError('Solo el Director Ejecutivo puede consultar las invitaciones.');
+  }
+
+  return invitacionRepository.findByEmpresa(alumno.empresa.id);
 }

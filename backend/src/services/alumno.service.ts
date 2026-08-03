@@ -2,14 +2,19 @@ import { AuthUser } from '../types/express';
 
 import { CompletarRegistroDTO } from '../validators/alumno.validator';
 import { UsuarioActualResponseDTO } from '../dto/alumno/alu-actual.dto';
+import { RegistroResponseDTO } from '../dto/alumno/alu-registro.dto';
 import { toAlumnoActualResponse } from '../dto/alumno/alu.mapper';
 
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
+import * as invitacionRepository from '../repositories/invitacion.repository';
 
 import { ConflictError } from '../errors/conflict.error';
+import { ForbiddenError } from '../errors/forbidden.error';
+import { BadRequestError } from '../errors/bad-request-error';
+import { NotFoundError } from '../errors/not-found.error';
 
 export async function getAlumnoActual(user: AuthUser): Promise<UsuarioActualResponseDTO> {
   const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
@@ -17,17 +22,160 @@ export async function getAlumnoActual(user: AuthUser): Promise<UsuarioActualResp
   return toAlumnoActualResponse(usuario);
 }
 
-export async function completarRegistro(user: AuthUser, data: CompletarRegistroDTO) {
+export async function getInvitacion(user: AuthUser) {
+  const usuario = await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  const invitacion = await invitacionRepository.findByEmail(usuario.email);
+
+  if (!invitacion) {
+    throw new NotFoundError('El usuario no posee invitaciones activas.');
+  }
+
+  if (invitacion.estado === 'PENDIENTE' && invitacion.fechaExpiracion <= new Date()) {
+    await invitacionRepository.expirar(invitacion.id);
+
+    throw new NotFoundError('El usuario no posee invitaciones activas.');
+  }
+
+  if (!invitacion.empresa.activo) {
+    throw new NotFoundError('El usuario no posee invitaciones activas.');
+  }
+
+  return invitacion;
+}
+
+async function getInvitacionPendienteDelUsuarioOrThrow(user: AuthUser, idInvitacion: number) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithRolEmpresaOrThrow(user.keycloakId);
+
+  const invitacion = await invitacionRepository.findByIdOrThrow(idInvitacion);
+
+  if (invitacion.email !== usuario.email) {
+    throw new ForbiddenError('La invitación no pertenece al usuario autenticado.');
+  }
+
+  if (invitacion.estado !== 'PENDIENTE') {
+    throw new ConflictError('La invitación ya fue procesada.');
+  }
+
+  if (invitacion.fechaExpiracion <= new Date()) {
+    throw new ConflictError('La invitación ha expirado.');
+  }
+
+  if (!invitacion.empresa.activo) {
+    throw new ConflictError('La empresa ya no se encuentra activa.');
+  }
+
+  return {
+    usuario,
+    invitacion,
+  };
+}
+
+export async function aceptarInvitacion(user: AuthUser, idInvitacion: number) {
+  const { usuario, invitacion } = await getInvitacionPendienteDelUsuarioOrThrow(user, idInvitacion);
+
+  if (usuario.alumno) {
+    throw new ConflictError('No puedes aceptar una invitación porque ya completaste tu registro.');
+  }
+
+  await invitacionRepository.aceptar(invitacion.id);
+}
+
+export async function rechazarInvitacion(user: AuthUser, idInvitacion: number) {
+  const { invitacion } = await getInvitacionPendienteDelUsuarioOrThrow(user, idInvitacion);
+
+  await invitacionRepository.rechazar(invitacion.id);
+}
+
+export async function getRegistro(user: AuthUser): Promise<RegistroResponseDTO> {
+  const usuario = await usuarioRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  if (usuario.alumno) {
+    throw new ConflictError('El registro del alumno ya fue completado.');
+  }
+
+  const invitacion = await invitacionRepository.findAceptadaByEmail(usuario.email);
+
+  if (invitacion) {
+    if (!invitacion.empresa.activo) {
+      throw new ConflictError('La empresa ya no se encuentra activa.');
+    }
+
+    const roles = await rolEmpresaRepository.findAllExceptCEO();
+
+    return {
+      tipo: 'INVITACION',
+
+      empresa: {
+        id: invitacion.empresa.id,
+        nombre: invitacion.empresa.nombre,
+      },
+
+      curso: {
+        idCurso: invitacion.empresa.curso.idCurso,
+        nombreCurso: invitacion.empresa.curso.nombreCurso,
+      },
+
+      rolesEmpresa: roles,
+    };
+  }
+
+  const cursos = await cursoRepository.findAll();
+
+  const roles = await rolEmpresaRepository.findAll();
+
+  return {
+    tipo: 'NORMAL',
+
+    cursos,
+
+    rolesEmpresa: roles,
+  };
+}
+
+export async function completarRegistro(
+  user: AuthUser,
+  data: CompletarRegistroDTO
+): Promise<UsuarioActualResponseDTO> {
   const usuario = await usuarioRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
 
   if (usuario.alumno) {
     throw new ConflictError('El registro del alumno ya fue completado previamente.');
   }
 
-  await cursoRepository.findByIdOrThrow(data.idCurso);
-  await rolEmpresaRepository.findByIdOrThrow(data.idRolEmpresa);
+  const invitacion = await invitacionRepository.findAceptadaByEmail(usuario.email);
 
-  await alumnoRepository.create(usuario.id, data);
+  const rol = await rolEmpresaRepository.findByIdOrThrow(data.idRolEmpresa);
+
+  if (invitacion) {
+    if (!invitacion.empresa.activo) {
+      throw new ConflictError('La empresa ya no se encuentra activa.');
+    }
+
+    if (rol.nombreRol === 'CEO') {
+      throw new ConflictError('No puedes registrarte como CEO mediante una invitación.');
+    }
+
+    await alumnoRepository.create(usuario.id, {
+      idCurso: invitacion.empresa.idCurso,
+      idEmpresa: invitacion.empresa.id,
+      idRolEmpresa: data.idRolEmpresa,
+    });
+
+    await invitacionRepository.finalizar(invitacion.id);
+  } else {
+    if (!data.idCurso) {
+      throw new BadRequestError('Debe seleccionar un curso.');
+    }
+
+    await cursoRepository.findByIdOrThrow(data.idCurso);
+
+    await alumnoRepository.create(usuario.id, {
+      idCurso: data.idCurso,
+      idEmpresa: null,
+      idRolEmpresa: data.idRolEmpresa,
+    });
+  }
 
   return getAlumnoActual(user);
 }

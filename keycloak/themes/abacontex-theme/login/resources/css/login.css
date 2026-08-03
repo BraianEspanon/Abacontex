@@ -40,14 +40,6 @@
     font-style: normal;
 }
 
-@font-face {
-    font-family: 'MuseoModerno';
-    src: url('../fonts/MuseoModerno-Regular.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
-}
-
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ── OCULTAR HEADER NATIVO DE KEYCLOAK ────────── */
@@ -222,7 +214,7 @@ body {
     padding: 0 1.1rem;
     height: 55px;
     transition: box-shadow .2s;
-    font-family: 'MuseoModerno';
+    font-family: 'Outfit';
     box-shadow:
         inset 0 3px 6px rgba(0,0,0,.25),
         inset 0 -1px 2px rgba(255,255,255,.08);
@@ -716,6 +708,48 @@ body.login-pf,
     height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
+}
+
+/* Input de solo lectura (ej. invitaciones) */
+.input-wrapper input[readonly] {
+    /*
+    color: #5f615f;
+    */
+    cursor: default;
+    user-select: none;
+    opacity: 0.85;
+}
+
+/* Cambia levemente el fondo del contenedor */
+.input-wrapper:has(input[readonly]) {
+    /*
+    background: #b6b8b6;
+    */
+    box-shadow:
+        inset 0 2px 4px rgba(0,0,0,.18),
+        inset 0 -1px 1px rgba(255,255,255,.20);
+}
+
+/* No mostrar el borde verde al hacer foco */
+.input-wrapper:has(input[readonly]):focus-within {
+    box-shadow:
+        inset 0 2px 4px rgba(0,0,0,.18),
+        inset 0 -1px 1px rgba(255,255,255,.20);
+}
+.readonly-lock {
+    position: absolute;
+    right: 20px;
+    color: #F8F6F2;
+
+    display: flex;
+    align-items: center;
+
+    pointer-events: none;
+}
+
+.readonly-lock svg {
+    width: 35px;
+    height: 35px;
 }
 
 /* Ajustes Responsive */

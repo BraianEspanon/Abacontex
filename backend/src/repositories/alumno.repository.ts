@@ -2,7 +2,6 @@ import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { AlumnoDocenteFiltrosDTO } from '../validators/docente.validator';
 import { NotFoundError } from '../errors/not-found.error';
-import { CompletarRegistroDTO } from '../validators/alumno.validator';
 
 export async function findByKeycloakIdWithAlumno(keycloakId: string) {
   return prisma.usuario.findUnique({
@@ -31,17 +30,19 @@ export async function findByKeycloakIdWithAlumnoOrThrow(keycloakId: string) {
 
   return usuario;
 }
+type CrearAlumnoData = {
+  idCurso: number;
+  idEmpresa: number | null;
+  idRolEmpresa: number;
+};
 
-export async function create(id: string, data: CompletarRegistroDTO) {
+export async function create(id: string, data: CrearAlumnoData) {
   await prisma.alumno.create({
     data: {
       id,
       idCurso: data.idCurso,
+      idEmpresa: data.idEmpresa,
       idRolEmpresa: data.idRolEmpresa,
-    },
-    include: {
-      curso: true,
-      rolEmpresa: true,
     },
   });
 }

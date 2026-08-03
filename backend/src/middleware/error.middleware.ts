@@ -1,8 +1,30 @@
 import { NextFunction, Request, Response } from 'express';
 
+import multer from 'multer';
+import { BadRequestError } from '../errors/bad-request-error';
+
 import { AppError } from '../errors/app-error';
 
 export function errorMiddleware(error: unknown, req: Request, res: Response, _next: NextFunction) {
+  if (error instanceof multer.MulterError) {
+    let message;
+
+    switch (error.code) {
+      case 'LIMIT_FILE_SIZE':
+        message = 'La imagen supera el tamaño máximo permitido.';
+        break;
+
+      case 'LIMIT_UNEXPECTED_FILE':
+        message = 'Archivo inesperado.';
+        break;
+
+      default:
+        message = 'Error al procesar el archivo.';
+    }
+
+    error = new BadRequestError(message);
+  }
+
   if (error instanceof AppError) {
     if (process.env.ENVIRONMENT !== 'production') {
       console.warn(`[${error.code}] ${error.message}`, error.details);

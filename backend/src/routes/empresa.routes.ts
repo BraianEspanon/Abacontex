@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
+import { upload } from '../middleware/upload.middleware';
 
 import { ROLES } from '../constants/roles';
 
@@ -14,22 +15,18 @@ import {
   getCandidatos,
   getEmpresaActual,
   modificarRolesEmpresa,
+  crearInvitaciones,
+  getInvitacionesEnviadas,
 } from '../controllers/empresa.controller';
 
 import {
+  actualizarEmpresaSchema,
   agregarParticipantesSchema,
   cambiarRolParticipanteSchema,
   crearEmpresaSchema,
   modificarRolesEmpresaSchema,
 } from '../validators/empresa.validator';
 
-import {
-  aceptarInvitacion,
-  crearInvitaciones,
-  getInvitacionesEnviadas,
-  getInvitacionesPendientes,
-  rechazarInvitacion,
-} from '../controllers/invitacion.controller';
 import { crearInvitacionesSchema } from '../validators/invitacion.validator';
 
 const router = Router();
@@ -38,6 +35,7 @@ router.post(
   '/',
   authenticate,
   requireRole(ROLES.ALUMNO),
+  upload.single('logo'),
   validate(crearEmpresaSchema),
   crearEmpresa
 );
@@ -48,7 +46,8 @@ router.patch(
   '/me',
   authenticate,
   requireRole(ROLES.ALUMNO),
-  validate(crearEmpresaSchema),
+  upload.single('logo'),
+  validate(actualizarEmpresaSchema),
   actualizarEmpresa
 );
 
@@ -88,19 +87,6 @@ router.post(
   crearInvitaciones
 );
 
-router.get('/me/invitaciones', authenticate, requireRole(ROLES.ALUMNO), getInvitacionesPendientes);
-router.post(
-  '/me/invitaciones/:id/aceptar',
-  authenticate,
-  requireRole(ROLES.ALUMNO),
-  aceptarInvitacion
-);
-router.post(
-  '/me/invitaciones/:id/rechazar',
-  authenticate,
-  requireRole(ROLES.ALUMNO),
-  rechazarInvitacion
-);
 router.get(
   '/me/invitaciones/enviadas',
   authenticate,

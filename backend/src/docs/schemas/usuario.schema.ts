@@ -112,11 +112,15 @@
  *           example: Pérez
  *           description: Apellido del usuario.
  *
- *         idRolEmpresa:
- *           type: integer
- *           nullable: true
- *           example: 2
- *           description: Identificador del rol dentro de la empresa (opcional).
+ *         foto:
+ *           type: string
+ *           format: binary
+ *           description: Archivo de imagen para la foto de perfil. Formatos permitidos JPG, PNG y WEBP. Tamaño máximo 5 MB.
+ *
+ *         eliminarFoto:
+ *           type: boolean
+ *           example: false
+ *           description: Si es true, elimina la foto de perfil actual sin reemplazarla por una nueva.
  *
  *
  *     ActualizarPasswordRequest:
