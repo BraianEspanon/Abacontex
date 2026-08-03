@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
+import { upload } from '../middleware/upload.middleware';
 
 import { ROLES } from '../constants/roles';
 
@@ -19,6 +20,7 @@ import {
 } from '../controllers/empresa.controller';
 
 import {
+  actualizarEmpresaSchema,
   agregarParticipantesSchema,
   cambiarRolParticipanteSchema,
   crearEmpresaSchema,
@@ -33,6 +35,7 @@ router.post(
   '/',
   authenticate,
   requireRole(ROLES.ALUMNO),
+  upload.single('logo'),
   validate(crearEmpresaSchema),
   crearEmpresa
 );
@@ -43,7 +46,8 @@ router.patch(
   '/me',
   authenticate,
   requireRole(ROLES.ALUMNO),
-  validate(crearEmpresaSchema),
+  upload.single('logo'),
+  validate(actualizarEmpresaSchema),
   actualizarEmpresa
 );
 

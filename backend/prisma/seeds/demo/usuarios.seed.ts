@@ -34,7 +34,7 @@ export const usuariosSeed: Seed = {
 
     await prisma.usuario.upsert({
       where: {
-        email: 'admin@mail.com',
+        email: 'admin@ipgsanmartin.edu.ar',
       },
       update: {
         keycloakId: '21bf6585-de7d-4f06-832c-636c138c3f55',
@@ -44,7 +44,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: '21bf6585-de7d-4f06-832c-636c138c3f55',
-        email: 'admin@mail.com',
+        email: 'admin@ipgsanmartin.edu.ar',
         nombre: 'admin',
         apellido: 'admin',
         rolSistemaId: rolAdmin.idRol,
@@ -57,7 +57,7 @@ export const usuariosSeed: Seed = {
 
     await prisma.usuario.upsert({
       where: {
-        email: 'docente@mail.com',
+        email: 'docente@ipgsanmartin.edu.ar',
       },
       update: {
         keycloakId: 'aa59f67b-570a-4ec6-96f7-bd7d2749a77c',
@@ -67,7 +67,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: 'aa59f67b-570a-4ec6-96f7-bd7d2749a77c',
-        email: 'docente@mail.com',
+        email: 'docente@ipgsanmartin.edu.ar',
         nombre: 'docente',
         apellido: 'docente',
         rolSistemaId: rolDocente.idRol,
@@ -80,7 +80,7 @@ export const usuariosSeed: Seed = {
 
     await prisma.usuario.upsert({
       where: {
-        email: 'alumno@mail.com',
+        email: 'alumno@ipgsanmartin.edu.ar',
       },
       update: {
         keycloakId: '0eb7dc1a-96b8-4d55-a8fd-85b81ad90f85',
@@ -90,7 +90,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: '0eb7dc1a-96b8-4d55-a8fd-85b81ad90f85',
-        email: 'alumno@mail.com',
+        email: 'alumno@ipgsanmartin.edu.ar',
         nombre: 'alumno',
         apellido: 'alumno',
         rolSistemaId: rolAlumno.idRol,
@@ -103,7 +103,7 @@ export const usuariosSeed: Seed = {
 
     await prisma.usuario.upsert({
       where: {
-        email: 'alumno2@mail.com',
+        email: 'alumno2@ipgsanmartin.edu.ar',
       },
       update: {
         keycloakId: '73cc3dc2-4a4f-4bfa-8589-6905cb1c01a8',
@@ -113,7 +113,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: '73cc3dc2-4a4f-4bfa-8589-6905cb1c01a8',
-        email: 'alumno2@mail.com',
+        email: 'alumno2@ipgsanmartin.edu.ar',
         nombre: 'alumno2',
         apellido: 'alumno2',
         rolSistemaId: rolAlumno.idRol,
@@ -126,7 +126,7 @@ export const usuariosSeed: Seed = {
 
     await prisma.usuario.upsert({
       where: {
-        email: 'martina.lopez@abacontex.com',
+        email: 'martina.lopez@ipgsanmartin.edu.ar',
       },
       update: {
         nombre: 'Martina',
@@ -135,7 +135,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: 'mock-alumno-martina',
-        email: 'martina.lopez@abacontex.com',
+        email: 'martina.lopez@ipgsanmartin.edu.ar',
         nombre: 'Martina',
         apellido: 'López',
         rolSistemaId: rolAlumno.idRol,
@@ -144,7 +144,7 @@ export const usuariosSeed: Seed = {
 
     await prisma.usuario.upsert({
       where: {
-        email: 'lucas.gomez@abacontex.com',
+        email: 'lucas.gomez@ipgsanmartin.edu.ar',
       },
       update: {
         nombre: 'Lucas',
@@ -153,7 +153,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: 'mock-alumno-lucas',
-        email: 'lucas.gomez@abacontex.com',
+        email: 'lucas.gomez@ipgsanmartin.edu.ar',
         nombre: 'Lucas',
         apellido: 'Gómez',
         rolSistemaId: rolAlumno.idRol,
@@ -162,7 +162,7 @@ export const usuariosSeed: Seed = {
 
     await prisma.usuario.upsert({
       where: {
-        email: 'sofia.romero@abacontex.com',
+        email: 'sofia.romero@ipgsanmartin.edu.ar',
       },
       update: {
         nombre: 'Sofía',
@@ -171,7 +171,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: 'mock-alumno-sofia',
-        email: 'sofia.romero@abacontex.com',
+        email: 'sofia.romero@ipgsanmartin.edu.ar',
         nombre: 'Sofía',
         apellido: 'Romero',
         rolSistemaId: rolAlumno.idRol,
@@ -179,7 +179,7 @@ export const usuariosSeed: Seed = {
     });
     await prisma.usuario.upsert({
       where: {
-        email: 'anibal.rodriguez@abacontex.com',
+        email: 'anibal.rodriguez@ipgsanmartin.edu.ar',
       },
       update: {
         nombre: 'Anibal',
@@ -188,7 +188,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: 'mock-anibal-rodriguez',
-        email: 'anibal.rodriguez@abacontex.com',
+        email: 'anibal.rodriguez@ipgsanmartin.edu.ar',
         nombre: 'Anibal',
         apellido: 'Rodriguez',
         rolSistemaId: rolAlumno.idRol,
@@ -197,7 +197,7 @@ export const usuariosSeed: Seed = {
 
     await prisma.usuario.upsert({
       where: {
-        email: 'mateo.sosa@abacontex.com',
+        email: 'mateo.sosa@ipgsanmartin.edu.ar',
       },
       update: {
         nombre: 'Mateo',
@@ -206,7 +206,7 @@ export const usuariosSeed: Seed = {
       },
       create: {
         keycloakId: 'mock-alumno-mateo',
-        email: 'mateo.sosa@abacontex.com',
+        email: 'mateo.sosa@ipgsanmartin.edu.ar',
         nombre: 'Mateo',
         apellido: 'Sosa',
         rolSistemaId: rolAlumno.idRol,

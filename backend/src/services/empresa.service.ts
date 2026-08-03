@@ -1,5 +1,10 @@
 import { AuthUser } from '../types/express';
 
+import { STORAGE_FOLDERS } from '../constants/storage-folders';
+
+import * as storageService from '../integrations/storage/storage.service';
+import { UploadedFile } from '../integrations/storage/storage.types';
+
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as empresaRepository from '../repositories/empresa.repository';
@@ -7,6 +12,7 @@ import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
 import * as invitacionRepository from '../repositories/invitacion.repository';
 
 import {
+  ActualizarEmpresaDTO,
   AgregarParticipantesDTO,
   CrearEmpresaDTO,
   ModificarRolesDTO,
@@ -27,7 +33,11 @@ import { obtenerFechaExpiracionInvitacion } from '../utils/date.util';
 
 import { sendInvitationEmail } from '../integrations/email/email.service';
 
-export async function crearEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
+export async function crearEmpresa(
+  user: AuthUser,
+  data: CrearEmpresaDTO,
+  logo?: Express.Multer.File
+) {
   const usuario = await usuarioRepository.findByKeycloakIdWithRolEmpresaOrThrow(user.keycloakId);
   const alumno = usuario.alumno;
 
@@ -56,14 +66,30 @@ export async function crearEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
     });
   }
 
-  const empresa = await empresaRepository.create(
-    data,
-    alumno.idCurso,
-    1, //CAMBIAR CICLO LECTIVO CUANDO SE IMPLEMENTE REALMENTE
-    usuario.id
-  );
+  let uploaded: UploadedFile | undefined;
 
-  return empresa;
+  try {
+    if (logo) {
+      uploaded = await storageService.upload(logo, STORAGE_FOLDERS.EMPRESAS);
+    }
+
+    return await empresaRepository.create(
+      {
+        ...data,
+        logoUrl: uploaded?.url ?? null,
+        logoPublicId: uploaded?.publicId ?? null,
+      },
+      alumno.idCurso,
+      1, //REVISAR CUANDO ESTÉ CICLO LECTIVO
+      usuario.id
+    );
+  } catch (error) {
+    if (uploaded) {
+      await storageService.deleteFile(uploaded.publicId);
+    }
+
+    throw error;
+  }
 }
 
 export async function getEmpresaActual(user: AuthUser) {
@@ -82,7 +108,11 @@ export async function getEmpresaActual(user: AuthUser) {
   return toEmpresaActualResponse(usuario.alumno.empresa);
 }
 
-export async function actualizarEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
+export async function actualizarEmpresa(
+  user: AuthUser,
+  data: ActualizarEmpresaDTO,
+  logo?: Express.Multer.File
+) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaOrThrow(user.keycloakId);
 
   if (!usuario.alumno) {
@@ -104,9 +134,50 @@ export async function actualizarEmpresa(user: AuthUser, data: CrearEmpresaDTO) {
     }
   }
 
-  await empresaRepository.update(empresa.id, data);
+  if (logo && data.eliminarLogo) {
+    throw new BadRequestError('No puedes reemplazar y eliminar el logo al mismo tiempo.');
+  }
 
-  return getEmpresaActual(user);
+  let logoUrl = empresa.logoUrl;
+  let logoPublicId = empresa.logoPublicId;
+
+  let uploaded: UploadedFile | undefined;
+
+  try {
+    if (logo) {
+      uploaded = await storageService.upload(logo, STORAGE_FOLDERS.EMPRESAS);
+
+      logoUrl = uploaded.url;
+      logoPublicId = uploaded.publicId;
+    }
+
+    if (data.eliminarLogo) {
+      logoUrl = null;
+      logoPublicId = null;
+    }
+
+    await empresaRepository.update(empresa.id, {
+      ...data,
+      logoUrl,
+      logoPublicId,
+    });
+
+    if (logo && empresa.logoPublicId) {
+      await storageService.deleteFile(empresa.logoPublicId);
+    }
+
+    if (data.eliminarLogo && empresa.logoPublicId) {
+      await storageService.deleteFile(empresa.logoPublicId);
+    }
+
+    return getEmpresaActual(user);
+  } catch (error) {
+    if (uploaded) {
+      await storageService.deleteFile(uploaded.publicId);
+    }
+
+    throw error;
+  }
 }
 
 export async function getCandidatos(user: AuthUser, search?: string) {

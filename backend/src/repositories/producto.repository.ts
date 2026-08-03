@@ -9,12 +9,43 @@ import {
 
 import { NotFoundError } from '../errors/not-found.error';
 
+export async function findByIdAndEmpresaWithStorageOrThrow(id: number, empresaId: number) {
+  const producto = await prisma.producto.findFirst({
+    where: {
+      id,
+      empresaId,
+      activo: true,
+    },
+  });
+
+  if (!producto) {
+    throw new NotFoundError('Producto no encontrado.', {
+      idProducto: id,
+    });
+  }
+
+  return producto;
+}
+
 export async function findByIdAndEmpresaOrThrow(id: number, empresaId: number) {
   const producto = await prisma.producto.findFirst({
     where: {
       id,
       empresaId,
       activo: true,
+    },
+
+    select: {
+      id: true,
+      empresaId: true,
+      nombre: true,
+      descripcion: true,
+      stock: true,
+      precioUnitario: true,
+      fotoUrl: true,
+      activo: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 
@@ -103,6 +134,8 @@ export async function findByEmpresa(
 
           nombre: true,
 
+          descripcion: true,
+
           fotoUrl: true,
 
           precioUnitario: true,
@@ -174,7 +207,12 @@ export async function findByEmpresa(
   };
 }
 
-export async function create(empresaId: number, data: CrearProductoDTO) {
+export async function create(
+  empresaId: number,
+  data: CrearProductoDTO,
+  fotoUrl: string | null,
+  fotoPublicId: string | null
+) {
   return prisma.producto.create({
     data: {
       empresaId,
@@ -186,12 +224,18 @@ export async function create(empresaId: number, data: CrearProductoDTO) {
 
       precioUnitario: data.precioUnitario,
 
-      fotoUrl: data.fotoUrl ?? null,
+      fotoUrl,
+      fotoPublicId,
     },
   });
 }
 
-export async function update(id: number, data: ActualizarProductoDTO) {
+type ActualizarProductoPersistenceDTO = ActualizarProductoDTO & {
+  fotoUrl: string | null;
+  fotoPublicId: string | null;
+};
+
+export async function update(id: number, data: ActualizarProductoPersistenceDTO) {
   return prisma.producto.update({
     where: {
       id,
@@ -201,7 +245,9 @@ export async function update(id: number, data: ActualizarProductoDTO) {
       nombre: data.nombre,
       descripcion: data.descripcion,
       precioUnitario: data.precioUnitario,
-      fotoUrl: data.fotoUrl ?? null,
+
+      fotoUrl: data.fotoUrl,
+      fotoPublicId: data.fotoPublicId,
     },
   });
 }

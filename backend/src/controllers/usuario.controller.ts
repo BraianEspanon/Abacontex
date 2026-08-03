@@ -8,7 +8,7 @@ export const obtenerUsuarioActual = async (req: Request, res: Response) => {
 };
 
 export const actualizarUsuarioActual = async (req: Request, res: Response) => {
-  const usuario = await usuarioService.actualizarUsuarioActual(req.user!, req.body);
+  const usuario = await usuarioService.actualizarUsuarioActual(req.user!, req.body, req.file);
 
   res.json(usuario);
 };

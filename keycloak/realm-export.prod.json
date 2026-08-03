@@ -1747,11 +1747,25 @@
     "contentSecurityPolicy": "frame-src 'self'; frame-ancestors 'self'; object-src 'none';",
     "strictTransportSecurity": "max-age=31536000; includeSubDomains"
   },
-  "smtpServer": {},
+  "smtpServer": {
+    "replyToDisplayName": "",
+    "debug": "${SMTP_DEBUG:false}",
+    "starttls": "${SMTP_STARTTLS:false}",
+    "auth": "${SMTP_AUTH:false}",
+    "port": "${SMTP_PORT:1025}",
+    "replyTo": "",
+    "host": "${SMTP_HOST:mailpit}",
+    "from": "${SMTP_FROM:no-reply@abacontex.local}",
+    "fromDisplayName": "${SMTP_FROM_NAME:Abacontex}",
+    "envelopeFrom": "",
+    "ssl": "${SMTP_SSL:false}",
+    "user": "${SMTP_USER:}",
+    "password": "${SMTP_PASSWORD:}"
+  },
   "loginTheme": "abacontex-theme",
   "accountTheme": "",
   "adminTheme": "",
-  "emailTheme": "",
+  "emailTheme": "abacontex-theme",
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging"
@@ -1767,16 +1781,20 @@
       "providerId": "google",
       "enabled": true,
       "updateProfileFirstLoginMode": "on",
-      "trustEmail": false,
+      "trustEmail": true,
       "storeToken": false,
       "addReadTokenRoleOnCreate": false,
       "authenticateByDefault": false,
       "linkOnly": false,
       "hideOnLogin": false,
       "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "acceptsPromptNoneForwardFromClient": "false",
+        "disableUserInfo": "false",
         "syncMode": "LEGACY",
-        "clientSecret": "**********",
-        "clientId": "688536674892-pkfq643540ahqlk57ejh7v3nft28vpff.apps.googleusercontent.com"
+        "filteredByClaim": "false",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+        "caseSensitiveOriginalUsername": "false"
       }
     }
   ],
@@ -1799,14 +1817,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-full-name-mapper",
-            "oidc-usermodel-attribute-mapper",
-            "saml-user-attribute-mapper",
-            "oidc-address-mapper",
-            "saml-user-property-mapper",
-            "saml-role-list-mapper",
             "oidc-usermodel-property-mapper",
-            "oidc-sha256-pairwise-sub-mapper"
+            "saml-user-property-mapper",
+            "saml-user-attribute-mapper",
+            "oidc-full-name-mapper",
+            "saml-role-list-mapper",
+            "oidc-sha256-pairwise-sub-mapper",
+            "oidc-address-mapper",
+            "oidc-usermodel-attribute-mapper"
           ]
         }
       },
@@ -1838,13 +1856,13 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-usermodel-attribute-mapper",
-            "oidc-address-mapper",
             "saml-role-list-mapper",
+            "oidc-address-mapper",
+            "oidc-usermodel-attribute-mapper",
             "oidc-full-name-mapper",
-            "oidc-usermodel-property-mapper",
-            "saml-user-attribute-mapper",
             "oidc-sha256-pairwise-sub-mapper",
+            "saml-user-attribute-mapper",
+            "oidc-usermodel-property-mapper",
             "saml-user-property-mapper"
           ]
         }
@@ -1896,7 +1914,7 @@
         "subComponents": {},
         "config": {
           "kc.user.profile.config": [
-            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"person-name-prohibited-characters\":{},\"length\":{\"min\":\"2\",\"max\":\"50\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"person-name-prohibited-characters\":{},\"length\":{\"min\":\"2\",\"max\":\"50\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255},\"pattern\":{\"pattern\":\"^[A-Za-z0-9._%+-]+@ipgsanmartin\\\\.edu\\\\.ar$\",\"error-message\":\"Solo se permiten correos institucionales (@ipgsanmartin.edu.ar)\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"person-name-prohibited-characters\":{},\"length\":{\"min\":\"2\",\"max\":\"50\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"person-name-prohibited-characters\":{},\"length\":{\"min\":\"2\",\"max\":\"50\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
           ]
         }
       }

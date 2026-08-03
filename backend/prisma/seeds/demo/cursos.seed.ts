@@ -6,25 +6,17 @@ export const cursosSeed: Seed = {
   name: 'Cursos',
 
   async run(prisma: PrismaClient) {
-    await prisma.curso.upsert({
-      where: {
-        nombreCurso: '5to II',
-      },
-      update: {},
-      create: {
-        nombreCurso: '5to II',
-      },
-    });
+    const cursos = ['5to II', '5to III', '6to II', '6to III'];
 
-    await prisma.curso.upsert({
-      where: {
-        nombreCurso: '6to III',
-      },
-      update: {},
-      create: {
-        nombreCurso: '6to III',
-      },
-    });
+    await Promise.all(
+      cursos.map((nombreCurso) =>
+        prisma.curso.upsert({
+          where: { nombreCurso },
+          update: {},
+          create: { nombreCurso },
+        })
+      )
+    );
 
     console.log('Cursos demo creados');
   },

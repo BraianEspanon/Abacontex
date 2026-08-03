@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
+import { upload } from '../middleware/upload.middleware';
 
 import {
   obtenerUsuarioActual,
@@ -13,7 +14,13 @@ import { actualizarUsuarioSchema, actualizarPasswordSchema } from '../validators
 const router = Router();
 
 router.get('/me', authenticate, obtenerUsuarioActual);
-router.patch('/me', authenticate, validate(actualizarUsuarioSchema), actualizarUsuarioActual);
+router.patch(
+  '/me',
+  authenticate,
+  upload.single('foto'),
+  validate(actualizarUsuarioSchema),
+  actualizarUsuarioActual
+);
 router.patch('/me/password', authenticate, validate(actualizarPasswordSchema), actualizarPassword);
 
 export default router;
