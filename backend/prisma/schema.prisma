@@ -38,6 +38,7 @@ model Usuario {
   profesorCursos         ProfesorCursos[]
   movimientosFinancieros MovimientoFinanciero[]
   invitacionesCreadas    InvitacionEmpresa[]
+  pedidos Pedido[]
 
   alumno    Alumno?
   auditLogs AuditLog[]
@@ -130,6 +131,7 @@ model Empresa {
   auditLogs              AuditLog[]
   productos              Producto[]
   invitaciones           InvitacionEmpresa[]
+  pedidos Pedido[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
@@ -281,6 +283,8 @@ model Producto {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
+  detallesPedido DetallePedido[]
+
   @@unique([empresaId, nombre], where: { activo: true })
   @@index([empresaId])
   @@index([activo])
@@ -321,4 +325,61 @@ model InvitacionEmpresa {
   @@index([estado])
   @@index([createdById])
   @@map("invitaciones_empresa")
+}
+
+model EstadoPedido {
+  idEstado Int    @id @default(autoincrement())
+  nombre   String @unique
+
+  pedidos Pedido[]
+
+  @@map("estados_pedido")
+}
+
+model Pedido {
+  idPedido Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  estadoId Int
+  estado   EstadoPedido @relation(fields: [estadoId], references: [idEstado])
+
+  clienteNombre String
+  clienteMail   String?
+
+  fecha      DateTime @default(now())
+  montoTotal Decimal  @db.Decimal(14, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  detalles DetallePedido[]
+
+  @@index([empresaId])
+  @@index([estadoId])
+  @@index([usuarioId])
+  @@index([fecha])
+  @@map("pedidos")
+}
+
+model DetallePedido {
+  idDetallePedido Int @id @default(autoincrement())
+
+  pedidoId Int
+  pedido   Pedido @relation(fields: [pedidoId], references: [idPedido], onDelete: Cascade)
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  cantidad       Int
+  precioUnitario Decimal @db.Decimal(14, 2)
+  subtotal       Decimal @db.Decimal(14, 2)
+
+  @@index([pedidoId])
+  @@index([productoId])
+  @@map("detalles_pedido")
 }
