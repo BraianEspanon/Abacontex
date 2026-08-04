@@ -274,7 +274,9 @@ model Producto {
   stock Int @default(0)
 
   precioUnitario Decimal @db.Decimal(14, 2)
-
+  margenGanancia Decimal @default(0) @db.Decimal(5, 2)
+  precioVenta Decimal @default(0) @db.Decimal(14, 2)
+  
   fotoUrl String?
   fotoPublicId String?
 
