@@ -9,6 +9,7 @@ export interface EmpresaInvitacion {
   logoUrl: string | null;
   idCurso: number;
   activo: boolean;
+  curso: Curso;
 }
 
 export interface Invitador {
@@ -20,7 +21,6 @@ export interface Invitacion {
   id: number;
   estado: EstadoInvitacionActiva;
   empresa: EmpresaInvitacion;
-  curso?: Curso;
   createdBy: Invitador;
   fechaExpiracion: string;
 }

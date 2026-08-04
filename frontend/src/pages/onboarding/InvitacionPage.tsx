@@ -68,9 +68,9 @@ export default function InvitacionPage() {
         <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-abacontex-primary/30" />
 
         <img
-          src="/img/logo.png"
+          src="/img/Logo.png"
           alt="Abacontex"
-          className="relative z-10 h-24 w-auto object-contain"
+          className="relative z-10 mx-auto h-30 w-auto object-contain mb-6"
         />
       </header>
 
@@ -112,7 +112,7 @@ export default function InvitacionPage() {
             <span className="text-sm text-abacontex-gray-text">Curso</span>
 
             <strong className="ml-auto text-sm font-semibold text-abacontex-black-text">
-              {invitacionActiva.curso?.nombreCurso ?? ''}
+              {invitacionActiva.empresa.curso.nombreCurso}
             </strong>
           </div>
 
