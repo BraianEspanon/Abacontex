@@ -17,12 +17,36 @@ import ProductosPage from '../pages/producto/ProductosPage';
 import RegistrarProductoPage from '../pages/producto/RegistrarProductoPage';
 import RoleSelection from '../pages/RoleSelection';
 import EditarProductoPage from '../pages/producto/EditarProductoPage';
+import CEOBienvenida from '../pages/onboarding/CEOBienvenida';
+import RedireccionInicial from '../pages/onboarding/RedireccionIncial';
+import InvitacionPage from '../pages/onboarding/InvitacionPage';
+import RegistroDocentePage from '../pages/docente/RegistroDocente';
+import LoginDocente from '../pages/docente/LoginDocente';
 
 export default function AppRouter() {
   return (
     <Routes>
       {/* Rutas públicas */}
       <Route path="/" element={<LandingPage />} />
+
+      {/* Decide a dónde redireccionar */}
+      <Route
+        path="/inicio"
+        element={
+          <ProtectedRoute>
+            <RedireccionInicial />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="onboarding/invitacion"
+        element={
+          <ProtectedRoute>
+            <InvitacionPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Configuración inicial */}
       <Route
@@ -34,12 +58,31 @@ export default function AppRouter() {
         }
       />
 
+      <Route
+        path="/onboarding/ceo"
+        element={
+          <ProtectedRoute>
+            <CEOBienvenida />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Crear empresa */}
       <Route
         path="/empresa/crear"
         element={
           <ProtectedRoute>
             <CrearEmpresaPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Registro del docente */}
+      <Route
+        path="/docente/registro"
+        element={
+          <ProtectedRoute>
+            <RegistroDocentePage />
           </ProtectedRoute>
         }
       />
@@ -56,6 +99,8 @@ export default function AppRouter() {
         <Route index element={<InicioDocente />} />
         <Route path="perfil" element={<PerfilDocente />} />
       </Route>
+
+      <Route path="/docente/login" element={<LoginDocente />} />
 
       {/* Panel alumno */}
       <Route

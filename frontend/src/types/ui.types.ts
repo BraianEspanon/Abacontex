@@ -31,10 +31,10 @@ export interface TimelineStepProps {
 }
 
 export interface RoleCardProps {
-  id: string;
+  id: number;
   title: string;
   description?: string;
   icon: LucideIcon;
   isSelected: boolean;
-  onClick: (id: string) => void;
+  onClick: (id: number) => void;
 }
