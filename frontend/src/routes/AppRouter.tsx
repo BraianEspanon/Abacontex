@@ -20,6 +20,8 @@ import EditarProductoPage from '../pages/producto/EditarProductoPage';
 import CEOBienvenida from '../pages/onboarding/CEOBienvenida';
 import RedireccionInicial from '../pages/onboarding/RedireccionIncial';
 import InvitacionPage from '../pages/onboarding/InvitacionPage';
+import RegistroDocentePage from '../pages/docente/RegistroDocente';
+import LoginDocente from '../pages/docente/LoginDocente';
 
 export default function AppRouter() {
   return (
@@ -75,6 +77,16 @@ export default function AppRouter() {
         }
       />
 
+      {/* Registro del docente */}
+      <Route
+        path="/docente/registro"
+        element={
+          <ProtectedRoute>
+            <RegistroDocentePage />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Panel docente */}
       <Route
         path="/docente"
@@ -87,6 +99,8 @@ export default function AppRouter() {
         <Route index element={<InicioDocente />} />
         <Route path="perfil" element={<PerfilDocente />} />
       </Route>
+
+      <Route path="/docente/login" element={<LoginDocente />} />
 
       {/* Panel alumno */}
       <Route

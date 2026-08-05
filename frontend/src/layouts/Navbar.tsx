@@ -12,21 +12,23 @@ export default function Navbar() {
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 px-4 md:px-8 ${scrolled ? 'pt-4' : 'pt-6'}`}
     >
       <nav
-        className={`w-full mx-auto max-w-7xl flex items-center justify-between transition-all duration-500 ${
+        className={`mx-auto flex min-h-24 w-full max-w-7xl items-center justify-between transition-all duration-500 ${
           scrolled
-            ? 'bg-white/50 backdrop-blur-md border border-abacontex-gray-text/30 px-6 py-3 rounded-2xl shadow-md'
-            : 'bg-transparent px-6 py-4 rounded-none border-b border-transparent'
+            ? 'bg-white/50 backdrop-blur-md border border-abacontex-gray-text/30 px-6 py-2 rounded-2xl shadow-md'
+            : 'bg-transparent px-6 py-2 rounded-none border-b border-transparent'
         }`}
       >
         {/* 1. LOGO */}
-        <div className="flex items-center gap-2">
-          <div className="font-heading text-2xl font-extrabold text-abacontex-black-text tracking-tight">
-            ABACONTEX
-          </div>
-        </div>
+        <a href="/" className="flex h-full min-w-37.5 items-center justify-center">
+          <img
+            src="/img/Logo.png"
+            alt="Abacontex"
+            className="h-20 w-auto translate-y-1 object-contain"
+          />
+        </a>
 
         {/* 2. ENLACES DE NAVEGACIÓN */}
-        <ul className="hidden lg:flex items-center gap-8 font-sans font-medium text-abacontex-gray-text text-sm">
+        <ul className="hidden lg:flex items-center gap-8 font-sans font-medium text-abacontex-gray-text text-m">
           <li>
             <a href="#" className="hover:text-abacontex-primary transition-colors duration-300">
               Inicio

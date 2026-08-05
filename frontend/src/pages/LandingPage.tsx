@@ -51,7 +51,7 @@ export default function LandingPage() {
       <Navbar />
 
       {/* --- SECCIÓN HERO --- */}
-      <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 px-8 pt-32 pb-20 max-w-7xl mx-auto items-center">
+      <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 px-8 pt-40 pb-20 max-w-7xl mx-auto items-center">
         <div className="flex flex-col gap-6 items-center">
           <h1 className="font-heading text-6xl lg:text-7xl font-extrabold text-abacontex-black-text leading-tight">
             Convertí el aula en una <span className="text-abacontex-primary-two">empresa</span>
@@ -60,7 +60,11 @@ export default function LandingPage() {
             Una plataforma donde los estudiantes aprenden gestionando proyectos, tomando decisiones
             y trabajando en equipo en un entorno colaborativo.
           </p>
-          <Button label="Crear una cuenta gratuita" variant="solid" />
+          <Button
+            label="Crear una cuenta gratuita"
+            variant="solid"
+            onClick={() => keycloak.register({ redirectUri: window.location.origin + '/inicio' })}
+          />
         </div>
 
         <div className="relative w-full flex items-center justify-center">
@@ -240,6 +244,9 @@ export default function LandingPage() {
                 variant="solid"
                 icon={
                   <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+                }
+                onClick={() =>
+                  keycloak.register({ redirectUri: window.location.origin + '/inicio' })
                 }
               />
             </div>

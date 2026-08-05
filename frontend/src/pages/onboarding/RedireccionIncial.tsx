@@ -2,17 +2,37 @@ import { Navigate } from 'react-router-dom';
 
 import { useAlumnoActual } from '../../hooks/useAlumnoActual';
 import { useInvitacion } from '../../hooks/useInvitacion';
+import { useKeycloak } from '@react-keycloak/web';
 
 export default function RedireccionInicial() {
-  const { data: alumno, isLoading: isLoadingAlumno, isError: isAlumnoError } = useAlumnoActual();
+  const { keycloak } = useKeycloak();
 
-  const debeConsultarInvitacion = alumno?.registroCompleto === false;
+  const esDocente = keycloak.hasRealmRole('DOCENTE');
+  const esAdmin = keycloak.hasRealmRole('ADMIN');
+
+  const debeConsultarAlumno = !esDocente && !esAdmin;
+
+  const {
+    data: alumno,
+    isLoading: isLoadingAlumno,
+    isError: isAlumnoError,
+  } = useAlumnoActual(debeConsultarAlumno);
+
+  const debeConsultarInvitacion = debeConsultarAlumno && alumno?.registroCompleto === false;
 
   const {
     data: invitacion,
     isLoading: isLoadingInvitacion,
     isError: isInvitacionError,
   } = useInvitacion(debeConsultarInvitacion);
+
+  if (esDocente) {
+    return <Navigate to="/docente" replace />;
+  }
+
+  if (esAdmin) {
+    return <Navigate to="/docente/registro" replace />;
+  }
 
   if (isLoadingAlumno) {
     return (
