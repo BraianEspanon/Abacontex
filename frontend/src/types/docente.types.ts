@@ -20,3 +20,22 @@ export interface DocenteActual {
   email: string;
   cursos: CursoDocente[];
 }
+
+export interface CrearDocenteRequest {
+  nombre: string;
+  apellido: string;
+  email: string;
+  password: string;
+  cursoIds: number[];
+}
+
+export interface DocenteCreado {
+  id: string;
+  keycloakId: string;
+  email: string;
+  nombre: string;
+  apellido: string;
+  rolSistemaId: number;
+  fotoPerfilUrl: string | null;
+  fechaAlta: string;
+}
