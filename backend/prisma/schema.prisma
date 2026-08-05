@@ -351,7 +351,8 @@ model Pedido {
   estado   EstadoPedido @relation(fields: [estadoId], references: [idEstado])
 
   clienteNombre String
-  clienteMail   String?
+  
+  clienteMail   String
 
   fecha      DateTime @default(now())
   montoTotal Decimal  @db.Decimal(14, 2)
@@ -365,6 +366,8 @@ model Pedido {
   @@index([estadoId])
   @@index([usuarioId])
   @@index([fecha])
+  
+  @@index([empresaId, estadoId])
   @@map("pedidos")
 }
 
@@ -378,9 +381,15 @@ model DetallePedido {
   producto   Producto @relation(fields: [productoId], references: [id])
 
   cantidad       Int
+
+  cantidadConStock Int
+  cantidadPendiente Int
+  
   precioUnitario Decimal @db.Decimal(14, 2)
   subtotal       Decimal @db.Decimal(14, 2)
 
+  // 3. Restricción para evitar que el mismo producto se cargue dos veces en el mismo pedido
+  @@unique([pedidoId, productoId])
   @@index([pedidoId])
   @@index([productoId])
   @@map("detalles_pedido")
