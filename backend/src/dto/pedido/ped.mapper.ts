@@ -25,11 +25,19 @@ export function toDetalleCalculado(
   producto: ProductoPedido,
   cantidad: number
 ): DetallePedidoCalculado {
+  const cantidadConStock = Math.min(producto.stock, cantidad);
+  const cantidadPendiente = Math.max(cantidad - producto.stock, 0);
+
   return {
     productoId: producto.id,
+
     cantidad,
+    cantidadConStock,
+    cantidadPendiente,
+
     precioUnitario: producto.precioUnitario,
     subtotal: producto.precioUnitario.mul(cantidad),
+
     stockActual: producto.stock,
   };
 }
@@ -46,7 +54,6 @@ type PedidoCreado = {
 
 export function toCrearPedidoResponse(
   pedido: PedidoCreado,
-  stockDescontado: boolean,
   faltantesStock: FaltanteStock[]
 ): CrearPedidoResponseDTO {
   return {
@@ -55,7 +62,7 @@ export function toCrearPedidoResponse(
     fecha: pedido.fecha,
     cantidadProductos: pedido.detalles.length,
     totalEstimado: pedido.montoTotal,
-    stockDescontado,
+    tieneFaltantesStock: faltantesStock.length > 0,
     faltantesStock,
   };
 }

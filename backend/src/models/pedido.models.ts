@@ -13,6 +13,8 @@ export interface DetallePedidoCalculado {
   precioUnitario: Prisma.Decimal;
   subtotal: Prisma.Decimal;
   stockActual: number;
+  cantidadConStock: number;
+  cantidadPendiente: number;
 }
 
 export interface FaltanteStock {

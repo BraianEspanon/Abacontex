@@ -63,11 +63,9 @@ export async function findEstadoPendiente() {
     },
   });
 }
-
 export async function createPedido(
   data: Prisma.PedidoCreateInput,
-  detalles: DetallePedidoCalculado[],
-  hayStockSuficiente: boolean
+  detalles: DetallePedidoCalculado[]
 ) {
   return prisma.$transaction(async (tx) => {
     const pedido = await tx.pedido.create({
@@ -77,6 +75,8 @@ export async function createPedido(
           create: detalles.map((detalle) => ({
             productoId: detalle.productoId,
             cantidad: detalle.cantidad,
+            cantidadConStock: detalle.cantidadConStock,
+            cantidadPendiente: detalle.cantidadPendiente,
             precioUnitario: detalle.precioUnitario,
             subtotal: detalle.subtotal,
           })),
@@ -88,17 +88,21 @@ export async function createPedido(
       },
     });
 
-    if (hayStockSuficiente) {
-      for (const detalle of detalles) {
-        await tx.producto.update({
-          where: {
-            id: detalle.productoId,
-          },
-          data: {
-            stock: detalle.stockActual - detalle.cantidad,
-          },
-        });
+    for (const detalle of detalles) {
+      if (detalle.cantidadConStock === 0) {
+        continue;
       }
+
+      await tx.producto.update({
+        where: {
+          id: detalle.productoId,
+        },
+        data: {
+          stock: {
+            decrement: detalle.cantidadConStock,
+          },
+        },
+      });
     }
 
     return pedido;

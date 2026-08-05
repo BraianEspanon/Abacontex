@@ -37,11 +37,8 @@ export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
   // Obtener estado inicial
   const estadoPendiente = await pedidoRepository.findEstadoPendiente();
 
-  //Calcular detalle
-  const { detalles, montoTotal, hayStockSuficiente, faltantesStock } = calcularDetalles(
-    data,
-    productos
-  );
+  //Construir pedido
+  const { detalles, montoTotal, faltantesStock } = construirPedido(data, productos);
 
   //Transacción
   const pedido = await pedidoRepository.createPedido(
@@ -65,44 +62,40 @@ export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
       clienteMail: data.clienteMail,
       montoTotal,
     },
-    detalles,
-    hayStockSuficiente
+    detalles
   );
 
   // Respuesta
-  return toCrearPedidoResponse(pedido, hayStockSuficiente, faltantesStock);
+  return toCrearPedidoResponse(pedido, faltantesStock);
 }
 
-function calcularDetalles(data: CrearPedidoDTO, productos: ProductoPedido[]) {
+function construirPedido(data: CrearPedidoDTO, productos: ProductoPedido[]) {
   let montoTotal = new Prisma.Decimal(0);
-  let hayStockSuficiente = true;
+
   const faltantesStock: FaltanteStock[] = [];
 
   const detalles = data.productos.map((item) => {
     const producto = productos.find((p) => p.id === item.productoId)!;
 
-    if (producto.stock < item.cantidad) {
-      hayStockSuficiente = false;
+    const detalle = toDetalleCalculado(producto, item.cantidad);
 
+    montoTotal = montoTotal.add(detalle.subtotal);
+
+    if (detalle.cantidadPendiente > 0) {
       faltantesStock.push({
         producto: producto.nombre,
-        solicitado: item.cantidad,
-        cubierto: producto.stock,
-        faltante: item.cantidad - producto.stock,
+        solicitado: detalle.cantidad,
+        cubierto: detalle.cantidadConStock,
+        faltante: detalle.cantidadPendiente,
       });
     }
 
-    const subtotal = producto.precioUnitario.mul(item.cantidad);
-
-    montoTotal = montoTotal.add(subtotal);
-
-    return toDetalleCalculado(producto, item.cantidad);
+    return detalle;
   });
 
   return {
     detalles,
     montoTotal,
-    hayStockSuficiente,
     faltantesStock,
   };
 }
