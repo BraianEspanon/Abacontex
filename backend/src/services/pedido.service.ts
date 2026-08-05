@@ -8,7 +8,11 @@ import * as alumnoRepository from '../repositories/alumno.repository';
 
 import { ForbiddenError } from '../errors/forbidden.error';
 import { NotFoundError } from '../errors/not-found.error';
-import { toDetalleCalculado, toCrearPedidoResponse } from '../dto/pedido/ped.mapper';
+import {
+  toDetalleCalculado,
+  toCrearPedidoResponse,
+  toObtenerDetallePedidoResponse,
+} from '../dto/pedido/ped.mapper';
 import { FaltanteStock, ProductoPedido } from '../models/pedido.models';
 
 export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
@@ -122,31 +126,5 @@ export async function obtenerDetallePedido(user: AuthUser, params: ObtenerDetall
     throw new NotFoundError('No se encontró el pedido.');
   }
 
-  return {
-    numeroPedido: pedido.idPedido,
-
-    cliente: {
-      nombre: pedido.clienteNombre,
-      mail: pedido.clienteMail,
-    },
-
-    estado: pedido.estado.nombre,
-
-    fecha: pedido.fecha,
-
-    creadoPor: `${pedido.usuario.nombre} ${pedido.usuario.apellido}`,
-
-    total: pedido.montoTotal,
-
-    productos: pedido.detalles.map((detalle) => ({
-      id: detalle.producto.id,
-      nombre: detalle.producto.nombre,
-      descripcion: detalle.producto.descripcion,
-      fotoUrl: detalle.producto.fotoUrl,
-
-      cantidad: detalle.cantidad,
-      precioUnitario: detalle.precioUnitario,
-      subtotal: detalle.subtotal,
-    })),
-  };
+  return toObtenerDetallePedidoResponse(pedido);
 }

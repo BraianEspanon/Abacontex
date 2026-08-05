@@ -23,3 +23,17 @@ export interface FaltanteStock {
   cubierto: number;
   faltante: number;
 }
+
+export interface DetallePedidoResponse {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  fotoUrl: string | null;
+
+  cantidad: number;
+  cantidadConStock: number;
+  cantidadPendiente: number;
+
+  precioUnitario: Prisma.Decimal;
+  subtotal: Prisma.Decimal;
+}
