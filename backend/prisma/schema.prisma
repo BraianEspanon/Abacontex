@@ -38,6 +38,8 @@ model Usuario {
   profesorCursos         ProfesorCursos[]
   movimientosFinancieros MovimientoFinanciero[]
   invitacionesCreadas    InvitacionEmpresa[]
+  pedidos Pedido[]
+  ordenesAsignadas OrdenProduccion[]
 
   alumno    Alumno?
   auditLogs AuditLog[]
@@ -130,6 +132,8 @@ model Empresa {
   auditLogs              AuditLog[]
   productos              Producto[]
   invitaciones           InvitacionEmpresa[]
+  pedidos Pedido[]
+  ordenesProduccion OrdenProduccion[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
@@ -272,7 +276,9 @@ model Producto {
   stock Int @default(0)
 
   precioUnitario Decimal @db.Decimal(14, 2)
-
+  margenGanancia Decimal @default(0) @db.Decimal(5, 2)
+  precioVenta Decimal @default(0) @db.Decimal(14, 2)
+  
   fotoUrl String?
   fotoPublicId String?
 
@@ -280,6 +286,9 @@ model Producto {
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  detallesPedido DetallePedido[]
+  ordenesProduccion OrdenProduccion[]
 
   @@unique([empresaId, nombre], where: { activo: true })
   @@index([empresaId])
@@ -321,4 +330,123 @@ model InvitacionEmpresa {
   @@index([estado])
   @@index([createdById])
   @@map("invitaciones_empresa")
+}
+
+model EstadoPedido {
+  idEstado Int    @id @default(autoincrement())
+  nombre   String @unique
+
+  pedidos Pedido[]
+
+  @@map("estados_pedido")
+}
+
+model Pedido {
+  idPedido Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  estadoId Int
+  estado   EstadoPedido @relation(fields: [estadoId], references: [idEstado])
+
+  clienteNombre String
+  
+  clienteMail   String
+
+  fecha      DateTime @default(now())
+  montoTotal Decimal  @db.Decimal(14, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  detalles DetallePedido[]
+  ordenesProduccion OrdenProduccion[]
+
+  @@index([empresaId])
+  @@index([estadoId])
+  @@index([usuarioId])
+  @@index([fecha])
+  
+  @@index([empresaId, estadoId])
+  @@map("pedidos")
+}
+
+model DetallePedido {
+  idDetallePedido Int @id @default(autoincrement())
+
+  pedidoId Int
+  pedido   Pedido @relation(fields: [pedidoId], references: [idPedido], onDelete: Cascade)
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  cantidad       Int
+
+  cantidadConStock Int
+  cantidadPendiente Int
+
+  precioUnitario Decimal @db.Decimal(14, 2)
+  subtotal       Decimal @db.Decimal(14, 2)
+
+  // 3. Restricción para evitar que el mismo producto se cargue dos veces en el mismo pedido
+  @@unique([pedidoId, productoId])
+  @@index([pedidoId])
+  @@index([productoId])
+  @@map("detalles_pedido")
+}
+
+
+//Definimos la constante (Enum) para la prioridad de ordne de produccion
+enum PrioridadOrden {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+
+model EstadoOrdenProduccion {
+  idEstado Int    @id @default(autoincrement())
+  nombre   String @unique 
+
+  ordenes OrdenProduccion[]
+
+  @@map("estados_orden_produccion")
+}
+
+
+model OrdenProduccion {
+  idOrden Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  estadoId Int
+  estado   EstadoOrdenProduccion @relation(fields: [estadoId], references: [idEstado])
+
+  pedidoId Int?
+  pedido   Pedido? @relation(fields: [pedidoId], references: [idPedido], onDelete: SetNull)
+
+  responsableId String
+  responsable   Usuario @relation(fields: [responsableId], references: [id])
+
+  cantidad Int
+
+  prioridad PrioridadOrden @default(MEDIA)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([empresaId])
+  @@index([estadoId])
+  @@index([responsableId])
+  @@index([pedidoId])
+  @@index([empresaId, estadoId])
+  @@map("ordenes_produccion")
 }

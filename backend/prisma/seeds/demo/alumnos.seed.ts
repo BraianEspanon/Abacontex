@@ -24,43 +24,43 @@ export const alumnosSeed: Seed = {
     ] = await Promise.all([
       prisma.usuario.findUnique({
         where: {
-          email: 'alumno@mail.com',
+          email: 'alumno@ipgsanmartin.edu.ar',
         },
       }),
 
       prisma.usuario.findUnique({
         where: {
-          email: 'alumno2@mail.com',
+          email: 'alumno2@ipgsanmartin.edu.ar',
         },
       }),
 
       prisma.usuario.findUnique({
         where: {
-          email: 'martina.lopez@abacontex.com',
+          email: 'martina.lopez@ipgsanmartin.edu.ar',
         },
       }),
 
       prisma.usuario.findUnique({
         where: {
-          email: 'lucas.gomez@abacontex.com',
+          email: 'lucas.gomez@ipgsanmartin.edu.ar',
         },
       }),
 
       prisma.usuario.findUnique({
         where: {
-          email: 'sofia.romero@abacontex.com',
+          email: 'sofia.romero@ipgsanmartin.edu.ar',
         },
       }),
 
       prisma.usuario.findUnique({
         where: {
-          email: 'anibal.rodriguez@abacontex.com',
+          email: 'anibal.rodriguez@ipgsanmartin.edu.ar',
         },
       }),
 
       prisma.usuario.findUnique({
         where: {
-          email: 'mateo.sosa@abacontex.com',
+          email: 'mateo.sosa@ipgsanmartin.edu.ar',
         },
       }),
 
@@ -140,13 +140,13 @@ export const alumnosSeed: Seed = {
       update: {
         idCurso: curso5to.idCurso,
         idEmpresa: null,
-        idRolEmpresa: rolCEO.idRol,
+        idRolEmpresa: null,
       },
       create: {
         id: usuarioAlumno.id,
         idCurso: curso5to.idCurso,
         idEmpresa: null,
-        idRolEmpresa: rolCEO.idRol,
+        idRolEmpresa: null,
       },
     });
 

@@ -13,37 +13,37 @@ export default function RoleCard({
     <button
       type="button"
       onClick={() => onClick(id)}
-      className={`relative flex flex-col items-center p-6 rounded-2xl text-center transition-all duration-300 border border-abacontex-gray-text/60 w-full ${
+      className={`group relative flex w-full cursor-pointer items-start gap-4 rounded-2xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 ${
         isSelected
-          ? 'border-abacontex-primary bg-abacontex-primary/5 shadow-md'
-          : 'border-abacontex-gray/30 bg-white hover:border-abacontex-primary-three hover:shadow-sm'
+          ? 'border-abacontex-primary bg-abacontex-primary/5 shadow-sm'
+          : 'border-abacontex-gray/40 bg-white hover:border-abacontex-primary-three'
       }`}
     >
-      {/* Icono de Check (Solo visible si la tarjeta está seleccionada) */}
       {isSelected && (
-        <CheckCircle2 className="absolute top-4 right-4 text-abacontex-primary w-6 h-6 animate-in fade-in zoom-in" />
+        <CheckCircle2 className="absolute right-3 top-3 h-5 w-5 text-abacontex-primary" />
       )}
 
-      {/* Contenedor del Icono Principal */}
       <div
-        className={`p-3 rounded-xl mb-2 transition-colors duration-300 ${
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${
           isSelected
             ? 'bg-abacontex-primary text-white'
-            : 'bg-abacontex-light-bg text-abacontex-dark'
+            : 'bg-abacontext-light-bg text-abacontex-dark group-hover:bg-abacontex-primary-three/15'
         }`}
       >
-        <Icon className="w-6 h-6" />
+        <Icon className="h-5 w-5" />
       </div>
 
-      {/* Textos */}
-      <h3
-        className={`font-bold text-lg mb-1 font-heading ${
-          isSelected ? 'text-abacontex-primary' : 'text-abacontex-black-text'
-        }`}
-      >
-        {title}
-      </h3>
-      <p className="text-sm text-abacontex-gray-text line-clamp-2 font-sans">{description}</p>
+      <div className="min-w-0 pr-6">
+        <h3
+          className={`mb-1 font-heading text-lg font-bold ${
+            isSelected ? 'text-abacontex-primary' : 'text-abacontex-black-text'
+          }`}
+        >
+          {title}
+        </h3>
+
+        <p className="text-sm leading-5 text-abacontex-gray-text">{description}</p>
+      </div>
     </button>
   );
 }

@@ -24,7 +24,7 @@ export default function LandingPage() {
   const { keycloak, initialized } = useKeycloak();
 
   if (initialized && keycloak.authenticated) {
-    return <Navigate to="/setup" replace />;
+    return <Navigate to="/inicio" replace />;
   }
 
   return (
@@ -51,7 +51,7 @@ export default function LandingPage() {
       <Navbar />
 
       {/* --- SECCIÓN HERO --- */}
-      <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 px-8 pt-32 pb-20 max-w-7xl mx-auto items-center">
+      <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 px-8 pt-40 pb-20 max-w-7xl mx-auto items-center">
         <div className="flex flex-col gap-6 items-center">
           <h1 className="font-heading text-6xl lg:text-7xl font-extrabold text-abacontex-black-text leading-tight">
             Convertí el aula en una <span className="text-abacontex-primary-two">empresa</span>
@@ -60,14 +60,18 @@ export default function LandingPage() {
             Una plataforma donde los estudiantes aprenden gestionando proyectos, tomando decisiones
             y trabajando en equipo en un entorno colaborativo.
           </p>
-          <Button label="Crear una cuenta gratuita" variant="solid" />
+          <Button
+            label="Crear una cuenta gratuita"
+            variant="solid"
+            onClick={() => keycloak.register({ redirectUri: window.location.origin + '/inicio' })}
+          />
         </div>
 
         <div className="relative w-full flex items-center justify-center">
           <img
-            src="/img/hero-image.png"
+            src="img\hero-image (2).png"
             alt="Flujo de simulación de ABACONTEX"
-            className="w-full h-auto max-h-162.5 scale-125 object-contain drop-shadow-2xl"
+            className="w-full h-auto scale-125 object-contain drop-shadow-2xl"
           />
         </div>
       </main>
@@ -221,7 +225,7 @@ export default function LandingPage() {
 
       {/* --- SECCIÓN DE CIERRE  --- */}
       <section className="bg-abacontex-light pb-24 px-8">
-        <div className="max-w-7xl mx-auto bg-abacontex-dark rounded-[2.5rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl border border-abacontex-primary-two/20">
+        <div className="max-w-6xl mx-auto bg-abacontex-dark rounded-[2.5rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl border border-abacontex-primary-two/20">
           <div className="absolute top-[-10%] left-[-5%] w-32 h-32 bg-abacontex-primary-three/10 rounded-full pointer-events-none" />
           <div className="absolute bottom-[-10%] right-[-5%] w-44 h-44 bg-abacontex-primary-three/10 rounded-full pointer-events-none" />
 
@@ -241,6 +245,9 @@ export default function LandingPage() {
                 icon={
                   <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
                 }
+                onClick={() =>
+                  keycloak.register({ redirectUri: window.location.origin + '/inicio' })
+                }
               />
             </div>
           </div>
@@ -248,69 +255,64 @@ export default function LandingPage() {
       </section>
 
       {/* --- FOOTER --- */}
-      <footer className="bg-abacontex-light border-t border-abacontex-gray/60 pt-20 pb-12">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16">
-            {/* Columna Marca */}
-            <div className="text-3xl font-extrabold text-abacontex-dark tracking-tight font-heading">
-              ABACONTEX
+      <footer className="border-t border-abacontex-gray/40 pt-8 font-sans text-xs text-abacontex-gray-text">
+        <div className="mx-auto max-w-7xl px-8">
+          <div className="grid grid-cols-1 gap-10 pb-14 md:grid-cols-[minmax(0,1.5fr)_minmax(220px,0.7fr)] md:items-center">
+            {/* Marca */}
+            <div>
+              <div className="flex items-center gap-6">
+                <img
+                  src="/img/Footer-img.png"
+                  alt="Aba, mascota de Abacontex"
+                  className="h-32 w-32s object-contain"
+                />
+
+                <div>
+                  <div className="font-heading text-3xl font-extrabold tracking-tight text-abacontex-dark">
+                    ABACONTEX
+                  </div>
+
+                  <p className="mt-1 max-w-sm font-sans text-sm leading-relaxed text-abacontex-gray-text">
+                    Aprender gestionando, decidir simulando.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Columna Navegación */}
-            <div className="md:col-span-3 md:col-start-7 flex flex-col gap-4 font-sans">
+            {/* Navegación */}
+            <div className="flex flex-col gap-4 font-sans md:justify-self-start">
               <h4 className="text-xs font-bold uppercase tracking-wider text-abacontex-black-text">
                 Plataforma
               </h4>
+
               <ul className="flex flex-col gap-3 text-sm text-abacontex-gray-text">
                 <li>
                   <a
                     href="#caracteristicas"
-                    className="hover:text-abacontex-primary transition-colors"
+                    className="transition-colors hover:text-abacontex-primary"
                   >
                     Características
                   </a>
                 </li>
+
                 <li>
-                  <a href="#simulacion" className="hover:text-abacontex-primary transition-colors">
+                  <a href="#simulacion" className="transition-colors hover:text-abacontex-primary">
                     Simulación Alumnos
                   </a>
                 </li>
-                <li>
-                  <a href="#docentes" className="hover:text-abacontex-primary transition-colors">
-                    Panel Docente
-                  </a>
-                </li>
-              </ul>
-            </div>
 
-            {/* Columna Institucional */}
-            <div className="md:col-span-3 flex flex-col gap-4 font-sans">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-abacontex-black-text">
-                Soporte
-              </h4>
-              <ul className="flex flex-col gap-3 text-sm text-abacontex-gray-text">
                 <li>
-                  <a href="#" className="hover:text-abacontex-primary transition-colors">
-                    Contacto Técnico
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-abacontex-primary transition-colors">
-                    Términos de Servicio
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-abacontex-primary transition-colors">
-                    Política de Privacidad
+                  <a href="#docentes" className="transition-colors hover:text-abacontex-primary">
+                    Panel Docente
                   </a>
                 </li>
               </ul>
             </div>
           </div>
 
-          {/* Barra Inferior del Copyright */}
-          <div className="border-t border-abacontex-gray/40 pt-8 items-center font-sans text-xs text-abacontex-gray-text text-center">
-            <div>&copy; {new Date().getFullYear()} ABACONTEX. Todos los derechos reservados.</div>
+          {/* Copyright */}
+          <div className="border-t border-abacontex-gray/40 pt-8 text-center font-sans text-xs text-abacontex-gray-text">
+            &copy; {new Date().getFullYear()} ABACONTEX. Todos los derechos reservados.
           </div>
         </div>
       </footer>
