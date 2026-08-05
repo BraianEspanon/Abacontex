@@ -70,7 +70,7 @@ export default function InvitacionPage() {
         <img
           src="/img/Logo.png"
           alt="Abacontex"
-          className="relative z-10 mx-auto h-30 w-auto object-contain mb-6"
+          className="relative z-10 mx-auto h-22 w-auto object-contain mb-2"
         />
       </header>
 

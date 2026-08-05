@@ -10,7 +10,6 @@ import {
   Network,
   Target,
   GraduationCap,
-  Building2,
   ArrowRightFromLine,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
