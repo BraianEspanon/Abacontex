@@ -1,0 +1,76 @@
+import { Prisma, PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { toProductoPedido } from '../dto/pedido/ped.mapper';
+import { DetallePedidoCalculado, ProductoPedido } from '../models/pedido.models';
+
+export async function findProductosByIdsAndEmpresa(
+  empresaId: number,
+  productoIds: number[]
+): Promise<ProductoPedido[]> {
+  const productos = await prisma.producto.findMany({
+    where: {
+      empresaId,
+      activo: true,
+      id: {
+        in: productoIds,
+      },
+    },
+    select: {
+      id: true,
+      nombre: true,
+      stock: true,
+      precioUnitario: true,
+    },
+  });
+
+  return productos.map(toProductoPedido);
+}
+
+export async function findEstadoPendiente() {
+  return prisma.estadoPedido.findUniqueOrThrow({
+    where: {
+      nombre: 'PENDIENTE',
+    },
+  });
+}
+
+export async function createPedido(
+  data: Prisma.PedidoCreateInput,
+  detalles: DetallePedidoCalculado[],
+  hayStockSuficiente: boolean
+) {
+  return prisma.$transaction(async (tx) => {
+    const pedido = await tx.pedido.create({
+      data: {
+        ...data,
+        detalles: {
+          create: detalles.map((detalle) => ({
+            productoId: detalle.productoId,
+            cantidad: detalle.cantidad,
+            precioUnitario: detalle.precioUnitario,
+            subtotal: detalle.subtotal,
+          })),
+        },
+      },
+      include: {
+        estado: true,
+        detalles: true,
+      },
+    });
+
+    if (hayStockSuficiente) {
+      for (const detalle of detalles) {
+        await tx.producto.update({
+          where: {
+            id: detalle.productoId,
+          },
+          data: {
+            stock: detalle.stockActual - detalle.cantidad,
+          },
+        });
+      }
+    }
+
+    return pedido;
+  });
+}
