@@ -36,3 +36,11 @@ export const crearPedidoSchema = z.object({
 });
 
 export type CrearPedidoDTO = z.infer<typeof crearPedidoSchema>['body'];
+
+export const obtenerDetallePedidoSchema = z.object({
+  params: z.object({
+    idPedido: z.coerce.number().int().positive(),
+  }),
+});
+
+export type ObtenerDetallePedidoDTO = z.infer<typeof obtenerDetallePedidoSchema>['params'];

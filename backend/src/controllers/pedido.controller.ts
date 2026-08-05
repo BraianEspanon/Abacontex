@@ -1,9 +1,20 @@
 import { Request, Response } from 'express';
 
-import { crearPedido as crearPedidoService } from '../services/pedido.service';
+import * as pedidoService from '../services/pedido.service';
+import { obtenerDetallePedidoSchema } from '../validators/pedido.validator';
 
 export async function crearPedido(req: Request, res: Response) {
-  const pedido = await crearPedidoService(req.user!, req.body);
+  const pedido = await pedidoService.crearPedido(req.user!, req.body);
 
   return res.status(201).json(pedido);
+}
+
+export async function obtenerDetallePedido(req: Request, res: Response) {
+  const params = obtenerDetallePedidoSchema.parse({
+    params: req.params,
+  });
+
+  const pedido = await pedidoService.obtenerDetallePedido(req.user!, params.params);
+
+  res.json(pedido);
 }

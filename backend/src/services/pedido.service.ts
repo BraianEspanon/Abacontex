@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { AuthUser } from '../types/express';
 
-import { CrearPedidoDTO } from '../validators/pedido.validator';
+import { CrearPedidoDTO, ObtenerDetallePedidoDTO } from '../validators/pedido.validator';
 
 import * as pedidoRepository from '../repositories/pedido.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
@@ -104,5 +104,56 @@ function calcularDetalles(data: CrearPedidoDTO, productos: ProductoPedido[]) {
     montoTotal,
     hayStockSuficiente,
     faltantesStock,
+  };
+}
+
+export async function obtenerDetallePedido(user: AuthUser, params: ObtenerDetallePedidoDTO) {
+  // Obtener usuario con empresa
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ForbiddenError('El alumno no completó su registro.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ForbiddenError('El usuario no pertenece a una empresa.');
+  }
+
+  // Buscar pedido
+  const pedido = await pedidoRepository.findByIdAndEmpresa(
+    params.idPedido,
+    usuario.alumno.empresa.id
+  );
+
+  if (!pedido) {
+    throw new NotFoundError('No se encontró el pedido.');
+  }
+
+  return {
+    numeroPedido: pedido.idPedido,
+
+    cliente: {
+      nombre: pedido.clienteNombre,
+      mail: pedido.clienteMail,
+    },
+
+    estado: pedido.estado.nombre,
+
+    fecha: pedido.fecha,
+
+    creadoPor: `${pedido.usuario.nombre} ${pedido.usuario.apellido}`,
+
+    total: pedido.montoTotal,
+
+    productos: pedido.detalles.map((detalle) => ({
+      id: detalle.producto.id,
+      nombre: detalle.producto.nombre,
+      descripcion: detalle.producto.descripcion,
+      fotoUrl: detalle.producto.fotoUrl,
+
+      cantidad: detalle.cantidad,
+      precioUnitario: detalle.precioUnitario,
+      subtotal: detalle.subtotal,
+    })),
   };
 }

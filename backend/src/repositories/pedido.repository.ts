@@ -26,6 +26,36 @@ export async function findProductosByIdsAndEmpresa(
   return productos.map(toProductoPedido);
 }
 
+export async function findByIdAndEmpresa(idPedido: number, empresaId: number) {
+  return prisma.pedido.findFirst({
+    where: {
+      idPedido,
+      empresaId,
+    },
+    include: {
+      estado: true,
+      usuario: {
+        select: {
+          nombre: true,
+          apellido: true,
+        },
+      },
+      detalles: {
+        include: {
+          producto: {
+            select: {
+              id: true,
+              nombre: true,
+              descripcion: true,
+              fotoUrl: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function findEstadoPendiente() {
   return prisma.estadoPedido.findUniqueOrThrow({
     where: {
