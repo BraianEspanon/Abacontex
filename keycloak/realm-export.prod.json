@@ -503,8 +503,30 @@
   "webAuthnPolicyPasswordlessAvoidSameAuthenticatorRegister": false,
   "webAuthnPolicyPasswordlessAcceptableAaguids": [],
   "webAuthnPolicyPasswordlessExtraOrigins": [],
-  "users": [
-    {
+  "users": [{
+    "id" : "21bf6585-de7d-4f06-832c-636c138c3f55",
+    "username" : "admin",
+    "firstName" : "admin",
+    "lastName" : "admin",
+    "email" : "admin@ipgsanmartin.edu.ar",
+    "emailVerified" : true,
+    "createdTimestamp" : 1780351998728,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "202bff71-d228-4e2d-ab3d-35c0d783c6ed",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1780352009934,
+      "secretData" : "{\"value\":\"QR0SmQj6o/dUwshoAsOhr37Ehri0HbipRMm3JlMDqmI=\",\"salt\":\"g1VfYKve/Xj+QAblD+oRdA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "ADMIN", "default-roles-abacontex" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
       "id": "44b98d42-91f3-4039-a315-ce6087a37e85",
       "username": "service-account-backend-api",
       "emailVerified": false,
