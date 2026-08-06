@@ -9,6 +9,12 @@ export async function crearPedido(req: Request, res: Response) {
   return res.status(201).json(pedido);
 }
 
+export async function obtenerPedidos(req: Request, res: Response) {
+  const resultado = await pedidoService.obtenerKanbanPedidos(req.user!);
+
+  res.status(200).json(resultado);
+}
+
 export async function obtenerDetallePedido(req: Request, res: Response) {
   const params = obtenerDetallePedidoSchema.parse({
     params: req.params,

@@ -12,6 +12,7 @@ import {
   toDetalleCalculado,
   toCrearPedidoResponse,
   toObtenerDetallePedidoResponse,
+  toKanbanPedidosResponse,
 } from '../dto/pedido/ped.mapper';
 import { FaltanteStock, ProductoPedido } from '../models/pedido.models';
 
@@ -127,4 +128,23 @@ export async function obtenerDetallePedido(user: AuthUser, params: ObtenerDetall
   }
 
   return toObtenerDetallePedidoResponse(pedido);
+}
+
+export async function obtenerKanbanPedidos(user: AuthUser) {
+  // Obtener usuario y empresa
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ForbiddenError('El alumno no completó su registro.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ForbiddenError('El usuario no pertenece a una empresa.');
+  }
+
+  // Buscar pedidos
+  const pedidos = await pedidoRepository.findKanbanByEmpresa(usuario.alumno.empresa.id);
+
+  // Respuesta
+  return toKanbanPedidosResponse(pedidos);
 }

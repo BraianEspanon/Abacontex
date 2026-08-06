@@ -55,6 +55,28 @@ export async function findByIdAndEmpresa(idPedido: number, empresaId: number) {
     },
   });
 }
+export async function findKanbanByEmpresa(empresaId: number) {
+  return prisma.pedido.findMany({
+    where: {
+      empresaId,
+    },
+    orderBy: {
+      fecha: 'desc',
+    },
+    include: {
+      estado: {
+        select: {
+          nombre: true,
+        },
+      },
+      detalles: {
+        select: {
+          cantidadPendiente: true,
+        },
+      },
+    },
+  });
+}
 
 export async function findEstadoPendiente() {
   return prisma.estadoPedido.findUniqueOrThrow({

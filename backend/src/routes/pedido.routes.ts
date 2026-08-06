@@ -6,13 +6,18 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { crearPedido, obtenerDetallePedido } from '../controllers/pedido.controller';
+import {
+  crearPedido,
+  obtenerDetallePedido,
+  obtenerPedidos,
+} from '../controllers/pedido.controller';
 
 import { crearPedidoSchema, obtenerDetallePedidoSchema } from '../validators/pedido.validator';
 
 const router = Router();
 
 router.post('/', authenticate, requireRole(ROLES.ALUMNO), validate(crearPedidoSchema), crearPedido);
+router.get('/', authenticate, requireRole(ROLES.ALUMNO), obtenerPedidos);
 router.get(
   '/:idPedido',
   authenticate,

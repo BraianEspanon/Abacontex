@@ -8,6 +8,7 @@ import {
 } from '../../models/pedido.models';
 import { CrearPedidoResponseDTO } from './ped-crear.dto';
 import { ObtenerDetallePedidoResponseDTO } from './ped-detalle.dto';
+import { KanbanPedidosResponseDTO, TarjetaPedidoDTO } from './ped-kanban.dto';
 
 type ProductoPrisma = Prisma.ProductoGetPayload<{
   select: {
@@ -162,4 +163,71 @@ export function toObtenerDetallePedidoResponse(
 
     detalles: pedido.detalles.map(toDetalleProductoResponse),
   };
+}
+
+type PedidoKanban = Prisma.PedidoGetPayload<{
+  include: {
+    estado: {
+      select: {
+        nombre: true;
+      };
+    };
+    detalles: {
+      select: {
+        cantidadPendiente: true;
+      };
+    };
+  };
+}>;
+
+export function toKanbanPedidosResponse(pedidos: PedidoKanban[]): KanbanPedidosResponseDTO {
+  const response: KanbanPedidosResponseDTO = {
+    resumen: {
+      total: pedidos.length,
+      pendientes: 0,
+      enProduccion: 0,
+      listosParaEntregar: 0,
+    },
+
+    kanban: {
+      PENDIENTE: [],
+      EN_PRODUCCION: [],
+      LISTO_PARA_ENTREGAR: [],
+      COMPLETADO: [],
+    },
+  };
+
+  for (const pedido of pedidos) {
+    const tarjeta: TarjetaPedidoDTO = {
+      numeroPedido: pedido.idPedido,
+      cliente: pedido.clienteNombre,
+      fecha: pedido.fecha,
+      cantidadProductos: pedido.detalles.length,
+      total: pedido.montoTotal,
+      tieneFaltantesStock: pedido.detalles.some((detalle) => detalle.cantidadPendiente > 0),
+    };
+
+    switch (pedido.estado.nombre) {
+      case 'PENDIENTE':
+        response.resumen.pendientes++;
+        response.kanban.PENDIENTE.push(tarjeta);
+        break;
+
+      case 'EN_PRODUCCION':
+        response.resumen.enProduccion++;
+        response.kanban.EN_PRODUCCION.push(tarjeta);
+        break;
+
+      case 'LISTO_PARA_ENTREGAR':
+        response.resumen.listosParaEntregar++;
+        response.kanban.LISTO_PARA_ENTREGAR.push(tarjeta);
+        break;
+
+      case 'COMPLETADO':
+        response.kanban.COMPLETADO.push(tarjeta);
+        break;
+    }
+  }
+
+  return response;
 }
