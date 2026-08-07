@@ -40,6 +40,7 @@ model Usuario {
   invitacionesCreadas    InvitacionEmpresa[]
   pedidos Pedido[]
   ordenesAsignadas OrdenProduccion[]
+  historialOrdenes HistorialEstadoOrdenProduccion[]
 
   alumno    Alumno?
   auditLogs AuditLog[]
@@ -413,6 +414,7 @@ model EstadoOrdenProduccion {
   nombre   String @unique 
 
   ordenes OrdenProduccion[]
+  historial HistorialEstadoOrdenProduccion[]
 
   @@map("estados_orden_produccion")
 }
@@ -443,10 +445,36 @@ model OrdenProduccion {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
+  historialEstados HistorialEstadoOrdenProduccion[]
+
   @@index([empresaId])
   @@index([estadoId])
   @@index([responsableId])
   @@index([pedidoId])
   @@index([empresaId, estadoId])
   @@map("ordenes_produccion")
+}
+
+model HistorialEstadoOrdenProduccion { 
+  idHistorial Int @id @default(autoincrement())
+
+  ordenId Int
+  orden   OrdenProduccion @relation(fields: [ordenId], references: [idOrden], onDelete: Cascade)
+
+  estadoId Int
+  estado   EstadoOrdenProduccion @relation(fields: [estadoId], references: [idEstado])
+
+  // Quién realizó el cambio o qué usuario lo gestionó
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  fechaInicio   DateTime  @default(now()) @db.Timestamptz(3)
+  fechaFin      DateTime? @db.Timestamptz(3) // Nulo si es el estado actual en el que se encuentra
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([ordenId])
+  @@index([estadoId])
+  @@index([usuarioId])
+  @@map("historial_estado_orden_produccion")
 }
