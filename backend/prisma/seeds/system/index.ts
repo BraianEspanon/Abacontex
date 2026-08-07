@@ -5,6 +5,7 @@ import { estadosMovimientoSeed } from './estados-movimiento.seed';
 import { metodosPagoSeed } from './metodos-pago.seed';
 import { categoriasMovimientoSeed } from './categorias-movimiento.seed';
 import type { Seed } from '../types';
+import { estadosPedidoSeed } from './estado-pedido.seed';
 
 export const systemSeeds: Seed[] = [
   rolesSistemaSeed,
@@ -13,4 +14,5 @@ export const systemSeeds: Seed[] = [
   estadosMovimientoSeed,
   metodosPagoSeed,
   categoriasMovimientoSeed,
+  estadosPedidoSeed,
 ];
