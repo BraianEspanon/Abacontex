@@ -55,6 +55,24 @@ export async function findByIdAndEmpresa(idPedido: number, empresaId: number) {
     },
   });
 }
+
+export async function findByIdAndEmpresaForCambioEstado(idPedido: number, empresaId: number) {
+  return prisma.pedido.findFirst({
+    where: {
+      idPedido,
+      empresaId,
+    },
+    include: {
+      estado: true,
+      detalles: {
+        select: {
+          cantidadPendiente: true,
+        },
+      },
+    },
+  });
+}
+
 export async function findKanbanByEmpresa(empresaId: number) {
   return prisma.pedido.findMany({
     where: {
@@ -85,6 +103,15 @@ export async function findEstadoPendiente() {
     },
   });
 }
+
+export async function findEstadoListoParaEntregar() {
+  return prisma.estadoPedido.findUniqueOrThrow({
+    where: {
+      nombre: 'LISTO_PARA_ENTREGAR',
+    },
+  });
+}
+
 export async function createPedido(
   data: Prisma.PedidoCreateInput,
   detalles: DetallePedidoCalculado[]
@@ -128,5 +155,19 @@ export async function createPedido(
     }
 
     return pedido;
+  });
+}
+
+export async function updateEstadoPedido(idPedido: number, estadoId: number) {
+  return prisma.pedido.update({
+    where: {
+      idPedido,
+    },
+    data: {
+      estadoId,
+    },
+    include: {
+      estado: true,
+    },
   });
 }

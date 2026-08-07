@@ -10,9 +10,10 @@ import {
   crearPedido,
   obtenerDetallePedido,
   obtenerPedidos,
+  marcarPedidoListoParaEntregar,
 } from '../controllers/pedido.controller';
 
-import { crearPedidoSchema, obtenerDetallePedidoSchema } from '../validators/pedido.validator';
+import { crearPedidoSchema, pedidoIdSchema } from '../validators/pedido.validator';
 
 const router = Router();
 
@@ -22,8 +23,17 @@ router.get(
   '/:idPedido',
   authenticate,
   requireRole(ROLES.ALUMNO),
-  validate(obtenerDetallePedidoSchema),
+  validate(pedidoIdSchema),
   obtenerDetallePedido
+);
+
+// CAMBIOS DE ESTADO
+router.post(
+  '/:idPedido/listo-para-entregar',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(pedidoIdSchema),
+  marcarPedidoListoParaEntregar
 );
 
 export default router;

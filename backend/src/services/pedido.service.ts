@@ -1,13 +1,15 @@
 import { Prisma } from '@prisma/client';
 import { AuthUser } from '../types/express';
 
-import { CrearPedidoDTO, ObtenerDetallePedidoDTO } from '../validators/pedido.validator';
+import { CrearPedidoDTO, PedidoIdDTO } from '../validators/pedido.validator';
 
 import * as pedidoRepository from '../repositories/pedido.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
 
 import { ForbiddenError } from '../errors/forbidden.error';
 import { NotFoundError } from '../errors/not-found.error';
+import { BadRequestError } from '../errors/bad-request-error';
+
 import {
   toDetalleCalculado,
   toCrearPedidoResponse,
@@ -15,6 +17,7 @@ import {
   toKanbanPedidosResponse,
 } from '../dto/pedido/ped.mapper';
 import { FaltanteStock, ProductoPedido } from '../models/pedido.models';
+import { PedidoCambioEstadoResponseDTO } from '../dto/pedido/ped-cambio-estado.dto';
 
 export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
   // Obtener alumno y empresa
@@ -105,7 +108,7 @@ function construirPedido(data: CrearPedidoDTO, productos: ProductoPedido[]) {
   };
 }
 
-export async function obtenerDetallePedido(user: AuthUser, params: ObtenerDetallePedidoDTO) {
+export async function obtenerDetallePedido(user: AuthUser, params: PedidoIdDTO) {
   // Obtener usuario con empresa
   const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
 
@@ -147,4 +150,62 @@ export async function obtenerKanbanPedidos(user: AuthUser) {
 
   // Respuesta
   return toKanbanPedidosResponse(pedidos);
+}
+
+export async function marcarPedidoListoParaEntregar(user: AuthUser, params: PedidoIdDTO) {
+  // Obtener usuario y empresa
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ForbiddenError('El alumno no completó su registro.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ForbiddenError('El usuario no pertenece a una empresa.');
+  }
+
+  // Buscar pedido
+  const pedido = await pedidoRepository.findByIdAndEmpresaForCambioEstado(
+    params.idPedido,
+    usuario.alumno.empresa.id
+  );
+
+  if (!pedido) {
+    throw new NotFoundError('No se encontró el pedido.');
+  }
+
+  // Validar estado actual
+  if (pedido.estado.nombre !== 'PENDIENTE') {
+    //Este endpoint está pensando desde PENDIENTE hasta LISTO PARA ENTREGAR.
+    //Si el pedido está en producción, este cambio se hará desde otro endpoint.
+    //REVISAR CUANDO SE IMPLEMENTE PRODUCCIÓN
+    throw new BadRequestError(
+      'Solo los pedidos pendientes pueden marcarse como listos para entregar.'
+    );
+  }
+
+  // Validar productos pendientes
+  const tienePendientes = pedido.detalles.some((detalle) => detalle.cantidadPendiente > 0);
+
+  if (tienePendientes) {
+    throw new BadRequestError('El pedido posee productos pendientes de producción.');
+  }
+
+  // Obtener estado destino
+  const estado = await pedidoRepository.findEstadoListoParaEntregar();
+
+  // Actualizar
+  const pedidoActualizado = await pedidoRepository.updateEstadoPedido(
+    pedido.idPedido,
+    estado.idEstado
+  );
+
+  // Respuesta
+  const response: PedidoCambioEstadoResponseDTO = {
+    numeroPedido: pedidoActualizado.idPedido,
+    estado: pedidoActualizado.estado.nombre,
+    mensaje: 'Pedido marcado como listo para entregar.',
+  };
+
+  return response;
 }
