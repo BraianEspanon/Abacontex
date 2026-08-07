@@ -56,13 +56,31 @@
             "method": "PATCH",
             "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Braian\",\r\n  \"apellido\": \"Españon\",\r\n  \"fotoPerfilUrl\": \"https://www.example.com\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "nombre",
+                  "value": "Abel",
+                  "type": "text"
+                },
+                {
+                  "key": "apellido",
+                  "value": "Acevedo",
+                  "type": "text"
+                },
+                {
+                  "key": "foto",
+                  "type": "file",
+                  "value": null
+                },
+                {
+                  "key": "eliminarFoto",
+                  "value": "true",
+                  "type": "text",
+                  "uuid": "6138214a-c6e7-4be0-a5d6-5462c797c2e4",
+                  "disabled": true
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{base_Url}}/usuarios/me",
@@ -167,7 +185,7 @@
               "variable": [
                 {
                   "key": "idInvitacion",
-                  "value": "2"
+                  "value": "1"
                 }
               ]
             }
@@ -227,7 +245,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"idCurso\": 2,\r\n  \"idRolEmpresa\": 2\r\n}",
+              "raw": "{\r\n  \"idCurso\": 2,\r\n  \"idRolEmpresa\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -442,7 +460,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n  \"emails\": [\r\n    \"bbb@ipgsanmartin.edu.ar\"\r\n  ]\r\n}",
+                  "raw": "{\r\n  \"emails\": [\r\n    \"ccc@ipgsanmartin.edu.ar\",\r\n    \"ddd@ipgsanmartin.edu.ar\"\r\n  ]\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -503,13 +521,25 @@
             "method": "POST",
             "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"nombre\": \"Abacontex S.A.\",\r\n    \"actividad\": \"Educar y enseñar finanzas\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "nombre",
+                  "value": "Abacontex S.A.",
+                  "type": "text"
+                },
+                {
+                  "key": "actividad",
+                  "value": "Educar y enseñar finanzas",
+                  "type": "text"
+                },
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "uuid": "3ccd4702-28ca-4886-8b26-ba23497db73c",
+                  "value": null
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{base_Url}}/empresas",
@@ -547,13 +577,33 @@
             "method": "PATCH",
             "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"nombre\": \"Abacontex S.A.\",\r\n    \"actividad\": \"Plataforma ERP educativa\",\r\n    \"logoUrl\": \"https://www.example.com\"\r\n    }",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "nombre",
+                  "value": "Abacontex S.A.",
+                  "type": "text",
+                  "uuid": "404bcda7-d211-4e7a-89c1-983e2b1a5045"
+                },
+                {
+                  "key": "actividad",
+                  "value": "Plataforma ERP educativa",
+                  "type": "text"
+                },
+                {
+                  "key": "eliminarLogo",
+                  "value": "true",
+                  "type": "text",
+                  "uuid": "1687e4df-0445-48d6-9ad9-fd3ee57f24ce",
+                  "disabled": true
+                },
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "value": null,
+                  "disabled": true
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{base_Url}}/empresas/me",
@@ -730,7 +780,7 @@
                 },
                 {
                   "key": "estadoStock",
-                  "value": "SIN_STOCK",
+                  "value": "TODOS",
                   "disabled": true
                 },
                 {
@@ -761,7 +811,7 @@
               "variable": [
                 {
                   "key": "idProducto",
-                  "value": "6"
+                  "value": "3"
                 }
               ]
             }
@@ -774,13 +824,39 @@
             "method": "POST",
             "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Yerba mate 1kg\",\r\n  \"stockInicial\": 10,\r\n  \"precioUnitario\": 1000,\r\n  \"descripcion\": \"Salen esos Leo Matioli\",\r\n  \"fotoUrl\": \"http://example.com\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "nombre",
+                  "type": "text",
+                  "uuid": "3b2e782a-e865-464d-a10a-ad0220418531",
+                  "value": "Paisaje"
+                },
+                {
+                  "key": "descripcion",
+                  "value": "asd",
+                  "type": "text",
+                  "uuid": "6a351646-c1f5-4c3e-9adc-c4a0e67bb78b"
+                },
+                {
+                  "key": "stockInicial",
+                  "value": "10",
+                  "type": "text",
+                  "uuid": "5dd8c1be-63d1-40f1-84e4-87627ccee7b1"
+                },
+                {
+                  "key": "precioUnitario",
+                  "value": "5000",
+                  "type": "text",
+                  "uuid": "71e88f67-4fb3-4835-888b-b3961f837350"
+                },
+                {
+                  "key": "foto",
+                  "type": "file",
+                  "uuid": "cb156f3d-fa55-4d56-a4f4-713d1bf2d40a",
+                  "value": null
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{base_Url}}/productos",
@@ -800,13 +876,40 @@
             "method": "PATCH",
             "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Yerba mate 3kg\",\r\n  \"precioUnitario\": 200,\r\n  \"descripcion\": \"Buenarda la yerbancia\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "nombre",
+                  "value": "Licencia ERP",
+                  "type": "text",
+                  "uuid": "bb943a82-5ea4-4d09-b065-60a06d0e8453"
+                },
+                {
+                  "key": "precioUnitario",
+                  "value": "50000",
+                  "type": "text",
+                  "uuid": "277c6a3e-3a98-43f0-a668-d126ce971ad1"
+                },
+                {
+                  "key": "descripcion",
+                  "value": "Licencia anual del sistema",
+                  "type": "text",
+                  "uuid": "bc580e3e-64c3-47e7-b07f-b059ecaaae89"
+                },
+                {
+                  "key": "eliminarFoto",
+                  "value": "true",
+                  "type": "text",
+                  "uuid": "437c5977-32f9-44a6-9edf-d8da32088029",
+                  "disabled": true
+                },
+                {
+                  "key": "foto",
+                  "type": "file",
+                  "uuid": "1210c954-dca1-42ef-94a9-daeb610d8b10",
+                  "value": null
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{base_Url}}/productos/:idProducto",
@@ -820,7 +923,7 @@
               "variable": [
                 {
                   "key": "idProducto",
-                  "value": "6"
+                  "value": "3"
                 }
               ]
             }
@@ -845,6 +948,128 @@
                 {
                   "key": "idProducto",
                   "value": "6"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "pedidos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n      \"clienteNombre\":\"Braian\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":1,\r\n            \"cantidad\":5\r\n        },\r\n        {\r\n            \"productoId\":2,\r\n            \"cantidad\":30\r\n        },\r\n        {\r\n            \"productoId\":3,\r\n            \"cantidad\":2\r\n        }\r\n      ]\r\n}\r\n    \r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/pedidos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "pedidos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "pedidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/pedidos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "pedidos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "pedido detallado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/pedidos/:idProducto",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "pedidos",
+                ":idProducto"
+              ],
+              "variable": [
+                {
+                  "key": "idProducto",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "listo para entregar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/pedidos/:idProducto/listo-para-entregar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "pedidos",
+                ":idProducto",
+                "listo-para-entregar"
+              ],
+              "variable": [
+                {
+                  "key": "idProducto",
+                  "value": "3"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "completar",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/pedidos/:idProducto/completar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "pedidos",
+                ":idProducto",
+                "completar"
+              ],
+              "variable": [
+                {
+                  "key": "idProducto",
+                  "value": "3"
                 }
               ]
             }
