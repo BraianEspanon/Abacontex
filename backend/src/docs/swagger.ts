@@ -46,6 +46,10 @@ export const swaggerSpec = swaggerJsdoc({
         description: 'Gestión de productos propios de cada empresa.',
       },
       {
+        name: 'Pedidos',
+        description: 'Gestión de pedidos de cada empresa y su flujo de estado.',
+      },
+      {
         name: 'Cursos',
         description: 'Consulta de cursos disponibles.',
       },
