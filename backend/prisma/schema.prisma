@@ -39,6 +39,7 @@ model Usuario {
   movimientosFinancieros MovimientoFinanciero[]
   invitacionesCreadas    InvitacionEmpresa[]
   pedidos Pedido[]
+  ordenesAsignadas OrdenProduccion[]
 
   alumno    Alumno?
   auditLogs AuditLog[]
@@ -132,6 +133,7 @@ model Empresa {
   productos              Producto[]
   invitaciones           InvitacionEmpresa[]
   pedidos Pedido[]
+  ordenesProduccion OrdenProduccion[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
@@ -286,6 +288,7 @@ model Producto {
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   detallesPedido DetallePedido[]
+  ordenesProduccion OrdenProduccion[]
 
   @@unique([empresaId, nombre], where: { activo: true })
   @@index([empresaId])
@@ -361,6 +364,7 @@ model Pedido {
   updatedAt DateTime @updatedAt
 
   detalles DetallePedido[]
+  ordenesProduccion OrdenProduccion[]
 
   @@index([empresaId])
   @@index([estadoId])
@@ -384,7 +388,7 @@ model DetallePedido {
 
   cantidadConStock Int
   cantidadPendiente Int
-  
+
   precioUnitario Decimal @db.Decimal(14, 2)
   subtotal       Decimal @db.Decimal(14, 2)
 
@@ -393,4 +397,56 @@ model DetallePedido {
   @@index([pedidoId])
   @@index([productoId])
   @@map("detalles_pedido")
+}
+
+
+//Definimos la constante (Enum) para la prioridad de ordne de produccion
+enum PrioridadOrden {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+
+model EstadoOrdenProduccion {
+  idEstado Int    @id @default(autoincrement())
+  nombre   String @unique 
+
+  ordenes OrdenProduccion[]
+
+  @@map("estados_orden_produccion")
+}
+
+
+model OrdenProduccion {
+  idOrden Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  estadoId Int
+  estado   EstadoOrdenProduccion @relation(fields: [estadoId], references: [idEstado])
+
+  pedidoId Int?
+  pedido   Pedido? @relation(fields: [pedidoId], references: [idPedido], onDelete: SetNull)
+
+  responsableId String
+  responsable   Usuario @relation(fields: [responsableId], references: [id])
+
+  cantidad Int
+
+  prioridad PrioridadOrden @default(MEDIA)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([empresaId])
+  @@index([estadoId])
+  @@index([responsableId])
+  @@index([pedidoId])
+  @@index([empresaId, estadoId])
+  @@map("ordenes_produccion")
 }
