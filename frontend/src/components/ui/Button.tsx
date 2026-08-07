@@ -6,38 +6,77 @@ export default function Button({
   variant = 'solid',
   className = '',
   icon,
+  disabled,
   ...props
 }: ButtonProps) {
-  // Clases base que tienen TODOS los botones de la landing
-  const baseClasses =
-    'group inline-flex items-center justify-center font-medium transition-colors duration-300 cursor-pointer';
+  const esPill = variant === 'pill';
 
-  // Lógica para elegir el color según la variante que nos pidan
+  const baseClasses = [
+    'group inline-flex items-center justify-center gap-2',
+    'transition-all duration-200',
+    'focus-visible:outline-none focus-visible:ring-2',
+    'focus-visible:ring-abacontex-primary-three',
+    'focus-visible:ring-offset-2',
+    esPill
+      ? 'cursor-default'
+      : disabled
+        ? 'cursor-not-allowed opacity-50'
+        : 'cursor-pointer hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0',
+  ].join(' ');
+
   let variantClasses = '';
 
   switch (variant) {
     case 'solid':
-      // Fondo verde principal, hover oscuro, texto blanco
-      variantClasses =
-        'bg-abacontex-primary hover:bg-abacontex-primary-two text-white rounded-lg px-6 py-3';
+      variantClasses = [
+        'rounded-xl px-6 py-3 font-semibold',
+        'bg-abacontex-primary-three',
+        'text-white',
+        'hover:bg-abacontex-primary-two',
+      ].join(' ');
       break;
+
     case 'outline':
-      // Fondo transparente, borde oscuro
-      variantClasses =
-        'bg-transparent border border-abacontex-dark text-abacontex-dark hover:bg-abacontex-primary-two/20 rounded-lg px-6 py-3';
+      variantClasses = [
+        'rounded-xl px-6 py-3 font-semibold',
+        'border border-abacontex-primary-three',
+        'bg-transparent',
+        'text-abacontex-primary',
+        'hover:bg-abacontex-primary-three/10',
+      ].join(' ');
       break;
+
     case 'pill':
-      // Botoncitos redondeados grises (las etiquetas de características)
-      variantClasses =
-        'bg-abacontex-gray/30 border border-abacontex-gray text-gray-700 hover:bg-abacontex-primary/10 hover:border-abacontex-primary hover:text-abacontex-primary rounded-full px-4 py-3 text-md shadow-sm';
+      variantClasses = [
+        'rounded-full',
+        'border border-abacontex-gray',
+        'bg-abacontex-gray/30',
+        'px-4 py-2',
+        'text-sm font-medium',
+        'text-gray-700',
+        'shadow-sm',
+        'hover:border-abacontex-primary',
+        'hover:bg-abacontex-primary/10',
+        'hover:text-abacontex-primary',
+        'hover:translate-y-0',
+        'hover:shadow-sm',
+      ].join(' ');
       break;
   }
 
   return (
-    <button className={`${baseClasses} ${variantClasses} ${className}`} {...props}>
-      {label}
+    <button
+      className={`${baseClasses} ${variantClasses} ${className}`}
+      disabled={disabled}
+      {...props}
+    >
+      <span>{label}</span>
 
-      {icon && <span className="flex items-center">{icon}</span>}
+      {icon && (
+        <span className="flex items-center transition-transform duration-200 group-hover:translate-x-1">
+          {icon}
+        </span>
+      )}
     </button>
   );
 }

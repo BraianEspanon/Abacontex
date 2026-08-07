@@ -80,6 +80,7 @@
  *     description: |
  *       Crea un nuevo producto para la empresa asociada al usuario autenticado.
  *       El producto no puede duplicar el nombre dentro de la misma empresa.
+ *       Admite subir una imagen en el campo `foto`.
  *
  *     tags:
  *       - Productos
@@ -89,8 +90,11 @@
  *
  *     requestBody:
  *       required: true
+ *       description: |
+ *         Debe enviarse como multipart/form-data con los campos de texto `nombre`, `stockInicial`,
+ *         `precioUnitario`, `descripcion` y la imagen opcional `foto`.
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/ProductoCrearRequest'
  *
@@ -156,6 +160,7 @@
  *     summary: Actualizar un producto
  *     description: |
  *       Actualiza los datos de un producto perteneciente a la empresa del usuario autenticado.
+ *       Admite subir una nueva imagen en el campo `foto` o eliminar la actual con `eliminarFoto`.
  *
  *     tags:
  *       - Productos
@@ -174,8 +179,11 @@
  *
  *     requestBody:
  *       required: true
+ *       description: |
+ *         Debe enviarse como multipart/form-data con los campos de texto `nombre`, `precioUnitario`,
+ *         `descripcion`, la imagen opcional `foto` y el flag `eliminarFoto` si corresponde.
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/ProductoActualizarRequest'
  *

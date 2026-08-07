@@ -10,6 +10,7 @@ import rolEmpresaRoutes from './routes/rol-empresa.routes';
 import empresaRoutes from './routes/empresa.routes';
 import docenteRoutes from './routes/docente.routes';
 import productoRoutes from './routes/producto.routes';
+import pedidoRoutes from './routes/pedido.routes';
 
 import { errorMiddleware } from './middleware/error.middleware';
 
@@ -27,6 +28,7 @@ app.use('/roles-empresa', rolEmpresaRoutes);
 app.use('/empresas', empresaRoutes);
 app.use('/docentes', docenteRoutes);
 app.use('/productos', productoRoutes);
+app.use('/pedidos', pedidoRoutes);
 
 if (process.env.ENVIRONMENT === 'development') {
   import('./docs/scalar').then(({ default: scalarDocs }) => {

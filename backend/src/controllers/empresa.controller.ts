@@ -7,7 +7,7 @@ import {
 } from '../validators/empresa.validator';
 
 export async function crearEmpresa(req: Request, res: Response) {
-  const empresa = await empresaService.crearEmpresa(req.user!, req.body);
+  const empresa = await empresaService.crearEmpresa(req.user!, req.body, req.file);
 
   res.status(201).json(empresa);
 }
@@ -19,7 +19,7 @@ export async function getEmpresaActual(req: Request, res: Response) {
 }
 
 export async function actualizarEmpresa(req: Request, res: Response) {
-  const empresa = await empresaService.actualizarEmpresa(req.user!, req.body);
+  const empresa = await empresaService.actualizarEmpresa(req.user!, req.body, req.file);
 
   res.status(200).json(empresa);
 }

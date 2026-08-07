@@ -1,6 +1,6 @@
 // src/pages/empresa/CrearEmpresaPage.tsx
 
-import { Building2, ChevronRight } from 'lucide-react';
+import { ArrowRight, Building2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DatosEmpresaForm from '../../components/empresa/DatosEmpresaForm';
@@ -11,6 +11,8 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { useCrearEmpresa } from '../../hooks/useCrearEmpresa';
 import { useAgregarParticipantesEmpresa } from '../../hooks/useAgregarParticipantesEmpresa';
 import type { AlumnoDisponible, InvitacionPendiente } from '../../types/empresa.types';
+import BokehContainer from '../../components/ui/BokehContainer';
+import Button from '../../components/ui/Button';
 
 export default function CrearEmpresaPage() {
   const navigate = useNavigate();
@@ -143,24 +145,45 @@ export default function CrearEmpresaPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-abacontext-light-bg px-4 py-10 font-sans sm:px-6">
-        <div className="mx-auto w-full max-w-3xl">
-          <header className="mb-7 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-abacontex-primary/10">
-              <Building2 className="h-6 w-6 text-abacontex-primary" />
+      <main className="min-h-screen bg-abacontext-light-bg font-sans">
+        {/* ENCABEZADO */}
+        <header className="bg-abacontex-dark text-white">
+          <BokehContainer className="px-4 py-12 sm:px-6 md:py-16">
+            <div className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-abacontex-primary-three text-white shadow-lg">
+                <Building2 className="h-8 w-8" />
+              </div>
+
+              <h1 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
+                Creá tu empresa
+              </h1>
+
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
+                Definí la identidad de tu empresa y conformá el equipo que participará de la
+                simulación empresarial.
+              </p>
             </div>
+          </BokehContainer>
+        </header>
 
-            <h1 className="font-heading text-4xl font-bold text-abacontex-black-text sm:text-5xl">
-              Crear tu empresa
-            </h1>
-
-            <p className="mx-auto mt-3 max-w-xl text-abacontex-gray-text">
-              Completá los datos principales y conformá el equipo que participará de la simulación
-              empresarial.
+        {/* CONTENIDO */}
+        <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:py-14">
+          <div className="mb-7">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-abacontex-primary-three">
+              Configuración inicial
             </p>
-          </header>
 
-          <div className="space-y-6">
+            <h2 className="mt-2 font-heading text-2xl font-bold text-abacontex-black-text sm:text-3xl">
+              Completá los datos de tu empresa
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-abacontex-gray-text sm:text-base">
+              Primero cargá la información principal y después elegí a los integrantes que formarán
+              parte del equipo.
+            </p>
+          </div>
+
+          <div className="space-y-7">
             <DatosEmpresaForm
               nombre={nombre}
               actividad={actividad}
@@ -195,25 +218,26 @@ export default function CrearEmpresaPage() {
               onEliminarInvitacion={handleEliminarInvitacion}
             />
 
-            <button
-              type="button"
-              onClick={handleFundarEmpresa}
-              disabled={creandoEmpresa}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-abacontex-primary px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {creandoEmpresa ? 'Creando empresa...' : 'Fundar mi empresa'}
-
-              {!creandoEmpresa && (
-                <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              )}
-            </button>
             {errorCreandoEmpresa && (
-              <p className="text-center text-sm text-red-600">
-                {errorCreacionEmpresa instanceof Error
-                  ? errorCreacionEmpresa.message
-                  : 'No se pudo crear la empresa.'}
-              </p>
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+                <p className="text-center text-sm font-medium text-red-600">
+                  {errorCreacionEmpresa instanceof Error
+                    ? errorCreacionEmpresa.message
+                    : 'No se pudo crear la empresa.'}
+                </p>
+              </div>
             )}
+
+            <div className="flex justify-center border-t border-abacontex-gray/30 pt-7">
+              <Button
+                label={creandoEmpresa ? 'Creando empresa...' : 'Fundar mi empresa'}
+                variant="solid"
+                icon={!creandoEmpresa ? <ArrowRight className="h-5 w-5" /> : undefined}
+                onClick={handleFundarEmpresa}
+                disabled={creandoEmpresa}
+                className="w-full py-4 text-lg sm:w-auto sm:min-w-72"
+              />
+            </div>
           </div>
         </div>
       </main>
@@ -221,7 +245,7 @@ export default function CrearEmpresaPage() {
       <EmpresaCreadaModal
         abierto={modalAbierto}
         nombreEmpresa={nombre}
-        onContinuar={() => navigate('/empresa')}
+        onContinuar={() => navigate('/alumno/empresa')}
       />
     </>
   );

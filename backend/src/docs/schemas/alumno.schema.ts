@@ -166,9 +166,31 @@
  *         id:
  *           type: integer
  *           example: 15
+ *         empresaId:
+ *           type: integer
+ *           example: 3
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: juan@example.com
+ *         token:
+ *           type: string
+ *           example: 9b6d613d9a0f
  *         estado:
  *           type: string
  *           example: PENDIENTE
+ *         fechaExpiracion:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-08-01T12:00:00.000Z
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-07-30T10:15:00.000Z
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-07-30T10:15:00.000Z
  *         empresa:
  *           type: object
  *           properties:
@@ -186,12 +208,18 @@
  *               type: string
  *               nullable: true
  *               example: https://cdn.example.com/logo.png
- *             idCurso:
- *               type: integer
- *               example: 2
  *             activo:
  *               type: boolean
  *               example: true
+ *             curso:
+ *               type: object
+ *               properties:
+ *                 idCurso:
+ *                   type: integer
+ *                   example: 2
+ *                 nombreCurso:
+ *                   type: string
+ *                   example: 6° A
  *         createdBy:
  *           type: object
  *           properties:
@@ -201,8 +229,4 @@
  *             apellido:
  *               type: string
  *               example: Pérez
- *         fechaExpiracion:
- *           type: string
- *           format: date-time
- *           example: 2026-08-01T12:00:00.000Z
  */
