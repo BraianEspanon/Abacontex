@@ -455,7 +455,7 @@ model OrdenProduccion {
   @@map("ordenes_produccion")
 }
 
-model HistorialEstadoOrdenProduccion {
+model HistorialEstadoOrdenProduccion { 
   idHistorial Int @id @default(autoincrement())
 
   ordenId Int
