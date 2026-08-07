@@ -6,11 +6,7 @@ interface ResumenEmpresasProps {
   inactivas: number | null;
 }
 
-export default function ResumenEmpresas({
-  total,
-  activas,
-  inactivas,
-}: ResumenEmpresasProps) {
+export default function ResumenEmpresas({ total, activas, inactivas }: ResumenEmpresasProps) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <article className="rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
@@ -22,9 +18,7 @@ export default function ResumenEmpresas({
           <div>
             <p className="text-xs font-medium text-gray-500">Empresas totales</p>
 
-            <p className="mt-1 text-2xl font-semibold text-gray-900">
-              {total}
-            </p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{total}</p>
           </div>
         </div>
       </article>
@@ -38,9 +32,7 @@ export default function ResumenEmpresas({
           <div>
             <p className="text-xs font-medium text-gray-500">Empresas activas</p>
 
-            <p className="mt-1 text-2xl font-semibold text-gray-900">
-              {activas ?? '-'}
-            </p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{activas ?? '-'}</p>
           </div>
         </div>
       </article>
@@ -52,13 +44,9 @@ export default function ResumenEmpresas({
           </div>
 
           <div>
-            <p className="text-xs font-medium text-gray-500">
-              Empresas inactivas
-            </p>
+            <p className="text-xs font-medium text-gray-500">Empresas inactivas</p>
 
-            <p className="mt-1 text-2xl font-semibold text-gray-900">
-              {inactivas ?? '-'}
-            </p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{inactivas ?? '-'}</p>
           </div>
         </div>
       </article>

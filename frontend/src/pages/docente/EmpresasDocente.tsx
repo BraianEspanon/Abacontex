@@ -18,34 +18,24 @@ const PAGE_SIZE = 10;
 
 export default function EmpresasDocente() {
   const [cursoId, setCursoId] = useState<number | null>(null);
-  const [estado, setEstado] =
-    useState<EstadoEmpresaFiltro>('TODOS');
+  const [estado, setEstado] = useState<EstadoEmpresaFiltro>('TODOS');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
   // Empresa seleccionada para mostrar el detalle
-  const [empresaSeleccionadaId, setEmpresaSeleccionadaId] =
-    useState<number | null>(null);
+  const [empresaSeleccionadaId, setEmpresaSeleccionadaId] = useState<number | null>(null);
 
   const searchDebounced = useDebounce(search, 400);
 
   /*
    * Cursos asignados al docente.
    */
-  const {
-    data: cursos,
-    isError: errorCursos,
-  } = useCursosDocente();
+  const { data: cursos, isError: errorCursos } = useCursosDocente();
 
   /*
    * Empresas asociadas a los cursos del docente.
    */
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-  } = useEmpresasDocente({
+  const { data, isLoading, isError, refetch } = useEmpresasDocente({
     cursoId: cursoId ?? undefined,
     search: searchDebounced.trim() || undefined,
     page,
@@ -89,8 +79,8 @@ export default function EmpresasDocente() {
    */
   const empresasMostradas =
     estado === 'TODOS'
-      ? data?.items ?? []
-      : data?.items.filter((empresa) => {
+      ? (data?.items ?? [])
+      : (data?.items.filter((empresa) => {
           if (empresa.activa === null) {
             return false;
           }
@@ -104,7 +94,7 @@ export default function EmpresasDocente() {
           }
 
           return true;
-        }) ?? [];
+        }) ?? []);
 
   return (
     <div className="flex min-w-0 items-start gap-4">
@@ -124,16 +114,12 @@ export default function EmpresasDocente() {
 
           <ChevronRight size={15} />
 
-          <span className="font-semibold text-abacontex-dark">
-            Empresas
-          </span>
+          <span className="font-semibold text-abacontex-dark">Empresas</span>
         </nav>
 
         {/* Encabezado */}
         <div>
-          <h1 className="text-2xl font-semibold text-abacontex-dark">
-            Empresas
-          </h1>
+          <h1 className="text-2xl font-semibold text-abacontex-dark">Empresas</h1>
 
           <p className="mt-1 text-sm text-gray-500">
             Consultá y supervisá las empresas asociadas a tus cursos.
@@ -180,13 +166,9 @@ export default function EmpresasDocente() {
         {/* Error empresas */}
         {isError && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-            <p className="font-medium">
-              No se pudieron cargar las empresas.
-            </p>
+            <p className="font-medium">No se pudieron cargar las empresas.</p>
 
-            <p className="mt-1">
-              Ocurrió un problema al obtener la información.
-            </p>
+            <p className="mt-1">Ocurrió un problema al obtener la información.</p>
 
             <button
               type="button"
@@ -204,15 +186,11 @@ export default function EmpresasDocente() {
         {!isError && (
           <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <header className="border-b border-gray-200 px-5 py-4">
-              <h2 className="font-semibold text-abacontex-dark">
-                Empresas registradas
-              </h2>
+              <h2 className="font-semibold text-abacontex-dark">Empresas registradas</h2>
 
               <p className="mt-1 text-xs text-gray-500">
                 {data
-                  ? `${data.totalItems} empresa${
-                      data.totalItems === 1 ? '' : 's'
-                    } encontrada${
+                  ? `${data.totalItems} empresa${data.totalItems === 1 ? '' : 's'} encontrada${
                       data.totalItems === 1 ? '' : 's'
                     }`
                   : 'Cargando empresas...'}
@@ -220,14 +198,10 @@ export default function EmpresasDocente() {
             </header>
 
             {isLoading && !data ? (
-              <div className="p-8 text-center text-sm text-gray-500">
-                Cargando empresas...
-              </div>
+              <div className="p-8 text-center text-sm text-gray-500">Cargando empresas...</div>
             ) : empresasMostradas.length === 0 ? (
               <div className="p-10 text-center">
-                <p className="font-medium text-gray-700">
-                  No se encontraron empresas.
-                </p>
+                <p className="font-medium text-gray-700">No se encontraron empresas.</p>
 
                 <p className="mt-1 text-sm text-gray-500">
                   Probá modificando los filtros de búsqueda.
@@ -238,39 +212,26 @@ export default function EmpresasDocente() {
                 <table className="min-w-full">
                   <thead className="bg-gray-50">
                     <tr className="border-b border-gray-200 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      <th className="px-5 py-3">
-                        Empresa
-                      </th>
+                      <th className="px-5 py-3">Empresa</th>
 
-                      <th className="px-5 py-3">
-                        Curso
-                      </th>
+                      <th className="px-5 py-3">Curso</th>
 
-                      <th className="px-5 py-3">
-                        Integrantes
-                      </th>
+                      <th className="px-5 py-3">Integrantes</th>
 
-                      <th className="px-5 py-3">
-                        Estado
-                      </th>
+                      <th className="px-5 py-3">Estado</th>
                     </tr>
                   </thead>
 
                   <tbody className="divide-y divide-gray-100">
                     {empresasMostradas.map((empresa) => {
-                      const seleccionada =
-                        empresaSeleccionadaId === empresa.id;
+                      const seleccionada = empresaSeleccionadaId === empresa.id;
 
                       return (
                         <tr
                           key={empresa.id}
-                          onClick={() =>
-                            setEmpresaSeleccionadaId(empresa.id)
-                          }
+                          onClick={() => setEmpresaSeleccionadaId(empresa.id)}
                           className={`cursor-pointer transition ${
-                            seleccionada
-                              ? 'bg-[#f3f7f2]'
-                              : 'hover:bg-gray-50'
+                            seleccionada ? 'bg-[#f3f7f2]' : 'hover:bg-gray-50'
                           }`}
                         >
                           {/* Empresa */}
@@ -284,9 +245,7 @@ export default function EmpresasDocente() {
                                 />
                               ) : (
                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#eef3ee] text-sm font-semibold text-[#769a75]">
-                                  {empresa.nombre
-                                    .charAt(0)
-                                    .toUpperCase()}
+                                  {empresa.nombre.charAt(0).toUpperCase()}
                                 </div>
                               )}
 
@@ -303,9 +262,7 @@ export default function EmpresasDocente() {
                           </td>
 
                           {/* Curso */}
-                          <td className="px-5 py-4 text-sm text-gray-700">
-                            {empresa.curso}
-                          </td>
+                          <td className="px-5 py-4 text-sm text-gray-700">{empresa.curso}</td>
 
                           {/* Integrantes */}
                           <td className="px-5 py-4 text-sm text-gray-700">
@@ -351,9 +308,7 @@ export default function EmpresasDocente() {
               <button
                 type="button"
                 disabled={data.page <= 1}
-                onClick={() =>
-                  setPage((pagina) => pagina - 1)
-                }
+                onClick={() => setPage((pagina) => pagina - 1)}
                 className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Anterior
@@ -362,9 +317,7 @@ export default function EmpresasDocente() {
               <button
                 type="button"
                 disabled={data.page >= data.totalPages}
-                onClick={() =>
-                  setPage((pagina) => pagina + 1)
-                }
+                onClick={() => setPage((pagina) => pagina + 1)}
                 className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Siguiente
@@ -418,51 +371,42 @@ export default function EmpresasDocente() {
           )}
 
           {/* Error */}
-          {errorDetalleEmpresa &&
-            !cargandoDetalleEmpresa && (
-              <div className="flex h-full flex-col">
-                <header className="flex items-start justify-between border-b border-gray-200 px-5 py-4">
-                  <div>
-                    <h2 className="text-sm font-semibold text-gray-900">
-                      Detalle de la empresa
-                    </h2>
+          {errorDetalleEmpresa && !cargandoDetalleEmpresa && (
+            <div className="flex h-full flex-col">
+              <header className="flex items-start justify-between border-b border-gray-200 px-5 py-4">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-900">Detalle de la empresa</h2>
 
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      Información de la empresa seleccionada
-                    </p>
-                  </div>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    Información de la empresa seleccionada
+                  </p>
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setEmpresaSeleccionadaId(null)
-                    }
-                    aria-label="Cerrar detalle"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
-                  >
-                    ×
-                  </button>
-                </header>
+                <button
+                  type="button"
+                  onClick={() => setEmpresaSeleccionadaId(null)}
+                  aria-label="Cerrar detalle"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                >
+                  ×
+                </button>
+              </header>
 
-                <div className="p-5">
-                  <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    No se pudo cargar el detalle de la empresa.
-                  </div>
+              <div className="p-5">
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                  No se pudo cargar el detalle de la empresa.
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
           {/* Detalle */}
-          {empresaSeleccionada &&
-            !cargandoDetalleEmpresa &&
-            !errorDetalleEmpresa && (
-              <DetalleEmpresaDocente
-                empresa={empresaSeleccionada}
-                onClose={() =>
-                  setEmpresaSeleccionadaId(null)
-                }
-              />
-            )}
+          {empresaSeleccionada && !cargandoDetalleEmpresa && !errorDetalleEmpresa && (
+            <DetalleEmpresaDocente
+              empresa={empresaSeleccionada}
+              onClose={() => setEmpresaSeleccionadaId(null)}
+            />
+          )}
         </aside>
       )}
     </div>
