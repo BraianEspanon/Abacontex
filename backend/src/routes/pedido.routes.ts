@@ -11,6 +11,7 @@ import {
   obtenerDetallePedido,
   obtenerPedidos,
   marcarPedidoListoParaEntregar,
+  completarPedido,
 } from '../controllers/pedido.controller';
 
 import { crearPedidoSchema, pedidoIdSchema } from '../validators/pedido.validator';
@@ -28,12 +29,19 @@ router.get(
 );
 
 // CAMBIOS DE ESTADO
-router.post(
+router.patch(
   '/:idPedido/listo-para-entregar',
   authenticate,
   requireRole(ROLES.ALUMNO),
   validate(pedidoIdSchema),
   marcarPedidoListoParaEntregar
+);
+router.patch(
+  '/:idPedido/completar',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(pedidoIdSchema),
+  completarPedido
 );
 
 export default router;

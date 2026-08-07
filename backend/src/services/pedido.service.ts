@@ -152,7 +152,10 @@ export async function obtenerKanbanPedidos(user: AuthUser) {
   return toKanbanPedidosResponse(pedidos);
 }
 
-export async function marcarPedidoListoParaEntregar(user: AuthUser, params: PedidoIdDTO) {
+export async function marcarPedidoListoParaEntregar(
+  user: AuthUser,
+  params: PedidoIdDTO
+): Promise<PedidoCambioEstadoResponseDTO> {
   // Obtener usuario y empresa
   const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
 
@@ -205,6 +208,49 @@ export async function marcarPedidoListoParaEntregar(user: AuthUser, params: Pedi
     numeroPedido: pedidoActualizado.idPedido,
     estado: pedidoActualizado.estado.nombre,
     mensaje: 'Pedido marcado como listo para entregar.',
+  };
+
+  return response;
+}
+
+export async function completarPedido(
+  user: AuthUser,
+  params: PedidoIdDTO
+): Promise<PedidoCambioEstadoResponseDTO> {
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ForbiddenError('El alumno no completó su registro.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ForbiddenError('El usuario no pertenece a una empresa.');
+  }
+
+  const pedido = await pedidoRepository.findByIdAndEmpresa(
+    params.idPedido,
+    usuario.alumno.empresa.id
+  );
+
+  if (!pedido) {
+    throw new NotFoundError('No se encontró el pedido.');
+  }
+
+  if (pedido.estado.nombre !== 'LISTO_PARA_ENTREGAR') {
+    throw new BadRequestError('Solo los pedidos listos para entregar pueden completarse.');
+  }
+
+  const estadoCompletado = await pedidoRepository.findEstadoCompletado();
+
+  const pedidoActualizado = await pedidoRepository.updateEstadoPedido(
+    pedido.idPedido,
+    estadoCompletado.idEstado
+  );
+
+  const response: PedidoCambioEstadoResponseDTO = {
+    numeroPedido: pedidoActualizado.idPedido,
+    estado: pedidoActualizado.estado.nombre,
+    mensaje: 'Pedido marcado como completado.',
   };
 
   return response;

@@ -112,6 +112,14 @@ export async function findEstadoListoParaEntregar() {
   });
 }
 
+export async function findEstadoCompletado() {
+  return prisma.estadoPedido.findUniqueOrThrow({
+    where: {
+      nombre: 'COMPLETADO',
+    },
+  });
+}
+
 export async function createPedido(
   data: Prisma.PedidoCreateInput,
   detalles: DetallePedidoCalculado[]
