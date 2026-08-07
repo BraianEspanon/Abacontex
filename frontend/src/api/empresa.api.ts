@@ -1,5 +1,11 @@
 import clienteApi from './clienteApi';
+
 import type { AlumnoDisponible } from '../types/empresa.types';
+import type {
+  EmpresasDocenteResponse,
+  EmpresaDocenteDetalle,
+  ObtenerEmpresasDocenteParams,
+} from '../types/empresa-docente.type';
 
 export interface CrearEmpresaRequest {
   nombre: string;
@@ -87,6 +93,30 @@ export async function obtenerEmpresaActual(): Promise<EmpresaActual> {
 
 export async function actualizarEmpresa(datos: ActualizarEmpresaRequest): Promise<EmpresaActual> {
   const respuesta = await clienteApi.patch<EmpresaActual>('/empresas/me', datos);
+
+  return respuesta.data;
+}
+
+/* =========================================================
+   EMPRESAS DEL DOCENTE
+   ========================================================= */
+
+export async function obtenerEmpresasDocente(
+  params: ObtenerEmpresasDocenteParams
+): Promise<EmpresasDocenteResponse> {
+  const respuesta = await clienteApi.get<EmpresasDocenteResponse>('/docentes/me/empresas', {
+    params,
+  });
+
+  return respuesta.data;
+}
+
+export async function obtenerDetalleEmpresaDocente(
+  empresaId: number
+): Promise<EmpresaDocenteDetalle> {
+  const respuesta = await clienteApi.get<EmpresaDocenteDetalle>(
+    `/docentes/me/empresas/${empresaId}`
+  );
 
   return respuesta.data;
 }
