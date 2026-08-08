@@ -12,7 +12,6 @@ import {
   Medal,
   NotebookText,
   Settings,
-  Sparkles,
   UserRound,
   UsersRound,
 } from 'lucide-react';
@@ -38,6 +37,7 @@ const opcionesMenu: OpcionMenu[] = [
   {
     etiqueta: 'Empresas',
     icono: Building2,
+    ruta: '/docente/empresas',
   },
   {
     etiqueta: 'Alumnos',
@@ -100,18 +100,21 @@ export default function BarraLateralDocente() {
   };
 
   return (
-    <aside className="flex min-h-screen w-64 shrink-0 flex-col bg-abacontex-dark text-white">
-      <div className="flex h-20 items-center gap-3 border-b border-white/10 px-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-abacontex-primary-three">
-          <Sparkles size={22} />
+    <aside className="flex h-screen w-60 shrink-0 flex-col bg-[#17231b] text-white">
+      {/* Logo */}
+      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#769a75]">
+          <span className="text-lg font-bold">✦</span>
         </div>
 
         <div>
           <p className="font-heading text-lg font-bold tracking-wide">ABACONTEX</p>
+
           <p className="text-xs text-white/60">Panel docente</p>
         </div>
       </div>
 
+      {/* Menú */}
       <nav className="flex-1 space-y-1 px-3 py-4">
         {opcionesMenu.map(({ etiqueta, icono: Icono, ruta }) => {
           if (ruta) {
@@ -119,7 +122,7 @@ export default function BarraLateralDocente() {
               <NavLink
                 key={etiqueta}
                 to={ruta}
-                end
+                end={ruta === '/docente'}
                 className={({ isActive }) =>
                   [
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
@@ -150,6 +153,7 @@ export default function BarraLateralDocente() {
         })}
       </nav>
 
+      {/* Usuario */}
       <div className="border-t border-white/10 p-4">
         <div className="mb-4 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f0e9] text-sm font-semibold text-[#17231b]">
@@ -160,6 +164,7 @@ export default function BarraLateralDocente() {
             <p className="truncate text-sm font-medium">
               {cargandoUsuario ? 'Cargando...' : nombreCompleto}
             </p>
+
             <p className="text-xs text-white/60">{cargandoUsuario ? '...' : nombreRol}</p>
           </div>
         </div>
