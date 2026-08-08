@@ -15,7 +15,7 @@ type ProductoPrisma = Prisma.ProductoGetPayload<{
     id: true;
     nombre: true;
     stock: true;
-    precioUnitario: true;
+    precioVenta: true;
   };
 }>;
 
@@ -24,7 +24,7 @@ export function toProductoPedido(producto: ProductoPrisma): ProductoPedido {
     id: producto.id,
     nombre: producto.nombre,
     stock: producto.stock,
-    precioUnitario: producto.precioUnitario,
+    precioVenta: producto.precioVenta,
   };
 }
 
@@ -42,8 +42,8 @@ export function toDetalleCalculado(
     cantidadConStock,
     cantidadPendiente,
 
-    precioUnitario: producto.precioUnitario,
-    subtotal: producto.precioUnitario.mul(cantidad),
+    precioUnitario: producto.precioVenta,
+    subtotal: producto.precioVenta.mul(cantidad),
 
     stockActual: producto.stock,
   };
