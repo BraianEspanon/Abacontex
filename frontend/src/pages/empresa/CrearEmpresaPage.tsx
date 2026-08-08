@@ -1,18 +1,21 @@
 // src/pages/empresa/CrearEmpresaPage.tsx
 
-import { ArrowRight, Building2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import DatosEmpresaForm from '../../components/empresa/DatosEmpresaForm';
 import EmpresaCreadaModal from '../../components/empresa/EmpresaCreadaModal';
 import SelectorIntegrantes from '../../components/empresa/SelectorIntegrantes';
+import BokehContainer from '../../components/ui/BokehContainer';
+import Button from '../../components/ui/Button';
+
 import { useCandidatosEmpresa } from '../../hooks/useCandidatosEmpresa';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useCrearEmpresa } from '../../hooks/useCrearEmpresa';
 import { useAgregarParticipantesEmpresa } from '../../hooks/useAgregarParticipantesEmpresa';
+
 import type { AlumnoDisponible, InvitacionPendiente } from '../../types/empresa.types';
-import BokehContainer from '../../components/ui/BokehContainer';
-import Button from '../../components/ui/Button';
 
 export default function CrearEmpresaPage() {
   const navigate = useNavigate();
@@ -21,18 +24,23 @@ export default function CrearEmpresaPage() {
   const [actividad, setActividad] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
 
-  const logoPreview = useMemo(() => {
-    return logo ? URL.createObjectURL(logo) : null;
-  }, [logo]);
+  const [errorNombre, setErrorNombre] = useState('');
+  const [errorActividad, setErrorActividad] = useState('');
+  const [errorLogo, setErrorLogo] = useState('');
 
   const [seleccionados, setSeleccionados] = useState<AlumnoDisponible[]>([]);
   const [invitaciones, setInvitaciones] = useState<InvitacionPendiente[]>([]);
 
-  const [errorNombre, setErrorNombre] = useState('');
-  const [errorActividad, setErrorActividad] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
-
   const [busquedaCandidato, setBusquedaCandidato] = useState('');
+
+  const logoPreview = useMemo(() => {
+    if (!logo) {
+      return null;
+    }
+
+    return URL.createObjectURL(logo);
+  }, [logo]);
 
   const busquedaDebounced = useDebounce(busquedaCandidato, 400);
 
@@ -106,17 +114,23 @@ export default function CrearEmpresaPage() {
       setErrorActividad('');
     }
 
+    if (errorLogo) {
+      valido = false;
+    }
+
     return valido;
   };
 
   const handleFundarEmpresa = () => {
-    if (!validarFormulario()) return;
+    if (!validarFormulario()) {
+      return;
+    }
 
     ejecutarCreacionEmpresa(
       {
         nombre: nombre.trim(),
         actividad: actividad.trim(),
-        logoUrl: null,
+        logo,
       },
       {
         onSuccess: (empresaCreada) => {
@@ -145,20 +159,16 @@ export default function CrearEmpresaPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-abacontext-light-bg font-sans">
+      <main className="min-h-screen bg-abacontex-light-bg">
         {/* ENCABEZADO */}
-        <header className="bg-abacontex-dark text-white">
-          <BokehContainer className="px-4 py-12 sm:px-6 md:py-16">
-            <div className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
-              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-abacontex-primary-three text-white shadow-lg">
-                <Building2 className="h-8 w-8" />
-              </div>
-
-              <h1 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
+        <header>
+          <BokehContainer>
+            <div className="mx-auto w-full max-w-4xl px-4 py-10 text-center sm:px-6 sm:py-14">
+              <h1 className="font-heading text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
                 Creá tu empresa
               </h1>
 
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
                 Definí la identidad de tu empresa y conformá el equipo que participará de la
                 simulación empresarial.
               </p>
@@ -191,15 +201,29 @@ export default function CrearEmpresaPage() {
               logoPreview={logoPreview}
               errorNombre={errorNombre}
               errorActividad={errorActividad}
+              errorLogo={errorLogo}
               onNombreChange={(value) => {
                 setNombre(value);
-                if (errorNombre) setErrorNombre('');
+
+                if (errorNombre) {
+                  setErrorNombre('');
+                }
               }}
               onActividadChange={(value) => {
                 setActividad(value);
-                if (errorActividad) setErrorActividad('');
+
+                if (errorActividad) {
+                  setErrorActividad('');
+                }
               }}
-              onLogoChange={setLogo}
+              onLogoChange={(archivo) => {
+                setLogo(archivo);
+
+                if (!archivo) {
+                  setErrorLogo('');
+                }
+              }}
+              onLogoError={setErrorLogo}
             />
 
             <SelectorIntegrantes
