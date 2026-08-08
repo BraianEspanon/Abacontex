@@ -26,6 +26,10 @@ import InvitacionPage from '../pages/onboarding/InvitacionPage';
 import RegistroDocentePage from '../pages/docente/RegistroDocente';
 import LoginDocente from '../pages/docente/LoginDocente';
 
+// --- NUEVOS IMPORTS DE PEDIDOS ---
+import PedidosPage from '../pages/pedido/PedidosPage';
+import RegistrarPedidoPage from '../pages/pedido/RegistrarPedidoPage';
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -100,9 +104,7 @@ export default function AppRouter() {
         }
       >
         <Route index element={<InicioDocente />} />
-
         <Route path="perfil" element={<PerfilDocente />} />
-
         <Route path="empresas" element={<EmpresasDocente />} />
       </Route>
 
@@ -118,14 +120,15 @@ export default function AppRouter() {
         }
       >
         <Route path="empresa" element={<MiEmpresaPage />} />
-
         <Route path="empresa/editar" element={<EditarEmpresaPage />} />
 
         <Route path="productos" element={<ProductosPage />} />
-
         <Route path="productos/registrar" element={<RegistrarProductoPage />} />
-
         <Route path="productos/:id/editar" element={<EditarProductoPage />} />
+
+        {/* --- NUEVAS RUTAS DE PEDIDOS --- */}
+        <Route path="pedidos" element={<PedidosPage />} />
+        <Route path="pedidos/nuevo" element={<RegistrarPedidoPage />} />
       </Route>
     </Routes>
   );
