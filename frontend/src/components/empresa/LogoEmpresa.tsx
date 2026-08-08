@@ -1,5 +1,5 @@
 import { Building2, ImageUp, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface LogoEmpresaProps {
   nombre: string;
@@ -23,24 +23,10 @@ export default function LogoEmpresa({
   onLogoChange,
   onEliminarLogo,
 }: LogoEmpresaProps) {
-  const inputFileRef = useRef<HTMLInputElement>(null);
+  const inputFileRef = useRef<HTMLInputElement | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!logo) {
-      setLogoPreview(null);
-      return;
-    }
-
-    const url = URL.createObjectURL(logo);
-
-    setLogoPreview(url);
-
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [logo]);
 
   const handleSeleccionLogo = (event: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = event.target.files?.[0] ?? null;
@@ -51,16 +37,27 @@ export default function LogoEmpresa({
 
     if (!TIPOS_IMAGEN_PERMITIDOS.includes(archivo.type)) {
       onLogoChange(null);
+      setLogoPreview(null);
       event.target.value = '';
       return;
     }
 
     if (archivo.size > TAMANO_MAXIMO_LOGO) {
       onLogoChange(null);
+      setLogoPreview(null);
       event.target.value = '';
       return;
     }
 
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+    }
+
+    const url = URL.createObjectURL(archivo);
+
+    previewUrlRef.current = url;
+
+    setLogoPreview(url);
     onLogoChange(archivo);
 
     // Permite volver a seleccionar el mismo archivo.
@@ -72,6 +69,12 @@ export default function LogoEmpresa({
   };
 
   const handleEliminar = () => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+
+    setLogoPreview(null);
     onEliminarLogo();
   };
 
@@ -79,8 +82,6 @@ export default function LogoEmpresa({
 
   return (
     <div>
-      <h3 className="mb-1 text-sm font-semibold text-abacontex-black-text">Logo de la empresa</h3>
-
       <p className="mb-4 text-xs text-abacontex-gray-text">
         Podés subir una nueva imagen o eliminar el logo actual.
       </p>

@@ -15,10 +15,7 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { useCrearEmpresa } from '../../hooks/useCrearEmpresa';
 import { useAgregarParticipantesEmpresa } from '../../hooks/useAgregarParticipantesEmpresa';
 
-import type {
-  AlumnoDisponible,
-  InvitacionPendiente,
-} from '../../types/empresa.types';
+import type { AlumnoDisponible, InvitacionPendiente } from '../../types/empresa.types';
 
 export default function CrearEmpresaPage() {
   const navigate = useNavigate();
@@ -64,8 +61,7 @@ export default function CrearEmpresaPage() {
     error: errorCreacionEmpresa,
   } = useCrearEmpresa();
 
-  const { mutate: ejecutarAgregarParticipantes } =
-    useAgregarParticipantesEmpresa();
+  const { mutate: ejecutarAgregarParticipantes } = useAgregarParticipantesEmpresa();
 
   useEffect(() => {
     return () => {
@@ -77,14 +73,10 @@ export default function CrearEmpresaPage() {
 
   const handleToggleAlumno = (alumno: AlumnoDisponible) => {
     setSeleccionados((actuales) => {
-      const yaSeleccionado = actuales.some(
-        (integrante) => integrante.id === alumno.id
-      );
+      const yaSeleccionado = actuales.some((integrante) => integrante.id === alumno.id);
 
       if (yaSeleccionado) {
-        return actuales.filter(
-          (integrante) => integrante.id !== alumno.id
-        );
+        return actuales.filter((integrante) => integrante.id !== alumno.id);
       }
 
       return [...actuales, alumno];
@@ -102,9 +94,7 @@ export default function CrearEmpresaPage() {
   };
 
   const handleEliminarInvitacion = (id: string) => {
-    setInvitaciones((actuales) =>
-      actuales.filter((invitacion) => invitacion.id !== id)
-    );
+    setInvitaciones((actuales) => actuales.filter((invitacion) => invitacion.id !== id));
   };
 
   const validarFormulario = () => {
@@ -179,8 +169,8 @@ export default function CrearEmpresaPage() {
               </h1>
 
               <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
-                Definí la identidad de tu empresa y conformá el equipo que
-                participará de la simulación empresarial.
+                Definí la identidad de tu empresa y conformá el equipo que participará de la
+                simulación empresarial.
               </p>
             </div>
           </BokehContainer>
@@ -198,8 +188,8 @@ export default function CrearEmpresaPage() {
             </h2>
 
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-abacontex-gray-text sm:text-base">
-              Primero cargá la información principal y después elegí a los
-              integrantes que formarán parte del equipo.
+              Primero cargá la información principal y después elegí a los integrantes que formarán
+              parte del equipo.
             </p>
           </div>
 
@@ -264,17 +254,9 @@ export default function CrearEmpresaPage() {
 
             <div className="flex justify-center border-t border-abacontex-gray/30 pt-7">
               <Button
-                label={
-                  creandoEmpresa
-                    ? 'Creando empresa...'
-                    : 'Fundar mi empresa'
-                }
+                label={creandoEmpresa ? 'Creando empresa...' : 'Fundar mi empresa'}
                 variant="solid"
-                icon={
-                  !creandoEmpresa ? (
-                    <ArrowRight className="h-5 w-5" />
-                  ) : undefined
-                }
+                icon={!creandoEmpresa ? <ArrowRight className="h-5 w-5" /> : undefined}
                 onClick={handleFundarEmpresa}
                 disabled={creandoEmpresa}
                 className="w-full py-4 text-lg sm:w-auto sm:min-w-72"

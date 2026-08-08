@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios';
 import { ChevronRight, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -48,7 +48,6 @@ export default function EditarEmpresaPage() {
   const {
     register,
     handleSubmit,
-    reset,
     control,
     setError,
     clearErrors,
@@ -59,26 +58,20 @@ export default function EditarEmpresaPage() {
       nombre: '',
       actividad: '',
     },
+    values: empresa
+      ? {
+          nombre: empresa.nombre,
+          actividad: empresa.actividad,
+        }
+      : {
+          nombre: '',
+          actividad: '',
+        },
   });
 
   const valoresFormulario = useWatch({
     control,
   });
-
-  useEffect(() => {
-    if (!empresa) {
-      return;
-    }
-
-    reset({
-      nombre: empresa.nombre,
-      actividad: empresa.actividad,
-    });
-
-    setLogo(null);
-    setEliminarLogo(false);
-    setErrorLogo('');
-  }, [empresa, reset]);
 
   const onSubmit = (datos: EditarEmpresaFormData) => {
     clearErrors();
@@ -96,11 +89,6 @@ export default function EditarEmpresaPage() {
           if (!empresaActualizada) {
             return;
           }
-
-          reset({
-            nombre: empresaActualizada.nombre,
-            actividad: empresaActualizada.actividad,
-          });
 
           setLogo(null);
           setEliminarLogo(false);
@@ -162,11 +150,11 @@ export default function EditarEmpresaPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-sm text-abacontex-gray-text">Cargando empresa...</div>;
+    return <div>Cargando empresa...</div>;
   }
 
   if (isError || !empresa) {
-    return <div className="p-8 text-sm text-red-600">Error al cargar la empresa.</div>;
+    return <div>Error al cargar la empresa.</div>;
   }
 
   const nombreActual = valoresFormulario.nombre ?? empresa.nombre;
@@ -183,9 +171,9 @@ export default function EditarEmpresaPage() {
   const logoActual = eliminarLogo ? null : empresa.logoUrl;
 
   return (
-    <div className="w-full">
+    <div className="mx-auto w-full max-w-7xl px-4 py-6">
       {/* Breadcrumb */}
-      <nav className="mb-5 flex items-center gap-2 text-sm text-abacontex-gray-text">
+      <nav className="mb-6 flex items-center gap-2 text-sm text-abacontex-gray-text">
         <Link to="/alumno/empresa" className="transition hover:text-abacontex-primary">
           Mi empresa
         </Link>

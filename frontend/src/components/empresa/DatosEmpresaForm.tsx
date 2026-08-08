@@ -36,9 +36,7 @@ export default function DatosEmpresaForm({
 }: DatosEmpresaFormProps) {
   const inputFileRef = useRef<HTMLInputElement>(null);
 
-  const handleSeleccionLogo = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleSeleccionLogo = (event: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = event.target.files?.[0] ?? null;
 
     if (!archivo) {
@@ -97,9 +95,7 @@ export default function DatosEmpresaForm({
             }`}
           />
 
-          {errorNombre && (
-            <p className="mt-2 text-sm text-red-600">{errorNombre}</p>
-          )}
+          {errorNombre && <p className="mt-2 text-sm text-red-600">{errorNombre}</p>}
         </div>
 
         <div>
@@ -123,15 +119,11 @@ export default function DatosEmpresaForm({
             }`}
           />
 
-          {errorActividad && (
-            <p className="mt-2 text-sm text-red-600">{errorActividad}</p>
-          )}
+          {errorActividad && <p className="mt-2 text-sm text-red-600">{errorActividad}</p>}
         </div>
 
         <div className="border-t border-gray-200 pt-5">
-          <h3 className="mb-1 font-semibold text-abacontex-black-text">
-            Logo de la empresa
-          </h3>
+          <h3 className="mb-1 font-semibold text-abacontex-black-text">Logo de la empresa</h3>
 
           <p className="mb-4 text-sm text-abacontex-gray-text">
             Opcional. Podés subir una imagen o utilizar el ícono predeterminado.
@@ -197,9 +189,7 @@ export default function DatosEmpresaForm({
             />
           </div>
 
-          {errorLogo && (
-            <p className="mt-3 text-sm text-red-600">{errorLogo}</p>
-          )}
+          {errorLogo && <p className="mt-3 text-sm text-red-600">{errorLogo}</p>}
         </div>
       </div>
     </section>
