@@ -1,6 +1,6 @@
 // src/components/empresa/DatosEmpresaForm.tsx
 
-import { ImagePlus } from 'lucide-react';
+import { ImagePlus, Trash2 } from 'lucide-react';
 import { useRef } from 'react';
 
 interface DatosEmpresaFormProps {
@@ -10,10 +10,16 @@ interface DatosEmpresaFormProps {
   logoPreview: string | null;
   errorNombre?: string;
   errorActividad?: string;
+  errorLogo?: string;
   onNombreChange: (value: string) => void;
   onActividadChange: (value: string) => void;
   onLogoChange: (file: File | null) => void;
+  onLogoError?: (error: string) => void;
 }
+
+const TAMANO_MAXIMO_LOGO = 2 * 1024 * 1024;
+
+const TIPOS_IMAGEN_PERMITIDOS = ['image/jpeg', 'image/png'];
 
 export default function DatosEmpresaForm({
   nombre,
@@ -22,20 +28,54 @@ export default function DatosEmpresaForm({
   logoPreview,
   errorNombre,
   errorActividad,
+  errorLogo,
   onNombreChange,
   onActividadChange,
   onLogoChange,
+  onLogoError,
 }: DatosEmpresaFormProps) {
   const inputFileRef = useRef<HTMLInputElement>(null);
 
-  const handleSeleccionLogo = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSeleccionLogo = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const archivo = event.target.files?.[0] ?? null;
+
+    if (!archivo) {
+      return;
+    }
+
+    if (!TIPOS_IMAGEN_PERMITIDOS.includes(archivo.type)) {
+      onLogoError?.('Solo se permiten imágenes JPG o PNG.');
+      event.target.value = '';
+      return;
+    }
+
+    if (archivo.size > TAMANO_MAXIMO_LOGO) {
+      onLogoError?.('La imagen no puede superar los 2 MB.');
+      event.target.value = '';
+      return;
+    }
+
+    onLogoError?.('');
     onLogoChange(archivo);
+
+    // Permite volver a seleccionar el mismo archivo
+    event.target.value = '';
+  };
+
+  const handleEliminarLogo = () => {
+    onLogoChange(null);
+    onLogoError?.('');
+  };
+
+  const abrirSelectorArchivo = () => {
+    inputFileRef.current?.click();
   };
 
   return (
-    <section className="rounded-2xl bg-white p-6 shadow-md">
-      <div className="space-y-5">
+    <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-7">
+      <div className="space-y-6">
         <div>
           <label
             htmlFor="nombreEmpresa"
@@ -57,7 +97,9 @@ export default function DatosEmpresaForm({
             }`}
           />
 
-          {errorNombre && <p className="mt-2 text-sm text-red-600">{errorNombre}</p>}
+          {errorNombre && (
+            <p className="mt-2 text-sm text-red-600">{errorNombre}</p>
+          )}
         </div>
 
         <div>
@@ -81,11 +123,15 @@ export default function DatosEmpresaForm({
             }`}
           />
 
-          {errorActividad && <p className="mt-2 text-sm text-red-600">{errorActividad}</p>}
+          {errorActividad && (
+            <p className="mt-2 text-sm text-red-600">{errorActividad}</p>
+          )}
         </div>
 
         <div className="border-t border-gray-200 pt-5">
-          <h3 className="mb-1 font-semibold text-abacontex-black-text">Logo de la empresa</h3>
+          <h3 className="mb-1 font-semibold text-abacontex-black-text">
+            Logo de la empresa
+          </h3>
 
           <p className="mb-4 text-sm text-abacontex-gray-text">
             Opcional. Podés subir una imagen o utilizar el ícono predeterminado.
@@ -94,8 +140,9 @@ export default function DatosEmpresaForm({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <button
               type="button"
-              onClick={() => inputFileRef.current?.click()}
+              onClick={abrirSelectorArchivo}
               className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-gray-300 bg-abacontext-light-bg transition hover:border-abacontex-primary"
+              aria-label="Seleccionar logo de la empresa"
             >
               {logoPreview ? (
                 <img
@@ -110,26 +157,49 @@ export default function DatosEmpresaForm({
 
             <div>
               <p className="mb-2 text-sm text-abacontex-gray-text">
-                Tamaño recomendado: 200 × 200 px. JPG o PNG.
+                Tamaño recomendado: 200 × 200 px. JPG o PNG. Máx. 2 MB.
               </p>
 
-              <button
-                type="button"
-                onClick={() => inputFileRef.current?.click()}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-abacontex-black-text transition hover:border-abacontex-primary hover:bg-abacontex-primary/5"
-              >
-                {logo ? 'Cambiar imagen' : 'Subir imagen'}
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={abrirSelectorArchivo}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-abacontex-black-text transition hover:border-abacontex-primary hover:bg-abacontex-primary/5"
+                >
+                  {logo ? 'Cambiar imagen' : 'Subir imagen'}
+                </button>
 
-              <input
-                ref={inputFileRef}
-                type="file"
-                accept="image/png,image/jpeg"
-                onChange={handleSeleccionLogo}
-                className="hidden"
-              />
+                {logo && (
+                  <button
+                    type="button"
+                    onClick={handleEliminarLogo}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Quitar
+                  </button>
+                )}
+              </div>
+
+              {logo && (
+                <p className="mt-2 max-w-xs truncate text-xs text-abacontex-gray-text">
+                  {logo.name}
+                </p>
+              )}
             </div>
+
+            <input
+              ref={inputFileRef}
+              type="file"
+              accept="image/png,image/jpeg"
+              onChange={handleSeleccionLogo}
+              className="hidden"
+            />
           </div>
+
+          {errorLogo && (
+            <p className="mt-3 text-sm text-red-600">{errorLogo}</p>
+          )}
         </div>
       </div>
     </section>

@@ -5,7 +5,6 @@ import LogoEmpresa from './LogoEmpresa';
 export interface EditarEmpresaFormData {
   nombre: string;
   actividad: string;
-  logoUrl: string;
 }
 
 interface EditarEmpresaFormProps {
@@ -13,8 +12,15 @@ interface EditarEmpresaFormProps {
   errors: FieldErrors<EditarEmpresaFormData>;
   nombre: string;
   actividad: string;
-  logoUrl: string | null;
-  onSubmit: React.FormEventHandler<HTMLFormElement>;
+
+  logoActual: string | null;
+  logo: File | null;
+  errorLogo: string;
+
+  onLogoChange: (file: File | null) => void;
+  onEliminarLogo: () => void;
+
+  onSubmit: React.FormEventHandler;
 }
 
 export default function EditarEmpresaForm({
@@ -22,14 +28,25 @@ export default function EditarEmpresaForm({
   errors,
   nombre,
   actividad,
-  logoUrl,
+  logoActual,
+  logo,
+  errorLogo,
+  onLogoChange,
+  onEliminarLogo,
   onSubmit,
 }: EditarEmpresaFormProps) {
   return (
-    <form id="editar-empresa-form" onSubmit={onSubmit} className="space-y-7">
-      <LogoEmpresa nombre={nombre} logoUrl={logoUrl} />
-
-      <input type="hidden" {...register('logoUrl')} />
+    <form id="editar-empresa-form" onSubmit={onSubmit} className="space-y-6">
+      <div className="border-b border-gray-300 pb-5">
+        <LogoEmpresa
+          nombre={nombre}
+          logoUrl={logoActual}
+          logo={logo}
+          errorLogo={errorLogo}
+          onLogoChange={onLogoChange}
+          onEliminarLogo={onEliminarLogo}
+        />
+      </div>
 
       <div className="border-b border-gray-300 pb-3">
         <label htmlFor="nombre" className="block text-sm font-semibold text-abacontex-black-text">
@@ -45,7 +62,9 @@ export default function EditarEmpresaForm({
           type="text"
           maxLength={100}
           {...register('nombre')}
-          className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20"
+          className={`mt-2 w-full rounded-lg border px-3 py-2.5 outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20 ${
+            errors.nombre ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
 
         {errors.nombre ? (
@@ -75,7 +94,9 @@ export default function EditarEmpresaForm({
           rows={3}
           maxLength={255}
           {...register('actividad')}
-          className="mt-2 w-full resize-none rounded-lg border border-gray-300 px-3 py-2.5 outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20"
+          className={`mt-2 w-full resize-none rounded-lg border px-3 py-2.5 outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20 ${
+            errors.actividad ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
 
         {errors.actividad ? (
