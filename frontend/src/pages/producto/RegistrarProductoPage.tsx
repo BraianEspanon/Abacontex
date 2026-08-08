@@ -28,7 +28,7 @@ const registrarProductoSchema = z.object({
     .string()
     .trim()
     .min(1, 'La descripción es obligatoria.')
-    .max(500, 'La descripción no puede superar los 500 caracteres.'),
+    .max(250, 'La descripción no puede superar los 250 caracteres.'),
 
   precioUnitario: z
     .number({
@@ -36,6 +36,13 @@ const registrarProductoSchema = z.object({
     })
     .finite('El precio unitario debe ser un número válido.')
     .positive('El precio unitario debe ser mayor que cero.'),
+
+  margenGanancia: z
+    .number({
+      error: 'El margen de ganancia es obligatorio.',
+    })
+    .finite('El margen de ganancia debe ser un número válido.')
+    .min(0, 'El margen de ganancia no puede ser negativo.'),
 
   stockInicial: z
     .number({
@@ -64,6 +71,7 @@ export default function RegistrarProductoPage() {
       nombre: '',
       descripcion: '',
       precioUnitario: 0,
+      margenGanancia: 0,
       stockInicial: 0,
     },
   });
@@ -71,6 +79,7 @@ export default function RegistrarProductoPage() {
   const nombreProducto = watch('nombre');
   const descripcionProducto = watch('descripcion');
   const precioProducto = watch('precioUnitario');
+  const margenProducto = watch('margenGanancia');
   const stockProducto = watch('stockInicial');
 
   const handleCancelar = () => {
@@ -85,11 +94,9 @@ export default function RegistrarProductoPage() {
       nombre: data.nombre.trim(),
       descripcion: data.descripcion.trim(),
       precioUnitario: data.precioUnitario,
+      margenGanancia: data.margenGanancia,
       stockInicial: data.stockInicial,
-
-      // La imagen todavía no se envía porque el backend
-      // no tiene implementada la recepción de archivos.
-      fotoUrl: undefined,
+      foto: imagenSeleccionada ?? undefined,
     };
 
     try {
@@ -128,15 +135,15 @@ export default function RegistrarProductoPage() {
   };
 
   return (
-    <div className="px-6 py-8 lg:px-10">
-      <div className="mx-auto max-w-5xl">
-        <nav aria-label="Migas de pan" className="mb-6 flex flex-wrap items-center gap-2 text-sm">
+    <div className="min-h-screen bg-[#f5f6f4]">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <nav className="mb-5 flex items-center gap-2 text-sm">
           <Link
             to="/alumno"
-            aria-label="Ir al inicio del panel del alumno"
-            className="inline-flex items-center text-gray-500 transition hover:text-[#4f6f52]"
+            className="inline-flex items-center gap-1 text-gray-500 transition hover:text-[#4f6f52]"
           >
-            <Home size={17} />
+            <Home size={15} />
+            Inicio
           </Link>
 
           <ChevronRight size={15} className="text-gray-400" />
@@ -173,6 +180,7 @@ export default function RegistrarProductoPage() {
             nombreProducto={nombreProducto}
             descripcionProducto={descripcionProducto}
             precioProducto={precioProducto}
+            margenProducto={margenProducto}
             stockProducto={stockProducto}
             onImagenChange={setImagenSeleccionada}
             onCancelar={handleCancelar}

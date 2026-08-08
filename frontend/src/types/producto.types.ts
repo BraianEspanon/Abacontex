@@ -22,6 +22,8 @@ export interface Producto {
   nombre: string;
   descripcion: string;
   precioUnitario: number;
+  margenGanancia: number;
+  precioVenta: number;
   stock: number;
   fotoUrl: string | null;
   empresaId: number;
@@ -50,12 +52,15 @@ export interface CrearProductoPayload {
   descripcion: string;
   precioUnitario: number;
   stockInicial: number;
-  fotoUrl?: string | null;
+  margenGanancia: number;
+  foto?: File;
 }
 
 export interface ActualizarProductoPayload {
   nombre: string;
   descripcion: string;
   precioUnitario: number;
-  fotoUrl?: string | null;
+  margenGanancia: number;
+  foto?: File;
+  eliminarFoto?: boolean;
 }

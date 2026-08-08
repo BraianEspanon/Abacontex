@@ -2,12 +2,14 @@ import { ImagePlus, Trash2, UploadCloud } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react';
+
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 
 export interface RegistrarProductoFormData {
   nombre: string;
   descripcion: string;
   precioUnitario: number;
+  margenGanancia: number;
   stockInicial: number;
 }
 
@@ -22,6 +24,7 @@ interface RegistrarProductoFormProps {
   nombreProducto: string;
   descripcionProducto: string;
   precioProducto: number;
+  margenProducto: number;
   stockProducto: number;
 
   onImagenChange: (imagen: File | null) => void;
@@ -43,6 +46,14 @@ function formatearPrecio(precio: number) {
   }).format(precio);
 }
 
+function calcularPrecioVenta(precioUnitario: number, margenGanancia: number) {
+  if (!Number.isFinite(precioUnitario) || !Number.isFinite(margenGanancia)) {
+    return 0;
+  }
+
+  return precioUnitario * (1 + margenGanancia / 100);
+}
+
 export default function RegistrarProductoForm({
   register,
   errors,
@@ -52,6 +63,7 @@ export default function RegistrarProductoForm({
   nombreProducto,
   descripcionProducto,
   precioProducto,
+  margenProducto,
   stockProducto,
   onImagenChange,
   onCancelar,
@@ -67,7 +79,6 @@ export default function RegistrarProductoForm({
   }, [imagenSeleccionada]);
 
   const [imagenError, setImagenError] = useState<string | null>(null);
-
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
@@ -147,10 +158,12 @@ export default function RegistrarProductoForm({
 
   const cantidadCaracteresDescripcion = descripcionProducto?.length ?? 0;
 
+  const precioVenta = calcularPrecioVenta(precioProducto, margenProducto);
+
   return (
-    <div className="mx-auto grid max-w-5xl items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="grid gap-5">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="rounded-2xl bg-white p-5 shadow-sm">
+        <div className="space-y-6">
           <div>
             <label htmlFor="nombre" className="mb-1 block text-sm font-semibold text-gray-800">
               Nombre <span className="text-red-500">*</span>
@@ -162,6 +175,7 @@ export default function RegistrarProductoForm({
               id="nombre"
               type="text"
               placeholder="Ej.: Taza personalizada"
+              disabled={isPending}
               {...register('nombre')}
               className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
                 errors.nombre
@@ -190,6 +204,7 @@ export default function RegistrarProductoForm({
                 min="0"
                 step="1"
                 placeholder="0"
+                disabled={isPending}
                 {...register('stockInicial', {
                   valueAsNumber: true,
                 })}
@@ -226,6 +241,7 @@ export default function RegistrarProductoForm({
                   min="0"
                   step="0.01"
                   placeholder="0,00"
+                  disabled={isPending}
                   {...register('precioUnitario', {
                     valueAsNumber: true,
                   })}
@@ -243,6 +259,62 @@ export default function RegistrarProductoForm({
             </div>
           </div>
 
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="margenGanancia"
+                className="mb-1 block text-sm font-semibold text-gray-800"
+              >
+                Margen de ganancia <span className="text-red-500">*</span>
+              </label>
+
+              <p className="mb-2 text-xs text-gray-500">
+                Indicá el porcentaje de ganancia sobre el precio unitario.
+              </p>
+
+              <div className="relative">
+                <input
+                  id="margenGanancia"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0"
+                  disabled={isPending}
+                  {...register('margenGanancia', {
+                    valueAsNumber: true,
+                  })}
+                  className={`w-full rounded-lg border py-2.5 pr-9 pl-3 text-sm outline-none transition ${
+                    errors.margenGanancia
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-[#4f6f52]'
+                  }`}
+                />
+
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-600">
+                  %
+                </span>
+              </div>
+
+              {errors.margenGanancia && (
+                <p className="mt-1 text-sm text-red-600">{errors.margenGanancia.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-800">
+                Precio de venta estimado
+              </label>
+
+              <p className="mb-2 text-xs text-gray-500">
+                Se calcula automáticamente según el margen ingresado.
+              </p>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700">
+                {formatearPrecio(precioVenta)}
+              </div>
+            </div>
+          </div>
+
           <div>
             <label htmlFor="descripcion" className="mb-1 block text-sm font-semibold text-gray-800">
               Descripción <span className="text-red-500">*</span>
@@ -255,8 +327,9 @@ export default function RegistrarProductoForm({
             <textarea
               id="descripcion"
               rows={4}
-              maxLength={500}
+              maxLength={250}
               placeholder="Ej.: Taza de cerámica blanca con diseño personalizado."
+              disabled={isPending}
               {...register('descripcion')}
               className={`w-full resize-none rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
                 errors.descripcion
@@ -269,10 +342,10 @@ export default function RegistrarProductoForm({
               {errors.descripcion ? (
                 <p className="text-sm text-red-600">{errors.descripcion.message}</p>
               ) : (
-                <p className="text-xs text-gray-400">Máx. 500 caracteres</p>
+                <p className="text-xs text-gray-400">Máx. 250 caracteres</p>
               )}
 
-              <p className="shrink-0 text-xs text-gray-400">{cantidadCaracteresDescripcion}/500</p>
+              <p className="shrink-0 text-xs text-gray-400">{cantidadCaracteresDescripcion}/250</p>
             </div>
           </div>
 
@@ -343,11 +416,6 @@ export default function RegistrarProductoForm({
             </div>
 
             {imagenError && <p className="mt-2 text-sm text-red-600">{imagenError}</p>}
-
-            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
-              La carga de imágenes todavía está pendiente en el backend. Por ahora podés
-              seleccionarla y previsualizarla, pero no se guardará al registrar el producto.
-            </div>
           </div>
         </div>
 
@@ -410,6 +478,20 @@ export default function RegistrarProductoForm({
             <p className="text-sm font-semibold text-gray-800">Precio unitario</p>
 
             <p className="mt-2 text-sm text-gray-700">{formatearPrecio(precioProducto)}</p>
+
+            <div className="my-4 border-t border-gray-200" />
+
+            <p className="text-sm font-semibold text-gray-800">Margen de ganancia</p>
+
+            <p className="mt-2 text-sm text-gray-700">
+              {Number.isFinite(margenProducto) ? `${margenProducto}%` : '0%'}
+            </p>
+
+            <div className="my-4 border-t border-gray-200" />
+
+            <p className="text-sm font-semibold text-gray-800">Precio de venta</p>
+
+            <p className="mt-2 text-sm font-medium text-gray-700">{formatearPrecio(precioVenta)}</p>
 
             <div className="my-4 border-t border-gray-200" />
 

@@ -24,7 +24,7 @@ const editarProductoSchema = z.object({
     .string()
     .trim()
     .min(1, 'La descripción es obligatoria.')
-    .max(500, 'La descripción no puede superar los 500 caracteres.'),
+    .max(250, 'La descripción no puede superar los 250 caracteres.'),
 
   precioUnitario: z
     .number({
@@ -32,6 +32,13 @@ const editarProductoSchema = z.object({
     })
     .finite('El precio unitario debe ser un número válido.')
     .positive('El precio unitario debe ser mayor que cero.'),
+
+  margenGanancia: z
+    .number({
+      error: 'El margen de ganancia es obligatorio.',
+    })
+    .finite('El margen de ganancia debe ser un número válido.')
+    .min(0, 'El margen de ganancia no puede ser negativo.'),
 });
 
 export default function EditarProductoPage() {
@@ -39,6 +46,8 @@ export default function EditarProductoPage() {
   const navigate = useNavigate();
 
   const [imagenSeleccionada, setImagenSeleccionada] = useState<File | null>(null);
+
+  const [eliminarImagen, setEliminarImagen] = useState(false);
 
   const productoId = Number(id);
   const productoIdValido = Number.isInteger(productoId) && productoId > 0;
@@ -64,6 +73,7 @@ export default function EditarProductoPage() {
       nombre: '',
       descripcion: '',
       precioUnitario: 0,
+      margenGanancia: 0,
     },
   });
 
@@ -76,7 +86,13 @@ export default function EditarProductoPage() {
       nombre: producto.nombre,
       descripcion: producto.descripcion,
       precioUnitario: producto.precioUnitario,
+      margenGanancia: producto.margenGanancia,
     });
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setImagenSeleccionada(null);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEliminarImagen(false);
   }, [producto, reset]);
 
   const handleCancelar = () => {
@@ -92,13 +108,16 @@ export default function EditarProductoPage() {
       nombre: data.nombre.trim(),
       descripcion: data.descripcion.trim(),
       precioUnitario: data.precioUnitario,
-
-      /*
-       * Mientras el backend no soporte la carga de archivos,
-       * se conserva la imagen actual del producto.
-       */
-      fotoUrl: producto.fotoUrl ?? undefined,
+      margenGanancia: data.margenGanancia,
     };
+
+    if (imagenSeleccionada) {
+      payload.foto = imagenSeleccionada;
+    }
+
+    if (eliminarImagen) {
+      payload.eliminarFoto = true;
+    }
 
     try {
       await actualizarProductoMutation.mutateAsync({
@@ -114,9 +133,9 @@ export default function EditarProductoPage() {
 
   if (!productoIdValido) {
     return (
-      <div className="px-6 py-8 lg:px-10">
-        <div className="mx-auto max-w-5xl">
-          <h1 className="text-2xl font-bold text-abacontex-black-text">Producto inválido</h1>
+      <div className="min-h-screen bg-[#f5f6f4]">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <h1 className="text-2xl font-bold text-gray-900">Producto inválido</h1>
 
           <p className="mt-3 text-sm text-gray-500">El identificador del producto no es válido.</p>
 
@@ -133,18 +152,16 @@ export default function EditarProductoPage() {
 
   if (isLoading) {
     return (
-      <div className="px-6 py-8 lg:px-10">
-        <div className="mx-auto max-w-5xl animate-pulse">
-          <div className="h-5 w-52 rounded bg-gray-200" />
-
+      <div className="min-h-screen bg-[#f5f6f4]">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mt-7 h-7 w-48 rounded bg-gray-200" />
 
           <div className="mt-4 h-4 w-80 rounded bg-gray-200" />
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="h-[580px] rounded-2xl bg-white shadow-sm" />
+            <div className="h-[650px] rounded-2xl bg-white shadow-sm" />
 
-            <div className="h-[430px] rounded-2xl bg-white shadow-sm" />
+            <div className="h-[500px] rounded-2xl bg-white shadow-sm" />
           </div>
         </div>
       </div>
@@ -153,11 +170,9 @@ export default function EditarProductoPage() {
 
   if (isError || !producto) {
     return (
-      <div className="px-6 py-8 lg:px-10">
-        <div className="mx-auto max-w-5xl">
-          <h1 className="text-2xl font-bold text-abacontex-black-text">
-            No fue posible cargar el producto
-          </h1>
+      <div className="min-h-screen bg-[#f5f6f4]">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <h1 className="text-2xl font-bold text-gray-900">No fue posible cargar el producto</h1>
 
           <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-5">
             <p className="text-sm font-medium text-red-700">
@@ -178,18 +193,18 @@ export default function EditarProductoPage() {
     );
   }
 
-  const hayCambios = isDirty || imagenSeleccionada !== null;
+  const hayCambios = isDirty || imagenSeleccionada !== null || eliminarImagen;
 
   return (
-    <div className="min-h-full px-6 py-8 lg:px-10">
-      <div className="mx-auto max-w-5xl">
-        <nav aria-label="Migas de pan" className="mb-7 flex flex-wrap items-center gap-2 text-sm">
+    <div className="min-h-screen bg-[#f5f6f4]">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <nav className="mb-5 flex items-center gap-2 text-sm">
           <Link
             to="/alumno"
-            aria-label="Ir al inicio"
-            className="inline-flex items-center text-gray-500 transition hover:text-[#4f6f52]"
+            className="inline-flex items-center gap-1 text-gray-500 transition hover:text-[#4f6f52]"
           >
-            <Home size={18} />
+            <Home size={15} />
+            Inicio
           </Link>
 
           <ChevronRight size={15} className="text-gray-400" />
@@ -221,7 +236,9 @@ export default function EditarProductoPage() {
             stock={producto.stock}
             fotoActualUrl={producto.fotoUrl}
             imagenSeleccionada={imagenSeleccionada}
+            eliminarImagen={eliminarImagen}
             onImagenSeleccionada={setImagenSeleccionada}
+            onEliminarImagen={setEliminarImagen}
             isPending={actualizarProductoMutation.isPending}
             isError={actualizarProductoMutation.isError}
             hayCambios={hayCambios}
