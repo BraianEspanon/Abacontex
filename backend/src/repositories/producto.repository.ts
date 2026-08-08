@@ -42,6 +42,8 @@ export async function findByIdAndEmpresaOrThrow(id: number, empresaId: number) {
       descripcion: true,
       stock: true,
       precioUnitario: true,
+      margenGanancia: true,
+      precioVenta: true,
       fotoUrl: true,
       activo: true,
       createdAt: true,
@@ -140,6 +142,10 @@ export async function findByEmpresa(
 
           precioUnitario: true,
 
+          margenGanancia: true,
+
+          precioVenta: true,
+
           stock: true,
         },
 
@@ -183,13 +189,13 @@ export async function findByEmpresa(
         },
         select: {
           stock: true,
-          precioUnitario: true,
+          precioVenta: true,
         },
       }),
     ]);
 
   const valorEstimado = productosResumen.reduce(
-    (total, producto) => total + Number(producto.precioUnitario) * producto.stock,
+    (total, producto) => total + Number(producto.precioVenta) * producto.stock,
     0
   );
 
@@ -211,7 +217,8 @@ export async function create(
   empresaId: number,
   data: CrearProductoDTO,
   fotoUrl: string | null,
-  fotoPublicId: string | null
+  fotoPublicId: string | null,
+  precioVenta: number
 ) {
   return prisma.producto.create({
     data: {
@@ -223,6 +230,8 @@ export async function create(
       stock: data.stockInicial,
 
       precioUnitario: data.precioUnitario,
+      margenGanancia: data.margenGanancia,
+      precioVenta,
 
       fotoUrl,
       fotoPublicId,
@@ -230,12 +239,13 @@ export async function create(
   });
 }
 
-type ActualizarProductoPersistenceDTO = ActualizarProductoDTO & {
-  fotoUrl: string | null;
-  fotoPublicId: string | null;
-};
-
-export async function update(id: number, data: ActualizarProductoPersistenceDTO) {
+export async function update(
+  id: number,
+  data: ActualizarProductoDTO,
+  fotoUrl: string | null,
+  fotoPublicId: string | null,
+  precioVenta: number
+) {
   return prisma.producto.update({
     where: {
       id,
@@ -245,9 +255,11 @@ export async function update(id: number, data: ActualizarProductoPersistenceDTO)
       nombre: data.nombre,
       descripcion: data.descripcion,
       precioUnitario: data.precioUnitario,
+      margenGanancia: data.margenGanancia,
+      precioVenta,
 
-      fotoUrl: data.fotoUrl,
-      fotoPublicId: data.fotoPublicId,
+      fotoUrl,
+      fotoPublicId,
     },
   });
 }
