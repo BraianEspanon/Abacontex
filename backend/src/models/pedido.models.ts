@@ -4,7 +4,7 @@ export interface ProductoPedido {
   id: number;
   nombre: string;
   stock: number;
-  precioUnitario: Prisma.Decimal;
+  precioVenta: Prisma.Decimal;
 }
 
 export interface DetallePedidoCalculado {

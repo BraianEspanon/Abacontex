@@ -20,6 +20,7 @@ export async function findProductosByIdsAndEmpresa(
       nombre: true,
       stock: true,
       precioUnitario: true,
+      precioVenta: true,
     },
   });
 
