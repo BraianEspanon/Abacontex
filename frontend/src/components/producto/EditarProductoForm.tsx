@@ -1,4 +1,5 @@
-import { ImageOff, LockKeyhole, Save, Upload, X } from 'lucide-react';
+import { ImageOff, LockKeyhole, Save, Trash2, Upload, X } from 'lucide-react';
+
 import { useEffect, useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 
@@ -8,6 +9,7 @@ export interface EditarProductoFormData {
   nombre: string;
   descripcion: string;
   precioUnitario: number;
+  margenGanancia: number;
 }
 
 interface EditarProductoFormProps {
@@ -19,7 +21,10 @@ interface EditarProductoFormProps {
   fotoActualUrl: string | null;
 
   imagenSeleccionada: File | null;
+  eliminarImagen: boolean;
+
   onImagenSeleccionada: (archivo: File | null) => void;
+  onEliminarImagen: (eliminar: boolean) => void;
 
   isPending: boolean;
   isError: boolean;
@@ -45,6 +50,14 @@ function formatearPrecio(precio: number) {
   }).format(precio);
 }
 
+function calcularPrecioVenta(precioUnitario: number, margenGanancia: number) {
+  if (!Number.isFinite(precioUnitario) || !Number.isFinite(margenGanancia)) {
+    return 0;
+  }
+
+  return precioUnitario * (1 + margenGanancia / 100);
+}
+
 export default function EditarProductoForm({
   register,
   control,
@@ -52,20 +65,14 @@ export default function EditarProductoForm({
   stock,
   fotoActualUrl,
   imagenSeleccionada,
+  eliminarImagen,
   onImagenSeleccionada,
+  onEliminarImagen,
   isPending,
   isError,
   hayCambios,
   onCancelar,
 }: EditarProductoFormProps) {
-  const imagenPreviewUrl = useMemo(() => {
-    if (!imagenSeleccionada) {
-      return fotoActualUrl;
-    }
-
-    return URL.createObjectURL(imagenSeleccionada);
-  }, [imagenSeleccionada, fotoActualUrl]);
-
   const [errorImagen, setErrorImagen] = useState<string | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -87,6 +94,24 @@ export default function EditarProductoForm({
       control,
       name: 'precioUnitario',
     }) ?? 0;
+
+  const margenGanancia =
+    useWatch({
+      control,
+      name: 'margenGanancia',
+    }) ?? 0;
+
+  const imagenPreviewUrl = useMemo(() => {
+    if (imagenSeleccionada) {
+      return URL.createObjectURL(imagenSeleccionada);
+    }
+
+    if (eliminarImagen) {
+      return null;
+    }
+
+    return fotoActualUrl;
+  }, [imagenSeleccionada, eliminarImagen, fotoActualUrl]);
 
   useEffect(() => {
     return () => {
@@ -115,7 +140,7 @@ export default function EditarProductoForm({
   };
 
   const handleArchivo = (archivo: File | undefined) => {
-    if (!archivo) {
+    if (!archivo || isPending) {
       return;
     }
 
@@ -124,6 +149,9 @@ export default function EditarProductoForm({
     }
 
     onImagenSeleccionada(archivo);
+
+    // Una nueva imagen reemplaza la actual.
+    onEliminarImagen(false);
   };
 
   const handleQuitarNuevaImagen = () => {
@@ -131,10 +159,23 @@ export default function EditarProductoForm({
     setErrorImagen(null);
   };
 
+  const handleEliminarImagen = () => {
+    if (isPending) {
+      return;
+    }
+
+    onImagenSeleccionada(null);
+    setErrorImagen(null);
+
+    onEliminarImagen(!eliminarImagen);
+  };
+
+  const precioVenta = calcularPrecioVenta(precioUnitario, margenGanancia);
+
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-        <div className="space-y-5">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="rounded-2xl bg-white p-5 shadow-sm">
+        <div className="space-y-6">
           <div>
             <label htmlFor="nombre" className="block text-sm font-semibold text-gray-900">
               Nombre
@@ -160,39 +201,78 @@ export default function EditarProductoForm({
             )}
           </div>
 
-          <div className="max-w-xs">
-            <label htmlFor="precioUnitario" className="block text-sm font-semibold text-gray-900">
-              Precio unitario
-              <span className="ml-1 text-red-500">*</span>
-            </label>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="max-w-xs">
+              <label htmlFor="precioUnitario" className="block text-sm font-semibold text-gray-900">
+                Precio unitario
+                <span className="ml-1 text-red-500">*</span>
+              </label>
 
-            <p className="mt-1 text-xs text-gray-500">Debe ser mayor que cero.</p>
+              <p className="mt-1 text-xs text-gray-500">Debe ser mayor que cero.</p>
 
-            <div className="relative mt-2">
-              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm font-semibold text-gray-700">
-                $
-              </span>
+              <div className="relative mt-2">
+                <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm font-semibold text-gray-700">
+                  $
+                </span>
 
-              <input
-                id="precioUnitario"
-                type="number"
-                min="0"
-                step="0.01"
-                disabled={isPending}
-                {...register('precioUnitario', {
-                  valueAsNumber: true,
-                })}
-                className={`w-full rounded-lg border bg-white py-2.5 pr-3 pl-8 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
-                  errors.precioUnitario
-                    ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                    : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
-                }`}
-              />
+                <input
+                  id="precioUnitario"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  disabled={isPending}
+                  {...register('precioUnitario', {
+                    valueAsNumber: true,
+                  })}
+                  className={`w-full rounded-lg border bg-white py-2.5 pr-3 pl-8 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+                    errors.precioUnitario
+                      ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+                      : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+                  }`}
+                />
+              </div>
+
+              {errors.precioUnitario && (
+                <p className="mt-1.5 text-xs text-red-600">{errors.precioUnitario.message}</p>
+              )}
             </div>
 
-            {errors.precioUnitario && (
-              <p className="mt-1.5 text-xs text-red-600">{errors.precioUnitario.message}</p>
-            )}
+            <div className="max-w-xs">
+              <label htmlFor="margenGanancia" className="block text-sm font-semibold text-gray-900">
+                Margen de ganancia
+                <span className="ml-1 text-red-500">*</span>
+              </label>
+
+              <p className="mt-1 text-xs text-gray-500">
+                Porcentaje de ganancia aplicado al precio unitario.
+              </p>
+
+              <div className="relative mt-2">
+                <input
+                  id="margenGanancia"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  disabled={isPending}
+                  {...register('margenGanancia', {
+                    valueAsNumber: true,
+                  })}
+                  className={`w-full rounded-lg border bg-white py-2.5 pr-8 pl-3 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+                    errors.margenGanancia
+                      ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+                      : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+                  }`}
+                />
+
+                <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm font-medium text-gray-600">
+                  %
+                </span>
+              </div>
+
+              {errors.margenGanancia && (
+                <p className="mt-1.5 text-xs text-red-600">{errors.margenGanancia.message}</p>
+              )}
+            </div>
           </div>
 
           <div>
@@ -208,7 +288,7 @@ export default function EditarProductoForm({
             <textarea
               id="descripcion"
               rows={4}
-              maxLength={500}
+              maxLength={250}
               disabled={isPending}
               {...register('descripcion')}
               className={`mt-2 w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm leading-6 text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
@@ -225,7 +305,7 @@ export default function EditarProductoForm({
                 )}
               </div>
 
-              <span className="shrink-0 text-xs text-gray-400">{descripcion.length}/500</span>
+              <span className="shrink-0 text-xs text-gray-400">{descripcion.length}/250</span>
             </div>
           </div>
 
@@ -236,7 +316,7 @@ export default function EditarProductoForm({
             </p>
 
             <p className="mt-1 text-xs text-gray-500">
-              Podés preparar una nueva imagen para el producto.
+              Podés reemplazar o eliminar la imagen actual.
             </p>
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -251,7 +331,9 @@ export default function EditarProductoForm({
                   <div className="flex flex-col items-center text-center text-gray-400">
                     <ImageOff size={30} strokeWidth={1.5} />
 
-                    <span className="mt-2 text-xs">Sin imagen</span>
+                    <span className="mt-2 text-xs">
+                      {eliminarImagen ? 'La imagen será eliminada' : 'Sin imagen'}
+                    </span>
                   </div>
                 )}
               </div>
@@ -260,11 +342,17 @@ export default function EditarProductoForm({
                 htmlFor="imagen-producto"
                 onDragEnter={(event) => {
                   event.preventDefault();
-                  setIsDragging(true);
+
+                  if (!isPending) {
+                    setIsDragging(true);
+                  }
                 }}
                 onDragOver={(event) => {
                   event.preventDefault();
-                  setIsDragging(true);
+
+                  if (!isPending) {
+                    setIsDragging(true);
+                  }
                 }}
                 onDragLeave={(event) => {
                   event.preventDefault();
@@ -274,9 +362,11 @@ export default function EditarProductoForm({
                   event.preventDefault();
                   setIsDragging(false);
 
-                  handleArchivo(event.dataTransfer.files[0]);
+                  handleArchivo(event.dataTransfer.files?.[0]);
                 }}
-                className={`flex h-36 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition ${
+                className={`flex h-36 ${
+                  isPending ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                } flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition ${
                   isDragging
                     ? 'border-[#769a75] bg-[#eef5ed]'
                     : 'border-gray-300 bg-white hover:border-[#9caf9c] hover:bg-[#f8faf7]'
@@ -313,7 +403,7 @@ export default function EditarProductoForm({
                   type="button"
                   onClick={handleQuitarNuevaImagen}
                   disabled={isPending}
-                  className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-red-500 transition hover:text-red-600"
+                  className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-red-500 transition hover:text-red-600 disabled:opacity-50"
                 >
                   <X size={14} />
                   Quitar
@@ -321,14 +411,31 @@ export default function EditarProductoForm({
               </div>
             )}
 
-            {errorImagen && <p className="mt-2 text-xs text-red-600">{errorImagen}</p>}
+            {fotoActualUrl && !imagenSeleccionada && !eliminarImagen && (
+              <button
+                type="button"
+                onClick={handleEliminarImagen}
+                disabled={isPending}
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trash2 size={14} />
+                Eliminar imagen actual
+              </button>
+            )}
 
-            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
-              <p className="text-xs leading-5 text-amber-800">
-                La carga de imágenes todavía está pendiente en el backend. La imagen seleccionada se
-                utiliza únicamente como vista previa y no se guardará por el momento.
-              </p>
-            </div>
+            {eliminarImagen && (
+              <button
+                type="button"
+                onClick={handleEliminarImagen}
+                disabled={isPending}
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#4f6f52] transition hover:text-[#3e593f] disabled:opacity-50"
+              >
+                <X size={14} />
+                Cancelar eliminación de imagen
+              </button>
+            )}
+
+            {errorImagen && <p className="mt-2 text-xs text-red-600">{errorImagen}</p>}
           </div>
 
           <div className="max-w-xs">
@@ -415,6 +522,20 @@ export default function EditarProductoForm({
           <p className="mt-2 text-sm font-medium text-gray-700">
             {formatearPrecio(precioUnitario)}
           </p>
+        </div>
+
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <p className="text-xs font-semibold text-gray-900">Margen de ganancia</p>
+
+          <p className="mt-2 text-sm text-gray-600">
+            {Number.isFinite(margenGanancia) ? `${margenGanancia}%` : '0%'}
+          </p>
+        </div>
+
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <p className="text-xs font-semibold text-gray-900">Precio de venta</p>
+
+          <p className="mt-2 text-sm font-medium text-gray-700">{formatearPrecio(precioVenta)}</p>
         </div>
 
         <div className="mt-4 border-t border-gray-200 pt-4">
