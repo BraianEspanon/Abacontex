@@ -189,13 +189,13 @@ export async function findByEmpresa(
         },
         select: {
           stock: true,
-          precioUnitario: true,
+          precioVenta: true,
         },
       }),
     ]);
 
   const valorEstimado = productosResumen.reduce(
-    (total, producto) => total + Number(producto.precioUnitario) * producto.stock,
+    (total, producto) => total + Number(producto.precioVenta) * producto.stock,
     0
   );
 
