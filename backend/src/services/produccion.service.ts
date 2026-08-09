@@ -1,4 +1,5 @@
 import { AuthUser } from '../types/express';
+import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 
 import * as produccionRepository from '../repositories/produccion.repository';
 import * as usuarioRepository from '../repositories/usuario.repository';
@@ -134,4 +135,57 @@ export async function obtenerPedidosAsociables(user: AuthUser) {
 
   // Descarta los pedidos cuyos faltantes ya tienen todos una orden de producción asociada.
   return pedidosMapeados.filter((pedido) => pedido.faltantes.length > 0);
+}
+
+function mapearOrdenTablero(
+  orden: Awaited<ReturnType<typeof produccionRepository.findOrdenesParaTablero>>[number]
+) {
+  return {
+    idOrden: orden.idOrden,
+    productoId: orden.producto.id,
+    productoNombre: orden.producto.nombre,
+    cantidad: orden.cantidad,
+    prioridad: orden.prioridad,
+    estado: orden.estado.nombre,
+    pedidoId: orden.pedido?.idPedido ?? null,
+    fechaCreacion: orden.createdAt,
+  };
+}
+
+export async function obtenerTableroProduccion(user: AuthUser) {
+  // Obtiene el usuario autenticado y valida que pertenezca a una empresa.
+  const usuario = await obtenerUsuario(user);
+
+  // Obtiene todas las órdenes de producción correspondientes a la empresa.
+  const ordenes = await produccionRepository.findOrdenesParaTablero(usuario.alumno.empresa.id);
+
+  // Adapta las órdenes al formato utilizado por el tablero.
+  const ordenesMapeadas = ordenes.map(mapearOrdenTablero);
+
+  // Organiza las órdenes según su estado actual.
+  const pendientes = ordenesMapeadas.filter(
+    (orden) => orden.estado === ESTADOS_PRODUCCION.PENDIENTE
+  );
+
+  const enProceso = ordenesMapeadas.filter(
+    (orden) => orden.estado === ESTADOS_PRODUCCION.EN_PRODUCCIÓN
+  );
+
+  const finalizadas = ordenesMapeadas.filter(
+    (orden) => orden.estado === ESTADOS_PRODUCCION.FINALIZADA
+  );
+
+  return {
+    resumen: {
+      total: ordenesMapeadas.length,
+      pendientes: pendientes.length,
+      enProceso: enProceso.length,
+      finalizadas: finalizadas.length,
+    },
+    columnas: {
+      pendientes,
+      enProceso,
+      finalizadas,
+    },
+  };
 }

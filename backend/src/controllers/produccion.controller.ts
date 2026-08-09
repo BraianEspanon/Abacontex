@@ -17,3 +17,9 @@ export async function obtenerPedidosAsociables(req: Request, res: Response) {
 
   res.status(200).json(pedidos);
 }
+
+export async function obtenerTableroProduccion(req: Request, res: Response) {
+  const tablero = await produccionService.obtenerTableroProduccion(req.user!);
+
+  res.status(200).json(tablero);
+}

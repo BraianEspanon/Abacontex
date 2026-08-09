@@ -9,9 +9,12 @@ import { crearOrdenProduccionSchema } from '../validators/produccion.validator';
 import {
   crearOrdenProduccion,
   obtenerPedidosAsociables,
+  obtenerTableroProduccion,
 } from '../controllers/produccion.controller';
 
 const router = Router();
+
+router.get('/', authenticate, requireRole(ROLES.ALUMNO), obtenerTableroProduccion);
 
 router.post(
   '/',

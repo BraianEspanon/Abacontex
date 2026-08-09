@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { Prisma, PrioridadOrden } from '@prisma/client';
+import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 
 import { ConflictError } from '../errors/conflict.error';
 
@@ -58,10 +59,47 @@ export async function findPedidosAsociables(empresaId: number) {
   });
 }
 
+export async function findOrdenesParaTablero(empresaId: number) {
+  return prisma.ordenProduccion.findMany({
+    where: {
+      empresaId,
+    },
+    select: {
+      idOrden: true,
+      cantidad: true,
+      prioridad: true,
+      createdAt: true,
+
+      producto: {
+        select: {
+          id: true,
+          nombre: true,
+        },
+      },
+
+      estado: {
+        select: {
+          idEstado: true,
+          nombre: true,
+        },
+      },
+
+      pedido: {
+        select: {
+          idPedido: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  });
+}
+
 export async function findEstadoPendiente() {
   return prisma.estadoOrdenProduccion.findUniqueOrThrow({
     where: {
-      nombre: 'Pendientes',
+      nombre: ESTADOS_PRODUCCION.PENDIENTE,
     },
   });
 }
