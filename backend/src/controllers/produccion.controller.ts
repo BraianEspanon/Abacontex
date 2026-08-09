@@ -11,3 +11,9 @@ export async function crearOrdenProduccion(req: Request, res: Response) {
 
   res.status(201).json(orden);
 }
+
+export async function obtenerPedidosAsociables(req: Request, res: Response) {
+  const pedidos = await produccionService.obtenerPedidosAsociables(req.user!);
+
+  res.status(200).json(pedidos);
+}

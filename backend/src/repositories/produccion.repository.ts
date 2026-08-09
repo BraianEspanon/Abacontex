@@ -12,6 +12,52 @@ export async function findByPedidoAndProducto(pedidoId: number, productoId: numb
   });
 }
 
+export async function findPedidosAsociables(empresaId: number) {
+  return prisma.pedido.findMany({
+    where: {
+      empresaId,
+      detalles: {
+        some: {
+          cantidadPendiente: {
+            gt: 0,
+          },
+        },
+      },
+    },
+    select: {
+      idPedido: true,
+      clienteNombre: true,
+      fecha: true,
+
+      detalles: {
+        where: {
+          cantidadPendiente: {
+            gt: 0,
+          },
+        },
+        select: {
+          productoId: true,
+          cantidadPendiente: true,
+          producto: {
+            select: {
+              nombre: true,
+            },
+          },
+        },
+      },
+
+      ordenesProduccion: {
+        select: {
+          productoId: true,
+        },
+      },
+    },
+    orderBy: {
+      fecha: 'desc',
+    },
+  });
+}
+
 export async function findEstadoPendiente() {
   return prisma.estadoOrdenProduccion.findUniqueOrThrow({
     where: {
