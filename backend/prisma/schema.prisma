@@ -74,13 +74,13 @@ model Curso {
   idCurso Int @id @default(autoincrement())
 
   nombreCurso String @unique
+  año         Int
 
   alumnos Alumno[]
-
   profesores ProfesorCursos[]
-
   empresas Empresa[]
 
+  @@index([año])
   @@map("cursos")
 }
 
@@ -276,11 +276,12 @@ model Producto {
 
   stock Int @default(0)
 
-  precioUnitario Decimal @db.Decimal(14, 2)
-  margenGanancia Decimal @default(0) @db.Decimal(5, 2)
-  precioVenta Decimal @default(0) @db.Decimal(14, 2)
-  
-  fotoUrl String?
+  precioUnitario    Decimal @db.Decimal(14, 2)
+  margenGanancia    Decimal @default(0) @db.Decimal(5, 2)
+  precioVenta       Decimal @default(0) @db.Decimal(14, 2)
+  precioConsumidorFinal Decimal @default(0) @db.Decimal(14, 2)
+
+  fotoUrl      String?
   fotoPublicId String?
 
   activo Boolean @default(true)
@@ -288,8 +289,8 @@ model Producto {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  detallesPedido DetallePedido[]
-  ordenesProduccion OrdenProduccion[]
+  detallesPedido     DetallePedido[]
+  ordenesProduccion  OrdenProduccion[]
 
   @@unique([empresaId, nombre], where: { activo: true })
   @@index([empresaId])
@@ -452,6 +453,7 @@ model OrdenProduccion {
   @@index([responsableId])
   @@index([pedidoId])
   @@index([empresaId, estadoId])
+  @@unique([pedidoId, productoId], map: "unique_pedido_producto_orden")
   @@map("ordenes_produccion")
 }
 
