@@ -1,10 +1,17 @@
 import clienteApi from './clienteApi';
+
 import type { AlumnoDisponible } from '../types/empresa.types';
+
+import type {
+  EmpresasDocenteResponse,
+  EmpresaDocenteDetalle,
+  ObtenerEmpresasDocenteParams,
+} from '../types/empresa-docente.type';
 
 export interface CrearEmpresaRequest {
   nombre: string;
   actividad: string;
-  logoUrl: string | null;
+  logo?: File | null;
 }
 
 export interface EmpresaCreada {
@@ -46,7 +53,7 @@ export interface EmpresaActual {
   };
   cicloLectivo: {
     id: number;
-    nombre: number;
+    nombre: string;
   };
   integrantes: IntegranteEmpresa[];
 }
@@ -54,7 +61,8 @@ export interface EmpresaActual {
 export interface ActualizarEmpresaRequest {
   nombre: string;
   actividad: string;
-  logoUrl: string | null;
+  logo?: File | null;
+  eliminarLogo?: boolean;
 }
 
 export async function obtenerCandidatosEmpresa(search?: string): Promise<AlumnoDisponible[]> {
@@ -68,7 +76,16 @@ export async function obtenerCandidatosEmpresa(search?: string): Promise<AlumnoD
 }
 
 export async function crearEmpresa(datos: CrearEmpresaRequest): Promise<EmpresaCreada> {
-  const respuesta = await clienteApi.post<EmpresaCreada>('/empresas', datos);
+  const formData = new FormData();
+
+  formData.append('nombre', datos.nombre);
+  formData.append('actividad', datos.actividad);
+
+  if (datos.logo) {
+    formData.append('logo', datos.logo);
+  }
+
+  const respuesta = await clienteApi.post<EmpresaCreada>('/empresas', formData);
 
   return respuesta.data;
 }
@@ -79,14 +96,55 @@ export async function agregarParticipantesEmpresa(
   await clienteApi.post('/empresas/me/participantes', datos);
 }
 
-export async function obtenerEmpresaActual(): Promise<EmpresaActual> {
-  const respuesta = await clienteApi.get<EmpresaActual>('/empresas/me');
+export async function obtenerEmpresaActual(): Promise<EmpresaActual | null> {
+  const respuesta = await clienteApi.get<EmpresaActual | null>('/empresas/me');
 
   return respuesta.data;
 }
 
-export async function actualizarEmpresa(datos: ActualizarEmpresaRequest): Promise<EmpresaActual> {
-  const respuesta = await clienteApi.patch<EmpresaActual>('/empresas/me', datos);
+export async function actualizarEmpresa(
+  datos: ActualizarEmpresaRequest
+): Promise<EmpresaActual | null> {
+  const formData = new FormData();
+
+  formData.append('nombre', datos.nombre);
+  formData.append('actividad', datos.actividad);
+
+  // Si se seleccionó una nueva imagen, se reemplaza el logo actual.
+  if (datos.logo) {
+    formData.append('logo', datos.logo);
+  }
+
+  // Si se pidió eliminar el logo, se informa al backend.
+  if (datos.eliminarLogo === true) {
+    formData.append('eliminarLogo', 'true');
+  }
+
+  const respuesta = await clienteApi.patch<EmpresaActual | null>('/empresas/me', formData);
+
+  return respuesta.data;
+}
+
+/* =========================================================
+   EMPRESAS DEL DOCENTE
+   ========================================================= */
+
+export async function obtenerEmpresasDocente(
+  params: ObtenerEmpresasDocenteParams
+): Promise<EmpresasDocenteResponse> {
+  const respuesta = await clienteApi.get<EmpresasDocenteResponse>('/docentes/me/empresas', {
+    params,
+  });
+
+  return respuesta.data;
+}
+
+export async function obtenerDetalleEmpresaDocente(
+  empresaId: number
+): Promise<EmpresaDocenteDetalle> {
+  const respuesta = await clienteApi.get<EmpresaDocenteDetalle>(
+    `/docentes/me/empresas/${empresaId}`
+  );
 
   return respuesta.data;
 }

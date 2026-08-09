@@ -7,6 +7,7 @@ import EstructuraPanelDocente from '../layouts/EstructuraPanelDocente';
 
 import InicioDocente from '../pages/docente/InicioDocente';
 import PerfilDocente from '../pages/docente/PerfilDocente';
+import EmpresasDocente from '../pages/docente/EmpresasDocente';
 
 import CrearEmpresaPage from '../pages/empresa/CrearEmpresaPage';
 import EditarEmpresaPage from '../pages/empresa/EditarEmpresaPage';
@@ -17,9 +18,11 @@ import ProductosPage from '../pages/producto/ProductosPage';
 import RegistrarProductoPage from '../pages/producto/RegistrarProductoPage';
 import RoleSelection from '../pages/RoleSelection';
 import EditarProductoPage from '../pages/producto/EditarProductoPage';
+
 import CEOBienvenida from '../pages/onboarding/CEOBienvenida';
 import RedireccionInicial from '../pages/onboarding/RedireccionIncial';
 import InvitacionPage from '../pages/onboarding/InvitacionPage';
+
 import RegistroDocentePage from '../pages/docente/RegistroDocente';
 import LoginDocente from '../pages/docente/LoginDocente';
 
@@ -97,7 +100,10 @@ export default function AppRouter() {
         }
       >
         <Route index element={<InicioDocente />} />
+
         <Route path="perfil" element={<PerfilDocente />} />
+
+        <Route path="empresas" element={<EmpresasDocente />} />
       </Route>
 
       <Route path="/docente/login" element={<LoginDocente />} />

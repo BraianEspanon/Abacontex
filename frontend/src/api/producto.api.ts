@@ -11,7 +11,7 @@ import type {
 export async function obtenerProductos(
   params: ProductosQueryParams = {}
 ): Promise<ProductosResponse> {
-  const { data } = await clienteApi.get<ProductosResponse>('/productos', {
+  const { data } = await clienteApi.get('/productos', {
     params,
   });
 
@@ -19,13 +19,25 @@ export async function obtenerProductos(
 }
 
 export async function obtenerProductoPorId(productoId: number): Promise<Producto> {
-  const { data } = await clienteApi.get<Producto>(`/productos/${productoId}`);
+  const { data } = await clienteApi.get(`/productos/${productoId}`);
 
   return data;
 }
 
 export async function crearProducto(producto: CrearProductoPayload): Promise<Producto> {
-  const { data } = await clienteApi.post<Producto>('/productos', producto);
+  const formData = new FormData();
+
+  formData.append('nombre', producto.nombre);
+  formData.append('descripcion', producto.descripcion);
+  formData.append('precioUnitario', String(producto.precioUnitario));
+  formData.append('stockInicial', String(producto.stockInicial));
+  formData.append('margenGanancia', String(producto.margenGanancia));
+
+  if (producto.foto) {
+    formData.append('foto', producto.foto);
+  }
+
+  const { data } = await clienteApi.post('/productos', formData);
 
   return data;
 }
@@ -34,7 +46,22 @@ export async function actualizarProducto(
   productoId: number,
   producto: ActualizarProductoPayload
 ): Promise<Producto> {
-  const { data } = await clienteApi.patch<Producto>(`/productos/${productoId}`, producto);
+  const formData = new FormData();
+
+  formData.append('nombre', producto.nombre);
+  formData.append('descripcion', producto.descripcion);
+  formData.append('precioUnitario', String(producto.precioUnitario));
+  formData.append('margenGanancia', String(producto.margenGanancia));
+
+  if (producto.foto) {
+    formData.append('foto', producto.foto);
+  }
+
+  if (producto.eliminarFoto !== undefined) {
+    formData.append('eliminarFoto', String(producto.eliminarFoto));
+  }
+
+  const { data } = await clienteApi.patch(`/productos/${productoId}`, formData);
 
   return data;
 }
