@@ -97,9 +97,9 @@ export const productosSeed: Seed = {
       throw new Error('Las empresas de demo no existen.');
     }
 
-    // ==========================
+    // =========================
     // TECHNOVA
-    // ==========================
+    // =========================
 
     await crearOActualizarProductoActivo(prisma, {
       empresaId: techNova.id,
