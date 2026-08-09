@@ -67,6 +67,15 @@ export async function crearOrdenProduccion(user: AuthUser, data: CrearOrdenProdu
       );
     }
 
+    const ordenExistente = await produccionRepository.findByPedidoAndProducto(
+      pedido.idPedido,
+      data.productoId
+    );
+
+    if (ordenExistente) {
+      throw new ConflictError('Ya existe una orden de producción para este producto del pedido.');
+    }
+
     if (data.cantidadProducir !== detalle.cantidadPendiente) {
       throw new BadRequestError(
         'La cantidad a producir debe coincidir con la cantidad pendiente del pedido.'
