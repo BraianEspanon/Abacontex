@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { toProductoPedido } from '../dto/pedido/ped.mapper';
 import { DetallePedidoCalculado, ProductoPedido } from '../models/pedido.models';
+import { NotFoundError } from '../errors/not-found.error';
 
 export async function findProductosByIdsAndEmpresa(
   empresaId: number,
@@ -56,6 +57,17 @@ export async function findByIdAndEmpresa(idPedido: number, empresaId: number) {
     },
   });
 }
+export async function findByIdAndEmpresaOrThrow(idPedido: number, empresaId: number) {
+  const pedido = await findByIdAndEmpresa(idPedido, empresaId);
+
+  if (!pedido) {
+    throw new NotFoundError('Pedido no encontrado en base de datos.', {
+      idPedido,
+    });
+  }
+
+  return pedido;
+}
 
 export async function findByIdAndEmpresaForCambioEstado(idPedido: number, empresaId: number) {
   return prisma.pedido.findFirst({
@@ -95,6 +107,32 @@ export async function findKanbanByEmpresa(empresaId: number) {
       },
     },
   });
+}
+
+export async function findDetallePedido(pedidoId: number, productoId: number) {
+  return prisma.detallePedido.findUnique({
+    where: {
+      pedidoId_productoId: {
+        pedidoId,
+        productoId,
+      },
+    },
+  });
+}
+export async function findDetallePedidoOrThrow(pedidoId: number, productoId: number) {
+  const detalle = await findDetallePedido(pedidoId, productoId);
+
+  if (!detalle) {
+    throw new NotFoundError(
+      'No se pudo encontrar el producto dentro del pedido en la base de datos.',
+      {
+        pedido: pedidoId,
+        producto: productoId,
+      }
+    );
+  }
+
+  return detalle;
 }
 
 export async function findEstadoPendiente() {
