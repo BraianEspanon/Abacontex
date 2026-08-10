@@ -27,6 +27,16 @@ export async function obtenerTableroProduccion(req: Request, res: Response) {
   res.status(200).json(tablero);
 }
 
+export async function obtenerDetalleOrdenProduccion(req: Request, res: Response) {
+  const { params } = ordenProduccionIdSchema.parse({
+    params: req.params,
+  });
+
+  const orden = await produccionService.obtenerDetalleOrdenProduccion(req.user!, params);
+
+  res.status(200).json(orden);
+}
+
 export async function iniciarOrdenProduccion(req: Request, res: Response) {
   const { params } = ordenProduccionIdSchema.parse({
     params: req.params,

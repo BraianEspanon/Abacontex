@@ -11,6 +11,7 @@ import { BadRequestError } from '../errors/bad-request-error';
 
 import { CrearOrdenProduccionDTO, OrdenProduccionIdDTO } from '../validators/produccion.validator';
 import { ConflictError } from '../errors/conflict.error';
+import { mapearDetalleOrden } from '../dto/orden-produccion/ord.mapper';
 
 async function obtenerUsuario(user: AuthUser) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
@@ -299,4 +300,15 @@ export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduc
 
     return ordenFinalizada;
   });
+}
+
+export async function obtenerDetalleOrdenProduccion(user: AuthUser, data: OrdenProduccionIdDTO) {
+  const usuario = await obtenerUsuario(user);
+
+  const orden = await produccionRepository.findDetalleOrdenProduccionOrThrow(
+    data.idOrden,
+    usuario.alumno.empresa.id
+  );
+
+  return mapearDetalleOrden(orden);
 }

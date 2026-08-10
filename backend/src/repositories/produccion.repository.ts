@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma';
+import { getDbClient, prisma } from '../lib/prisma';
 import { Prisma, PrioridadOrden } from '@prisma/client';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 
@@ -143,6 +143,76 @@ export async function findEstadoFinalizada() {
   });
 }
 
+export async function findDetalleOrdenProduccion(
+  idOrden: number,
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.ordenProduccion.findUnique({
+    where: {
+      idOrden,
+      empresaId,
+    },
+    select: {
+      idOrden: true,
+      cantidad: true,
+      prioridad: true,
+      createdAt: true,
+
+      producto: {
+        select: {
+          id: true,
+          nombre: true,
+        },
+      },
+
+      estado: {
+        select: {
+          idEstado: true,
+          nombre: true,
+        },
+      },
+
+      pedido: {
+        select: {
+          idPedido: true,
+        },
+      },
+
+      historialEstados: {
+        select: {
+          estadoId: true,
+          fechaInicio: true,
+          fechaFin: true,
+          estado: {
+            select: {
+              nombre: true,
+            },
+          },
+        },
+        orderBy: {
+          fechaInicio: 'asc',
+        },
+      },
+    },
+  });
+}
+
+export async function findDetalleOrdenProduccionOrThrow(
+  idOrden: number,
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const orden = await findDetalleOrdenProduccion(idOrden, empresaId, tx);
+
+  if (!orden) {
+    throw new NotFoundError('No se encontró la orden de producción.');
+  }
+
+  return orden;
+}
 export async function crearHistorialEstado(
   tx: Prisma.TransactionClient,
   ordenId: number,

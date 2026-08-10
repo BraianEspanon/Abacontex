@@ -15,6 +15,7 @@ import {
   obtenerPedidosAsociables,
   obtenerTableroProduccion,
   finalizarOrdenProduccion,
+  obtenerDetalleOrdenProduccion,
 } from '../controllers/produccion.controller';
 
 const router = Router();
@@ -34,6 +35,14 @@ router.get(
   authenticate,
   requireRole(ROLES.ALUMNO),
   obtenerPedidosAsociables
+);
+
+router.get(
+  '/:idOrden',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(ordenProduccionIdSchema),
+  obtenerDetalleOrdenProduccion
 );
 
 router.patch(
