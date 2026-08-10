@@ -5,6 +5,7 @@ import * as produccionRepository from '../repositories/produccion.repository';
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as productoRepository from '../repositories/producto.repository';
 import * as pedidoRepository from '../repositories/pedido.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
 
@@ -212,4 +213,90 @@ export async function iniciarOrdenProduccion(user: AuthUser, data: OrdenProducci
     estadoEnProduccion.idEstado,
     usuario.id
   );
+}
+
+export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduccionIdDTO) {
+  const usuario = await obtenerUsuario(user);
+
+  const orden = await produccionRepository.findOrdenByIdAndEmpresaOrThrow(
+    data.idOrden,
+    usuario.alumno.empresa.id
+  );
+
+  // La orden solamente puede finalizarse si actualmente está
+  // en estado En Producción.
+  if (orden.estado.nombre !== ESTADOS_PRODUCCION.EN_PRODUCCION) {
+    throw new BadRequestError(
+      'Solo se pueden finalizar órdenes de producción que se encuentren en producción.'
+    );
+  }
+
+  const estadoFinalizada = await produccionRepository.findEstadoFinalizada();
+
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const ahora = new Date();
+
+    // Cierra el período correspondiente al estado En Producción.
+    await produccionRepository.cerrarHistorialEstado(
+      tx,
+      orden.idOrden,
+      orden.estado.idEstado,
+      ahora
+    );
+
+    // Actualiza la orden al estado Finalizada.
+    const ordenFinalizada = await produccionRepository.finalizarOrden(
+      tx,
+      orden.idOrden,
+      estadoFinalizada.idEstado
+    );
+
+    // Registra el inicio del estado Finalizada.
+    await produccionRepository.crearHistorialEstado(
+      tx,
+      orden.idOrden,
+      estadoFinalizada.idEstado,
+      usuario.id,
+      ahora
+    );
+
+    /*
+     * Si la orden está asociada a un pedido,
+     * la producción se utiliza para cubrir el faltante
+     * de ese producto en dicho pedido.
+     */
+    if (orden.pedidoId) {
+      await pedidoRepository.cubrirFaltante(orden.pedidoId, orden.productoId, orden.cantidad, tx);
+
+      /*
+       * Una vez cubierto el faltante de este producto,
+       * verificamos si el pedido todavía tiene otros
+       * productos pendientes de cubrir.
+       */
+      const tieneFaltantes = await pedidoRepository.tieneFaltantes(orden.pedidoId, tx);
+
+      /*
+       * Si ya no quedan faltantes, el pedido queda
+       * listo para entregar.
+       */
+      if (!tieneFaltantes) {
+        const estadoListoParaEntregar = await pedidoRepository.findEstadoListoParaEntregar(tx);
+
+        await pedidoRepository.updateEstadoPedido(
+          orden.pedidoId,
+          estadoListoParaEntregar.idEstado,
+          tx
+        );
+      }
+    } else {
+      /*
+       * Si la orden NO está asociada a un pedido,
+       * la producción pasa a formar parte del stock disponible.
+       */
+
+      await productoRepository.incrementarStock(tx, orden.productoId, orden.cantidad);
+    }
+
+    return ordenFinalizada;
+  });
 }

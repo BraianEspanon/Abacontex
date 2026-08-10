@@ -135,6 +135,49 @@ export async function findEstadoEnProduccion() {
   });
 }
 
+export async function findEstadoFinalizada() {
+  return prisma.estadoOrdenProduccion.findUniqueOrThrow({
+    where: {
+      nombre: ESTADOS_PRODUCCION.FINALIZADA,
+    },
+  });
+}
+
+export async function crearHistorialEstado(
+  tx: Prisma.TransactionClient,
+  ordenId: number,
+  estadoId: number,
+  usuarioId: string,
+  fechaInicio: Date
+) {
+  return tx.historialEstadoOrdenProduccion.create({
+    data: {
+      ordenId,
+      estadoId,
+      usuarioId,
+      fechaInicio,
+    },
+  });
+}
+
+export async function cerrarHistorialEstado(
+  tx: Prisma.TransactionClient,
+  ordenId: number,
+  estadoId: number,
+  fechaFin: Date
+) {
+  return tx.historialEstadoOrdenProduccion.updateMany({
+    where: {
+      ordenId,
+      estadoId,
+      fechaFin: null,
+    },
+    data: {
+      fechaFin,
+    },
+  });
+}
+
 export async function createOrdenProduccion(data: {
   empresaId: number;
   productoId: number;
@@ -229,5 +272,25 @@ export async function iniciarOrdenProduccion(
     });
 
     return orden;
+  });
+}
+
+export async function finalizarOrden(
+  tx: Prisma.TransactionClient,
+  ordenId: number,
+  estadoFinalizadaId: number
+) {
+  return tx.ordenProduccion.update({
+    where: {
+      idOrden: ordenId,
+    },
+    data: {
+      estadoId: estadoFinalizadaId,
+    },
+    include: {
+      producto: true,
+      estado: true,
+      pedido: true,
+    },
   });
 }

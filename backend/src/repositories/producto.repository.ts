@@ -274,3 +274,20 @@ export async function remove(idProducto: number) {
     },
   });
 }
+
+export async function incrementarStock(
+  tx: Prisma.TransactionClient,
+  productoId: number,
+  cantidad: number
+) {
+  return tx.producto.update({
+    where: {
+      id: productoId,
+    },
+    data: {
+      stock: {
+        increment: cantidad,
+      },
+    },
+  });
+}

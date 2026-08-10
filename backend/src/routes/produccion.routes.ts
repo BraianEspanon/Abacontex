@@ -14,6 +14,7 @@ import {
   iniciarOrdenProduccion,
   obtenerPedidosAsociables,
   obtenerTableroProduccion,
+  finalizarOrdenProduccion,
 } from '../controllers/produccion.controller';
 
 const router = Router();
@@ -41,6 +42,13 @@ router.patch(
   requireRole(ROLES.ALUMNO),
   validate(ordenProduccionIdSchema),
   iniciarOrdenProduccion
+);
+router.patch(
+  '/:idOrden/finalizar',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(ordenProduccionIdSchema),
+  finalizarOrdenProduccion
 );
 
 export default router;
