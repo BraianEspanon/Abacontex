@@ -1,6 +1,55 @@
 import { ESTADOS_PRODUCCION } from '../../constants/estados-produccion';
 import { $Enums } from '@prisma/client';
 
+export function mapearPedidoAsociable(pedido: {
+  idPedido: number;
+  clienteNombre: string;
+  fecha: Date;
+  detalles: { productoId: number; producto: { nombre: string }; cantidadPendiente: number }[];
+  ordenesProduccion: { productoId: number }[];
+}) {
+  // Obtiene los IDs de los productos que ya tienen una orden de producción asociada al pedido.
+  const productosConOrden = new Set(pedido.ordenesProduccion.map((orden) => orden.productoId));
+
+  // Filtra los productos que tienen faltante de stock y que todavía no poseen una orden de producción.
+  const faltantesAsociables = pedido.detalles.filter(
+    (detalle) => !productosConOrden.has(detalle.productoId)
+  );
+
+  // Construye la respuesta del pedido incluyendo únicamente los faltantes que pueden asociarse a una nueva orden.
+  return {
+    idPedido: pedido.idPedido,
+    clienteNombre: pedido.clienteNombre,
+    fecha: pedido.fecha,
+    faltantes: faltantesAsociables.map((detalle) => ({
+      productoId: detalle.productoId,
+      productoNombre: detalle.producto.nombre,
+      cantidadPendiente: detalle.cantidadPendiente,
+    })),
+  };
+}
+
+export function mapearOrdenTablero(orden: {
+  idOrden: number;
+  cantidad: number;
+  prioridad: $Enums.PrioridadOrden;
+  createdAt: Date;
+  producto: { id: number; nombre: string };
+  estado: { nombre: string; idEstado: number };
+  pedido: { idPedido: number } | null;
+}) {
+  return {
+    idOrden: orden.idOrden,
+    productoId: orden.producto.id,
+    productoNombre: orden.producto.nombre,
+    cantidad: orden.cantidad,
+    prioridad: orden.prioridad,
+    estado: orden.estado.nombre,
+    pedidoId: orden.pedido?.idPedido ?? null,
+    fechaCreacion: orden.createdAt,
+  };
+}
+
 function calcularDuracionEstado(fechaInicio: Date, fechaFin: Date | null) {
   const fin = fechaFin ?? new Date();
 
