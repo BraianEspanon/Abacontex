@@ -12,3 +12,11 @@ export const crearOrdenProduccionSchema = z.object({
 });
 
 export type CrearOrdenProduccionDTO = z.infer<typeof crearOrdenProduccionSchema>['body'];
+
+export const ordenProduccionIdSchema = z.object({
+  params: z.object({
+    idOrden: z.coerce.number().int().positive(),
+  }),
+});
+
+export type OrdenProduccionIdDTO = z.infer<typeof ordenProduccionIdSchema>['params'];

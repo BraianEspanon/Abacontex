@@ -5,9 +5,13 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { crearOrdenProduccionSchema } from '../validators/produccion.validator';
+import {
+  crearOrdenProduccionSchema,
+  ordenProduccionIdSchema,
+} from '../validators/produccion.validator';
 import {
   crearOrdenProduccion,
+  iniciarOrdenProduccion,
   obtenerPedidosAsociables,
   obtenerTableroProduccion,
 } from '../controllers/produccion.controller';
@@ -29,6 +33,14 @@ router.get(
   authenticate,
   requireRole(ROLES.ALUMNO),
   obtenerPedidosAsociables
+);
+
+router.patch(
+  '/:idOrden/iniciar',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(ordenProduccionIdSchema),
+  iniciarOrdenProduccion
 );
 
 export default router;

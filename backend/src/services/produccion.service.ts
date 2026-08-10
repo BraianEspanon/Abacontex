@@ -8,7 +8,7 @@ import * as pedidoRepository from '../repositories/pedido.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
 
-import { CrearOrdenProduccionDTO } from '../validators/produccion.validator';
+import { CrearOrdenProduccionDTO, OrdenProduccionIdDTO } from '../validators/produccion.validator';
 import { ConflictError } from '../errors/conflict.error';
 
 async function obtenerUsuario(user: AuthUser) {
@@ -168,7 +168,7 @@ export async function obtenerTableroProduccion(user: AuthUser) {
   );
 
   const enProceso = ordenesMapeadas.filter(
-    (orden) => orden.estado === ESTADOS_PRODUCCION.EN_PRODUCCIÓN
+    (orden) => orden.estado === ESTADOS_PRODUCCION.EN_PRODUCCION
   );
 
   const finalizadas = ordenesMapeadas.filter(
@@ -188,4 +188,28 @@ export async function obtenerTableroProduccion(user: AuthUser) {
       finalizadas,
     },
   };
+}
+
+export async function iniciarOrdenProduccion(user: AuthUser, data: OrdenProduccionIdDTO) {
+  const usuario = await obtenerUsuario(user);
+
+  const orden = await produccionRepository.findOrdenByIdAndEmpresaOrThrow(
+    data.idOrden,
+    usuario.alumno.empresa.id
+  );
+
+  if (orden.estado.nombre !== ESTADOS_PRODUCCION.PENDIENTE) {
+    throw new BadRequestError(
+      'Solo se pueden iniciar órdenes de producción que se encuentren pendientes.'
+    );
+  }
+
+  const estadoEnProduccion = await produccionRepository.findEstadoEnProduccion();
+
+  return produccionRepository.iniciarOrdenProduccion(
+    orden.idOrden,
+    orden.estado.idEstado,
+    estadoEnProduccion.idEstado,
+    usuario.id
+  );
 }

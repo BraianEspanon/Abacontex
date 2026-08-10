@@ -3,6 +3,29 @@ import { Prisma, PrioridadOrden } from '@prisma/client';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 
 import { ConflictError } from '../errors/conflict.error';
+import { NotFoundError } from '../errors/not-found.error';
+
+export async function findOrdenByIdAndEmpresa(idOrden: number, empresaId: number) {
+  return prisma.ordenProduccion.findUnique({
+    where: {
+      idOrden,
+      empresaId,
+    },
+    include: {
+      estado: true,
+    },
+  });
+}
+
+export async function findOrdenByIdAndEmpresaOrThrow(idOrden: number, empresaId: number) {
+  const orden = await findOrdenByIdAndEmpresa(idOrden, empresaId);
+
+  if (!orden) {
+    throw new NotFoundError('No se encontró la orden de producción.', { idOrden, empresaId });
+  }
+
+  return orden;
+}
 
 export async function findByPedidoAndProducto(pedidoId: number, productoId: number) {
   return prisma.ordenProduccion.findFirst({
@@ -104,6 +127,14 @@ export async function findEstadoPendiente() {
   });
 }
 
+export async function findEstadoEnProduccion() {
+  return prisma.estadoOrdenProduccion.findUniqueOrThrow({
+    where: {
+      nombre: ESTADOS_PRODUCCION.EN_PRODUCCION,
+    },
+  });
+}
+
 export async function createOrdenProduccion(data: {
   empresaId: number;
   productoId: number;
@@ -149,4 +180,54 @@ export async function createOrdenProduccion(data: {
 
     throw error;
   }
+}
+
+export async function iniciarOrdenProduccion(
+  idOrden: number,
+  estadoPendienteId: number,
+  estadoEnProduccionId: number,
+  usuarioId: string
+) {
+  return prisma.$transaction(async (tx) => {
+    const ahora = new Date();
+
+    // Cierra el período correspondiente al estado Pendiente.
+    await tx.historialEstadoOrdenProduccion.updateMany({
+      where: {
+        ordenId: idOrden,
+        estadoId: estadoPendienteId,
+        fechaFin: null,
+      },
+      data: {
+        fechaFin: ahora,
+      },
+    });
+
+    // Actualiza la orden al estado En Producción.
+    const orden = await tx.ordenProduccion.update({
+      where: {
+        idOrden,
+      },
+      data: {
+        estadoId: estadoEnProduccionId,
+      },
+      include: {
+        producto: true,
+        estado: true,
+        pedido: true,
+      },
+    });
+
+    // Registra el inicio del nuevo estado.
+    await tx.historialEstadoOrdenProduccion.create({
+      data: {
+        ordenId: idOrden,
+        estadoId: estadoEnProduccionId,
+        usuarioId,
+        fechaInicio: ahora,
+      },
+    });
+
+    return orden;
+  });
 }

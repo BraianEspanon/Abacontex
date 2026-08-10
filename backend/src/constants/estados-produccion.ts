@@ -1,6 +1,6 @@
 export const ESTADOS_PRODUCCION = {
   PENDIENTE: 'Pendientes',
-  EN_PRODUCCIÓN: 'En Producción',
+  EN_PRODUCCION: 'En Producción',
   FINALIZADA: 'Finalizadas',
 } as const;
 
