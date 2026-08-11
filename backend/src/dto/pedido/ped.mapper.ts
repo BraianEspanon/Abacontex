@@ -135,6 +135,7 @@ export function toObtenerDetallePedidoResponse(
   const faltantesStock: FaltanteStock[] = pedido.detalles
     .filter((d) => d.cantidadPendiente > 0)
     .map((d) => ({
+      idProducto: d.producto.id,
       producto: d.producto.nombre,
       solicitado: d.cantidad,
       cubierto: d.cantidadConStock,
