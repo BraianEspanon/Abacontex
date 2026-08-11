@@ -650,7 +650,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"participantes\": [\r\n        \"6c720679-0533-4908-a41f-f2bb64bfe018\"\r\n    ]\r\n}",
+              "raw": "{\r\n    \"participantes\": [\r\n        \"204eb200-93de-4f78-a515-a8fa37949da4\"\r\n    ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -830,11 +830,11 @@
                   "key": "nombre",
                   "type": "text",
                   "uuid": "3b2e782a-e865-464d-a10a-ad0220418531",
-                  "value": "Paisaje"
+                  "value": "Mancuerna 10kg x2"
                 },
                 {
                   "key": "descripcion",
-                  "value": "asd",
+                  "value": "Dos (2) mancuernas de 10kg cada una",
                   "type": "text",
                   "uuid": "6a351646-c1f5-4c3e-9adc-c4a0e67bb78b"
                 },
@@ -846,9 +846,15 @@
                 },
                 {
                   "key": "precioUnitario",
-                  "value": "5000",
+                  "value": "10000",
                   "type": "text",
                   "uuid": "71e88f67-4fb3-4835-888b-b3961f837350"
+                },
+                {
+                  "key": "margenGanancia",
+                  "value": "30",
+                  "type": "text",
+                  "uuid": "30c9e672-81f7-4a85-8655-1f0052b0d486"
                 },
                 {
                   "key": "foto",
@@ -880,15 +886,21 @@
               "formdata": [
                 {
                   "key": "nombre",
-                  "value": "Licencia ERP",
+                  "value": "Licencia ERP2",
                   "type": "text",
                   "uuid": "bb943a82-5ea4-4d09-b065-60a06d0e8453"
                 },
                 {
                   "key": "precioUnitario",
-                  "value": "50000",
+                  "value": "1000",
                   "type": "text",
                   "uuid": "277c6a3e-3a98-43f0-a668-d126ce971ad1"
+                },
+                {
+                  "key": "margenGanancia",
+                  "value": "20.5",
+                  "type": "text",
+                  "uuid": "02c36ab3-111a-43e4-bcaa-424ff02e8bcd"
                 },
                 {
                   "key": "descripcion",
@@ -923,7 +935,7 @@
               "variable": [
                 {
                   "key": "idProducto",
-                  "value": "3"
+                  "value": "8"
                 }
               ]
             }
@@ -962,17 +974,8 @@
         {
           "name": "pedidos",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n      \"clienteNombre\":\"Braian\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":1,\r\n            \"cantidad\":5\r\n        },\r\n        {\r\n            \"productoId\":2,\r\n            \"cantidad\":30\r\n        },\r\n        {\r\n            \"productoId\":3,\r\n            \"cantidad\":2\r\n        }\r\n      ]\r\n}\r\n    \r\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
             "url": {
               "raw": "{{base_Url}}/pedidos",
               "host": [
@@ -988,8 +991,17 @@
         {
           "name": "pedidos",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n      \"clienteNombre\":\"Braian\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":4,\r\n            \"cantidad\":20\r\n        }\r\n      ]\r\n}\r\n    \r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "{{base_Url}}/pedidos",
               "host": [
@@ -1019,7 +1031,7 @@
               "variable": [
                 {
                   "key": "idProducto",
-                  "value": "1"
+                  "value": "6"
                 }
               ]
             }
@@ -1044,7 +1056,7 @@
               "variable": [
                 {
                   "key": "idProducto",
-                  "value": "3"
+                  "value": "6"
                 }
               ]
             }
@@ -1069,7 +1081,228 @@
               "variable": [
                 {
                   "key": "idProducto",
-                  "value": "3"
+                  "value": "6"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Produccion",
+      "item": [
+        {
+          "name": "Ver ordenes producción",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/produccion",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "produccion"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear orden produccion",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"productoId\": 3,\r\n    \"cantidadProducir\": 4,\r\n    \"prioridad\": \"ALTA\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/produccion",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "produccion"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver pedidos con faltantes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/produccion/pedidos-asociables",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "produccion",
+                "pedidos-asociables"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver orden producción",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/produccion/:idOrden",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "produccion",
+                ":idOrden"
+              ],
+              "variable": [
+                {
+                  "key": "idOrden",
+                  "value": "11"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Iniciar orden producción",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/produccion/:idOrden/iniciar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "produccion",
+                ":idOrden",
+                "iniciar"
+              ],
+              "variable": [
+                {
+                  "key": "idOrden",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Finalizar orden producción",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/produccion/:idOrden/finalizar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "produccion",
+                ":idOrden",
+                "finalizar"
+              ],
+              "variable": [
+                {
+                  "key": "idOrden",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Planificacion",
+      "item": [
+        {
+          "name": "Ver planificacion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/planificacion",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "planificacion"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear planificacion",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"mesInicio\": 7,\r\n    \"mesFin\": 11,\r\n    \"detalles\": [\r\n        {\r\n            \"mes\": 7,\r\n            \"unidadesEstimadas\": 5\r\n        },\r\n        {\r\n            \"mes\": 8,\r\n            \"unidadesEstimadas\": 10\r\n        },\r\n        {\r\n            \"mes\": 9,\r\n            \"unidadesEstimadas\": 20\r\n        },\r\n        {\r\n            \"mes\": 10,\r\n            \"unidadesEstimadas\": 30\r\n        },\r\n        {\r\n            \"mes\": 11,\r\n            \"unidadesEstimadas\": 40\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/planificacion",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "planificacion"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar detalle planificacion",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"unidadesEstimadas\":67\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/planificacion/:idDetalle",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "planificacion",
+                ":idDetalle"
+              ],
+              "variable": [
+                {
+                  "key": "idDetalle",
+                  "value": "16"
                 }
               ]
             }

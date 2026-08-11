@@ -50,6 +50,14 @@ export const swaggerSpec = swaggerJsdoc({
         description: 'Gestión de pedidos de cada empresa y su flujo de estado.',
       },
       {
+        name: 'Producción',
+        description: 'Gestión de órdenes de producción y seguimiento de estado.',
+      },
+      {
+        name: 'Planificación',
+        description: 'Gestión de la planificación anual de producción por empresa.',
+      },
+      {
         name: 'Cursos',
         description: 'Consulta de cursos disponibles.',
       },
