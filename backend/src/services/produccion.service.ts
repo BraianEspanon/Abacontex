@@ -10,6 +10,7 @@ import * as transactionRepository from '../repositories/transaction.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
 import { ConflictError } from '../errors/conflict.error';
+import { ForbiddenError } from '../errors/forbidden.error';
 
 import { CrearOrdenProduccionDTO, OrdenProduccionIdDTO } from '../validators/produccion.validator';
 import {
@@ -31,9 +32,10 @@ async function obtenerUsuario(user: AuthUser) {
     throw new ConflictError('No perteneces a ninguna empresa.');
   }
 
-  if (usuario.alumno.empresa.curso.idCurso) {
-    console.log('ACORDARSE DE SOLUCIONAR AÑO DEL CURSO', usuario.alumno.empresa.curso.idCurso);
-    //throw new ForbiddenError('Solo los alumnos de 6° año pueden crear órdenes de producción.');
+  if (usuario.alumno.empresa.curso.año !== 6) {
+    throw new ForbiddenError(
+      'Solo los alumnos de 6° año pueden acceder a las órdenes de producción.'
+    );
   }
 
   return {
