@@ -10,7 +10,10 @@ import * as produccionRepository from '../repositories/produccion.repository';
 import { ConflictError } from '../errors/conflict.error';
 import { BadRequestError } from '../errors/bad-request-error';
 
-import { CrearPlanificacionDTO } from '../validators/planificacion.validator';
+import {
+  ActualizarPlanificacionMensualDTO,
+  CrearPlanificacionDTO,
+} from '../validators/planificacion.validator';
 
 export async function crearPlanificacion(user: AuthUser, data: CrearPlanificacionDTO) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
@@ -196,6 +199,7 @@ export async function obtenerPlanificacionAnual(user: AuthUser) {
     const cumplimiento = unidadesEstimadas > 0 ? (unidadesProducidas / unidadesEstimadas) * 100 : 0;
 
     return {
+      id: detalle.idDetalle,
       mes: detalle.mes,
       unidadesEstimadas,
       unidadesProducidas,
@@ -225,4 +229,47 @@ export async function obtenerPlanificacionAnual(user: AuthUser) {
 
     meses,
   };
+}
+
+export async function actualizarPlanificacionMensual(
+  user: AuthUser,
+  unidadesEstimadas: number,
+  idDetalle: number
+) {
+  // Obtiene el usuario autenticado y valida que pertenezca a una empresa.
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError(
+      'Debes completar tu registro antes de realizar operaciones sobre producción.'
+    );
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('No perteneces a ninguna empresa.');
+  }
+
+  // Obtiene el ciclo lectivo al que pertenece la empresa.
+  const cicloLectivoId = usuario.alumno.empresa.cicloLectivo.id;
+
+  // Busca el detalle y verifica que pertenezca a la empresa y al ciclo actual.
+  const detalle = await planificacionRepository.findDetalleByIdAndEmpresaAndCicloOrThrow(
+    idDetalle,
+    usuario.alumno.empresa.id,
+    cicloLectivoId
+  );
+
+  // Determina el estado actual del mes de la planificación.
+  const mesActual = new Date().getMonth() + 1;
+  const estadoMes = calcularEstadoMes(detalle.mes, mesActual);
+
+  // No permite modificar la estimación de meses que ya finalizaron.
+  if (estadoMes === 'COMPLETADO') {
+    throw new BadRequestError(
+      'No se puede modificar la planificación de un mes que ya ha finalizado.'
+    );
+  }
+
+  // Actualiza únicamente la cantidad estimada del mes.
+  return planificacionRepository.updateDetalle(detalle.idDetalle, unidadesEstimadas);
 }

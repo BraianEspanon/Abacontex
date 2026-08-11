@@ -6,10 +6,14 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { crearPlanificacionSchema } from '../validators/planificacion.validator';
+import {
+  actualizarPlanificacionMensualSchema,
+  crearPlanificacionSchema,
+} from '../validators/planificacion.validator';
 import {
   obtenerPlanificacionAnual,
   crearPlanificacion,
+  actualizarPlanificacionMensual,
 } from '../controllers/planificacion.controller';
 
 const router = Router();
@@ -22,6 +26,14 @@ router.post(
   requireRole(ROLES.ALUMNO),
   validate(crearPlanificacionSchema),
   crearPlanificacion
+);
+
+router.patch(
+  '/:id',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(actualizarPlanificacionMensualSchema),
+  actualizarPlanificacionMensual
 );
 
 export default router;

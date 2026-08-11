@@ -14,3 +14,17 @@ export const crearPlanificacionSchema = z.object({
 });
 
 export type CrearPlanificacionDTO = z.infer<typeof crearPlanificacionSchema>['body'];
+
+export const actualizarPlanificacionMensualSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().positive(),
+  }),
+
+  body: z.object({
+    unidadesEstimadas: z.coerce.number().int().nonnegative(),
+  }),
+});
+
+export type ActualizarPlanificacionMensualDTO = z.infer<
+  typeof actualizarPlanificacionMensualSchema
+>;

@@ -3,6 +3,8 @@ import { EstadoPlanificacion } from '../constants/estados-planificacion';
 
 import { getDbClient } from '../lib/prisma';
 
+import { NotFoundError } from '../errors/not-found.error';
+
 export async function findByEmpresaAndCiclo(
   empresaId: number,
   cicloLectivoId: number,
@@ -25,6 +27,40 @@ export async function findByEmpresaAndCiclo(
       },
     },
   });
+}
+
+export async function findDetalleByIdAndEmpresaAndCiclo(
+  idDetalle: number,
+  empresaId: number,
+  cicloLectivoId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.detallePlanificacionAnual.findFirst({
+    where: {
+      idDetalle,
+      planificacion: {
+        empresaId,
+        cicloLectivoId,
+      },
+    },
+  });
+}
+
+export async function findDetalleByIdAndEmpresaAndCicloOrThrow(
+  idDetalle: number,
+  empresaId: number,
+  cicloLectivoId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const detalle = await findDetalleByIdAndEmpresaAndCiclo(idDetalle, empresaId, cicloLectivoId, tx);
+
+  if (!detalle) {
+    throw new NotFoundError('No se encontró la planificación mensual.');
+  }
+
+  return detalle;
 }
 
 export async function findProduccionFinalizadaPorMes(
@@ -99,6 +135,23 @@ export async function createDetalle(
       planificacionId: data.planificacionId,
       mes: data.mes,
       unidadesEstimadas: data.unidadesEstimadas,
+    },
+  });
+}
+
+export async function updateDetalle(
+  idDetalle: number,
+  unidadesEstimadas: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.detallePlanificacionAnual.update({
+    where: {
+      idDetalle,
+    },
+    data: {
+      unidadesEstimadas,
     },
   });
 }
