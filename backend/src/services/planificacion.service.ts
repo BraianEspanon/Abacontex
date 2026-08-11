@@ -10,10 +10,7 @@ import * as produccionRepository from '../repositories/produccion.repository';
 import { ConflictError } from '../errors/conflict.error';
 import { BadRequestError } from '../errors/bad-request-error';
 
-import {
-  ActualizarPlanificacionMensualDTO,
-  CrearPlanificacionDTO,
-} from '../validators/planificacion.validator';
+import { CrearPlanificacionDTO } from '../validators/planificacion.validator';
 
 export async function crearPlanificacion(user: AuthUser, data: CrearPlanificacionDTO) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
