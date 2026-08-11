@@ -6,8 +6,8 @@ import { metodosPagoSeed } from './metodos-pago.seed';
 import { categoriasMovimientoSeed } from './categorias-movimiento.seed';
 import { cursosSeed } from './cursos.seed';
 import { estadosPedidoSeed } from './estado-pedido.seed';
-
 import type { Seed } from '../types';
+import { metodosPagoCursoSeed } from './metodos-pago-curso.seed';
 
 export const systemSeeds: Seed[] = [
   rolesSistemaSeed,
@@ -18,4 +18,5 @@ export const systemSeeds: Seed[] = [
   categoriasMovimientoSeed,
   estadosPedidoSeed,
   cursosSeed,
+  metodosPagoCursoSeed,
 ];

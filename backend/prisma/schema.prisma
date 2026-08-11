@@ -42,6 +42,7 @@ model Usuario {
   pedidos                Pedido[]
   ordenesAsignadas       OrdenProduccion[]
   historialOrdenes       HistorialEstadoOrdenProduccion[]
+  ventas                 Venta[]
 
   alumno    Alumno?
   auditLogs AuditLog[]
@@ -136,6 +137,7 @@ model Empresa {
   invitaciones           InvitacionEmpresa[]
   pedidos                Pedido[]
   ordenesProduccion      OrdenProduccion[]
+  ventas                 Venta[]
   planificacionesAnuales PlanificacionAnual[]
 
   @@index([idCurso])
@@ -249,15 +251,6 @@ model CategoriaMovimiento {
   @@map("categorias_movimiento")
 }
 
-model MetodoPago {
-  idMetodoPago Int    @id @default(autoincrement())
-  nombre       String @unique
-
-  movimientos MovimientoFinanciero[]
-
-  @@map("metodos_pago")
-}
-
 model EstadoMovimiento {
   idEstado Int    @id @default(autoincrement())
   nombre   String @unique
@@ -292,6 +285,7 @@ model Producto {
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   detallesPedido    DetallePedido[]
+  detallesVenta     DetalleVenta[]
   ordenesProduccion OrdenProduccion[]
 
   @@unique([empresaId, nombre], where: { activo: true })
@@ -368,6 +362,7 @@ model Pedido {
 
   detalles          DetallePedido[]
   ordenesProduccion OrdenProduccion[]
+  venta             Venta?
 
   @@index([empresaId])
   @@index([estadoId])
@@ -524,4 +519,143 @@ model DetallePlanificacionAnual {
   @@unique([planificacionId, mes])
   @@index([planificacionId])
   @@map("detalles_planificacion_anual")
+}
+
+enum TipoAjusteVenta {
+  NINGUNO
+  DESCUENTO
+  RECARGO
+}
+
+enum EstadoVenta {
+  CONFIRMADA
+}
+
+model Venta {
+  idVenta Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+
+  pedidoId Int    @unique
+  pedido   Pedido @relation(fields: [pedidoId], references: [idPedido])
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  metodoPagoId Int
+  metodoPago   MetodoPago @relation(fields: [metodoPagoId], references: [idMetodoPago])
+
+  estado EstadoVenta @default(CONFIRMADA)
+
+  fecha DateTime @default(now()) @db.Timestamptz(3)
+
+  subtotal Decimal @db.Decimal(14, 2)
+
+  tipoAjuste TipoAjusteVenta @default(NINGUNO)
+
+  porcentajeAjuste Decimal @default(0) @db.Decimal(5, 2)
+
+  importeAjuste Decimal @default(0) @db.Decimal(14, 2)
+
+  aplicaIva Boolean @default(false)
+
+  importeIva Decimal @default(0) @db.Decimal(14, 2)
+
+  cantidadCuotas Int?
+
+  porcentajeInteres Decimal @default(0) @db.Decimal(5, 2)
+
+  importeInteres Decimal @default(0) @db.Decimal(14, 2)
+
+  totalFinal Decimal @db.Decimal(14, 2)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  detalles DetalleVenta[]
+  factura  Factura?
+
+  @@index([empresaId])
+  @@index([pedidoId])
+  @@index([usuarioId])
+  @@index([metodoPagoId])
+  @@index([estado])
+  @@index([fecha])
+  @@index([empresaId, fecha])
+  @@map("ventas")
+}
+
+model DetalleVenta {
+  idDetalleVenta Int @id @default(autoincrement())
+
+  ventaId Int
+  venta   Venta @relation(fields: [ventaId], references: [idVenta], onDelete: Cascade)
+
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  cantidad Int
+
+  precioUnitario Decimal @db.Decimal(14, 2)
+
+  subtotal Decimal @db.Decimal(14, 2)
+
+  @@index([ventaId])
+  @@index([productoId])
+  @@map("detalles_venta")
+}
+
+enum TipoFactura {
+  A
+  B
+}
+
+enum CondicionFiscal {
+  RESPONSABLE_INSCRIPTO
+  CONSUMIDOR_FINAL
+}
+
+model Factura {
+  idFactura Int @id @default(autoincrement())
+
+  ventaId Int   @unique
+  venta   Venta @relation(fields: [ventaId], references: [idVenta])
+
+  tipoFactura TipoFactura
+
+  condicionFiscal CondicionFiscal
+
+  fechaEmision DateTime @default(now()) @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt
+
+  @@index([tipoFactura])
+  @@index([condicionFiscal])
+  @@index([fechaEmision])
+  @@map("facturas")
+}
+
+model MetodoPago {
+  idMetodoPago Int    @id @default(autoincrement())
+  nombre       String @unique
+
+  movimientos    MovimientoFinanciero[]
+  ventas         Venta[]
+  metodosPorAño MetodoPagoCurso[]
+
+  @@map("metodos_pago")
+}
+
+model MetodoPagoCurso {
+  idMetodoPago Int
+
+  metodoPago MetodoPago @relation(fields: [idMetodoPago], references: [idMetodoPago], onDelete: Cascade)
+
+  año Int
+
+  @@id([idMetodoPago, año])
+  @@index([año])
+  @@map("metodos_pago_curso")
 }
