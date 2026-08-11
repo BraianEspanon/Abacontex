@@ -1,7 +1,11 @@
 import { Prisma } from '@prisma/client';
 import { prisma, getDbClient } from '../lib/prisma';
+
+import { ESTADOS_PEDIDOS } from '../constants/estados-pedidos';
+
 import { toProductoPedido } from '../dto/pedido/ped.mapper';
 import { DetallePedidoCalculado, ProductoPedido } from '../models/pedido.models';
+
 import { NotFoundError } from '../errors/not-found.error';
 
 export async function findProductosByIdsAndEmpresa(
@@ -138,7 +142,17 @@ export async function findDetallePedidoOrThrow(pedidoId: number, productoId: num
 export async function findEstadoPendiente() {
   return prisma.estadoPedido.findUniqueOrThrow({
     where: {
-      nombre: 'PENDIENTE',
+      nombre: ESTADOS_PEDIDOS.PENDIENTE,
+    },
+  });
+}
+
+export async function findEstadoEnProduccion(tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.estadoPedido.findUniqueOrThrow({
+    where: {
+      nombre: ESTADOS_PEDIDOS.EN_PRODUCCION,
     },
   });
 }
@@ -148,7 +162,7 @@ export async function findEstadoListoParaEntregar(tx?: Prisma.TransactionClient)
 
   return db.estadoPedido.findUniqueOrThrow({
     where: {
-      nombre: 'LISTO_PARA_ENTREGAR',
+      nombre: ESTADOS_PEDIDOS.LISTO_PARA_ENTREGAR,
     },
   });
 }
@@ -156,7 +170,7 @@ export async function findEstadoListoParaEntregar(tx?: Prisma.TransactionClient)
 export async function findEstadoCompletado() {
   return prisma.estadoPedido.findUniqueOrThrow({
     where: {
-      nombre: 'COMPLETADO',
+      nombre: ESTADOS_PEDIDOS.COMPLETADO,
     },
   });
 }

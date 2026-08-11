@@ -213,12 +213,26 @@ export async function findDetalleOrdenProduccionOrThrow(
 
   return orden;
 }
+
+export async function existeOrdenParaPedido(pedidoId: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.ordenProduccion.findFirst({
+    where: {
+      pedidoId,
+    },
+    select: {
+      idOrden: true,
+    },
+  });
+}
+
 export async function crearHistorialEstado(
-  tx: Prisma.TransactionClient,
   ordenId: number,
   estadoId: number,
   usuarioId: string,
-  fechaInicio: Date
+  fechaInicio: Date,
+  tx: Prisma.TransactionClient
 ) {
   return tx.historialEstadoOrdenProduccion.create({
     data: {
@@ -248,43 +262,36 @@ export async function cerrarHistorialEstado(
   });
 }
 
-export async function createOrdenProduccion(data: {
-  empresaId: number;
-  productoId: number;
-  estadoId: number;
-  pedidoId: number | undefined;
-  responsableId: string;
-  cantidad: number;
-  prioridad: PrioridadOrden;
-}) {
+export async function createOrdenProduccion(
+  data: {
+    empresaId: number;
+    productoId: number;
+    estadoId: number;
+    pedidoId: number | undefined;
+    responsableId: string;
+    cantidad: number;
+    prioridad: PrioridadOrden;
+  },
+  tx: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
   try {
-    return await prisma.$transaction(async (tx) => {
-      const orden = await tx.ordenProduccion.create({
-        data: {
-          empresaId: data.empresaId,
-          productoId: data.productoId,
-          estadoId: data.estadoId,
-          pedidoId: data.pedidoId ?? null,
-          responsableId: data.responsableId,
-          cantidad: data.cantidad,
-          prioridad: data.prioridad,
-        },
-        include: {
-          producto: true,
-          estado: true,
-          pedido: true,
-        },
-      });
-
-      await tx.historialEstadoOrdenProduccion.create({
-        data: {
-          ordenId: orden.idOrden,
-          estadoId: data.estadoId,
-          usuarioId: data.responsableId,
-        },
-      });
-
-      return orden;
+    return await db.ordenProduccion.create({
+      data: {
+        empresaId: data.empresaId,
+        productoId: data.productoId,
+        estadoId: data.estadoId,
+        pedidoId: data.pedidoId ?? null,
+        responsableId: data.responsableId,
+        cantidad: data.cantidad,
+        prioridad: data.prioridad,
+      },
+      include: {
+        producto: true,
+        estado: true,
+        pedido: true,
+      },
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

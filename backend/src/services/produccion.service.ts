@@ -1,5 +1,6 @@
 import { AuthUser } from '../types/express';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
+import { ESTADOS_PEDIDOS } from '../constants/estados-pedidos';
 
 import * as produccionRepository from '../repositories/produccion.repository';
 import * as usuarioRepository from '../repositories/usuario.repository';
@@ -8,9 +9,9 @@ import * as pedidoRepository from '../repositories/pedido.repository';
 import * as transactionRepository from '../repositories/transaction.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
+import { ConflictError } from '../errors/conflict.error';
 
 import { CrearOrdenProduccionDTO, OrdenProduccionIdDTO } from '../validators/produccion.validator';
-import { ConflictError } from '../errors/conflict.error';
 import {
   mapearPedidoAsociable,
   mapearOrdenTablero,
@@ -56,6 +57,7 @@ export async function crearOrdenProduccion(user: AuthUser, data: CrearOrdenProdu
 
   let pedidoId: number | undefined;
   let cantidad = data.cantidadProducir;
+  let esPrimeraOrdenDelPedido = false;
 
   if (data.pedidoId !== undefined) {
     const pedido = await pedidoRepository.findByIdAndEmpresaOrThrow(
@@ -91,18 +93,45 @@ export async function crearOrdenProduccion(user: AuthUser, data: CrearOrdenProdu
 
     pedidoId = pedido.idPedido;
     cantidad = detalle.cantidadPendiente;
+
+    if (pedido.estado.nombre === ESTADOS_PEDIDOS.PENDIENTE) {
+      esPrimeraOrdenDelPedido = true;
+    }
   }
 
   const estadoPendiente = await produccionRepository.findEstadoPendiente();
 
-  return produccionRepository.createOrdenProduccion({
-    empresaId: alumno.empresa.id,
-    productoId: producto.id,
-    estadoId: estadoPendiente.idEstado,
-    pedidoId,
-    responsableId: usuario.id,
-    cantidad,
-    prioridad: data.prioridad,
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const ahora = new Date();
+
+    const orden = await produccionRepository.createOrdenProduccion(
+      {
+        empresaId: alumno.empresa.id,
+        productoId: producto.id,
+        estadoId: estadoPendiente.idEstado,
+        pedidoId,
+        responsableId: usuario.id,
+        cantidad,
+        prioridad: data.prioridad,
+      },
+      tx
+    );
+
+    await produccionRepository.crearHistorialEstado(
+      orden.idOrden,
+      estadoPendiente.idEstado,
+      usuario.id,
+      ahora,
+      tx
+    );
+
+    if (pedidoId !== undefined && esPrimeraOrdenDelPedido) {
+      const estadoEnProduccion = await pedidoRepository.findEstadoEnProduccion(tx);
+
+      await pedidoRepository.updateEstadoPedido(pedidoId, estadoEnProduccion.idEstado, tx);
+    }
+
+    return orden;
   });
 }
 
@@ -220,11 +249,11 @@ export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduc
 
     // Registra el inicio del estado Finalizada.
     await produccionRepository.crearHistorialEstado(
-      tx,
       orden.idOrden,
       estadoFinalizada.idEstado,
       usuario.id,
-      ahora
+      ahora,
+      tx
     );
 
     /*

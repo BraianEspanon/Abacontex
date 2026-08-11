@@ -50,10 +50,8 @@ export function mapearOrdenTablero(orden: {
   };
 }
 
-function calcularDuracionEstado(fechaInicio: Date, fechaFin: Date | null) {
-  const fin = fechaFin ?? new Date();
-
-  return fin.getTime() - fechaInicio.getTime();
+function calcularDuracionEstado(fechaInicio: Date, fechaFin: Date) {
+  return fechaFin.getTime() - fechaInicio.getTime();
 }
 
 export function mapearDetalleOrden(orden: {
@@ -71,11 +69,12 @@ export function mapearDetalleOrden(orden: {
     fechaFin: Date | null;
   }[];
 }) {
+  const ahora = new Date();
   let tiempoPendiente = 0;
   let tiempoEnProduccion = 0;
 
   for (const historial of orden.historialEstados) {
-    const duracion = calcularDuracionEstado(historial.fechaInicio, historial.fechaFin);
+    const duracion = calcularDuracionEstado(historial.fechaInicio, historial.fechaFin ?? ahora);
 
     if (historial.estado.nombre === ESTADOS_PRODUCCION.PENDIENTE) {
       tiempoPendiente += duracion;
@@ -90,7 +89,7 @@ export function mapearDetalleOrden(orden: {
     (historial) => historial.estado.nombre === ESTADOS_PRODUCCION.FINALIZADA
   );
 
-  const fechaFinTotal = historialFinalizada?.fechaInicio ?? new Date();
+  const fechaFinTotal = historialFinalizada?.fechaInicio ?? ahora;
 
   const tiempoTotal = fechaFinTotal.getTime() - orden.createdAt.getTime();
 
@@ -132,7 +131,7 @@ export function mapearDetalleOrden(orden: {
       estado: historial.estado.nombre,
       fechaInicio: historial.fechaInicio,
       fechaFin: historial.fechaFin,
-      duracion: calcularDuracionEstado(historial.fechaInicio, historial.fechaFin),
+      duracion: calcularDuracionEstado(historial.fechaInicio, historial.fechaFin ?? ahora),
     })),
   };
 }

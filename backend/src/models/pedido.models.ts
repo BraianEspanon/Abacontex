@@ -18,6 +18,7 @@ export interface DetallePedidoCalculado {
 }
 
 export interface FaltanteStock {
+  idProducto: number;
   producto: string;
   solicitado: number;
   cubierto: number;
