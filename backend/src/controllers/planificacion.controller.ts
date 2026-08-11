@@ -12,3 +12,9 @@ export async function crearPlanificacion(req: Request, res: Response) {
 
   res.status(201).json(planificacion);
 }
+
+export async function obtenerPlanificacionAnual(req: Request, res: Response) {
+  const resultado = await planificacionService.obtenerPlanificacionAnual(req.user!);
+
+  res.status(200).json(resultado);
+}

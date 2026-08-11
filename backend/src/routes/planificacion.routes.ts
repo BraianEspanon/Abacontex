@@ -7,9 +7,14 @@ import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
 import { crearPlanificacionSchema } from '../validators/planificacion.validator';
-import { crearPlanificacion } from '../controllers/planificacion.controller';
+import {
+  obtenerPlanificacionAnual,
+  crearPlanificacion,
+} from '../controllers/planificacion.controller';
 
 const router = Router();
+
+router.get('/', authenticate, requireRole(ROLES.ALUMNO), obtenerPlanificacionAnual);
 
 router.post(
   '/',

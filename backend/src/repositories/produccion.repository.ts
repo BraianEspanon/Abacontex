@@ -135,8 +135,10 @@ export async function findEstadoEnProduccion() {
   });
 }
 
-export async function findEstadoFinalizada() {
-  return prisma.estadoOrdenProduccion.findUniqueOrThrow({
+export async function findEstadoFinalizada(tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.estadoOrdenProduccion.findUniqueOrThrow({
     where: {
       nombre: ESTADOS_PRODUCCION.FINALIZADA,
     },

@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { EstadoPlanificacion } from '../constants/estados-planificacion';
 
 import { getDbClient } from '../lib/prisma';
 
@@ -26,13 +27,47 @@ export async function findByEmpresaAndCiclo(
   });
 }
 
+export async function findProduccionFinalizadaPorMes(
+  empresaId: number,
+  fechaInicio: Date,
+  fechaFin: Date,
+  estadoFinalizadaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.historialEstadoOrdenProduccion.findMany({
+    where: {
+      estadoId: estadoFinalizadaId,
+      fechaInicio: {
+        gte: fechaInicio,
+        lt: fechaFin,
+      },
+      orden: {
+        empresaId,
+      },
+    },
+    select: {
+      fechaInicio: true,
+      orden: {
+        select: {
+          cantidad: true,
+        },
+      },
+    },
+    orderBy: {
+      fechaInicio: 'asc',
+    },
+  });
+}
+
 export async function create(
   data: {
     empresaId: number;
     cicloLectivoId: number;
     mesInicio: number;
     mesFin: number;
-    estado: 'PENDIENTE' | 'CARGADA';
+    estado: EstadoPlanificacion;
   },
   tx: Prisma.TransactionClient
 ) {
