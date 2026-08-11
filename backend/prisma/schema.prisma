@@ -12,7 +12,8 @@ model CicloLectivo {
   año   Int
   activo Boolean @default(true)
 
-  empresas Empresa[]
+  empresas               Empresa[]
+  planificacionesAnuales PlanificacionAnual[]
 
   @@map("ciclo_lectivo")
 }
@@ -30,7 +31,7 @@ model Usuario {
 
   rolSistema RolesSistema @relation(fields: [rolSistemaId], references: [idRol])
 
-  fotoPerfilUrl String?
+  fotoPerfilUrl      String?
   fotoPerfilPublicId String?
 
   fechaAlta DateTime @default(now())
@@ -38,9 +39,9 @@ model Usuario {
   profesorCursos         ProfesorCursos[]
   movimientosFinancieros MovimientoFinanciero[]
   invitacionesCreadas    InvitacionEmpresa[]
-  pedidos Pedido[]
-  ordenesAsignadas OrdenProduccion[]
-  historialOrdenes HistorialEstadoOrdenProduccion[]
+  pedidos                Pedido[]
+  ordenesAsignadas       OrdenProduccion[]
+  historialOrdenes       HistorialEstadoOrdenProduccion[]
 
   alumno    Alumno?
   auditLogs AuditLog[]
@@ -74,13 +75,13 @@ model Curso {
   idCurso Int @id @default(autoincrement())
 
   nombreCurso String @unique
+  año        Int
 
-  alumnos Alumno[]
-
+  alumnos    Alumno[]
   profesores ProfesorCursos[]
+  empresas   Empresa[]
 
-  empresas Empresa[]
-
+  @@index([año])
   @@map("cursos")
 }
 
@@ -113,8 +114,8 @@ model Empresa {
 
   nombre String @unique
 
-  actividad String
-  logoUrl   String?
+  actividad    String
+  logoUrl      String?
   logoPublicId String?
 
   puntos Int @default(0)
@@ -133,8 +134,9 @@ model Empresa {
   auditLogs              AuditLog[]
   productos              Producto[]
   invitaciones           InvitacionEmpresa[]
-  pedidos Pedido[]
-  ordenesProduccion OrdenProduccion[]
+  pedidos                Pedido[]
+  ordenesProduccion      OrdenProduccion[]
+  planificacionesAnuales PlanificacionAnual[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
@@ -276,11 +278,12 @@ model Producto {
 
   stock Int @default(0)
 
-  precioUnitario Decimal @db.Decimal(14, 2)
-  margenGanancia Decimal @default(0) @db.Decimal(5, 2)
-  precioVenta Decimal @default(0) @db.Decimal(14, 2)
-  
-  fotoUrl String?
+  precioUnitario        Decimal @db.Decimal(14, 2)
+  margenGanancia        Decimal @default(0) @db.Decimal(5, 2)
+  precioVenta           Decimal @default(0) @db.Decimal(14, 2)
+  precioConsumidorFinal Decimal @default(0) @db.Decimal(14, 2)
+
+  fotoUrl      String?
   fotoPublicId String?
 
   activo Boolean @default(true)
@@ -288,7 +291,7 @@ model Producto {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  detallesPedido DetallePedido[]
+  detallesPedido    DetallePedido[]
   ordenesProduccion OrdenProduccion[]
 
   @@unique([empresaId, nombre], where: { activo: true })
@@ -304,7 +307,6 @@ enum EstadoInvitacion {
   EXPIRADA
   FINALIZADA
 }
-
 
 model InvitacionEmpresa {
   id Int @id @default(autoincrement())
@@ -355,8 +357,8 @@ model Pedido {
   estado   EstadoPedido @relation(fields: [estadoId], references: [idEstado])
 
   clienteNombre String
-  
-  clienteMail   String
+
+  clienteMail String
 
   fecha      DateTime @default(now())
   montoTotal Decimal  @db.Decimal(14, 2)
@@ -364,14 +366,13 @@ model Pedido {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  detalles DetallePedido[]
+  detalles          DetallePedido[]
   ordenesProduccion OrdenProduccion[]
 
   @@index([empresaId])
   @@index([estadoId])
   @@index([usuarioId])
   @@index([fecha])
-  
   @@index([empresaId, estadoId])
   @@map("pedidos")
 }
@@ -385,9 +386,9 @@ model DetallePedido {
   productoId Int
   producto   Producto @relation(fields: [productoId], references: [id])
 
-  cantidad       Int
+  cantidad Int
 
-  cantidadConStock Int
+  cantidadConStock  Int
   cantidadPendiente Int
 
   precioUnitario Decimal @db.Decimal(14, 2)
@@ -400,7 +401,6 @@ model DetallePedido {
   @@map("detalles_pedido")
 }
 
-
 //Definimos la constante (Enum) para la prioridad de ordne de produccion
 enum PrioridadOrden {
   ALTA
@@ -408,17 +408,15 @@ enum PrioridadOrden {
   BAJA
 }
 
-
 model EstadoOrdenProduccion {
   idEstado Int    @id @default(autoincrement())
-  nombre   String @unique 
+  nombre   String @unique
 
-  ordenes OrdenProduccion[]
+  ordenes   OrdenProduccion[]
   historial HistorialEstadoOrdenProduccion[]
 
   @@map("estados_orden_produccion")
 }
-
 
 model OrdenProduccion {
   idOrden Int @id @default(autoincrement())
@@ -447,6 +445,7 @@ model OrdenProduccion {
 
   historialEstados HistorialEstadoOrdenProduccion[]
 
+  @@unique([pedidoId, productoId], map: "unique_pedido_producto_orden")
   @@index([empresaId])
   @@index([estadoId])
   @@index([responsableId])
@@ -455,7 +454,7 @@ model OrdenProduccion {
   @@map("ordenes_produccion")
 }
 
-model HistorialEstadoOrdenProduccion { 
+model HistorialEstadoOrdenProduccion {
   idHistorial Int @id @default(autoincrement())
 
   ordenId Int
@@ -468,8 +467,8 @@ model HistorialEstadoOrdenProduccion {
   usuarioId String
   usuario   Usuario @relation(fields: [usuarioId], references: [id])
 
-  fechaInicio   DateTime  @default(now()) @db.Timestamptz(3)
-  fechaFin      DateTime? @db.Timestamptz(3) // Nulo si es el estado actual en el que se encuentra
+  fechaInicio DateTime  @default(now()) @db.Timestamptz(3)
+  fechaFin    DateTime? @db.Timestamptz(3) // Nulo si es el estado actual en el que se encuentra
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
 
@@ -477,4 +476,52 @@ model HistorialEstadoOrdenProduccion {
   @@index([estadoId])
   @@index([usuarioId])
   @@map("historial_estado_orden_produccion")
+}
+
+enum EstadoPlanificacionAnual {
+  PENDIENTE
+  CARGADA
+}
+
+model PlanificacionAnual {
+  idPlanificacion Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  cicloLectivoId Int
+  cicloLectivo   CicloLectivo @relation(fields: [cicloLectivoId], references: [id])
+
+  mesInicio Int
+  mesFin    Int
+
+  estado EstadoPlanificacionAnual @default(PENDIENTE)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  detalles DetallePlanificacionAnual[]
+
+  @@unique([empresaId, cicloLectivoId])
+  @@index([empresaId])
+  @@index([cicloLectivoId])
+  @@index([estado])
+  @@map("planificaciones_anuales")
+}
+
+model DetallePlanificacionAnual {
+  idDetalle Int @id @default(autoincrement())
+
+  planificacionId Int
+  planificacion   PlanificacionAnual @relation(fields: [planificacionId], references: [idPlanificacion], onDelete: Cascade)
+
+  mes               Int
+  unidadesEstimadas Int?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([planificacionId, mes])
+  @@index([planificacionId])
+  @@map("detalles_planificacion_anual")
 }
