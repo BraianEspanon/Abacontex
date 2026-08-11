@@ -2,14 +2,22 @@ import { PrismaClient } from '@prisma/client';
 
 import type { Seed } from '../types';
 
+const metodosPago = ['Efectivo', 'Transferencia', 'Crédito', 'Pagaré', 'Cheque'];
+
 export const metodosPagoSeed: Seed = {
   name: 'Métodos de pago',
 
   async run(prisma: PrismaClient) {
-    await prisma.metodoPago.createMany({
-      data: [{ nombre: 'EFECTIVO' }, { nombre: 'TRANSFERENCIA' }, { nombre: 'TARJETA' }],
+    await Promise.all(
+      metodosPago.map((nombre) =>
+        prisma.metodoPago.upsert({
+          where: { nombre },
+          update: {},
+          create: { nombre },
+        })
+      )
+    );
 
-      skipDuplicates: true,
-    });
+    console.log('Métodos de pago creados');
   },
 };
