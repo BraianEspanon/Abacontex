@@ -5,6 +5,9 @@ import { estadosMovimientoSeed } from './estados-movimiento.seed';
 import { metodosPagoSeed } from './metodos-pago.seed';
 import { categoriasMovimientoSeed } from './categorias-movimiento.seed';
 import { cursosSeed } from './cursos.seed';
+import { estadosPedidoSeed } from './estado-pedido.seed';
+import { estadosOrdenProduccionSeed } from './estadosOrdenProduccionSeed';
+
 import type { Seed } from '../types';
 
 export const systemSeeds: Seed[] = [
@@ -14,5 +17,7 @@ export const systemSeeds: Seed[] = [
   estadosMovimientoSeed,
   metodosPagoSeed,
   categoriasMovimientoSeed,
+  estadosPedidoSeed,
   cursosSeed,
+  estadosOrdenProduccionSeed,
 ];

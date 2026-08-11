@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios';
-import { ChevronRight, House, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { ChevronRight, Save } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -26,8 +26,6 @@ const editarEmpresaSchema = z.object({
     .trim()
     .min(1, 'La actividad es obligatoria')
     .max(255, 'La actividad no puede superar los 255 caracteres'),
-
-  logoUrl: z.string().trim().url('Ingresá una URL válida').or(z.literal('')),
 });
 
 interface RespuestaErrorApi {
@@ -43,10 +41,13 @@ export default function EditarEmpresaPage() {
 
   const { mutate: actualizarEmpresa, isPending, isSuccess } = useActualizarEmpresa();
 
+  const [logo, setLogo] = useState<File | null>(null);
+  const [eliminarLogo, setEliminarLogo] = useState(false);
+  const [errorLogo, setErrorLogo] = useState('');
+
   const {
     register,
     handleSubmit,
-    reset,
     control,
     setError,
     clearErrors,
@@ -56,42 +57,42 @@ export default function EditarEmpresaPage() {
     defaultValues: {
       nombre: '',
       actividad: '',
-      logoUrl: '',
     },
+    values: empresa
+      ? {
+          nombre: empresa.nombre,
+          actividad: empresa.actividad,
+        }
+      : {
+          nombre: '',
+          actividad: '',
+        },
   });
 
   const valoresFormulario = useWatch({
     control,
   });
 
-  useEffect(() => {
-    if (!empresa) {
-      return;
-    }
-
-    reset({
-      nombre: empresa.nombre,
-      actividad: empresa.actividad,
-      logoUrl: empresa.logoUrl ?? '',
-    });
-  }, [empresa, reset]);
-
   const onSubmit = (datos: EditarEmpresaFormData) => {
     clearErrors();
+    setErrorLogo('');
 
     actualizarEmpresa(
       {
         nombre: datos.nombre.trim(),
         actividad: datos.actividad.trim(),
-        logoUrl: datos.logoUrl.trim() || null,
+        logo: logo ?? undefined,
+        eliminarLogo,
       },
       {
         onSuccess: (empresaActualizada) => {
-          reset({
-            nombre: empresaActualizada.nombre,
-            actividad: empresaActualizada.actividad,
-            logoUrl: empresaActualizada.logoUrl ?? '',
-          });
+          if (!empresaActualizada) {
+            return;
+          }
+
+          setLogo(null);
+          setEliminarLogo(false);
+          setErrorLogo('');
         },
 
         onError: (error) => {
@@ -105,6 +106,15 @@ export default function EditarEmpresaPage() {
                 type: 'server',
                 message:
                   mensajeBackend ?? 'Ya existe una empresa con ese nombre. Ingresá uno diferente.',
+              });
+
+              return;
+            }
+
+            if (status === 400) {
+              setError('root', {
+                type: 'server',
+                message: mensajeBackend ?? 'Los datos enviados no son válidos.',
               });
 
               return;
@@ -127,27 +137,43 @@ export default function EditarEmpresaPage() {
     );
   };
 
+  const handleLogoChange = (archivo: File | null) => {
+    setLogo(archivo);
+    setEliminarLogo(false);
+    setErrorLogo('');
+  };
+
+  const handleEliminarLogo = () => {
+    setLogo(null);
+    setEliminarLogo(true);
+    setErrorLogo('');
+  };
+
   if (isLoading) {
-    return <div className="p-6">Cargando empresa...</div>;
+    return <div>Cargando empresa...</div>;
   }
 
   if (isError || !empresa) {
-    return <div className="p-6">Error al cargar la empresa.</div>;
+    return <div>Error al cargar la empresa.</div>;
   }
 
   const nombreActual = valoresFormulario.nombre ?? empresa.nombre;
 
   const actividadActual = valoresFormulario.actividad ?? empresa.actividad;
 
-  const logoActual = valoresFormulario.logoUrl || empresa.logoUrl;
+  /*
+   * Si el usuario eligió eliminar el logo, la vista previa debe
+   * mostrar el estado sin logo.
+   *
+   * Si eligió una imagen nueva, se la pasamos al formulario para
+   * mostrar su preview.
+   */
+  const logoActual = eliminarLogo ? null : empresa.logoUrl;
 
   return (
-    <div className="p-6">
-      <nav className="mb-5 flex items-center gap-2 text-sm text-abacontex-gray-text">
-        <House size={16} />
-
-        <ChevronRight size={14} />
-
+    <div className="mx-auto w-full max-w-7xl px-4 py-6">
+      {/* Breadcrumb */}
+      <nav className="mb-6 flex items-center gap-2 text-sm text-abacontex-gray-text">
         <Link to="/alumno/empresa" className="transition hover:text-abacontex-primary">
           Mi empresa
         </Link>
@@ -178,7 +204,11 @@ export default function EditarEmpresaPage() {
             errors={errors}
             nombre={nombreActual}
             actividad={actividadActual}
-            logoUrl={logoActual}
+            logoActual={logoActual}
+            logo={logo}
+            errorLogo={errorLogo}
+            onLogoChange={handleLogoChange}
+            onEliminarLogo={handleEliminarLogo}
             onSubmit={handleSubmit(onSubmit)}
           />
 
@@ -207,7 +237,7 @@ export default function EditarEmpresaPage() {
         <button
           type="submit"
           form="editar-empresa-form"
-          disabled={isPending || !isDirty}
+          disabled={isPending || (!isDirty && !logo && !eliminarLogo)}
           className="flex items-center gap-2 rounded-lg bg-abacontex-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Save size={16} />

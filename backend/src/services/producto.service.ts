@@ -33,6 +33,10 @@ async function obtenerEmpresaUsuario(user: AuthUser) {
   return usuario.alumno.empresa;
 }
 
+function calcularPrecioVenta(precioUnitario: number, margenGanancia: number) {
+  return precioUnitario * (1 + margenGanancia / 100);
+}
+
 export async function crearProducto(
   user: AuthUser,
   data: CrearProductoDTO,
@@ -58,7 +62,9 @@ export async function crearProducto(
     fotoPublicId = uploaded.publicId;
   }
 
-  return productoRepository.create(empresa.id, data, fotoUrl, fotoPublicId);
+  const precioVenta = calcularPrecioVenta(data.precioUnitario, data.margenGanancia);
+
+  return productoRepository.create(empresa.id, data, fotoUrl, fotoPublicId, precioVenta);
 }
 
 export async function actualizarProducto(
@@ -107,11 +113,15 @@ export async function actualizarProducto(
       fotoPublicId = null;
     }
 
-    const productoActualizado = await productoRepository.update(idProducto, {
-      ...data,
+    const precioVenta = calcularPrecioVenta(data.precioUnitario, data.margenGanancia);
+
+    const productoActualizado = await productoRepository.update(
+      idProducto,
+      data,
       fotoUrl,
       fotoPublicId,
-    });
+      precioVenta
+    );
 
     // Si reemplazamos, recién ahora borrar la vieja
     if (foto && producto.fotoPublicId) {
@@ -166,6 +176,8 @@ export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductos
       descripcion: producto.descripcion,
       fotoUrl: producto.fotoUrl,
       precioUnitario: Number(producto.precioUnitario),
+      margenGanancia: Number(producto.margenGanancia),
+      precioVenta: Number(producto.precioVenta),
       stock: producto.stock,
     })),
 
