@@ -175,6 +175,37 @@ export async function findEstadoCompletado() {
   });
 }
 
+export async function findPedidosListosParaVenta(empresaId: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.pedido.findMany({
+    where: {
+      empresaId,
+      estado: {
+        nombre: ESTADOS_PEDIDOS.LISTO_PARA_ENTREGAR,
+      },
+      venta: null,
+    },
+    include: {
+      detalles: {
+        include: {
+          producto: {
+            select: {
+              id: true,
+              nombre: true,
+              precioVenta: true,
+              precioConsumidorFinal: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      fecha: 'asc',
+    },
+  });
+}
+
 export async function tieneFaltantes(pedidoId: number, tx?: Prisma.TransactionClient) {
   const db = getDbClient(tx);
 
