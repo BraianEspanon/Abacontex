@@ -213,6 +213,8 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
         aplicaIva: data.aplicaIva,
         importeIva: calculo.importeIva,
 
+        cantidadCuotas: data.cantidadCuotas,
+
         porcentajeInteres: data.porcentajeInteres,
         importeInteres: calculo.importeInteres,
 
