@@ -1,515 +1,891 @@
-# Guía de Desarrollo Backend (Abacontex)
+# Guía de Desarrollo Backend — Abacontex (versión ampliada)
 
-Este documento define las convenciones arquitectónicas del backend de Abacontex.
+> Guía práctica para desarrollar nuevas funcionalidades del backend de Abacontex manteniendo las convenciones que actualmente utiliza el proyecto.
 
-El objetivo es que cualquier desarrollador (humano o IA) implemente nuevas funcionalidades siguiendo exactamente el mismo estilo del proyecto.
+## 1. Propósito
 
----
+Este documento amplía `GuiaDesarrolloBackend.md` con las convenciones consolidadas durante la implementación de Pedidos, Producción y Planificación.
 
-# Stack
+Prioridades:
 
-- Node.js
-- Express
-- TypeScript
-- Prisma ORM
-- PostgreSQL
-- Keycloak
-- Zod v4
-- Nodemailer
+1. Legibilidad.
+2. Separación de responsabilidades.
+3. Reglas de negocio explícitas.
+4. Mantenibilidad.
+5. Consistencia con el código existente.
+6. Errores expresivos.
 
-Arquitectura en capas.
+No buscar la solución más corta ni la más sofisticada.
 
-Nunca acceder a Prisma directamente desde los services.
+## 2. Stack y arquitectura
 
----
+El backend utiliza Node.js, Express, TypeScript, Prisma ORM, PostgreSQL, Keycloak y Zod.
 
-# Arquitectura
+La arquitectura es un backend monolítico organizado por capas:
 
-Siempre respetar la siguiente separación de responsabilidades.
-
-```
+```text
 Routes
-↓
+   ↓
 Controller
-↓
+   ↓
 Service
-↓
+   ↓
 Repository
-↓
+   ↓
 Prisma
+   ↓
+PostgreSQL
 ```
 
-Cada capa tiene una única responsabilidad.
+Los services nunca acceden directamente a Prisma. Los repositories son la única capa que interactúa con Prisma.
 
----
+## 3. Estructura de archivos
 
-# Routes
+Los archivos del backend utilizan nombres en minúsculas con kebab-case y sufijo de responsabilidad:
 
-Las rutas únicamente configuran el pipeline de ejecución.
+```text
+auth.controller.ts
+pedido.service.ts
+producto.repository.ts
+pedido.validator.ts
+auth.middleware.ts
+```
 
-No contienen lógica de negocio.
+Los directorios utilizan kebab-case.
 
-No realizan validaciones manuales.
+Estructura habitual:
 
-No acceden a repositories ni services.
+```text
+config/
+controllers/
+services/
+repositories/
+routes/
+middlewares/
+validators/
+integrations/
+constants/
+types/
+utils/
+database/
+```
 
-Siempre siguen el siguiente orden:
+Una funcionalidad puede pertenecer al mismo módulo funcional y, aun así, tener archivos propios. Por ejemplo, Planificación pertenece funcionalmente a Producción, pero puede tener:
+
+```text
+planificacion.controller.ts
+planificacion.service.ts
+planificacion.repository.ts
+planificacion.routes.ts
+planificacion.validator.ts
+```
+
+Cuando un mapper pertenece claramente a un subdominio, puede separarse:
+
+```text
+dto/
+  orden-produccion/
+    ord.mapper.ts
+```
+
+## 4. Routes
+
+Las routes configuran el pipeline HTTP.
+
+No contienen lógica de negocio, no consultan repositories y no realizan validaciones manuales.
+
+Orden habitual:
 
 ```ts
 router.post(
-  "/",
-  authenticate,
-  requireRole(ROLES.ALUMNO),
+  '/',
+  authMiddleware,
+  requireRole(...),
   validate(schema),
   controller,
 );
 ```
 
-Orden de los middlewares:
+Si un middleware no corresponde, se omite.
 
-1. authenticate
-2. requireRole
-3. validate (si corresponde)
-4. controller
+Los endpoints REST utilizan sustantivos para recursos y verbos únicamente cuando representan acciones explícitas del dominio.
 
-Las rutas deben agruparse por recurso.
-
-Ejemplo:
+Ejemplos:
 
 ```text
-Empresa
+GET   /produccion
+GET   /produccion/pedidos-asociables
+POST  /produccion/ordenes
+PATCH /produccion/ordenes/:id/iniciar
+PATCH /produccion/ordenes/:id/finalizar
 
-GET    /empresas/me
-PATCH  /empresas/me
-
-Invitaciones
-
-POST   /empresas/me/invitaciones
-GET    /empresas/me/invitaciones
-POST   /empresas/me/invitaciones/:id/aceptar
-POST   /empresas/me/invitaciones/:id/rechazar
-GET    /empresas/me/invitaciones/enviadas
+GET   /produccion/planificacion
+POST  /produccion/planificacion
+PATCH /produccion/planificacion/:id
 ```
 
----
+## 5. Controllers
 
-# Controller
+El controller debe ser delgado.
 
-Los controllers únicamente deben:
+Responsabilidades:
 
-- recibir `req` y `res`
-- invocar al service
-- devolver la respuesta
-
-Nunca deben contener lógica de negocio.
-
-Ejemplo:
-
-```ts
-export async function getEmpresaActual(req: Request, res: Response) {
-  const empresa = await empresaService.getEmpresaActual(req.user!);
-
-  res.json(empresa);
-}
-```
-
----
-
-# Service
-
-Toda la lógica de negocio vive en los services.
-
-Los services son responsables de:
-
-- validar reglas de negocio
-- verificar permisos
-- combinar múltiples repositories
-- llamar integraciones externas
-- construir DTOs cuando corresponda
-- coordinar transacciones
-
-Los services **NO** acceden a Prisma.
-
-Los services solamente utilizan repositories e integraciones.
-
----
-
-# Repository
-
-Los repositories son la única capa autorizada a acceder a Prisma.
-
-Un repository:
-
-- consulta datos
-- inserta datos
-- actualiza datos
-- elimina datos
+- recibir `req` y `res`;
+- parsear el request con Zod cuando corresponda;
+- llamar al service;
+- devolver el resultado y status HTTP.
 
 No contiene reglas de negocio.
 
-No valida permisos.
-
-No conoce al usuario autenticado.
-
----
-
-# Validaciones
-
-Las validaciones se dividen en cuatro niveles.
-
-## 1. Zod
-
-Se utiliza exclusivamente para validar:
-
-- tipos
-- formato
-- longitud
-- obligatoriedad
-- emails
-- enums
-- números
-
-Nunca reglas de negocio.
-
-Ejemplos:
-
-- email válido
-- máximo 10 elementos
-- array sin correos duplicados
-
----
-
-## 2. Service
-
-Toda regla de negocio pertenece al service.
-
-Ejemplos:
-
-- empresa activa
-- usuario CEO
-- invitación vigente
-- usuario no registrado
-- curso correcto
-- usuario sin empresa
-- usuario autenticado
-
----
-
-## 3. Base de datos
-
-La base de datos garantiza únicamente integridad.
-
-Ejemplos:
-
-- UNIQUE
-- FOREIGN KEY
-- índices
-- restricciones
-
----
-
-## 4. Repository
-
-Los repositories solamente traducen errores de Prisma cuando sea necesario.
-
-Nunca contienen lógica de negocio.
-
----
-
-# Manejo de errores
-
-Todo error de negocio debe lanzar una subclase de `AppError`.
-
-Nunca lanzar `Error`.
-
-Ejemplos:
+Patrón:
 
 ```ts
-throw new ConflictError(...)
-throw new ForbiddenError(...)
-throw new NotFoundError(...)
-throw new BadRequestError(...)
+export async function actualizarPlanificacionMensual(
+  req: Request,
+  res: Response,
+) {
+  const { body, params } = actualizarPlanificacionMensualSchema.parse({
+    body: req.body,
+    params: req.params,
+  });
+
+  const resultado =
+    await planificacionService.actualizarPlanificacionMensual(
+      req.user!,
+      body,
+      params,
+    );
+
+  res.status(200).json(resultado);
+}
 ```
 
----
+## 6. Validators y Zod
 
-# Prisma
+Zod valida el contrato estructural de entrada:
 
-Nunca exponer errores internos de Prisma al frontend.
+- tipos;
+- strings;
+- números;
+- formatos;
+- obligatoriedad;
+- límites;
+- emails;
+- enums;
+- arrays;
+- params;
+- query;
+- body.
 
-Cuando sea necesario traducirlos:
+No debe validar reglas que dependan del estado de la base de datos.
 
+Ejemplo:
+
+```ts
+export const actualizarPlanificacionMensualSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().positive(),
+  }),
+
+  body: z.object({
+    unidadesEstimadas: z.coerce.number().int().nonnegative(),
+  }),
+});
 ```
+
+Reglas como estas pertenecen al service:
+
+```text
+el detalle pertenece a la empresa
+el pedido todavía tiene faltantes
+la orden está pendiente
+el usuario pertenece a una empresa
+```
+
+## 7. DTOs y mappers
+
+Los DTOs representan contratos de entrada/salida.
+
+Evitar devolver modelos de Prisma directamente cuando la API necesita otra estructura.
+
+Flujo recomendado:
+
+```text
+Prisma model
+    ↓
+Repository
+    ↓
+Service
+    ↓
+Mapper / DTO
+    ↓
+API response
+```
+
+Los mappers adaptan resultados de repositories al formato de la API.
+
+Son especialmente útiles cuando se renombran campos, combinan información o calculan propiedades de presentación.
+
+Los mappers no consultan Prisma ni ejecutan reglas de negocio.
+
+## 8. Services
+
+El service concentra la lógica de negocio.
+
+Responsabilidades:
+
+- validar reglas de negocio;
+- validar pertenencia a empresa;
+- validar permisos específicos del dominio;
+- coordinar repositories;
+- coordinar integraciones;
+- decidir operaciones;
+- coordinar transacciones;
+- preparar datos;
+- mapear resultados cuando corresponda.
+
+Los services no importan ni utilizan Prisma.
+
+Cuando varias funciones necesitan la misma validación, extraer una función privada:
+
+```ts
+async function obtenerUsuario(user: AuthUser) {
+  ...
+}
+```
+
+Preferir guard clauses:
+
+```ts
+if (!usuario.alumno) {
+  throw new ConflictError(...);
+}
+
+if (!usuario.alumno.empresa) {
+  throw new ConflictError(...);
+}
+```
+
+## 9. Repositories
+
+Los repositories encapsulan Prisma.
+
+Responsabilidades:
+
+- consultar;
+- crear;
+- actualizar;
+- eliminar;
+- cargar relaciones;
+- traducir errores de Prisma cuando corresponda.
+
+No deben:
+
+- conocer al usuario autenticado;
+- validar permisos;
+- decidir reglas de negocio;
+- decidir transiciones;
+- ejecutar casos de uso completos.
+
+Preferir muchos métodos pequeños:
+
+```text
+findById()
+findByEmpresa()
+findByPedidoAndProducto()
+findEstadoPendiente()
+create()
+update()
+```
+
+## 10. getDbClient y transacciones
+
+Los repositories utilizan:
+
+```ts
+export function getDbClient(tx?: Prisma.TransactionClient) {
+  return tx ?? prisma;
+}
+```
+
+Los métodos que pueden reutilizarse dentro de una transacción aceptan:
+
+```ts
+tx?: Prisma.TransactionClient
+```
+
+y comienzan con:
+
+```ts
+const db = getDbClient(tx);
+```
+
+Luego usan `db`, no `prisma` directamente.
+
+Esto permite reutilizar el mismo repository:
+
+```text
+Service → Repository → prisma
+```
+
+o:
+
+```text
+Service
+   ↓
+transactionRepository.ejecutarTransaccion(...)
+   ↓
+Repository → tx
+```
+
+No es obligatorio agregar `tx` a métodos que nunca participan en transacciones.
+
+## 11. Transaction repository
+
+Las transacciones se centralizan mediante un método propio:
+
+```ts
+return transactionRepository.ejecutarTransaccion(async (tx) => {
+  ...
+});
+```
+
+El service conserva dentro del callback las decisiones de negocio:
+
+```ts
+return transactionRepository.ejecutarTransaccion(async (tx) => {
+  await repository.operacionA(tx);
+  await repository.operacionB(tx);
+
+  return resultado;
+});
+```
+
+La transacción garantiza atomicidad; no debe esconder la lógica de negocio en un repository.
+
+## 12. Cuándo usar transacciones
+
+Usar una transacción cuando varias operaciones deben ser atómicas.
+
+Ejemplo de finalizar una orden:
+
+```text
+1. cerrar historial anterior
+2. cambiar estado de la orden
+3. crear historial nuevo
+4. cubrir faltante del pedido
+5. comprobar faltantes restantes
+6. cambiar estado del pedido si corresponde
+```
+
+Si una operación aislada actualiza un único registro y no existe otra modificación que deba ser atómica con ella, no hace falta una transacción.
+
+## 13. Reglas de negocio vs persistencia
+
+El service decide:
+
+```text
+¿Puede iniciarse?
+¿Puede finalizarse?
+¿Existe faltante?
+¿Ya existe una orden?
+¿Debe cambiar el pedido?
+¿Debe incrementarse stock?
+```
+
+El repository ejecuta:
+
+```text
+buscar
+crear
+actualizar
+eliminar
+```
+
+Ejemplo:
+
+```ts
+if (orden.estado.nombre !== ESTADOS_PRODUCCION.PENDIENTE) {
+  throw new BadRequestError(...);
+}
+
+return produccionRepository.iniciarOrdenProduccion(...);
+```
+
+El repository no debe decidir si una orden pendiente puede iniciarse.
+
+## 14. Estados y constantes
+
+Los estados reutilizados deben centralizarse.
+
+Ejemplo:
+
+```ts
+export const ESTADOS_PRODUCCION = {
+  PENDIENTE: 'Pendientes',
+  EN_PRODUCCION: 'En Producción',
+  FINALIZADA: 'Finalizadas',
+} as const;
+
+export type EstadoProduccion =
+  (typeof ESTADOS_PRODUCCION)[keyof typeof ESTADOS_PRODUCCION];
+```
+
+Para planificación:
+
+```ts
+export const ESTADOS_PLANIFICACION = {
+  PENDIENTE: 'PENDIENTE',
+  CARGADA: 'CARGADA',
+} as const;
+
+export type EstadoPlanificacion =
+  (typeof ESTADOS_PLANIFICACION)[keyof typeof ESTADOS_PLANIFICACION];
+```
+
+No repetir strings de estado por todo el proyecto.
+
+Importante:
+
+```ts
+typeof ESTADOS_PLANIFICACION
+```
+
+representa el objeto completo.
+
+Para un valor individual utilizar:
+
+```ts
+EstadoPlanificacion
+```
+
+## 15. Estados calculados
+
+No todo estado mostrado por la interfaz debe persistirse.
+
+Si puede derivarse inequívocamente, puede calcularse en backend.
+
+Ejemplo de planificación:
+
+```text
+mes < mes actual  → COMPLETADO
+mes = mes actual  → EN_CURSO
+mes > mes actual  → SIN_INICIAR
+```
+
+En cambio, un estado general que representa información persistente puede almacenarse:
+
+```text
+PENDIENTE
+CARGADA
+```
+
+## 16. Historiales de estados
+
+Cuando una entidad posee historial de estados, cambiar el estado normalmente implica:
+
+```text
+1. cerrar historial anterior
+2. actualizar estado actual
+3. crear historial del nuevo estado
+```
+
+Estas operaciones deben estar en una misma transacción cuando la consistencia del historial sea necesaria.
+
+## 17. Concurrencia
+
+Las reglas contra duplicados deben protegerse en dos niveles cuando sea importante:
+
+1. Validación en service para mensajes claros.
+2. Restricción de base de datos para concurrencia real.
+
+Ejemplo:
+
+```ts
+const ordenExistente =
+  await produccionRepository.findByPedidoAndProducto(
+    pedido.idPedido,
+    data.productoId,
+  );
+
+if (ordenExistente) {
+  throw new ConflictError(...);
+}
+```
+
+Además, una restricción `UNIQUE` debe proteger la base frente a dos requests concurrentes.
+
+El repository puede traducir `P2002`:
+
+```ts
+catch (error) {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2002'
+  ) {
+    throw new ConflictError(...);
+  }
+
+  throw error;
+}
+```
+
+## 18. Errores
+
+Usar las clases centralizadas:
+
+```ts
+BadRequestError
+ConflictError
+ForbiddenError
+NotFoundError
+```
+
+No utilizar:
+
+```ts
+throw new Error(...)
+```
+
+No exponer errores internos de Prisma.
+
+Ejemplos:
+
+```text
 P2002 → ConflictError
 P2025 → NotFoundError
 ```
 
-Los mensajes deben representar reglas de negocio, nunca detalles técnicos.
+Los mensajes deben expresar reglas del dominio:
 
-Incorrecto:
-
+```text
+Ya existe una orden de producción para este producto del pedido.
 ```
+
+y no:
+
+```text
 Unique constraint failed
 ```
 
-Correcto:
+Los `details` deben contener información del dominio, nunca nombres internos de constraints o tablas.
 
-```
-Ya existe una invitación pendiente para ese correo.
-```
+## 19. Autenticación y autorización
 
----
+Keycloak es el sistema de autenticación y autorización.
 
-# details
+El middleware de autenticación valida la identidad y deja disponible el usuario autenticado.
 
-El campo `details` debe contener información del dominio.
+Los services utilizan:
 
-Nunca información interna de Prisma.
-
-Incorrecto:
-
-```json
-{
-  "constraint": "empresa_email_key"
-}
+```ts
+user.keycloakId
 ```
 
-Correcto:
+para obtener el usuario de la aplicación.
 
-```json
-{
-  "email": "juan@test.com"
-}
-```
+El middleware `requireRole()` valida roles del sistema.
 
-o
-
-```json
-{
-  "cursoAlumno": 4,
-  "cursoEmpresa": 5
-}
-```
-
----
-
-# Transacciones
-
-Las transacciones solamente se utilizan cuando varias operaciones deben ejecutarse de manera atómica.
-
-Toda la lógica sigue estando en el service.
-
-El repository únicamente ejecuta la transacción.
-
----
-
-# Repositories
-
-Los repositories deben ser pequeños.
-
-Es preferible tener muchos métodos simples que pocos métodos enormes.
-
-Ejemplos:
+Los services validan permisos específicos del dominio:
 
 ```text
-findById()
-
-findByEmail()
-
-findByEmpresa()
-
-findPendienteByEmail()
-
-create()
-
-update()
-
-aceptar()
-
-rechazar()
+es CEO
+pertenece a la empresa
+empresa activa
+curso correcto
+puede modificar esta entidad
 ```
 
----
+## 20. Seguridad por empresa
 
-# Services privados
+Cuando una operación pertenece a una empresa, no confiar únicamente en el ID enviado por el cliente.
 
-Cuando un service comienza a crecer, extraer funciones privadas.
-
-Ejemplos:
+Preferir métodos como:
 
 ```ts
-validarInvitacionPendienteDelUsuario();
-
-validarCorreosInvitacion();
-
-obtenerAlumnoActual();
+findByIdAndEmpresa(id, empresaId)
 ```
 
-Esto mejora la legibilidad.
+El `empresaId` debe provenir del usuario autenticado, no del body del cliente cuando pueda evitarse.
 
----
+Esto evita acceso entre empresas.
 
-# Integraciones
+## 21. Recursos relacionados
 
-Las integraciones externas viven en:
+Al crear un recurso asociado a otra entidad, validar primero las relaciones necesarias.
 
+Ejemplo de orden asociada a pedido:
+
+```text
+1. usuario/empresa
+2. producto
+3. pedido
+4. detalle del pedido
+5. faltante
+6. orden existente
+7. cantidad
+8. creación
 ```
-integrations/
-```
 
-Ejemplos:
+El backend debe derivar información confiable en lugar de confiar en datos redundantes enviados por el frontend.
 
-```
-email/
+## 22. Flujos entre módulos
 
-keycloak/
-
-storage/
-```
-
-Los services consumen integraciones.
-
-Nunca al revés.
-
----
-
-# Emails
-
-Los templates HTML viven separados.
+Cuando una acción produce efectos en otro módulo, el service debe mostrar explícitamente el flujo.
 
 Ejemplo:
 
-```
-email/
-
-    email.client.ts
-
-    email.service.ts
-
-    templates/
-
-        welcome-email.template.ts
-
-        invitation-email.template.ts
+```text
+Finalizar orden
+      ↓
+cubrir faltante
+      ↓
+¿quedan faltantes?
+      ↓
+NO
+      ↓
+Pedido → LISTO_PARA_ENTREGAR
 ```
 
-El service únicamente envía el correo.
+Si no existe pedido asociado:
 
-Toda la vista pertenece al template.
-
----
-
-# DTOs
-
-Los DTOs representan el contrato de la API.
-
-Nunca devolver directamente modelos de Prisma cuando no sea necesario.
-
-Preferir DTOs explícitos.
-
----
-
-# Endpoints
-
-Los endpoints REST deben utilizar nombres consistentes.
-
-Ejemplos:
-
-```
-GET    /empresas/me
-PATCH  /empresas/me
-
-POST   /empresas/me/invitaciones
-GET    /empresas/me/invitaciones
-GET    /empresas/me/invitaciones/enviadas
-POST   /empresas/me/invitaciones/:id/aceptar
-POST   /empresas/me/invitaciones/:id/rechazar
+```text
+Finalizar orden
+      ↓
+incrementar stock
 ```
 
-Utilizar:
+No esconder el flujo completo dentro de un repository gigante.
 
-- sustantivos para recursos
-- verbos únicamente cuando representan acciones del dominio (`aceptar`, `rechazar`)
+## 23. Producción y planificación
 
----
+Producción y Planificación son partes del mismo módulo funcional, aunque puedan tener archivos separados.
 
-# Permisos
+Planificación puede tener:
 
-Las validaciones de permisos pertenecen al service.
+```text
+planificacion.controller.ts
+planificacion.service.ts
+planificacion.repository.ts
+planificacion.routes.ts
+planificacion.validator.ts
+```
 
-Ejemplos:
+El GET de planificación puede devolver en una única respuesta:
 
-- es CEO
-- empresa activa
-- pertenece a la empresa
-- curso correcto
+```text
+ciclo lectivo
+estado
+período
+resumen anual
+detalle mensual
+producción real
+cumplimiento
+estado mensual
+```
 
-El middleware `requireRole()` solamente valida el rol del sistema.
+No crear otro GET únicamente para un modal si la pantalla ya recibió esos datos.
 
----
+El frontend puede reutilizar el objeto obtenido.
 
-# Convenciones
+## 24. Métricas
 
-Preferir guard clauses antes que `if` anidados.
+Las métricas de dominio deben calcularse en backend cuando corresponda.
+
+Para planificación:
+
+```text
+unidades estimadas
+unidades producidas
+cumplimiento mensual
+cumplimiento anual
+estado mensual
+```
+
+La producción real se obtiene de órdenes finalizadas.
+
+Si existe historial de estados, la producción debe contabilizarse según el momento en que la orden entró en `FINALIZADA`, no según `createdAt`.
 
 Ejemplo:
 
-```ts
-if (!empresa) {
-  throw ...
-}
+```text
+Orden creada: agosto
+Orden finalizada: septiembre
 
-if (!usuario) {
-  throw ...
-}
+Producción de septiembre += cantidad
+```
 
-if (!empresa.activa) {
-  throw ...
+El frontend puede realizar cálculos puramente visuales sobre datos ya recibidos, pero el backend es la fuente de verdad de las métricas del dominio.
+
+## 25. PATCH
+
+Cuando se modifica una parte concreta de un recurso, enviar solamente los datos necesarios.
+
+Ejemplo:
+
+```http
+PATCH /produccion/planificacion/:id
+```
+
+```json
+{
+  "unidadesEstimadas": 130
 }
 ```
 
----
+No enviar nuevamente:
 
-# Código
+```text
+empresaId
+cicloLectivoId
+mes
+```
 
-Priorizar siempre:
+si pueden obtenerse del recurso y del usuario autenticado.
 
-- legibilidad
-- nombres descriptivos
-- funciones pequeñas
-- responsabilidades claras
+## 26. Prisma y desacoplamiento
+
+El objetivo es que los cambios propios de Prisma afecten principalmente al repository.
+
+El service debe trabajar con datos y conceptos del dominio y coordinar repositories.
+
+No hace falta eliminar absolutamente todos los tipos de Prisma del service si eso agrega abstracción innecesaria, pero Prisma no debe convertirse en la base conceptual de la lógica de negocio.
+
+## 27. Async/await
+
+Preferir:
+
+```ts
+const resultado = await repository.metodo();
+```
+
+sobre cadenas de `.then()` y `.catch()`.
+
+## 28. Tipado
+
+Mantener TypeScript estricto.
+
+Evitar `any`.
+
+Si un valor es realmente desconocido:
+
+```ts
+unknown
+```
+
+y validar su tipo.
+
+Convenciones:
+
+```text
+variables / parámetros / funciones → camelCase
+types / interfaces / clases → PascalCase
+constantes → UPPER_SNAKE_CASE
+```
+
+No utilizar prefijo `I` para interfaces.
+
+## 29. Comentarios
+
+Los comentarios deben explicar por qué una decisión existe cuando el código no lo deja claro.
+
+Bueno:
+
+```ts
+// Si es la primera orden asociada,
+// el pedido pasa a En Producción.
+```
+
+Evitar comentarios que simplemente repiten el código.
+
+## 30. Legibilidad
+
+Preferir varias líneas claras a una expresión excesivamente compacta.
+
+Extraer funciones cuando una sección tenga una responsabilidad identificable:
+
+```ts
+mapearPedidoAsociable()
+calcularEstadoMes()
+obtenerUsuario()
+```
 
 No escribir código excesivamente compacto.
 
-Es preferible escribir algunas líneas más si eso mejora la lectura.
+## 31. Testing
 
----
+El proyecto contempla pruebas unitarias, de integración y pruebas funcionales de endpoints mediante Jest y Supertest.
 
-# Filosofía del proyecto
+Las funcionalidades nuevas deberían cubrir especialmente:
 
-Cuando exista más de una solución técnicamente correcta, se priorizará aquella que:
+- casos exitosos;
+- reglas de negocio;
+- estados inválidos;
+- pertenencia a empresa;
+- conflictos;
+- validaciones;
+- transacciones;
+- efectos secundarios entre módulos;
+- concurrencia cuando corresponda.
 
-- sea más fácil de leer dentro de seis meses;
-- mantenga una separación clara entre capas;
-- evite duplicar lógica;
-- exprese las reglas de negocio de forma explícita;
-- sea consistente con el resto del proyecto.
+## 32. Checklist antes de implementar
 
-No se busca escribir el código más corto ni el más "ingenioso", sino el más mantenible.
+- [ ] Revisar Users, decisiones y documentación funcional.
+- [ ] Identificar el recurso y caso de uso.
+- [ ] Verificar si ya existe un endpoint equivalente.
+- [ ] Definir entrada y salida.
+- [ ] Separar validación estructural de reglas de negocio.
+- [ ] Identificar entidades afectadas.
+- [ ] Determinar si necesita transacción.
+- [ ] Evaluar concurrencia.
+- [ ] Verificar UNIQUE y FK relevantes.
+- [ ] Determinar si necesita mapper.
+- [ ] Reutilizar constantes existentes.
+- [ ] Verificar pertenencia a empresa.
+- [ ] Mantener Prisma dentro de repositories.
+- [ ] Mantener reglas de negocio dentro del service.
+- [ ] Mantener controllers delgados.
+- [ ] Mantener repositories pequeños.
 
-La consistencia del proyecto tiene prioridad sobre preferencias personales o microoptimizaciones.
+## 33. Filosofía final
 
----
+Al leer un service debe poder entenderse:
 
-# Objetivo general
+```text
+¿Qué quiere hacer el usuario?
+¿Qué condiciones deben cumplirse?
+¿Qué entidades se modifican?
+¿Por qué se modifican?
+¿Qué ocurre si algo falla?
+```
 
-Este proyecto prioriza, en este orden:
+Al leer un repository debe poder entenderse:
 
-1. Legibilidad.
-2. Separación de responsabilidades.
-3. Reglas de negocio claras.
-4. Mantenibilidad.
-5. Consistencia arquitectónica.
-6. Errores expresivos.
+```text
+¿Qué datos se consultan o modifican?
+¿Cómo se persisten?
+```
 
-Antes de escribir código nuevo, verificar siempre que respete estos principios.
+La consistencia del proyecto tiene prioridad sobre microoptimizaciones o abstracciones innecesarias.
+
+Cuando una implementación nueva se parezca a una funcionalidad existente, replicar primero el patrón existente. Abstraer solamente cuando exista una necesidad real.
+
+## 34. Convenciones concretas de implementación del proyecto
+
+* middleware/ en singular.
+* AuthUser desde types/express.
+* Imports reales de errors/*.error.
+* Convenciones de nombres del dominio en español.
+* Patrones exactos de route, controller, service y repository.
+* Cuándo utilizar validate() y cuándo no.
+* Cómo obtener usuario → alumno → empresa.
+* Que empresaId nunca debe confiarse al cliente.
+* Que el repository se elige según la entidad consultada/modificada, no necesariamente según el módulo del endpoint.
+* Patrón getDbClient(tx).
+* Cuándo crear mapper y cuándo no.
+* Cuándo usar transacciones.
+* Plantillas completas para GET, POST y PATCH.
+* Uso de TODO para decisiones pendientes.
+* Checklist específico antes de implementar un endpoint.
+* Una sección final de “Registro de decisiones de implementación”, que funcione justamente como constancia de los acuerdos que vamos consolidando.
+
