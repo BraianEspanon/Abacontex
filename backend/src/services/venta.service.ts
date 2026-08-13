@@ -13,6 +13,7 @@ import * as pedidoRepository from '../repositories/pedido.repository';
 import * as metodoPagoRepository from '../repositories/metodo-pago.repository';
 import * as transactionRepository from '../repositories/transaction.repository';
 import * as ventaRepository from '../repositories/venta.repository';
+import * as movimientoFinancieroRepository from '../repositories/movimiento-financiero.repository';
 
 import { ConflictError } from '../errors/conflict.error';
 import { BadRequestError } from '../errors/bad-request-error';
@@ -48,9 +49,12 @@ type PedidoConDetalles = Prisma.PedidoGetPayload<{
 }>;
 
 function calcularVenta(pedido: PedidoConDetalles, data: RegistrarVentaDTO) {
+  // 1. Recorrer los detalles del pedido y calcular el precio unitario y subtotal para cada producto
   const detallesVenta = pedido.detalles.map((detalle) => {
     let precioUnitario: Prisma.Decimal;
 
+    // Si la venta aplica IVA, usamos el precio de venta normal
+    // Caso contrario, usamos el precio consumidor final
     if (data.aplicaIva) {
       precioUnitario = detalle.producto.precioVenta;
     } else {
@@ -67,6 +71,7 @@ function calcularVenta(pedido: PedidoConDetalles, data: RegistrarVentaDTO) {
     };
   });
 
+  // 2. Sumar el subtotal de todos los detalles para obtener el subtotal inicial de la venta
   const subtotal = detallesVenta.reduce(
     (total, detalle) => total.add(detalle.subtotal),
     new Prisma.Decimal(0)
@@ -74,12 +79,14 @@ function calcularVenta(pedido: PedidoConDetalles, data: RegistrarVentaDTO) {
 
   let importeAjuste = new Prisma.Decimal(0);
 
+  // 3. Si hay un porcentaje de ajuste (descuento o recargo), calculamos su valor en dinero
   if (data.tipoAjuste !== 'NINGUNO') {
     importeAjuste = subtotal.mul(data.porcentajeAjuste).div(100);
   }
 
   let subtotalConAjuste = subtotal;
 
+  // 4. Aplicar el ajuste al subtotal inicial dependiendo de si es descuento o recargo
   if (data.tipoAjuste === 'DESCUENTO') {
     subtotalConAjuste = subtotal.sub(importeAjuste);
   }
@@ -90,18 +97,22 @@ function calcularVenta(pedido: PedidoConDetalles, data: RegistrarVentaDTO) {
 
   let importeIva = new Prisma.Decimal(0);
 
+  // 5. Si la venta aplica IVA, calculamos el 21% sobre el subtotal ya ajustado
   if (data.aplicaIva) {
     importeIva = subtotalConAjuste.mul(21).div(100);
   }
 
+  // 6. Sumamos el monto del IVA al subtotal ajustado
   const totalConIva = subtotalConAjuste.add(importeIva);
 
   let importeInteres = new Prisma.Decimal(0);
 
+  // 7. Si hay interés (usualmente por pago en cuotas con crédito), lo calculamos sobre el total que incluye IVA
   if (data.porcentajeInteres > 0) {
     importeInteres = totalConIva.mul(data.porcentajeInteres).div(100);
   }
 
+  // 8. El total final es la suma del importe total (con IVA) y los intereses generados
   const totalFinal = totalConIva.add(importeInteres);
 
   return {
@@ -158,8 +169,10 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
   const metodoPago = metodoPagoCurso.metodoPago;
 
   if (metodoPago.nombre === METODOS_PAGO.CREDITO) {
-    if (data.cantidadCuotas !== null && !CUOTAS_VENTA.includes(data.cantidadCuotas)) {
-      throw new BadRequestError('La cantidad de cuotas seleccionada no es válida.');
+    if (data.cantidadCuotas === null || !CUOTAS_VENTA.includes(data.cantidadCuotas)) {
+      throw new BadRequestError(
+        'Debe especificar una cantidad de cuotas válida (1 o más) para el pago con crédito.'
+      );
     }
   } else {
     if (data.cantidadCuotas !== null) {
@@ -198,7 +211,7 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
         importeAjuste: calculo.importeAjuste,
 
         aplicaIva: data.aplicaIva,
-        importeIva: calculo.importeAjuste,
+        importeIva: calculo.importeIva,
 
         porcentajeInteres: data.porcentajeInteres,
         importeInteres: calculo.importeInteres,
@@ -210,7 +223,7 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
 
     await ventaRepository.createDetalles(
       venta.idVenta,
-      pedido.detalles.map((detalle) => ({
+      calculo.detallesVenta.map((detalle) => ({
         productoId: detalle.productoId,
         cantidad: detalle.cantidad,
         precioUnitario: detalle.precioUnitario,
@@ -222,9 +235,32 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
     const estadoPedidoCompletado = await pedidoRepository.findEstadoCompletado(tx);
     await pedidoRepository.updateEstadoPedido(pedido.idPedido, estadoPedidoCompletado.idEstado, tx);
 
-    // TODO: Crear automáticamente el movimiento financiero
-    // asociado a esta venta dentro de esta misma transacción.
+    const categoriaVenta = await movimientoFinancieroRepository.findCategoriaVenta(tx);
+    const estadoRegistrado = await movimientoFinancieroRepository.findEstadoRegistrado(tx);
 
-    return venta;
+    if (!categoriaVenta || !estadoRegistrado) {
+      throw new ConflictError(
+        'Error interno: Faltan las configuraciones del sistema para registrar el movimiento (categoría o estado).'
+      );
+    }
+
+    await movimientoFinancieroRepository.create(
+      {
+        idEmpresa: empresa.id,
+        idUsuario: usuario.id,
+        idCategoria: categoriaVenta.idCategoria,
+        idMetodoPago: data.metodoPagoId,
+        idEstado: estadoRegistrado.idEstado,
+        concepto: `Venta - Pedido #${pedido.idPedido}`,
+        importe: calculo.totalFinal,
+        esAutomatico: true,
+      },
+      tx
+    );
+
+    return {
+      ...venta,
+      clienteNombre: pedido.clienteNombre,
+    };
   });
 }
