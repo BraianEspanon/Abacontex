@@ -50,3 +50,11 @@ export const registrarVentaSchema = z.object({
 });
 
 export type RegistrarVentaDTO = z.infer<typeof registrarVentaSchema>['body'];
+
+export const obtenerDetalleVentaSchema = z.object({
+  params: z.object({
+    idVenta: z.coerce.number().int().positive(),
+  }),
+});
+
+export type ObtenerDetalleVentaParamsDTO = z.infer<typeof obtenerDetalleVentaSchema>['params'];

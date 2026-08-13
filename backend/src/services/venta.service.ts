@@ -266,3 +266,53 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
     };
   });
 }
+
+export async function obtenerDetalleVenta(user: AuthUser, idVenta: number) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError('El usuario no está asociado a un alumno.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('El alumno no está asociado a una empresa.');
+  }
+
+  const empresa = usuario.alumno.empresa;
+
+  const venta = await ventaRepository.findByIdAndEmpresaOrThrow(idVenta, empresa.id);
+
+  return {
+    idVenta: venta.idVenta,
+    pedidoId: venta.pedidoId,
+    fecha: venta.fecha,
+    estado: venta.estado,
+    cliente: {
+      nombre: venta.pedido.clienteNombre,
+      email: venta.pedido.clienteMail,
+    },
+    condicionesComerciales: {
+      formaPago: venta.metodoPago.nombre,
+      tipoAjuste: venta.tipoAjuste,
+      porcentajeAjuste: Number(venta.porcentajeAjuste),
+      importeAjuste: Number(venta.importeAjuste),
+      aplicaIva: venta.aplicaIva,
+      cantidadCuotas: venta.cantidadCuotas,
+      porcentajeInteres: Number(venta.porcentajeInteres),
+      importeInteres: Number(venta.importeInteres),
+    },
+    totales: {
+      subtotal: Number(venta.subtotal),
+      importeIva: Number(venta.importeIva),
+      totalFinal: Number(venta.totalFinal),
+    },
+    detalles: venta.detalles.map((detalle) => ({
+      idDetalleVenta: detalle.idDetalleVenta,
+      productoId: detalle.productoId,
+      nombreProducto: detalle.producto.nombre,
+      cantidad: detalle.cantidad,
+      precioUnitario: Number(detalle.precioUnitario),
+      subtotal: Number(detalle.subtotal),
+    })),
+  };
+}

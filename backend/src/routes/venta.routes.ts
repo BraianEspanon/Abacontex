@@ -5,9 +5,13 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { obtenerPedidosListos, registrarVenta } from '../controllers/venta.controller';
+import {
+  obtenerDetalleVenta,
+  obtenerPedidosListos,
+  registrarVenta,
+} from '../controllers/venta.controller';
 
-import { registrarVentaSchema } from '../validators/venta.validator';
+import { obtenerDetalleVentaSchema, registrarVentaSchema } from '../validators/venta.validator';
 
 const router = Router();
 
@@ -19,6 +23,14 @@ router.post(
   requireRole(ROLES.ALUMNO),
   validate(registrarVentaSchema),
   registrarVenta
+);
+
+router.get(
+  '/:idVenta',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(obtenerDetalleVentaSchema),
+  obtenerDetalleVenta
 );
 
 export default router;
