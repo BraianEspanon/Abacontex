@@ -54,13 +54,17 @@ export async function findByIdAndEmpresa(idPedido: number, empresaId: number) {
               nombre: true,
               descripcion: true,
               fotoUrl: true,
+              precioVenta: true,
+              precioConsumidorFinal: true,
             },
           },
         },
       },
+      venta: true,
     },
   });
 }
+
 export async function findByIdAndEmpresaOrThrow(idPedido: number, empresaId: number) {
   const pedido = await findByIdAndEmpresa(idPedido, empresaId);
 
@@ -167,8 +171,10 @@ export async function findEstadoListoParaEntregar(tx?: Prisma.TransactionClient)
   });
 }
 
-export async function findEstadoCompletado() {
-  return prisma.estadoPedido.findUniqueOrThrow({
+export async function findEstadoCompletado(tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.estadoPedido.findUniqueOrThrow({
     where: {
       nombre: ESTADOS_PEDIDOS.COMPLETADO,
     },
