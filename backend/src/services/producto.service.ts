@@ -1,4 +1,5 @@
 import { AuthUser } from '../types/express';
+import { IVA } from '../constants/iva';
 
 import * as storageService from '../integrations/storage/storage.service';
 
@@ -33,8 +34,14 @@ async function obtenerEmpresaUsuario(user: AuthUser) {
   return usuario.alumno.empresa;
 }
 
-function calcularPrecioVenta(precioUnitario: number, margenGanancia: number) {
-  return precioUnitario * (1 + margenGanancia / 100);
+function calcularPrecios(precioUnitario: number, margenGanancia: number) {
+  const precioVenta = precioUnitario * (1 + margenGanancia / 100);
+  const precioConsumidorFinal = precioVenta * (1 + IVA);
+
+  return {
+    precioVenta,
+    precioConsumidorFinal,
+  };
 }
 
 export async function crearProducto(
@@ -62,9 +69,19 @@ export async function crearProducto(
     fotoPublicId = uploaded.publicId;
   }
 
-  const precioVenta = calcularPrecioVenta(data.precioUnitario, data.margenGanancia);
+  const { precioVenta, precioConsumidorFinal } = calcularPrecios(
+    data.precioUnitario,
+    data.margenGanancia
+  );
 
-  return productoRepository.create(empresa.id, data, fotoUrl, fotoPublicId, precioVenta);
+  return productoRepository.create(
+    empresa.id,
+    data,
+    fotoUrl,
+    fotoPublicId,
+    precioVenta,
+    precioConsumidorFinal
+  );
 }
 
 export async function actualizarProducto(
@@ -113,14 +130,18 @@ export async function actualizarProducto(
       fotoPublicId = null;
     }
 
-    const precioVenta = calcularPrecioVenta(data.precioUnitario, data.margenGanancia);
+    const { precioVenta, precioConsumidorFinal } = calcularPrecios(
+      data.precioUnitario,
+      data.margenGanancia
+    );
 
     const productoActualizado = await productoRepository.update(
       idProducto,
       data,
       fotoUrl,
       fotoPublicId,
-      precioVenta
+      precioVenta,
+      precioConsumidorFinal
     );
 
     // Si reemplazamos, recién ahora borrar la vieja
@@ -178,6 +199,7 @@ export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductos
       precioUnitario: Number(producto.precioUnitario),
       margenGanancia: Number(producto.margenGanancia),
       precioVenta: Number(producto.precioVenta),
+      precioConsumidorFinal: Number(producto.precioConsumidorFinal),
       stock: producto.stock,
     })),
 
