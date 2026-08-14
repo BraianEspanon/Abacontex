@@ -35,12 +35,3 @@ export async function marcarPedidoListoParaEntregar(req: Request, res: Response)
   res.status(200).json(resultado);
 }
 
-export async function completarPedido(req: Request, res: Response) {
-  const params = pedidoIdSchema.parse({
-    params: req.params,
-  });
-
-  const pedido = await pedidoService.completarPedido(req.user!, params.params);
-
-  res.status(200).json(pedido);
-}
