@@ -6,7 +6,7 @@ import { CUOTAS_VENTA } from '../constants/cantidad-cuotas';
 
 import { Prisma } from '@prisma/client';
 
-import { RegistrarVentaDTO } from '../validators/venta.validator';
+import { ObtenerVentasQueryDTO, RegistrarVentaDTO } from '../validators/venta.validator';
 
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as pedidoRepository from '../repositories/pedido.repository';
@@ -313,6 +313,51 @@ export async function obtenerDetalleVenta(user: AuthUser, idVenta: number) {
       cantidad: detalle.cantidad,
       precioUnitario: Number(detalle.precioUnitario),
       subtotal: Number(detalle.subtotal),
+    })),
+  };
+}
+
+export async function obtenerVentas(user: AuthUser, filtros: ObtenerVentasQueryDTO) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError('El usuario no está asociado a un alumno.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('El alumno no está asociado a una empresa.');
+  }
+
+  const empresa = usuario.alumno.empresa;
+
+  const ahora = new Date();
+  const fechaInicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+  const fechaFinMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  const [resumenData, ventas] = await Promise.all([
+    ventaRepository.obtenerResumenVentas(empresa.id, fechaInicioMes, fechaFinMes),
+    ventaRepository.findByEmpresa(empresa.id, filtros),
+  ]);
+
+  const promedioVenta =
+    resumenData.totalVentas > 0 ? resumenData.totalVendido / resumenData.totalVentas : 0;
+
+  return {
+    resumen: {
+      ventasRegistradas: resumenData.totalVentas,
+      totalVendido: resumenData.totalVendido,
+      ventasMes: resumenData.ventasMes,
+      promedioVenta,
+    },
+    items: ventas.map((venta) => ({
+      idVenta: venta.idVenta,
+      pedidoId: venta.pedidoId,
+      cliente: venta.pedido.clienteNombre,
+      metodoPago: venta.metodoPago.nombre,
+      metodoPagoId: venta.metodoPago.idMetodoPago,
+      montoTotal: Number(venta.totalFinal),
+      fecha: venta.fecha,
+      estado: venta.estado,
     })),
   };
 }

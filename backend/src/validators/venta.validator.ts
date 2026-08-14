@@ -58,3 +58,13 @@ export const obtenerDetalleVentaSchema = z.object({
 });
 
 export type ObtenerDetalleVentaParamsDTO = z.infer<typeof obtenerDetalleVentaSchema>['params'];
+
+export const obtenerVentasQuerySchema = z.object({
+  query: z.object({
+    search: z.string().trim().optional(),
+    metodoPagoId: z.coerce.number().int().positive().optional(),
+    mes: z.coerce.number().int().min(1).max(12).optional(),
+  }),
+});
+
+export type ObtenerVentasQueryDTO = z.infer<typeof obtenerVentasQuerySchema>['query'];

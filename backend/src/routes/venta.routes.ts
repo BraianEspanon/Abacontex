@@ -8,14 +8,17 @@ import { validate } from '../middleware/validate.middleware';
 import {
   obtenerDetalleVenta,
   obtenerPedidosListos,
+  obtenerVentas,
   registrarVenta,
 } from '../controllers/venta.controller';
 
-import { obtenerDetalleVentaSchema, registrarVentaSchema } from '../validators/venta.validator';
+import {
+  obtenerDetalleVentaSchema,
+  obtenerVentasQuerySchema,
+  registrarVentaSchema,
+} from '../validators/venta.validator';
 
 const router = Router();
-
-router.get('/pedidos-listos', authenticate, requireRole(ROLES.ALUMNO), obtenerPedidosListos);
 
 router.post(
   '/',
@@ -26,11 +29,21 @@ router.post(
 );
 
 router.get(
+  '/',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(obtenerVentasQuerySchema),
+  obtenerVentas
+);
+
+router.get(
   '/:idVenta',
   authenticate,
   requireRole(ROLES.ALUMNO),
   validate(obtenerDetalleVentaSchema),
   obtenerDetalleVenta
 );
+
+router.get('/pedidos-listos', authenticate, requireRole(ROLES.ALUMNO), obtenerPedidosListos);
 
 export default router;
