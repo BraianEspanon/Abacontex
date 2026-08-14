@@ -202,6 +202,9 @@ la orden está pendiente
 el usuario pertenece a una empresa
 ```
 
+### Contexto temporal de empresas simuladas
+Las empresas simuladas pertenecen a un ciclo lectivo acotado (anual). Por ello, los filtros de búsqueda temporales por mes no deben solicitar el año en la query; el año se infiere automáticamente del ciclo lectivo de la empresa o del año actual en curso.
+
 ## 7. DTOs y mappers
 
 Los DTOs representan contratos de entrada/salida.
@@ -227,6 +230,10 @@ Los mappers adaptan resultados de repositories al formato de la API.
 Son especialmente útiles cuando se renombran campos, combinan información o calculan propiedades de presentación.
 
 Los mappers no consultan Prisma ni ejecutan reglas de negocio.
+
+### Identificadores puros
+Las respuestas JSON y los DTOs deben devolver los identificadores numéricos puros de la base de datos (`idVenta`, `pedidoId`, `idProducto`, etc.), evitando generar prefijos o identificadores sintéticos (`VEN-0001`, `PED-0001`) para permitir la navegación directa y uniforme desde el frontend.
+
 
 ## 8. Services
 
@@ -297,6 +304,10 @@ findEstadoPendiente()
 create()
 update()
 ```
+
+### Reutilización de DTOs en Repositories
+
+Los repositories importan y reutilizan directamente los tipos DTO inferidos por Zod desde los validadores (por ejemplo, `import { ObtenerVentasQueryDTO } from '../validators/venta.validator'`) para tipar parámetros de búsqueda, creación y actualización, manteniendo una única fuente de verdad sin duplicar interfaces locales.
 
 ## 10. getDbClient y transacciones
 
