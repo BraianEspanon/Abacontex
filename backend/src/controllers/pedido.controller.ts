@@ -34,4 +34,3 @@ export async function marcarPedidoListoParaEntregar(req: Request, res: Response)
 
   res.status(200).json(resultado);
 }
-

@@ -20,7 +20,10 @@ export async function findEstadoRegistrado(tx?: Prisma.TransactionClient) {
 }
 
 export async function create(
-  data: Omit<Prisma.MovimientoFinancieroUncheckedCreateInput, 'idMovimiento' | 'fecha' | 'createdAt' | 'updatedAt'>,
+  data: Omit<
+    Prisma.MovimientoFinancieroUncheckedCreateInput,
+    'idMovimiento' | 'fecha' | 'createdAt' | 'updatedAt'
+  >,
   tx?: Prisma.TransactionClient
 ) {
   const db = getDbClient(tx);
