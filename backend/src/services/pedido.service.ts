@@ -91,6 +91,7 @@ function construirPedido(data: CrearPedidoDTO, productos: ProductoPedido[]) {
 
     if (detalle.cantidadPendiente > 0) {
       faltantesStock.push({
+        idProducto: producto.id,
         producto: producto.nombre,
         solicitado: detalle.cantidad,
         cubierto: detalle.cantidadConStock,

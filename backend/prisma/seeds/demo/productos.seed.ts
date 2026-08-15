@@ -8,10 +8,29 @@ interface ProductoDemo {
   descripcion: string;
   stock: number;
   precioUnitario: number;
+  margenGanancia: number;
   fotoUrl: string | null;
 }
 
+const IVA = 0.21;
+
+function calcularPrecios(precioUnitario: number, margenGanancia: number) {
+  const precioVenta = precioUnitario * (1 + margenGanancia / 100);
+
+  const precioConsumidorFinal = precioVenta * (1 + IVA);
+
+  return {
+    precioVenta,
+    precioConsumidorFinal,
+  };
+}
+
 async function crearOActualizarProductoActivo(prisma: PrismaClient, producto: ProductoDemo) {
+  const { precioVenta, precioConsumidorFinal } = calcularPrecios(
+    producto.precioUnitario,
+    producto.margenGanancia
+  );
+
   const productoActivoExistente = await prisma.producto.findFirst({
     where: {
       empresaId: producto.empresaId,
@@ -32,6 +51,9 @@ async function crearOActualizarProductoActivo(prisma: PrismaClient, producto: Pr
         descripcion: producto.descripcion,
         stock: producto.stock,
         precioUnitario: producto.precioUnitario,
+        margenGanancia: producto.margenGanancia,
+        precioVenta,
+        precioConsumidorFinal,
         fotoUrl: producto.fotoUrl,
       },
     });
@@ -46,6 +68,9 @@ async function crearOActualizarProductoActivo(prisma: PrismaClient, producto: Pr
       descripcion: producto.descripcion,
       stock: producto.stock,
       precioUnitario: producto.precioUnitario,
+      margenGanancia: producto.margenGanancia,
+      precioVenta,
+      precioConsumidorFinal,
       fotoUrl: producto.fotoUrl,
       activo: true,
     },
@@ -72,9 +97,9 @@ export const productosSeed: Seed = {
       throw new Error('Las empresas de demo no existen.');
     }
 
-    // ==========================
+    // =========================
     // TECHNOVA
-    // ==========================
+    // =========================
 
     await crearOActualizarProductoActivo(prisma, {
       empresaId: techNova.id,
@@ -82,6 +107,7 @@ export const productosSeed: Seed = {
       descripcion: 'Notebook para oficina',
       stock: 15,
       precioUnitario: 700000,
+      margenGanancia: 10,
       fotoUrl: null,
     });
 
@@ -91,6 +117,7 @@ export const productosSeed: Seed = {
       descripcion: 'Mouse óptico inalámbrico',
       stock: 40,
       precioUnitario: 18000,
+      margenGanancia: 20,
       fotoUrl: null,
     });
 
@@ -104,6 +131,7 @@ export const productosSeed: Seed = {
       descripcion: 'Licencia anual del sistema',
       stock: 100,
       precioUnitario: 50000,
+      margenGanancia: 15,
       fotoUrl: null,
     });
 

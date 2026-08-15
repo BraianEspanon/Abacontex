@@ -7,7 +7,7 @@ dotenv.config({
 
 console.log('DATABASE_URL =', process.env.DATABASE_URL);
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
@@ -20,3 +20,7 @@ const adapter = new PrismaPg(pool);
 export const prisma = new PrismaClient({
   adapter,
 });
+
+export function getDbClient(tx?: Prisma.TransactionClient) {
+  return tx ?? prisma;
+}
