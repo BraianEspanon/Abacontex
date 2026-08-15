@@ -46,7 +46,10 @@ export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
   const estadoPendiente = await pedidoRepository.findEstadoPendiente();
 
   //Construir pedido
-  const { detalles, montoTotal, faltantesStock } = construirPedido(data, productos);
+  const { detalles, montoTotal, montoTotalConIva, faltantesStock } = construirPedido(
+    data,
+    productos
+  );
 
   //Transacción
   const pedido = await pedidoRepository.createPedido(
@@ -69,6 +72,7 @@ export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
       clienteNombre: data.clienteNombre,
       clienteMail: data.clienteMail,
       montoTotal,
+      montoTotalConIva,
     },
     detalles
   );
@@ -102,9 +106,12 @@ function construirPedido(data: CrearPedidoDTO, productos: ProductoPedido[]) {
     return detalle;
   });
 
+  const montoTotalConIva = montoTotal.mul(1.21);
+
   return {
     detalles,
     montoTotal,
+    montoTotalConIva,
     faltantesStock,
   };
 }
