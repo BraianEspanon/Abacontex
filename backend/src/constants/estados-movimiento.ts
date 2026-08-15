@@ -1,0 +1,4 @@
+export const ESTADOS_MOVIMIENTO = {
+  REGISTRADO: 'REGISTRADO',
+  ANULADO: 'ANULADO',
+} as const;

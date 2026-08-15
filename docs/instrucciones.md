@@ -87,6 +87,12 @@ Las validaciones que se ejecutan para poder integrar el código son:
 3. Formatting: Verifica que el código cumpla con las convenciones de formato definidas para el proyecto.
 4. Build: Comprueba que la aplicación pueda generar los artefactos necesarios para su ejecución.
 
+## 2.2. Exportar realms con usuarios
+
+```text
+docker run -it -v abacontex_keycloak_data:/opt/keycloak/data -v ${PWD}/keycloak:/tmp/export quay.io/keycloak/keycloak:26.2 export --dir /tmp/export --realm abacontex --users realm_file
+```
+
 # 3. Testing (Staging)
 
 1. Promover los cambios de rama `develop` a rama `test` (Haciendo Pull request)

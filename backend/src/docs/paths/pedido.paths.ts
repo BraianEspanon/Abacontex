@@ -141,45 +141,4 @@
  *
  *       404:
  *         description: Pedido no encontrado.
- *
- * /pedidos/{idPedido}/completar:
- *   patch:
- *     summary: Completar un pedido
- *     description: |
- *       Cambia el estado de un pedido listo para entregar a completado.
- *
- *     tags:
- *       - Pedidos
- *
- *     security:
- *       - oauth2: []
- *
- *     parameters:
- *       - in: path
- *         name: idPedido
- *         required: true
- *         schema:
- *           type: integer
- *           format: int32
- *         description: Identificador del pedido.
- *
- *     responses:
- *       200:
- *         description: Pedido completado correctamente.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PedidoCambioEstado'
- *
- *       400:
- *         description: El pedido no está listo para entregar.
- *
- *       401:
- *         description: Token inválido o inexistente.
- *
- *       403:
- *         description: El usuario no posee permisos para modificar pedidos.
- *
- *       404:
- *         description: Pedido no encontrado.
  */
