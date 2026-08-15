@@ -1,51 +1,76 @@
-export type EstadoPedido = 'PENDIENTE' | 'EN_PREPARACION' | 'ENVIADO' | 'ENTREGADO' | 'CANCELADO';
+import { z } from 'zod';
 
-// Lo que se muestra en la grilla principal
-export interface PedidoListado {
-  id: number;
-  fecha: string;
+// ==========================================================
+// 1. ESQUEMAS DE VALIDACIÓN (ZOD) PARA EL FORMULARIO
+// ==========================================================
+
+export const detallePedidoRequestSchema = z.object({
+  productoId: z.number(),
+  cantidad: z.number().min(1, 'La cantidad debe ser mayor a cero'),
+  // Campos auxiliares para la UI (no se envían al backend en el submit final,
+  // pero los necesitamos para renderizar la tabla y calcular totales)
+  nombre: z.string(),
+  descripcion: z.string(),
+  codigo: z.string().optional(),
+  fotoUrl: z.string().nullable(),
+  precioUnitario: z.number(),
+  stock: z.number(),
+});
+
+export const pedidoCrearRequestSchema = z.object({
+  clienteNombre: z.string().min(2, 'El nombre del cliente es obligatorio'),
+  clienteMail: z.string().email('Ingresá un correo electrónico válido'),
+  productos: z
+    .array(detallePedidoRequestSchema)
+    .min(1, 'Debes agregar al menos un producto al pedido'),
+});
+
+// Tipos inferidos para React Hook Form
+export type PedidoCrearFormData = z.infer<typeof pedidoCrearRequestSchema>;
+export type DetallePedidoUI = z.infer<typeof detallePedidoRequestSchema>;
+
+// ==========================================================
+// 2. INTERFACES DE RESPUESTA DE LA API (DTOs)
+// ==========================================================
+
+export interface FaltanteStock {
+  producto: string;
+  solicitado: number;
+  cubierto: number;
+  faltante: number;
+}
+
+export interface PedidoCreado {
+  numeroPedido: number;
   cliente: string;
+  fecha: string; // ISO String
+  cantidadProductos: number;
+  totalEstimado: number;
+  tieneFaltantesStock: boolean;
+  faltantesStock?: FaltanteStock[];
+}
+
+// Interfaces para la vista del Tablero Kanban (HU 5.3)
+export interface TarjetaPedido {
+  numeroPedido: number;
+  cliente: string;
+  fecha: string; // ISO String
+  cantidadProductos: number;
   total: number;
-  estado: EstadoPedido;
+  tieneFaltantesStock: boolean;
 }
 
-// Lo que va dentro del Detalle del Pedido
-export interface PedidoItem {
-  productoId: number;
-  nombreProducto: string;
-  cantidad: number;
-  precioUnitario: number;
-  subtotal: number;
-}
-
-// El detalle completo al abrir el modal
-export interface PedidoDetalle extends PedidoListado {
-  items: PedidoItem[];
-}
-
-// Paginación y Filtros (Igual que en Productos)
-export interface PedidosQueryParams {
-  search?: string;
-  estado?: EstadoPedido | 'TODOS';
-  page?: number;
-  pageSize?: number;
-}
-
-export interface PedidosResponse {
-  items: PedidoListado[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-}
-
-// Payload para el formulario de nuevo pedido
-export interface CrearPedidoItemPayload {
-  productoId: number;
-  cantidad: number;
-}
-
-export interface CrearPedidoPayload {
-  cliente: string;
-  items: CrearPedidoItemPayload[];
+export interface KanbanPedidos {
+  resumen: {
+    total: number;
+    pendientes: number;
+    enProduccion: number;
+    listosParaEntregar: number;
+  };
+  kanban: {
+    PENDIENTE: TarjetaPedido[];
+    EN_PRODUCCION: TarjetaPedido[];
+    LISTO_PARA_ENTREGAR: TarjetaPedido[];
+    COMPLETADO: TarjetaPedido[];
+  };
 }
