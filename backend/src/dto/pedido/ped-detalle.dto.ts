@@ -17,6 +17,7 @@ export interface ObtenerDetallePedidoResponseDTO {
   creadoPor: string;
 
   total: Prisma.Decimal;
+  totalConIva: Prisma.Decimal;
 
   tieneFaltantesStock: boolean;
 

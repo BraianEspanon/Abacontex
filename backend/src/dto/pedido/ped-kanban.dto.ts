@@ -6,6 +6,7 @@ export interface TarjetaPedidoDTO {
   fecha: Date;
   cantidadProductos: number;
   total: Prisma.Decimal;
+  totalConIva: Prisma.Decimal;
   tieneFaltantesStock: boolean;
 }
 

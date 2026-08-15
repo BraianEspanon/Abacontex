@@ -16,6 +16,7 @@ type ProductoPrisma = Prisma.ProductoGetPayload<{
     nombre: true;
     stock: true;
     precioVenta: true;
+    precioConsumidorFinal: true;
   };
 }>;
 
@@ -25,6 +26,7 @@ export function toProductoPedido(producto: ProductoPrisma): ProductoPedido {
     nombre: producto.nombre,
     stock: producto.stock,
     precioVenta: producto.precioVenta,
+    precioUnitarioConIva: producto.precioConsumidorFinal,
   };
 }
 
@@ -45,6 +47,9 @@ export function toDetalleCalculado(
     precioUnitario: producto.precioVenta,
     subtotal: producto.precioVenta.mul(cantidad),
 
+    precioUnitarioConIva: producto.precioUnitarioConIva,
+    subtotalConIva: producto.precioUnitarioConIva.mul(cantidad),
+
     stockActual: producto.stock,
   };
 }
@@ -54,6 +59,7 @@ type PedidoCreado = {
   clienteNombre: string;
   fecha: Date;
   montoTotal: Prisma.Decimal;
+  montoTotalConIva: Prisma.Decimal;
   detalles: {
     idDetallePedido: number;
   }[];
@@ -69,6 +75,7 @@ export function toCrearPedidoResponse(
     fecha: pedido.fecha,
     cantidadProductos: pedido.detalles.length,
     totalEstimado: pedido.montoTotal,
+    totalEstimadoConIva: pedido.montoTotalConIva,
     tieneFaltantesStock: faltantesStock.length > 0,
     faltantesStock,
   };
@@ -80,6 +87,9 @@ type DetallePedidoConProducto = {
 
   precioUnitario: Prisma.Decimal;
   subtotal: Prisma.Decimal;
+
+  precioUnitarioConIva: Prisma.Decimal;
+  subtotalConIva: Prisma.Decimal;
 
   producto: {
     id: number;
@@ -98,6 +108,7 @@ type PedidoDetalle = {
   fecha: Date;
 
   montoTotal: Prisma.Decimal;
+  montoTotalConIva: Prisma.Decimal;
 
   estado: {
     nombre: string;
@@ -126,6 +137,9 @@ export function toDetalleProductoResponse(
 
     precioUnitario: detalle.precioUnitario,
     subtotal: detalle.subtotal,
+
+    precioUnitarioConIva: detalle.precioUnitarioConIva,
+    subtotalConIva: detalle.subtotalConIva,
   };
 }
 
@@ -157,6 +171,7 @@ export function toObtenerDetallePedidoResponse(
     creadoPor: `${pedido.usuario.nombre} ${pedido.usuario.apellido}`,
 
     total: pedido.montoTotal,
+    totalConIva: pedido.montoTotalConIva,
 
     tieneFaltantesStock: faltantesStock.length > 0,
 
@@ -205,6 +220,7 @@ export function toKanbanPedidosResponse(pedidos: PedidoKanban[]): KanbanPedidosR
       fecha: pedido.fecha,
       cantidadProductos: pedido.detalles.length,
       total: pedido.montoTotal,
+      totalConIva: pedido.montoTotalConIva,
       tieneFaltantesStock: pedido.detalles.some((detalle) => detalle.cantidadPendiente > 0),
     };
 
