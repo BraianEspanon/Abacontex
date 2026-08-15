@@ -11,7 +11,6 @@ import {
   obtenerDetallePedido,
   obtenerPedidos,
   marcarPedidoListoParaEntregar,
-  completarPedido,
 } from '../controllers/pedido.controller';
 
 import { crearPedidoSchema, pedidoIdSchema } from '../validators/pedido.validator';
@@ -35,13 +34,6 @@ router.patch(
   requireRole(ROLES.ALUMNO),
   validate(pedidoIdSchema),
   marcarPedidoListoParaEntregar
-);
-router.patch(
-  '/:idPedido/completar',
-  authenticate,
-  requireRole(ROLES.ALUMNO),
-  validate(pedidoIdSchema),
-  completarPedido
 );
 
 export default router;

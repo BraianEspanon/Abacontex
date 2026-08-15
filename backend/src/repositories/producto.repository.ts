@@ -44,6 +44,7 @@ export async function findByIdAndEmpresaOrThrow(id: number, empresaId: number) {
       precioUnitario: true,
       margenGanancia: true,
       precioVenta: true,
+      precioConsumidorFinal: true,
       fotoUrl: true,
       activo: true,
       createdAt: true,
@@ -146,6 +147,8 @@ export async function findByEmpresa(
 
           precioVenta: true,
 
+          precioConsumidorFinal: true,
+
           stock: true,
         },
 
@@ -218,7 +221,8 @@ export async function create(
   data: CrearProductoDTO,
   fotoUrl: string | null,
   fotoPublicId: string | null,
-  precioVenta: number
+  precioVenta: number,
+  precioConsumidorFinal: number
 ) {
   return prisma.producto.create({
     data: {
@@ -232,6 +236,7 @@ export async function create(
       precioUnitario: data.precioUnitario,
       margenGanancia: data.margenGanancia,
       precioVenta,
+      precioConsumidorFinal,
 
       fotoUrl,
       fotoPublicId,
@@ -244,7 +249,8 @@ export async function update(
   data: ActualizarProductoDTO,
   fotoUrl: string | null,
   fotoPublicId: string | null,
-  precioVenta: number
+  precioVenta: number,
+  precioConsumidorFinal: number
 ) {
   return prisma.producto.update({
     where: {
@@ -257,6 +263,7 @@ export async function update(
       precioUnitario: data.precioUnitario,
       margenGanancia: data.margenGanancia,
       precioVenta,
+      precioConsumidorFinal,
 
       fotoUrl,
       fotoPublicId,

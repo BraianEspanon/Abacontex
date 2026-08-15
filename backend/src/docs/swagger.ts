@@ -58,6 +58,10 @@ export const swaggerSpec = swaggerJsdoc({
         description: 'Gestión de la planificación anual de producción por empresa.',
       },
       {
+        name: 'Ventas',
+        description: 'Gestión y registro de ventas comerciales, cobranzas y dashboard de ventas.',
+      },
+      {
         name: 'Cursos',
         description: 'Consulta de cursos disponibles.',
       },

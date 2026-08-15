@@ -11,6 +11,7 @@ import { BadRequestError } from '../../errors/bad-request-error';
 import { ConfigurationError } from '../../errors/configuration.error';
 import { ConflictError } from '../../errors/conflict.error';
 import { ExternalServiceError } from '../../errors/external-service.error';
+import { NotFoundError } from '../../errors/not-found.error';
 import { KeycloakGroup } from '../../types/keycloak';
 
 export async function getAdminToken() {
@@ -61,7 +62,7 @@ export async function createUser(data: CreateKeycloakUserDTO) {
         firstName: data.firstName,
         lastName: data.lastName,
         enabled: true,
-        emailVerified: true,
+        emailVerified: false,
         credentials: [
           {
             type: 'password',
@@ -436,6 +437,47 @@ export async function updatePassword(keycloakId: string, newPassword: string) {
 
     throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
       operation: 'UPDATE_PASSWORD',
+    });
+  }
+}
+
+export async function sendVerifyEmail(keycloakId: string) {
+  try {
+    const token = await getAdminToken();
+
+    const queryParams = KEYCLOAK_FRONTEND_CLIENT_ID
+      ? `?client_id=${encodeURIComponent(KEYCLOAK_FRONTEND_CLIENT_ID)}`
+      : '';
+
+    const response = await fetch(
+      `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${keycloakId}/send-verify-email${queryParams}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.status === 204 || response.status === 200) {
+      return;
+    }
+
+    if (response.status === 404) {
+      throw new NotFoundError('Usuario no encontrado en Keycloak.');
+    }
+
+    throw new ExternalServiceError('Keycloak', 'No fue posible enviar el correo de verificación.', {
+      operation: 'SEND_VERIFY_EMAIL',
+      status: response.status,
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
+      operation: 'SEND_VERIFY_EMAIL',
     });
   }
 }
