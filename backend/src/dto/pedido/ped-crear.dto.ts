@@ -8,6 +8,7 @@ export interface CrearPedidoResponseDTO {
   fecha: Date;
   cantidadProductos: number;
   totalEstimado: Prisma.Decimal;
+  totalEstimadoConIva: Prisma.Decimal;
   tieneFaltantesStock: boolean;
   faltantesStock: FaltanteStock[];
 }

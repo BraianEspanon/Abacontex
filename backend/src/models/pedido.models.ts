@@ -5,13 +5,16 @@ export interface ProductoPedido {
   nombre: string;
   stock: number;
   precioVenta: Prisma.Decimal;
+  precioUnitarioConIva: Prisma.Decimal;
 }
 
 export interface DetallePedidoCalculado {
   productoId: number;
   cantidad: number;
   precioUnitario: Prisma.Decimal;
+  precioUnitarioConIva: Prisma.Decimal;
   subtotal: Prisma.Decimal;
+  subtotalConIva: Prisma.Decimal;
   stockActual: number;
   cantidadConStock: number;
   cantidadPendiente: number;
@@ -37,4 +40,7 @@ export interface DetallePedidoResponse {
 
   precioUnitario: Prisma.Decimal;
   subtotal: Prisma.Decimal;
+
+  precioUnitarioConIva: Prisma.Decimal;
+  subtotalConIva: Prisma.Decimal;
 }

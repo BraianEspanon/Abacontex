@@ -26,6 +26,7 @@ export async function findProductosByIdsAndEmpresa(
       stock: true,
       precioUnitario: true,
       precioVenta: true,
+      precioConsumidorFinal: true,
     },
   });
 
@@ -205,7 +206,9 @@ export async function createPedido(
             cantidadConStock: detalle.cantidadConStock,
             cantidadPendiente: detalle.cantidadPendiente,
             precioUnitario: detalle.precioUnitario,
+            precioUnitarioConIva: detalle.precioUnitarioConIva,
             subtotal: detalle.subtotal,
+            subtotalConIva: detalle.subtotalConIva,
           })),
         },
       },
