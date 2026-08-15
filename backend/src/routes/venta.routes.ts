@@ -36,6 +36,8 @@ router.get(
   obtenerVentas
 );
 
+router.get('/pedidos-listos', authenticate, requireRole(ROLES.ALUMNO), obtenerPedidosListos);
+
 router.get(
   '/:idVenta',
   authenticate,
@@ -43,7 +45,5 @@ router.get(
   validate(obtenerDetalleVentaSchema),
   obtenerDetalleVenta
 );
-
-router.get('/pedidos-listos', authenticate, requireRole(ROLES.ALUMNO), obtenerPedidosListos);
 
 export default router;
