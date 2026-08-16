@@ -87,7 +87,7 @@ export async function generarFactura(user: AuthUser, data: GenerarFacturaDTO) {
   // 4. Crear factura
   const nuevaFactura = await facturaRepository.create(data);
 
-  return nuevaFactura;
+  return obtenerDetalleFactura(user, nuevaFactura.idFactura);
 }
 
 export async function obtenerDetalleFactura(user: AuthUser, idFactura: number) {
