@@ -88,11 +88,6 @@ export default function EditarProductoPage() {
       precioUnitario: producto.precioUnitario,
       margenGanancia: producto.margenGanancia,
     });
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setImagenSeleccionada(null);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEliminarImagen(false);
   }, [producto, reset]);
 
   const handleCancelar = () => {

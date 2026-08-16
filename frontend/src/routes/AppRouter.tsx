@@ -26,6 +26,9 @@ import InvitacionPage from '../pages/onboarding/InvitacionPage';
 import RegistroDocentePage from '../pages/docente/RegistroDocente';
 import LoginDocente from '../pages/docente/LoginDocente';
 
+import PedidosPage from '../pages/pedido/PedidosPage';
+import RegistrarPedidoPage from '../pages/pedido/RegistrarPedidoPage';
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -100,9 +103,7 @@ export default function AppRouter() {
         }
       >
         <Route index element={<InicioDocente />} />
-
         <Route path="perfil" element={<PerfilDocente />} />
-
         <Route path="empresas" element={<EmpresasDocente />} />
       </Route>
 
@@ -117,15 +118,18 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       >
+        {/* Empresa */}
         <Route path="empresa" element={<MiEmpresaPage />} />
-
         <Route path="empresa/editar" element={<EditarEmpresaPage />} />
 
+        {/* Productos */}
         <Route path="productos" element={<ProductosPage />} />
-
         <Route path="productos/registrar" element={<RegistrarProductoPage />} />
-
         <Route path="productos/:id/editar" element={<EditarProductoPage />} />
+
+        {/* Pedidos */}
+        <Route path="pedidos" element={<PedidosPage />} />
+        <Route path="pedidos/registrar" element={<RegistrarPedidoPage />} />
       </Route>
     </Routes>
   );

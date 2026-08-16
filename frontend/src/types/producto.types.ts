@@ -14,6 +14,7 @@ export interface ProductoListado {
   nombre: string;
   fotoUrl: string | null;
   precioUnitario: number;
+  precioVenta: number;
   stock: number;
 }
 
