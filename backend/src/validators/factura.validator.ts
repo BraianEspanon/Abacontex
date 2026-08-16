@@ -18,3 +18,11 @@ export const generarFacturaSchema = z.object({
 });
 
 export type GenerarFacturaDTO = z.infer<typeof generarFacturaSchema>['body'];
+
+export const obtenerDetalleFacturaSchema = z.object({
+  params: z.object({
+    idFactura: z.coerce.number().int().positive(),
+  }),
+});
+
+export type ObtenerDetalleFacturaParamsDTO = z.infer<typeof obtenerDetalleFacturaSchema>['params'];

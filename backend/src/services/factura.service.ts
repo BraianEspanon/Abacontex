@@ -89,3 +89,17 @@ export async function generarFactura(user: AuthUser, data: GenerarFacturaDTO) {
 
   return nuevaFactura;
 }
+
+export async function obtenerDetalleFactura(user: AuthUser, idFactura: number) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno?.empresa) {
+    throw new ConflictError('El alumno no está asociado a una empresa.');
+  }
+
+  const empresa = usuario.alumno.empresa;
+
+  const factura = await facturaRepository.findByIdAndEmpresaFullOrThrow(idFactura, empresa.id);
+
+  return FacturaMapper.toFacturaDetalleDTO(factura);
+}
