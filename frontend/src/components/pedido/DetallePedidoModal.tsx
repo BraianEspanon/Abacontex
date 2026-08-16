@@ -14,8 +14,8 @@ interface DetallePedidoModalProps {
 const nombresEstado: Record<EstadoPedido, string> = {
   PENDIENTE: 'Pendiente',
   EN_PRODUCCION: 'En producción',
-  LISTO_PARA_ENTREGAR: 'Finalizado',
-  COMPLETADO: 'Entregado',
+  LISTO_PARA_ENTREGAR: 'Listo para entregar',
+  COMPLETADO: 'Completado',
   CANCELADO: 'Cancelado',
 };
 
