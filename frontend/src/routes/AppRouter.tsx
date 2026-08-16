@@ -29,6 +29,9 @@ import LoginDocente from '../pages/docente/LoginDocente';
 import PedidosPage from '../pages/pedido/PedidosPage';
 import RegistrarPedidoPage from '../pages/pedido/RegistrarPedidoPage';
 
+import ProduccionPage from '../pages/produccion/ProduccionPage';
+import CrearOrdenProduccionPage from '../pages/produccion/CrearOrdenProduccionPage';
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -130,6 +133,10 @@ export default function AppRouter() {
         {/* Pedidos */}
         <Route path="pedidos" element={<PedidosPage />} />
         <Route path="pedidos/registrar" element={<RegistrarPedidoPage />} />
+
+        {/* Producción */}
+        <Route path="produccion" element={<ProduccionPage />} />
+        <Route path="produccion/crear" element={<CrearOrdenProduccionPage />} />
       </Route>
     </Routes>
   );

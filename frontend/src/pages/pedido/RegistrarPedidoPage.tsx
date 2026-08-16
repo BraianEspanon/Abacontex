@@ -33,7 +33,7 @@ export default function RegistrarPedidoPage() {
   };
 
   const handleCrearOrdenProduccion = (idPedido: number) => {
-    console.log('Crear orden de producción para pedido:', idPedido);
+    navigate(`/alumno/produccion/crear?pedidoId=${idPedido}`);
   };
 
   return (

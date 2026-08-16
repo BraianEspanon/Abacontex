@@ -34,7 +34,9 @@ export default function PedidosPage() {
   };
 
   const handleCrearOrdenProduccion = (idPedido: number) => {
-    console.log('Crear orden de producción para pedido:', idPedido);
+    setIdPedidoSeleccionado(null);
+
+    navigate(`/alumno/produccion/crear?pedidoId=${idPedido}`);
   };
 
   const handleMarcarListoParaEntregar = (idPedido: number) => {
