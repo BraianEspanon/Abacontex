@@ -6,8 +6,13 @@ import EncabezadoAlumno from '../components/alumno/EncabezadoAlumno';
 const titulosPorRuta: Record<string, string> = {
   '/alumno': 'Inicio',
   '/alumno/empresa/editar': 'Editar empresa',
+
   '/alumno/productos': 'Productos',
+  '/alumno/productos/registrar': 'Registrar producto',
+
   '/alumno/pedidos': 'Pedidos',
+  '/alumno/pedidos/registrar': 'Registrar pedido',
+
   '/alumno/produccion': 'Producción',
   '/alumno/ventas': 'Ventas',
   '/alumno/facturacion': 'Facturación',
