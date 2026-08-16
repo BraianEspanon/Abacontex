@@ -161,6 +161,43 @@ export async function findByEmpresa(
   });
 }
 
+export async function findVentasPendientesFacturacion(
+  empresaId: number,
+  filtros: { page: number; pageSize: number },
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const where: Prisma.VentaWhereInput = {
+    empresaId,
+    factura: null, // Que no tenga factura asociada
+    estado: 'CONFIRMADA',
+  };
+
+  const skip = (filtros.page - 1) * filtros.pageSize;
+
+  const [total, items] = await Promise.all([
+    db.venta.count({ where }),
+    db.venta.findMany({
+      where,
+      include: {
+        pedido: {
+          select: {
+            clienteNombre: true,
+          },
+        },
+      },
+      orderBy: {
+        fecha: 'desc',
+      },
+      skip,
+      take: filtros.pageSize,
+    }),
+  ]);
+
+  return { total, items };
+}
+
 export async function obtenerResumenVentas(
   empresaId: number,
   fechaInicioMes: Date,

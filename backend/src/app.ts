@@ -12,6 +12,7 @@ import pedidoRoutes from './routes/pedido.routes';
 import produccionRoutes from './routes/produccion.routes';
 import planificacionRoutes from './routes/planificacion.routes';
 import ventaRoutes from './routes/venta.routes';
+import facturaRoutes from './routes/factura.routes';
 
 import cursoRoutes from './routes/curso.routes';
 import rolEmpresaRoutes from './routes/rol-empresa.routes';
@@ -35,6 +36,7 @@ app.use('/pedidos', pedidoRoutes);
 app.use('/produccion', produccionRoutes);
 app.use('/planificacion', planificacionRoutes);
 app.use('/ventas', ventaRoutes);
+app.use('/facturas', facturaRoutes);
 
 app.use('/cursos', cursoRoutes);
 app.use('/roles-empresa', rolEmpresaRoutes);
