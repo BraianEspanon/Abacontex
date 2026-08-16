@@ -5,8 +5,8 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { obtenerVentasPendientesFacturacion } from '../controllers/factura.controller';
-import { obtenerVentasPendientesSchema } from '../validators/factura.validator';
+import { obtenerVentasPendientesFacturacion, generarFactura } from '../controllers/factura.controller';
+import { obtenerVentasPendientesSchema, generarFacturaSchema } from '../validators/factura.validator';
 
 const router = Router();
 
@@ -16,6 +16,14 @@ router.get(
   requireRole(ROLES.ALUMNO),
   validate(obtenerVentasPendientesSchema),
   obtenerVentasPendientesFacturacion
+);
+
+router.post(
+  '/',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(generarFacturaSchema),
+  generarFactura
 );
 
 export default router;

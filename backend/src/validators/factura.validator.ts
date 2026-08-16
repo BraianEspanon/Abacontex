@@ -8,3 +8,13 @@ export const obtenerVentasPendientesSchema = z.object({
 });
 
 export type ObtenerVentasPendientesDTO = z.infer<typeof obtenerVentasPendientesSchema>['query'];
+
+export const generarFacturaSchema = z.object({
+  body: z.object({
+    ventaId: z.number().int().positive(),
+    tipoFactura: z.enum(['A', 'B']),
+    condicionFiscal: z.enum(['RESPONSABLE_INSCRIPTO', 'CONSUMIDOR_FINAL']),
+  }),
+});
+
+export type GenerarFacturaDTO = z.infer<typeof generarFacturaSchema>['body'];
