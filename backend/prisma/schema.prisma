@@ -356,6 +356,7 @@ model Pedido {
 
   fecha      DateTime @default(now())
   montoTotal Decimal  @db.Decimal(14, 2)
+  montoTotalConIva Decimal @db.Decimal(14, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -388,6 +389,9 @@ model DetallePedido {
 
   precioUnitario Decimal @db.Decimal(14, 2)
   subtotal       Decimal @db.Decimal(14, 2)
+
+  precioUnitarioConIva Decimal @db.Decimal(14, 2)
+  subtotalConIva       Decimal @db.Decimal(14, 2)
 
   // 3. Restricción para evitar que el mismo producto se cargue dos veces en el mismo pedido
   @@unique([pedidoId, productoId])

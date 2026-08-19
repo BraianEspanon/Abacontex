@@ -46,7 +46,10 @@ export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
   const estadoPendiente = await pedidoRepository.findEstadoPendiente();
 
   //Construir pedido
-  const { detalles, montoTotal, faltantesStock } = construirPedido(data, productos);
+  const { detalles, montoTotal, montoTotalConIva, faltantesStock } = construirPedido(
+    data,
+    productos
+  );
 
   //Transacción
   const pedido = await pedidoRepository.createPedido(
@@ -69,6 +72,7 @@ export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
       clienteNombre: data.clienteNombre,
       clienteMail: data.clienteMail,
       montoTotal,
+      montoTotalConIva,
     },
     detalles
   );
@@ -102,9 +106,12 @@ function construirPedido(data: CrearPedidoDTO, productos: ProductoPedido[]) {
     return detalle;
   });
 
+  const montoTotalConIva = montoTotal.mul(1.21);
+
   return {
     detalles,
     montoTotal,
+    montoTotalConIva,
     faltantesStock,
   };
 }
@@ -209,49 +216,6 @@ export async function marcarPedidoListoParaEntregar(
     numeroPedido: pedidoActualizado.idPedido,
     estado: pedidoActualizado.estado.nombre,
     mensaje: 'Pedido marcado como listo para entregar.',
-  };
-
-  return response;
-}
-
-export async function completarPedido(
-  user: AuthUser,
-  params: PedidoIdDTO
-): Promise<PedidoCambioEstadoResponseDTO> {
-  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
-
-  if (!usuario.alumno) {
-    throw new ForbiddenError('El alumno no completó su registro.');
-  }
-
-  if (!usuario.alumno.empresa) {
-    throw new ForbiddenError('El usuario no pertenece a una empresa.');
-  }
-
-  const pedido = await pedidoRepository.findByIdAndEmpresa(
-    params.idPedido,
-    usuario.alumno.empresa.id
-  );
-
-  if (!pedido) {
-    throw new NotFoundError('No se encontró el pedido.');
-  }
-
-  if (pedido.estado.nombre !== 'LISTO_PARA_ENTREGAR') {
-    throw new BadRequestError('Solo los pedidos listos para entregar pueden completarse.');
-  }
-
-  const estadoCompletado = await pedidoRepository.findEstadoCompletado();
-
-  const pedidoActualizado = await pedidoRepository.updateEstadoPedido(
-    pedido.idPedido,
-    estadoCompletado.idEstado
-  );
-
-  const response: PedidoCambioEstadoResponseDTO = {
-    numeroPedido: pedidoActualizado.idPedido,
-    estado: pedidoActualizado.estado.nombre,
-    mensaje: 'Pedido marcado como completado.',
   };
 
   return response;

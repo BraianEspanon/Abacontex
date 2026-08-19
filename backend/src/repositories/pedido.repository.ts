@@ -26,6 +26,7 @@ export async function findProductosByIdsAndEmpresa(
       stock: true,
       precioUnitario: true,
       precioVenta: true,
+      precioConsumidorFinal: true,
     },
   });
 
@@ -54,13 +55,17 @@ export async function findByIdAndEmpresa(idPedido: number, empresaId: number) {
               nombre: true,
               descripcion: true,
               fotoUrl: true,
+              precioVenta: true,
+              precioConsumidorFinal: true,
             },
           },
         },
       },
+      venta: true,
     },
   });
 }
+
 export async function findByIdAndEmpresaOrThrow(idPedido: number, empresaId: number) {
   const pedido = await findByIdAndEmpresa(idPedido, empresaId);
 
@@ -167,10 +172,43 @@ export async function findEstadoListoParaEntregar(tx?: Prisma.TransactionClient)
   });
 }
 
-export async function findEstadoCompletado() {
-  return prisma.estadoPedido.findUniqueOrThrow({
+export async function findEstadoCompletado(tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.estadoPedido.findUniqueOrThrow({
     where: {
       nombre: ESTADOS_PEDIDOS.COMPLETADO,
+    },
+  });
+}
+
+export async function findPedidosListosParaVenta(empresaId: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.pedido.findMany({
+    where: {
+      empresaId,
+      estado: {
+        nombre: ESTADOS_PEDIDOS.LISTO_PARA_ENTREGAR,
+      },
+      venta: null,
+    },
+    include: {
+      detalles: {
+        include: {
+          producto: {
+            select: {
+              id: true,
+              nombre: true,
+              precioVenta: true,
+              precioConsumidorFinal: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      fecha: 'asc',
     },
   });
 }
@@ -205,7 +243,9 @@ export async function createPedido(
             cantidadConStock: detalle.cantidadConStock,
             cantidadPendiente: detalle.cantidadPendiente,
             precioUnitario: detalle.precioUnitario,
+            precioUnitarioConIva: detalle.precioUnitarioConIva,
             subtotal: detalle.subtotal,
+            subtotalConIva: detalle.subtotalConIva,
           })),
         },
       },
