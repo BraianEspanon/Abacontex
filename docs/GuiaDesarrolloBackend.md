@@ -900,3 +900,13 @@ Cuando una implementación nueva se parezca a una funcionalidad existente, repli
 * Checklist específico antes de implementar un endpoint.
 * Una sección final de “Registro de decisiones de implementación”, que funcione justamente como constancia de los acuerdos que vamos consolidando.
 
+## 35. Convenciones Adicionales (Paginación, Swagger y Responsabilidades)
+
+1. **Formato de Paginación Plano:**
+   Las respuestas paginadas NUNCA usan un objeto anidado `meta`. Deben devolver una estructura plana en la raíz que contenga: `items`, `page`, `pageSize`, `totalItems` y `totalPages`.
+
+2. **Documentación Swagger:**
+   La documentación Swagger se hace utilizando `swagger-jsdoc`. Los esquemas (schemas y respuestas) deben crearse en la carpeta `src/docs/schemas/` y la definición de los endpoints en `src/docs/paths/`. Por limpieza de código, no se debe incluir documentación `@swagger` directamente en los archivos de rutas (`*.routes.ts`).
+
+3. **Responsabilidad Estricta (Service vs Repository):**
+   El `Repository` debe ser 100% pasivo y limitarse a interactuar con Prisma. La lógica de negocio, cálculos matemáticos, y la generación de valores automáticos (fechas actuales, strings aleatorios o IDs) DEBEN hacerse siempre en el `Service` e inyectarse limpios como parámetros hacia el Repository.
