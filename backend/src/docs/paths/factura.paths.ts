@@ -40,7 +40,7 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/FacturaListResponse'
- * 
+ *
  *   post:
  *     summary: Generar nueva factura manualmente
  *     tags: [Facturación]
@@ -63,7 +63,7 @@
  *         description: Datos inválidos o inconsistentes con la venta (CA04)
  *       409:
  *         description: Conflicto - la venta ya tiene factura
- * 
+ *
  * /facturas/ventas-pendientes:
  *   get:
  *     summary: Obtener listado de ventas confirmadas pendientes de facturar
@@ -88,7 +88,7 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/VentaPendienteFacturacionResponse'
- * 
+ *
  * /facturas/{idFactura}:
  *   get:
  *     summary: Obtener detalle completo de una factura

@@ -13,7 +13,7 @@
  *           type: number
  *         montoFacturado:
  *           type: number
- * 
+ *
  *     FacturaListItem:
  *       type: object
  *       properties:
@@ -33,7 +33,7 @@
  *           enum: [A, B]
  *         montoTotal:
  *           type: number
- * 
+ *
  *     FacturaListResponse:
  *       type: object
  *       properties:
@@ -51,7 +51,7 @@
  *           type: integer
  *         totalPages:
  *           type: integer
- * 
+ *
  *     VentaPendienteFacturacion:
  *       type: object
  *       properties:
@@ -61,7 +61,7 @@
  *           type: string
  *         montoTotal:
  *           type: number
- * 
+ *
  *     VentaPendienteFacturacionResponse:
  *       type: object
  *       properties:
@@ -77,7 +77,7 @@
  *           type: integer
  *         totalPages:
  *           type: integer
- * 
+ *
  *     GenerarFacturaRequest:
  *       type: object
  *       required:
@@ -93,7 +93,7 @@
  *         condicionFiscal:
  *           type: string
  *           enum: [RESPONSABLE_INSCRIPTO, CONSUMIDOR_FINAL]
- * 
+ *
  *     FacturaDetalle:
  *       type: object
  *       properties:
