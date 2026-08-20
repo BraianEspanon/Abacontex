@@ -33,6 +33,18 @@ export type FacturaDetallePayload = Prisma.FacturaGetPayload<{
   };
 }>;
 
+export type FacturaListItemPayload = Prisma.FacturaGetPayload<{
+  include: {
+    venta: {
+      include: {
+        pedido: {
+          select: { clienteNombre: true }
+        }
+      }
+    }
+  }
+}>;
+
 export class FacturaMapper {
   static toVentaPendienteDTO(venta: VentaPendientePayload) {
     return {
@@ -85,6 +97,18 @@ export class FacturaMapper {
 
         totalFinal: Number(venta.totalFinal),
       },
+    };
+  }
+
+  static toFacturaListDTO(factura: FacturaListItemPayload) {
+    return {
+      idFactura: factura.idFactura,
+      idVenta: factura.venta.idVenta,
+      cliente: factura.venta.pedido.clienteNombre,
+      condicionFiscal: factura.condicionFiscal,
+      fecha: factura.fechaEmision,
+      tipoFactura: factura.tipoFactura,
+      montoTotal: Number(factura.venta.totalFinal),
     };
   }
 }

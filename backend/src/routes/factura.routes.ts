@@ -9,14 +9,24 @@ import {
   obtenerVentasPendientesFacturacion,
   generarFactura,
   obtenerDetalleFactura,
+  obtenerFacturas,
 } from '../controllers/factura.controller';
 import {
   obtenerVentasPendientesSchema,
   generarFacturaSchema,
   obtenerDetalleFacturaSchema,
+  obtenerFacturasSchema,
 } from '../validators/factura.validator';
 
 const router = Router();
+
+router.get(
+  '/',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(obtenerFacturasSchema),
+  obtenerFacturas
+);
 
 router.get(
   '/ventas-pendientes',
