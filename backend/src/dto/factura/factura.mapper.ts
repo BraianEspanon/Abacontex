@@ -38,11 +38,11 @@ export type FacturaListItemPayload = Prisma.FacturaGetPayload<{
     venta: {
       include: {
         pedido: {
-          select: { clienteNombre: true }
-        }
-      }
-    }
-  }
+          select: { clienteNombre: true };
+        };
+      };
+    };
+  };
 }>;
 
 export class FacturaMapper {
@@ -61,6 +61,9 @@ export class FacturaMapper {
       idFactura: factura.idFactura,
       tipoFactura: factura.tipoFactura,
       fechaEmision: factura.fechaEmision,
+      cai: factura.cai,
+      fechaVencimiento: factura.fechaVencimiento,
+      localidad: factura.localidad,
 
       empresa: {
         nombre: venta.empresa.nombre,

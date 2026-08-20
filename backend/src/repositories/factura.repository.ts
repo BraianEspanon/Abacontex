@@ -13,7 +13,10 @@ export async function findByVentaId(ventaId: number, tx?: Prisma.TransactionClie
   });
 }
 
-export async function create(data: GenerarFacturaDTO, tx?: Prisma.TransactionClient) {
+export async function create(
+  data: GenerarFacturaDTO & { cai: string; fechaVencimiento: Date; localidad: string },
+  tx?: Prisma.TransactionClient
+) {
   const db = getDbClient(tx);
 
   return db.factura.create({
@@ -21,6 +24,9 @@ export async function create(data: GenerarFacturaDTO, tx?: Prisma.TransactionCli
       ventaId: data.ventaId,
       tipoFactura: data.tipoFactura as TipoFactura,
       condicionFiscal: data.condicionFiscal as CondicionFiscal,
+      cai: data.cai,
+      fechaVencimiento: data.fechaVencimiento,
+      localidad: data.localidad,
     },
   });
 }
@@ -92,42 +98,38 @@ export async function findByIdAndEmpresaFullOrThrow(
 }
 
 export async function obtenerResumenFacturas(
-  empresaId: number, 
-  fechaInicioMes: Date, 
-  fechaFinMes: Date, 
+  empresaId: number,
+  fechaInicioMes: Date,
+  fechaFinMes: Date,
   tx?: Prisma.TransactionClient
 ) {
   const db = getDbClient(tx);
 
-  const [
-    facturasEmitidas,
-    ventasPendientes,
-    facturacionMesAgg,
-    montoFacturadoAgg
-  ] = await Promise.all([
-    db.factura.count({ where: { venta: { empresaId } } }),
-    db.venta.count({ where: { empresaId, factura: null, estado: 'CONFIRMADA' } }),
-    db.venta.aggregate({
-      _sum: { totalFinal: true },
-      where: { 
-        empresaId, 
-        factura: { fechaEmision: { gte: fechaInicioMes, lte: fechaFinMes } }
-      }
-    }),
-    db.venta.aggregate({
-      _sum: { totalFinal: true },
-      where: { 
-        empresaId, 
-        factura: { isNot: null } 
-      }
-    })
-  ]);
+  const [facturasEmitidas, ventasPendientes, facturacionMesAgg, montoFacturadoAgg] =
+    await Promise.all([
+      db.factura.count({ where: { venta: { empresaId } } }),
+      db.venta.count({ where: { empresaId, factura: null, estado: 'CONFIRMADA' } }),
+      db.venta.aggregate({
+        _sum: { totalFinal: true },
+        where: {
+          empresaId,
+          factura: { fechaEmision: { gte: fechaInicioMes, lte: fechaFinMes } },
+        },
+      }),
+      db.venta.aggregate({
+        _sum: { totalFinal: true },
+        where: {
+          empresaId,
+          factura: { isNot: null },
+        },
+      }),
+    ]);
 
   return {
     facturasEmitidas,
     ventasPendientes,
     facturacionMes: Number(facturacionMesAgg._sum.totalFinal || 0),
-    montoFacturado: Number(montoFacturadoAgg._sum.totalFinal || 0)
+    montoFacturado: Number(montoFacturadoAgg._sum.totalFinal || 0),
   };
 }
 
@@ -141,18 +143,18 @@ export async function findFacturasByEmpresa(
   const where: Prisma.FacturaWhereInput = {
     venta: {
       empresaId,
-    }
+    },
   };
 
   if (filtros.search) {
     where.venta = {
-      ...where.venta,
+      empresaId,
       pedido: {
         clienteNombre: {
           contains: filtros.search,
-          mode: 'insensitive'
-        }
-      }
+          mode: 'insensitive',
+        },
+      },
     };
   }
 
@@ -164,7 +166,7 @@ export async function findFacturasByEmpresa(
     const añoActual = new Date().getFullYear();
     const fechaInicio = new Date(añoActual, filtros.mes - 1, 1);
     const fechaFin = new Date(añoActual, filtros.mes, 0, 23, 59, 59, 999);
-    
+
     where.fechaEmision = {
       gte: fechaInicio,
       lte: fechaFin,
@@ -181,15 +183,15 @@ export async function findFacturasByEmpresa(
         venta: {
           include: {
             pedido: {
-              select: { clienteNombre: true }
-            }
-          }
-        }
+              select: { clienteNombre: true },
+            },
+          },
+        },
       },
       orderBy: { fechaEmision: 'desc' },
       skip,
       take: filtros.pageSize,
-    })
+    }),
   ]);
 
   return { total, items };

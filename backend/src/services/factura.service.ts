@@ -88,8 +88,19 @@ export async function generarFactura(user: AuthUser, data: GenerarFacturaDTO) {
     );
   }
 
-  // 4. Crear factura
-  const nuevaFactura = await facturaRepository.create(data);
+  // 4. Calcular campos obligatorios de factura
+  const currentYear = new Date().getFullYear();
+  const fechaVencimiento = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+  const cai = Array.from({ length: 14 }, () => Math.floor(Math.random() * 10)).join('');
+  const localidad = 'Formosa';
+
+  // 5. Crear factura
+  const nuevaFactura = await facturaRepository.create({
+    ...data,
+    cai,
+    fechaVencimiento,
+    localidad,
+  });
 
   return obtenerDetalleFactura(user, nuevaFactura.idFactura);
 }
