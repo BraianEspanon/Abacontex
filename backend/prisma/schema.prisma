@@ -354,9 +354,9 @@ model Pedido {
 
   clienteMail String
 
-  fecha      DateTime @default(now())
-  montoTotal Decimal  @db.Decimal(14, 2)
-  montoTotalConIva Decimal @db.Decimal(14, 2)
+  fecha            DateTime @default(now())
+  montoTotal       Decimal  @db.Decimal(14, 2)
+  montoTotalConIva Decimal  @db.Decimal(14, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -630,10 +630,16 @@ model Factura {
 
   condicionFiscal CondicionFiscal
 
+  cai String @db.VarChar(14)
+
+  fechaVencimiento DateTime @db.Date
+
+  localidad String @db.VarChar(100)
+
   fechaEmision DateTime @default(now()) @db.Timestamptz(3)
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   @@index([tipoFactura])
   @@index([condicionFiscal])
