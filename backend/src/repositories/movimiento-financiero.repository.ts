@@ -11,6 +11,24 @@ export async function findCategoriaVenta(tx?: Prisma.TransactionClient) {
   });
 }
 
+export async function findCategoriaById(idCategoria: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.categoriaMovimiento.findUnique({
+    where: { idCategoria },
+    include: { tipoMovimiento: true },
+  });
+}
+
+export async function findAllCategorias(tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.categoriaMovimiento.findMany({
+    include: { tipoMovimiento: true },
+    orderBy: { nombre: 'asc' },
+  });
+}
+
 export async function findEstadoRegistrado(tx?: Prisma.TransactionClient) {
   const db = getDbClient(tx);
 
@@ -22,7 +40,7 @@ export async function findEstadoRegistrado(tx?: Prisma.TransactionClient) {
 export async function create(
   data: Omit<
     Prisma.MovimientoFinancieroUncheckedCreateInput,
-    'idMovimiento' | 'fecha' | 'createdAt' | 'updatedAt'
+    'idMovimiento' | 'createdAt' | 'updatedAt'
   >,
   tx?: Prisma.TransactionClient
 ) {
@@ -30,5 +48,14 @@ export async function create(
 
   return db.movimientoFinanciero.create({
     data,
+    include: {
+      categoria: {
+        select: {
+          nombre: true,
+          tipoMovimiento: { select: { nombre: true } },
+        },
+      },
+      metodoPago: { select: { nombre: true } },
+    },
   });
 }
