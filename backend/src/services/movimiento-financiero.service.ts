@@ -148,7 +148,7 @@ export async function obtenerTiposMovimiento() {
   return movimientoFinancieroRepository.findTiposMovimiento();
 }
 
-export async function obtenerIndicadores(user: AuthUser) {
+export async function obtenerResumen(user: AuthUser) {
   const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
 
   if (!usuario.alumno) {
@@ -165,10 +165,7 @@ export async function obtenerIndicadores(user: AuthUser) {
   // Calculamos el mes actual basado en la fecha del servidor
   const mesActual = new Date().getMonth();
 
-  const movimientos = await movimientoFinancieroRepository.getResumenIndicadores(
-    idEmpresa,
-    añoAcademico
-  );
+  const movimientos = await movimientoFinancieroRepository.findResumen(idEmpresa, añoAcademico);
 
   let totalIngresos = 0;
   let totalEgresos = 0;
@@ -244,15 +241,32 @@ export async function obtenerDatosGrafico(user: AuthUser, query: ConsultarGrafic
     fechaFin
   );
 
-  const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const nombresMeses = [
+    'Ene',
+    'Feb',
+    'Mar',
+    'Abr',
+    'May',
+    'Jun',
+    'Jul',
+    'Ago',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dic',
+  ];
 
   if (query.periodo === 'mes') {
     // Agrupar por días (del 1 al último día del mes)
     const agrupado: Record<number, { label: string; ingresos: number; egresos: number }> = {};
     const ultimoDia = fechaFin.getDate();
-    
+
     for (let i = 1; i <= ultimoDia; i++) {
-      agrupado[i] = { label: `${i} ${nombresMeses[fechaInicio.getMonth()]}`, ingresos: 0, egresos: 0 };
+      agrupado[i] = {
+        label: `${i} ${nombresMeses[fechaInicio.getMonth()]}`,
+        ingresos: 0,
+        egresos: 0,
+      };
     }
 
     for (const mov of movimientos) {

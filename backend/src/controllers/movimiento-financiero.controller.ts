@@ -26,8 +26,8 @@ export async function obtenerTiposMovimiento(req: Request, res: Response) {
   res.status(200).json(resultado);
 }
 
-export async function obtenerIndicadores(req: Request, res: Response) {
-  const resultado = await movimientoFinancieroService.obtenerIndicadores(req.user!);
+export async function obtenerResumen(req: Request, res: Response) {
+  const resultado = await movimientoFinancieroService.obtenerResumen(req.user!);
   res.status(200).json(resultado);
 }
 

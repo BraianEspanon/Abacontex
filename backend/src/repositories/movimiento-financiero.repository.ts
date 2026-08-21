@@ -121,7 +121,7 @@ export async function findTiposMovimiento(tx?: Prisma.TransactionClient) {
   return db.tipoMovimiento.findMany();
 }
 
-export async function getResumenIndicadores(
+export async function findResumen(
   idEmpresa: number,
   añoAcademico: number,
   tx?: Prisma.TransactionClient

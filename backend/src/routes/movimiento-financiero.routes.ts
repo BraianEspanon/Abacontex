@@ -10,7 +10,7 @@ import {
   registrarMovimiento,
   obtenerHistorial,
   obtenerTiposMovimiento,
-  obtenerIndicadores,
+  obtenerResumen,
   obtenerDatosGrafico,
 } from '../controllers/movimiento-financiero.controller';
 import {
@@ -25,7 +25,7 @@ router.get('/categorias', authenticate, requireRole(ROLES.ALUMNO), obtenerCatego
 
 router.get('/tipos-movimiento', authenticate, requireRole(ROLES.ALUMNO), obtenerTiposMovimiento);
 
-router.get('/indicadores', authenticate, requireRole(ROLES.ALUMNO), obtenerIndicadores);
+router.get('/resumen', authenticate, requireRole(ROLES.ALUMNO), obtenerResumen);
 
 router.get(
   '/grafico',
