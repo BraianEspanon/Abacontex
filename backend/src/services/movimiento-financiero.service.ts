@@ -146,3 +146,59 @@ export async function obtenerHistorial(user: AuthUser, query: ConsultarHistorial
 export async function obtenerTiposMovimiento() {
   return movimientoFinancieroRepository.findTiposMovimiento();
 }
+
+export async function obtenerIndicadores(user: AuthUser) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError('El usuario no está asociado a un alumno.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('El alumno no está asociado a una empresa.');
+  }
+
+  const idEmpresa = usuario.alumno.empresa.id;
+  const añoAcademico = usuario.alumno.empresa.cicloLectivo.año;
+
+  // Calculamos el mes actual basado en la fecha del servidor
+  const mesActual = new Date().getMonth();
+
+  const movimientos = await movimientoFinancieroRepository.getResumenIndicadores(
+    idEmpresa,
+    añoAcademico
+  );
+
+  let totalIngresos = 0;
+  let totalEgresos = 0;
+  let mesActualIngresos = 0;
+  let mesActualEgresos = 0;
+
+  for (const mov of movimientos) {
+    const importe = Number(mov.importe);
+    const esIngreso = mov.categoria.tipoMovimiento.nombre === 'INGRESO';
+
+    if (esIngreso) {
+      totalIngresos += importe;
+      // Verificamos que sea del mes actual y del año actual
+      if (mov.fecha.getMonth() === mesActual && mov.fecha.getFullYear() === añoAcademico) {
+        mesActualIngresos += importe;
+      }
+    } else {
+      totalEgresos += importe;
+      if (mov.fecha.getMonth() === mesActual && mov.fecha.getFullYear() === añoAcademico) {
+        mesActualEgresos += importe;
+      }
+    }
+  }
+
+  return {
+    totalIngresos,
+    totalEgresos,
+    flujoNeto: totalIngresos - totalEgresos,
+    mesActual: {
+      ingresos: mesActualIngresos,
+      egresos: mesActualEgresos,
+    },
+  };
+}

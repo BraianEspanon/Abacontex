@@ -10,6 +10,7 @@ import {
   registrarMovimiento,
   obtenerHistorial,
   obtenerTiposMovimiento,
+  obtenerIndicadores,
 } from '../controllers/movimiento-financiero.controller';
 import {
   registrarMovimientoSchema,
@@ -21,6 +22,8 @@ const router = Router();
 router.get('/categorias', authenticate, requireRole(ROLES.ALUMNO), obtenerCategorias);
 
 router.get('/tipos-movimiento', authenticate, requireRole(ROLES.ALUMNO), obtenerTiposMovimiento);
+
+router.get('/indicadores', authenticate, requireRole(ROLES.ALUMNO), obtenerIndicadores);
 
 router.post(
   '/movimientos',

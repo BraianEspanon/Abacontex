@@ -120,3 +120,33 @@ export async function findTiposMovimiento(tx?: Prisma.TransactionClient) {
   const db = getDbClient(tx);
   return db.tipoMovimiento.findMany();
 }
+
+export async function getResumenIndicadores(
+  idEmpresa: number,
+  añoAcademico: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const fechaInicio = new Date(añoAcademico, 0, 1);
+  const fechaFin = new Date(añoAcademico, 11, 31, 23, 59, 59, 999);
+
+  return db.movimientoFinanciero.findMany({
+    where: {
+      idEmpresa,
+      fecha: {
+        gte: fechaInicio,
+        lte: fechaFin,
+      },
+    },
+    select: {
+      fecha: true,
+      importe: true,
+      categoria: {
+        select: {
+          tipoMovimiento: { select: { nombre: true } },
+        },
+      },
+    },
+  });
+}
