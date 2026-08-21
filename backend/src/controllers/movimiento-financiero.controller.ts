@@ -4,6 +4,7 @@ import * as movimientoFinancieroService from '../services/movimiento-financiero.
 import {
   registrarMovimientoSchema,
   consultarHistorialSchema,
+  consultarGraficoSchema,
 } from '../validators/movimiento-financiero.validator';
 
 export async function obtenerCategorias(req: Request, res: Response) {
@@ -27,6 +28,14 @@ export async function obtenerTiposMovimiento(req: Request, res: Response) {
 
 export async function obtenerIndicadores(req: Request, res: Response) {
   const resultado = await movimientoFinancieroService.obtenerIndicadores(req.user!);
+  res.status(200).json(resultado);
+}
+
+export async function obtenerDatosGrafico(req: Request, res: Response) {
+  const { query } = consultarGraficoSchema.parse({ query: req.query });
+
+  const resultado = await movimientoFinancieroService.obtenerDatosGrafico(req.user!, query);
+
   res.status(200).json(resultado);
 }
 

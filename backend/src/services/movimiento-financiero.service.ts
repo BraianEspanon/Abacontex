@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import {
   RegistrarMovimientoDTO,
   ConsultarHistorialDTO,
+  ConsultarGraficoDTO,
 } from '../validators/movimiento-financiero.validator';
 
 import * as usuarioRepository from '../repositories/usuario.repository';
@@ -201,4 +202,95 @@ export async function obtenerIndicadores(user: AuthUser) {
       egresos: mesActualEgresos,
     },
   };
+}
+
+export async function obtenerDatosGrafico(user: AuthUser, query: ConsultarGraficoDTO) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError('El usuario no está asociado a un alumno.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('El alumno no está asociado a una empresa.');
+  }
+
+  const idEmpresa = usuario.alumno.empresa.id;
+  const añoAcademico = usuario.alumno.empresa.cicloLectivo.año;
+
+  const hoy = new Date();
+  let fechaInicio: Date;
+  let fechaFin: Date;
+
+  if (query.periodo === 'mes') {
+    // Mes actual del año académico (usamos el mes calendario de hoy)
+    const mesActual = hoy.getMonth();
+    fechaInicio = new Date(añoAcademico, mesActual, 1);
+    fechaFin = new Date(añoAcademico, mesActual + 1, 0, 23, 59, 59, 999);
+  } else if (query.periodo === '6meses') {
+    // Últimos 6 meses hasta fin de este mes
+    const mesActual = hoy.getMonth();
+    fechaFin = new Date(añoAcademico, mesActual + 1, 0, 23, 59, 59, 999);
+    fechaInicio = new Date(añoAcademico, mesActual - 5, 1);
+  } else {
+    // Ciclo completo (del 1 de Enero al 31 de Diciembre)
+    fechaInicio = new Date(añoAcademico, 0, 1);
+    fechaFin = new Date(añoAcademico, 11, 31, 23, 59, 59, 999);
+  }
+
+  const movimientos = await movimientoFinancieroRepository.findMovimientosPorRango(
+    idEmpresa,
+    fechaInicio,
+    fechaFin
+  );
+
+  const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+  if (query.periodo === 'mes') {
+    // Agrupar por días (del 1 al último día del mes)
+    const agrupado: Record<number, { label: string; ingresos: number; egresos: number }> = {};
+    const ultimoDia = fechaFin.getDate();
+    
+    for (let i = 1; i <= ultimoDia; i++) {
+      agrupado[i] = { label: `${i} ${nombresMeses[fechaInicio.getMonth()]}`, ingresos: 0, egresos: 0 };
+    }
+
+    for (const mov of movimientos) {
+      const dia = mov.fecha.getDate();
+      const importe = Number(mov.importe);
+      if (mov.categoria.tipoMovimiento.nombre === 'INGRESO') {
+        agrupado[dia].ingresos += importe;
+      } else {
+        agrupado[dia].egresos += importe;
+      }
+    }
+    return Object.values(agrupado);
+  } else {
+    // Agrupar por meses y año
+    const agrupado = new Map<string, { label: string; ingresos: number; egresos: number }>();
+
+    // Precargar meses en el mapa para que salgan en orden (y los vacíos en 0)
+    let current = new Date(fechaInicio);
+    while (current <= fechaFin) {
+      const yearStr = current.getFullYear().toString().slice(-2);
+      const monthIdx = current.getMonth();
+      const key = `${current.getFullYear()}-${monthIdx}`;
+      const label = `${nombresMeses[monthIdx]} ${yearStr}`;
+
+      agrupado.set(key, { label, ingresos: 0, egresos: 0 });
+      current.setMonth(current.getMonth() + 1);
+    }
+
+    for (const mov of movimientos) {
+      const key = `${mov.fecha.getFullYear()}-${mov.fecha.getMonth()}`;
+      const dataMes = agrupado.get(key);
+      if (dataMes) {
+        const importe = Number(mov.importe);
+        if (mov.categoria.tipoMovimiento.nombre === 'INGRESO') dataMes.ingresos += importe;
+        else dataMes.egresos += importe;
+      }
+    }
+
+    return Array.from(agrupado.values());
+  }
 }

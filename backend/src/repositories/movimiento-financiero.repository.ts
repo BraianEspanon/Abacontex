@@ -150,3 +150,31 @@ export async function getResumenIndicadores(
     },
   });
 }
+
+export async function findMovimientosPorRango(
+  idEmpresa: number,
+  fechaInicio: Date,
+  fechaFin: Date,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.movimientoFinanciero.findMany({
+    where: {
+      idEmpresa,
+      fecha: {
+        gte: fechaInicio,
+        lte: fechaFin,
+      },
+    },
+    select: {
+      fecha: true,
+      importe: true,
+      categoria: {
+        select: {
+          tipoMovimiento: { select: { nombre: true } },
+        },
+      },
+    },
+  });
+}

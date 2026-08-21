@@ -11,10 +11,12 @@ import {
   obtenerHistorial,
   obtenerTiposMovimiento,
   obtenerIndicadores,
+  obtenerDatosGrafico,
 } from '../controllers/movimiento-financiero.controller';
 import {
   registrarMovimientoSchema,
   consultarHistorialSchema,
+  consultarGraficoSchema,
 } from '../validators/movimiento-financiero.validator';
 
 const router = Router();
@@ -24,6 +26,14 @@ router.get('/categorias', authenticate, requireRole(ROLES.ALUMNO), obtenerCatego
 router.get('/tipos-movimiento', authenticate, requireRole(ROLES.ALUMNO), obtenerTiposMovimiento);
 
 router.get('/indicadores', authenticate, requireRole(ROLES.ALUMNO), obtenerIndicadores);
+
+router.get(
+  '/grafico',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(consultarGraficoSchema),
+  obtenerDatosGrafico
+);
 
 router.post(
   '/movimientos',

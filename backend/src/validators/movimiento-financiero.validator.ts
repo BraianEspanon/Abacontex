@@ -24,3 +24,11 @@ export const consultarHistorialSchema = z.object({
 });
 
 export type ConsultarHistorialDTO = z.infer<typeof consultarHistorialSchema>['query'];
+
+export const consultarGraficoSchema = z.object({
+  query: z.object({
+    periodo: z.enum(['mes', '6meses', 'ciclo']).default('6meses'),
+  }),
+});
+
+export type ConsultarGraficoDTO = z.infer<typeof consultarGraficoSchema>['query'];
