@@ -66,6 +66,10 @@ export const swaggerSpec = swaggerJsdoc({
         description: 'Gestión y emisión de facturas.',
       },
       {
+        name: 'Finanzas',
+        description: 'Gestión de caja, ingresos, egresos y conciliación financiera.',
+      },
+      {
         name: 'Cursos',
         description: 'Consulta de cursos disponibles.',
       },
