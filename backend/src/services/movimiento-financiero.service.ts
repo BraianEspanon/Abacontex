@@ -1,11 +1,16 @@
 import { AuthUser } from '../types/express';
 import { Prisma } from '@prisma/client';
 
-import { RegistrarMovimientoDTO } from '../validators/movimiento-financiero.validator';
+import {
+  RegistrarMovimientoDTO,
+  ConsultarHistorialDTO,
+} from '../validators/movimiento-financiero.validator';
 
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as metodoPagoRepository from '../repositories/metodo-pago.repository';
 import * as movimientoFinancieroRepository from '../repositories/movimiento-financiero.repository';
+
+import { MovimientoFinancieroMapper } from '../dto/finanzas/movimiento-financiero.mapper';
 
 import { ConflictError } from '../errors/conflict.error';
 import { BadRequestError } from '../errors/bad-request-error';
@@ -94,4 +99,50 @@ export async function registrarMovimiento(user: AuthUser, data: RegistrarMovimie
     observaciones: data.observaciones || null,
     esAutomatico: false,
   });
+}
+
+export async function obtenerHistorial(user: AuthUser, query: ConsultarHistorialDTO) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError('El usuario no está asociado a un alumno.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('El alumno no está asociado a una empresa.');
+  }
+
+  const idEmpresa = usuario.alumno.empresa.id;
+  const añoAcademico = usuario.alumno.empresa.cicloLectivo.año;
+
+  let fechaInicio: Date | undefined;
+  let fechaFin: Date | undefined;
+
+  // Si envían mes, buscamos en ese mes del año académico actual
+  if (query.mes) {
+    fechaInicio = new Date(añoAcademico, query.mes - 1, 1);
+    fechaFin = new Date(añoAcademico, query.mes, 0, 23, 59, 59, 999);
+  }
+
+  const paginacion = await movimientoFinancieroRepository.findHistorial(idEmpresa, {
+    fechaInicio,
+    fechaFin,
+    idTipoMovimiento: query.idTipoMovimiento,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
+
+  const totalPages = Math.ceil(paginacion.total / query.pageSize);
+
+  return {
+    items: paginacion.items.map(MovimientoFinancieroMapper.toHistorialDTO),
+    page: query.page,
+    pageSize: query.pageSize,
+    totalItems: paginacion.total,
+    totalPages,
+  };
+}
+
+export async function obtenerTiposMovimiento() {
+  return movimientoFinancieroRepository.findTiposMovimiento();
 }

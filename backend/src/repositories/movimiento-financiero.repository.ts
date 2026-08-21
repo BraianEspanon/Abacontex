@@ -59,3 +59,64 @@ export async function create(
     },
   });
 }
+
+export async function findHistorial(
+  idEmpresa: number,
+  filtros: {
+    fechaInicio?: Date | undefined;
+    fechaFin?: Date | undefined;
+    idTipoMovimiento?: number | undefined;
+    page: number;
+    pageSize: number;
+  },
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const where: Prisma.MovimientoFinancieroWhereInput = {
+    idEmpresa,
+  };
+
+  if (filtros.fechaInicio && filtros.fechaFin) {
+    where.fecha = {
+      gte: filtros.fechaInicio,
+      lte: filtros.fechaFin,
+    };
+  }
+
+  if (filtros.idTipoMovimiento) {
+    where.categoria = {
+      idTipoMovimiento: filtros.idTipoMovimiento,
+    };
+  }
+
+  const [total, items] = await Promise.all([
+    db.movimientoFinanciero.count({ where }),
+    db.movimientoFinanciero.findMany({
+      where,
+      orderBy: { fecha: 'desc' },
+      skip: (filtros.page - 1) * filtros.pageSize,
+      take: filtros.pageSize,
+      select: {
+        idMovimiento: true,
+        fecha: true,
+        concepto: true,
+        importe: true,
+        categoria: {
+          select: {
+            nombre: true,
+            tipoMovimiento: { select: { nombre: true, idTipoMovimiento: true } },
+          },
+        },
+        metodoPago: { select: { nombre: true } },
+      },
+    }),
+  ]);
+
+  return { items, total };
+}
+
+export async function findTiposMovimiento(tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+  return db.tipoMovimiento.findMany();
+}

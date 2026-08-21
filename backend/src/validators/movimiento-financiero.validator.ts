@@ -13,3 +13,14 @@ export const registrarMovimientoSchema = z.object({
 });
 
 export type RegistrarMovimientoDTO = z.infer<typeof registrarMovimientoSchema>['body'];
+
+export const consultarHistorialSchema = z.object({
+  query: z.object({
+    mes: z.coerce.number().int().min(1).max(12).optional(),
+    idTipoMovimiento: z.coerce.number().int().positive().optional(),
+    page: z.coerce.number().int().positive().default(1),
+    pageSize: z.coerce.number().int().positive().default(10),
+  }),
+});
+
+export type ConsultarHistorialDTO = z.infer<typeof consultarHistorialSchema>['query'];
