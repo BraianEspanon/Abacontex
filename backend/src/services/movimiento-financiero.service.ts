@@ -272,10 +272,13 @@ export async function obtenerDatosGrafico(user: AuthUser, query: ConsultarGrafic
     for (const mov of movimientos) {
       const dia = mov.fecha.getDate();
       const importe = Number(mov.importe);
-      if (mov.categoria.tipoMovimiento.nombre === 'INGRESO') {
-        agrupado[dia].ingresos += importe;
-      } else {
-        agrupado[dia].egresos += importe;
+
+      if (agrupado[dia]) {
+        if (mov.categoria.tipoMovimiento.nombre === 'INGRESO') {
+          agrupado[dia].ingresos += importe;
+        } else {
+          agrupado[dia].egresos += importe;
+        }
       }
     }
     return Object.values(agrupado);
@@ -284,7 +287,7 @@ export async function obtenerDatosGrafico(user: AuthUser, query: ConsultarGrafic
     const agrupado = new Map<string, { label: string; ingresos: number; egresos: number }>();
 
     // Precargar meses en el mapa para que salgan en orden (y los vacíos en 0)
-    let current = new Date(fechaInicio);
+    const current = new Date(fechaInicio);
     while (current <= fechaFin) {
       const yearStr = current.getFullYear().toString().slice(-2);
       const monthIdx = current.getMonth();
