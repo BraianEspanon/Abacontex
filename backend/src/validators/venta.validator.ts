@@ -64,6 +64,8 @@ export const obtenerVentasQuerySchema = z.object({
     search: z.string().trim().optional(),
     metodoPagoId: z.coerce.number().int().positive().optional(),
     mes: z.coerce.number().int().min(1).max(12).optional(),
+    page: z.coerce.number().int().positive().default(1),
+    pageSize: z.coerce.number().int().positive().default(10),
   }),
 });
 
