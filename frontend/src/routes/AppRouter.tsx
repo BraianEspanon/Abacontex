@@ -34,6 +34,8 @@ import CrearOrdenProduccionPage from '../pages/produccion/CrearOrdenProduccionPa
 
 import VentasPage from '../pages/venta/VentasPage';
 import RegistrarVentaPage from '../pages/venta/RegistrarVentaPage';
+import PlanificacionAnualPage from '../pages/produccion/PlanificacionAnualPage';
+import CargarPlanificacionAnualPage from '../pages/produccion/CargarPlanificacionAnualPage';
 
 export default function AppRouter() {
   return (
@@ -140,6 +142,9 @@ export default function AppRouter() {
         {/* Producción */}
         <Route path="produccion" element={<ProduccionPage />} />
         <Route path="produccion/crear" element={<CrearOrdenProduccionPage />} />
+        <Route path="produccion/planificacion" element={<PlanificacionAnualPage />} />
+
+        <Route path="produccion/planificacion/cargar" element={<CargarPlanificacionAnualPage />} />
 
         {/* Ventas */}
         <Route path="ventas" element={<VentasPage />} />
