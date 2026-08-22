@@ -1,5 +1,5 @@
 import { Package, Plus, Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import Button from '../ui/Button';
 
@@ -35,17 +35,6 @@ export default function SelectorProductoPedido({
     return data?.items.filter((producto) => !productosSeleccionadosIds.includes(producto.id)) ?? [];
   }, [data?.items, productosSeleccionadosIds]);
 
-  /*
-   * Si el producto seleccionado ya fue agregado por alguna razón,
-   * limpiamos la selección.
-   */
-  useEffect(() => {
-    if (productoSeleccionado && productosSeleccionadosIds.includes(productoSeleccionado.id)) {
-      setProductoSeleccionado(null);
-      setBusqueda('');
-    }
-  }, [productoSeleccionado, productosSeleccionadosIds]);
-
   const handleSeleccionarProducto = (producto: ProductoListado) => {
     setProductoSeleccionado(producto);
     setBusqueda(producto.nombre);
@@ -80,10 +69,9 @@ export default function SelectorProductoPedido({
       </label>
 
       <div className="flex items-start gap-3">
-        {/* Buscador */}
         <div className="relative min-w-0 flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
 
             <input
               id="buscarProducto"
@@ -93,13 +81,12 @@ export default function SelectorProductoPedido({
               onFocus={() => setMostrarResultados(true)}
               placeholder="Escribí el nombre del producto..."
               autoComplete="off"
-              className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm outline-none transition focus:border-[#496647] focus:ring-2 focus:ring-[#496647]/20"
+              className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-3 pl-10 text-sm outline-none transition focus:border-[#496647] focus:ring-2 focus:ring-[#496647]/20"
             />
           </div>
 
-          {/* Resultados */}
           {mostrarResultados && busquedaDebounced.trim() !== '' && (
-            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+            <div className="absolute top-[calc(100%+4px)] right-0 left-0 z-30 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
               {isLoading && (
                 <div className="px-4 py-3 text-sm text-gray-500">Buscando productos...</div>
               )}
@@ -151,7 +138,6 @@ export default function SelectorProductoPedido({
           )}
         </div>
 
-        {/* Agregar */}
         <Button
           type="button"
           label="Agregar producto"

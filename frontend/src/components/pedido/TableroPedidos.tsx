@@ -1,10 +1,6 @@
 import { useState } from 'react';
 
-import type {
-  EstadoPedido,
-  KanbanPedidos,
-  TarjetaPedido,
-} from '../../types/pedido.types';
+import type { EstadoPedido, KanbanPedidos, TarjetaPedido } from '../../types/pedido.types';
 
 import ColumnaPedidos from './ColumnaPedidos';
 
@@ -26,13 +22,9 @@ export default function TableroPedidos({
   onCrearOrdenProduccion,
   onMarcarListoParaEntregar,
 }: TableroPedidosProps) {
-  const [pedidoArrastrado, setPedidoArrastrado] =
-    useState<PedidoArrastrado | null>(null);
+  const [pedidoArrastrado, setPedidoArrastrado] = useState<PedidoArrastrado | null>(null);
 
-  const handleIniciarArrastre = (
-    pedido: TarjetaPedido,
-    estadoOrigen: EstadoPedido
-  ) => {
+  const handleIniciarArrastre = (pedido: TarjetaPedido, estadoOrigen: EstadoPedido) => {
     setPedidoArrastrado({
       pedido,
       estadoOrigen,
@@ -65,9 +57,7 @@ export default function TableroPedidos({
       return;
     }
 
-    onMarcarListoParaEntregar?.(
-      pedidoArrastrado.pedido.numeroPedido
-    );
+    onMarcarListoParaEntregar?.(pedidoArrastrado.pedido.numeroPedido);
 
     setPedidoArrastrado(null);
   };
