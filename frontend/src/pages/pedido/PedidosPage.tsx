@@ -5,6 +5,7 @@ import { useState } from 'react';
 import DetallePedidoModal from '../../components/pedido/DetallePedidoModal';
 import ResumenPedidos from '../../components/pedido/ResumenPedidos';
 import TableroPedidos from '../../components/pedido/TableroPedidos';
+import Button from '../../components/ui/Button';
 
 import { useDetallePedido } from '../../hooks/useDetallePedido';
 import { useMarcarPedidoListo } from '../../hooks/useMarcarPedidoListo';
@@ -60,20 +61,15 @@ export default function PedidosPage() {
           Ocurrió un error al consultar el tablero de pedidos.
         </p>
 
-        <button
-          type="button"
-          onClick={() => refetch()}
-          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
-        >
-          Reintentar
-        </button>
+        <Button type="button" label="Reintentar" onClick={() => refetch()} className="mt-4" />
       </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-5">
+        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500">
           <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
             <Home className="h-4 w-4" />
@@ -85,30 +81,31 @@ export default function PedidosPage() {
           <span className="font-medium text-gray-700">Pedidos</span>
         </nav>
 
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Encabezado */}
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Pedidos</h1>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Gestioná los pedidos y realizá el seguimiento de su avance.
-            </p>
+            <p className="mt-2 text-base text-gray-500">Gestioná los pedidos de tu empresa</p>
           </div>
 
-          <button
+          <Button
             type="button"
+            label="Registrar pedido"
+            icon={<Plus className="h-4 w-4" />}
             onClick={() => navigate('/alumno/pedidos/registrar')}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600"
-          >
-            <Plus className="h-4 w-4" />
-            Registrar pedido
-          </button>
+            className="self-start px-4 py-2.5 text-sm sm:self-auto"
+          />
         </header>
 
+        {/* Resumen */}
         <ResumenPedidos resumen={data.resumen} />
 
+        {/* Kanban */}
         <TableroPedidos
           kanban={data.kanban}
           onVerDetalle={handleVerDetalle}
+          onCrearOrdenProduccion={handleCrearOrdenProduccion}
           onMarcarListoParaEntregar={handleMarcarListoParaEntregar}
         />
       </div>
