@@ -1,5 +1,7 @@
-import { Plus, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Package, Plus, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+
+import Button from '../ui/Button';
 
 import { useDebounce } from '../../hooks/useDebounce';
 import { useProductos } from '../../hooks/useProductos';
@@ -16,6 +18,9 @@ export default function SelectorProductoPedido({
   onAgregarProducto,
 }: SelectorProductoPedidoProps) {
   const [busqueda, setBusqueda] = useState('');
+  const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoListado | null>(null);
+  const [mostrarResultados, setMostrarResultados] = useState(false);
+
   const busquedaDebounced = useDebounce(busqueda, 300);
 
   const { data, isLoading, isError } = useProductos({
@@ -30,51 +35,139 @@ export default function SelectorProductoPedido({
     return data?.items.filter((producto) => !productosSeleccionadosIds.includes(producto.id)) ?? [];
   }, [data?.items, productosSeleccionadosIds]);
 
+  /*
+   * Si el producto seleccionado ya fue agregado por alguna razón,
+   * limpiamos la selección.
+   */
+  useEffect(() => {
+    if (productoSeleccionado && productosSeleccionadosIds.includes(productoSeleccionado.id)) {
+      setProductoSeleccionado(null);
+      setBusqueda('');
+    }
+  }, [productoSeleccionado, productosSeleccionadosIds]);
+
+  const handleSeleccionarProducto = (producto: ProductoListado) => {
+    setProductoSeleccionado(producto);
+    setBusqueda(producto.nombre);
+    setMostrarResultados(false);
+  };
+
+  const handleAgregarProducto = () => {
+    if (!productoSeleccionado) {
+      return;
+    }
+
+    onAgregarProducto(productoSeleccionado);
+
+    setProductoSeleccionado(null);
+    setBusqueda('');
+    setMostrarResultados(false);
+  };
+
+  const handleCambiarBusqueda = (valor: string) => {
+    setBusqueda(valor);
+    setMostrarResultados(true);
+
+    if (productoSeleccionado && valor !== productoSeleccionado.nombre) {
+      setProductoSeleccionado(null);
+    }
+  };
+
   return (
-    <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700">
+    <div>
+      <label htmlFor="buscarProducto" className="mb-1.5 block text-sm font-medium text-gray-700">
         Buscar y agregar un producto
       </label>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <div className="flex items-start gap-3">
+        {/* Buscador */}
+        <div className="relative min-w-0 flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
 
-        <input
-          type="text"
-          value={busqueda}
-          onChange={(event) => setBusqueda(event.target.value)}
-          placeholder="Escribí el nombre del producto..."
-          className="w-full rounded-xl border border-gray-300 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-[#496647] focus:ring-2 focus:ring-[#496647]/20"
+            <input
+              id="buscarProducto"
+              type="text"
+              value={busqueda}
+              onChange={(event) => handleCambiarBusqueda(event.target.value)}
+              onFocus={() => setMostrarResultados(true)}
+              placeholder="Escribí el nombre del producto..."
+              autoComplete="off"
+              className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm outline-none transition focus:border-[#496647] focus:ring-2 focus:ring-[#496647]/20"
+            />
+          </div>
+
+          {/* Resultados */}
+          {mostrarResultados && busquedaDebounced.trim() !== '' && (
+            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+              {isLoading && (
+                <div className="px-4 py-3 text-sm text-gray-500">Buscando productos...</div>
+              )}
+
+              {isError && (
+                <div className="px-4 py-3 text-sm text-red-600">
+                  No fue posible cargar los productos.
+                </div>
+              )}
+
+              {!isLoading && !isError && productosDisponibles.length === 0 && (
+                <div className="px-4 py-3 text-sm text-gray-500">
+                  No se encontraron productos disponibles.
+                </div>
+              )}
+
+              {!isLoading &&
+                !isError &&
+                productosDisponibles.map((producto) => (
+                  <button
+                    key={producto.id}
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => handleSeleccionarProducto(producto)}
+                    className="flex w-full items-center gap-3 border-b border-gray-100 px-3 py-2.5 text-left transition last:border-b-0 hover:bg-gray-50"
+                  >
+                    {producto.fotoUrl ? (
+                      <img
+                        src={producto.fotoUrl}
+                        alt={producto.nombre}
+                        className="h-9 w-9 shrink-0 rounded-md object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100">
+                        <Package className="h-4 w-4 text-gray-400" />
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-gray-900">
+                        {producto.nombre}
+                      </p>
+
+                      <p className="text-xs text-gray-500">Stock disponible: {producto.stock}</p>
+                    </div>
+                  </button>
+                ))}
+            </div>
+          )}
+        </div>
+
+        {/* Agregar */}
+        <Button
+          type="button"
+          label="Agregar producto"
+          variant="solid"
+          icon={<Plus className="h-4 w-4" />}
+          onClick={handleAgregarProducto}
+          disabled={!productoSeleccionado}
+          className="!h-9 shrink-0 !rounded-lg !px-4 !py-2 !text-sm"
         />
       </div>
 
-      {isLoading && <p className="text-sm text-gray-500">Buscando productos...</p>}
-
-      {isError && <p className="text-sm text-red-600">No fue posible cargar los productos.</p>}
-
-      {!isLoading && !isError && productosDisponibles.length > 0 && (
-        <div className="max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-          {productosDisponibles.map((producto) => (
-            <button
-              key={producto.id}
-              type="button"
-              onClick={() => onAgregarProducto(producto)}
-              className="flex w-full items-center justify-between gap-4 border-b border-gray-100 px-4 py-3 text-left transition last:border-b-0 hover:bg-gray-50"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-gray-900">{producto.nombre}</p>
-
-                <p className="mt-1 text-xs text-gray-500">Stock disponible: {producto.stock}</p>
-              </div>
-
-              <Plus className="h-4 w-4 shrink-0 text-[#496647]" />
-            </button>
-          ))}
-        </div>
-      )}
-
-      {!isLoading && !isError && busquedaDebounced && productosDisponibles.length === 0 && (
-        <p className="text-sm text-gray-500">No se encontraron productos disponibles.</p>
+      {productoSeleccionado && (
+        <p className="mt-1.5 text-xs text-gray-500">
+          Producto seleccionado:{' '}
+          <span className="font-medium text-gray-700">{productoSeleccionado.nombre}</span>
+        </p>
       )}
     </div>
   );
