@@ -8,7 +8,6 @@ export const tiposMovimientoSeed: Seed = {
   async run(prisma: PrismaClient) {
     await prisma.tipoMovimiento.createMany({
       data: [{ nombre: 'INGRESO' }, { nombre: 'EGRESO' }],
-
       skipDuplicates: true,
     });
   },

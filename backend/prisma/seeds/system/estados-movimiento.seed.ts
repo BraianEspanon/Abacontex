@@ -7,8 +7,7 @@ export const estadosMovimientoSeed: Seed = {
 
   async run(prisma: PrismaClient) {
     await prisma.estadoMovimiento.createMany({
-      data: [{ nombre: 'REGISTRADO' }, { nombre: 'ANULADO' }],
-
+      data: [{ nombre: 'PENDIENTE' }, { nombre: 'CONCILIADO' }, { nombre: 'ANULADO' }],
       skipDuplicates: true,
     });
   },
