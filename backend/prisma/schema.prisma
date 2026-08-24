@@ -191,42 +191,6 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-model MovimientoFinanciero {
-  idMovimiento Int @id @default(autoincrement())
-
-  idEmpresa Int
-  empresa   Empresa @relation(fields: [idEmpresa], references: [id])
-
-  idUsuario String
-  usuario   Usuario @relation(fields: [idUsuario], references: [id])
-
-  idCategoria Int
-  categoria   CategoriaMovimiento @relation(fields: [idCategoria], references: [idCategoria])
-
-  idMetodoPago Int
-  metodoPago   MetodoPago @relation(fields: [idMetodoPago], references: [idMetodoPago])
-
-  idEstado Int
-  estado   EstadoMovimiento @relation(fields: [idEstado], references: [idEstado])
-
-  fecha         DateTime @default(now())
-  concepto      String
-  importe       Decimal  @db.Decimal(14, 2)
-  esAutomatico  Boolean  @default(false)
-  observaciones String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([idEmpresa])
-  @@index([idUsuario])
-  @@index([idCategoria])
-  @@index([idMetodoPago])
-  @@index([idEstado])
-  @@index([fecha])
-  @@map("movimientos_financieros")
-}
-
 model TipoMovimiento {
   idTipoMovimiento Int    @id @default(autoincrement())
   nombre           String @unique
@@ -247,6 +211,7 @@ model CategoriaMovimiento {
 
   movimientos MovimientoFinanciero[]
 
+  @@unique([idTipoMovimiento, nombre])
   @@index([idTipoMovimiento])
   @@map("categorias_movimiento")
 }
@@ -258,6 +223,49 @@ model EstadoMovimiento {
   movimientos MovimientoFinanciero[]
 
   @@map("estados_movimiento")
+}
+
+model MovimientoFinanciero {
+  idMovimiento Int @id @default(autoincrement())
+
+  idEmpresa Int
+  empresa   Empresa @relation(fields: [idEmpresa], references: [id])
+
+  idUsuario String
+  usuario   Usuario @relation(fields: [idUsuario], references: [id])
+
+  idCategoria Int
+  categoria   CategoriaMovimiento @relation(fields: [idCategoria], references: [idCategoria])
+
+  idMetodoPago Int
+  metodoPago   MetodoPago @relation(fields: [idMetodoPago], references: [idMetodoPago])
+
+  idEstado Int
+  estado   EstadoMovimiento @relation(fields: [idEstado], references: [idEstado])
+
+  ventaId Int?   @unique
+  venta   Venta? @relation(fields: [ventaId], references: [idVenta], onDelete: SetNull)
+
+  fecha    DateTime @default(now()) @db.Date
+  concepto String
+  importe  Decimal  @db.Decimal(14, 2)
+
+  esAutomatico Boolean @default(false)
+
+  referencia    String?
+  observaciones String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([idEmpresa])
+  @@index([idUsuario])
+  @@index([idCategoria])
+  @@index([idMetodoPago])
+  @@index([idEstado])
+  @@index([fecha])
+  @@index([idEmpresa, fecha])
+  @@map("movimientos_financieros")
 }
 
 model Producto {
@@ -577,8 +585,9 @@ model Venta {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  detalles DetalleVenta[]
-  factura  Factura?
+  detalles             DetalleVenta[]
+  factura              Factura?
+  movimientoFinanciero MovimientoFinanciero?
 
   @@index([empresaId])
   @@index([pedidoId])
