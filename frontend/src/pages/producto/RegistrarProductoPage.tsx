@@ -22,7 +22,7 @@ const registrarProductoSchema = z.object({
     .string()
     .trim()
     .min(1, 'El nombre del producto es obligatorio.')
-    .max(100, 'El nombre no puede superar los 100 caracteres.'),
+    .max(50, 'El nombre no puede superar los 50 caracteres.'),
 
   descripcion: z
     .string()
