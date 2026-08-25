@@ -64,7 +64,8 @@ model Alumno {
   idEmpresa Int?
   empresa   Empresa? @relation(fields: [idEmpresa], references: [id], onDelete: SetNull)
 
-  auditLogs AuditLog[]
+  auditLogs                 AuditLog[]
+  conciliacionesFinancieras ConciliacionFinanciera[]
 
   @@index([idCurso])
   @@index([idEmpresa])
@@ -130,15 +131,16 @@ model Empresa {
   idCicloLectivo Int
   cicloLectivo   CicloLectivo @relation(fields: [idCicloLectivo], references: [id])
 
-  alumnos                Alumno[]
-  movimientosFinancieros MovimientoFinanciero[]
-  auditLogs              AuditLog[]
-  productos              Producto[]
-  invitaciones           InvitacionEmpresa[]
-  pedidos                Pedido[]
-  ordenesProduccion      OrdenProduccion[]
-  ventas                 Venta[]
-  planificacionesAnuales PlanificacionAnual[]
+  alumnos                   Alumno[]
+  movimientosFinancieros    MovimientoFinanciero[]
+  conciliacionesFinancieras ConciliacionFinanciera[]
+  auditLogs                 AuditLog[]
+  productos                 Producto[]
+  invitaciones              InvitacionEmpresa[]
+  pedidos                   Pedido[]
+  ordenesProduccion         OrdenProduccion[]
+  ventas                    Venta[]
+  planificacionesAnuales    PlanificacionAnual[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
@@ -677,4 +679,64 @@ model MetodoPagoCurso {
   @@id([idMetodoPago, año])
   @@index([año])
   @@map("metodos_pago_curso")
+}
+
+model ConciliacionFinanciera {
+  idConciliacion Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+
+  alumnoId String
+  alumno   Alumno @relation(fields: [alumnoId], references: [id])
+
+  fecha DateTime @default(now()) @db.Timestamptz(3)
+
+  saldoEsperado Decimal @db.Decimal(14, 2)
+  saldoContado  Decimal @db.Decimal(14, 2)
+  diferencia    Decimal @db.Decimal(14, 2)
+
+  observacion String? @db.VarChar(250)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([empresaId])
+  @@index([alumnoId])
+  @@index([fecha])
+  @@index([empresaId, fecha])
+  @@map("conciliaciones_financieras")
+}
+
+model TipoCuentaContable {
+  idTipoCuenta Int @id @default(autoincrement())
+
+  nombre      String  @unique
+  descripcion String?
+
+  cuentas CuentaContable[]
+
+  @@map("tipos_cuenta_contable")
+}
+
+model CuentaContable {
+  idCuenta Int @id @default(autoincrement())
+
+  codigo String @unique @db.VarChar(20)
+
+  nombre String @db.VarChar(50)
+
+  idTipoCuenta Int
+  tipoCuenta   TipoCuentaContable @relation(fields: [idTipoCuenta], references: [idTipoCuenta])
+
+  descripcion String @db.VarChar(100)
+
+  activo Boolean @default(true)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([idTipoCuenta])
+  @@index([activo])
+  @@index([nombre])
+  @@map("cuentas_contables")
 }
