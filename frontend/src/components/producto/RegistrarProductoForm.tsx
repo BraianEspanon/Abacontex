@@ -156,6 +156,7 @@ export default function RegistrarProductoForm({
     onImagenChange(null);
   };
 
+  const cantidadCaracteresNombre = nombreProducto?.length ?? 0;
   const cantidadCaracteresDescripcion = descripcionProducto?.length ?? 0;
 
   const precioVenta = calcularPrecioVenta(precioProducto, margenProducto);
@@ -174,6 +175,7 @@ export default function RegistrarProductoForm({
             <input
               id="nombre"
               type="text"
+              maxLength={50}
               placeholder="Ej.: Taza personalizada"
               disabled={isPending}
               {...register('nombre')}
@@ -184,7 +186,15 @@ export default function RegistrarProductoForm({
               }`}
             />
 
-            {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre.message}</p>}
+            <div className="mt-1 flex items-start justify-between gap-4">
+              {errors.nombre ? (
+                <p className="text-sm text-red-600">{errors.nombre.message}</p>
+              ) : (
+                <p className="text-xs text-gray-400">Máx. 50 caracteres</p>
+              )}
+
+              <p className="shrink-0 text-xs text-gray-400">{cantidadCaracteresNombre}/50</p>
+            </div>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">

@@ -275,7 +275,7 @@ export default function ProductosPage() {
           <EliminarProductoModal
             producto={productoAEliminar}
             isPending={eliminarProductoMutation.isPending}
-            isError={eliminarProductoMutation.isError}
+            error={eliminarProductoMutation.error}
             onConfirmar={handleConfirmarEliminar}
             onClose={handleCerrarEliminar}
           />
