@@ -1,16 +1,19 @@
-import { rolesSistemaSeed } from './roles-sistema.seed';
-import { rolesEmpresaSeed } from './roles-empresa.seed';
-import { tiposMovimientoSeed } from './tipos-movimiento.seed';
-import { estadosMovimientoSeed } from './estados-movimiento.seed';
-import { metodosPagoSeed } from './metodos-pago.seed';
+import type { Seed } from '../types';
+
+import { cicloLectivoSeed } from './ciclo-lectivo.seed';
 import { categoriasMovimientoSeed } from './categorias-movimiento.seed';
 import { cursosSeed } from './cursos.seed';
-import { estadosPedidoSeed } from './estado-pedido.seed';
-import type { Seed } from '../types';
-import { metodosPagoCursoSeed } from './metodos-pago-curso.seed';
+import { estadosMovimientoSeed } from './estados-movimiento.seed';
 import { estadosOrdenProduccionSeed } from './estadosOrdenProduccionSeed';
+import { estadosPedidoSeed } from './estado-pedido.seed';
+import { metodosPagoCursoSeed } from './metodos-pago-curso.seed';
+import { metodosPagoSeed } from './metodos-pago.seed';
+import { rolesEmpresaSeed } from './roles-empresa.seed';
+import { rolesSistemaSeed } from './roles-sistema.seed';
+import { tiposMovimientoSeed } from './tipos-movimiento.seed';
 
 export const systemSeeds: Seed[] = [
+  cicloLectivoSeed,
   rolesSistemaSeed,
   rolesEmpresaSeed,
   tiposMovimientoSeed,

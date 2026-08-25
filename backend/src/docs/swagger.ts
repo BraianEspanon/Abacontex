@@ -62,6 +62,14 @@ export const swaggerSpec = swaggerJsdoc({
         description: 'Gestión y registro de ventas comerciales, cobranzas y dashboard de ventas.',
       },
       {
+        name: 'Facturación',
+        description: 'Gestión y emisión de facturas.',
+      },
+      {
+        name: 'Finanzas',
+        description: 'Gestión de caja, ingresos, egresos y conciliación financiera.',
+      },
+      {
         name: 'Cursos',
         description: 'Consulta de cursos disponibles.',
       },

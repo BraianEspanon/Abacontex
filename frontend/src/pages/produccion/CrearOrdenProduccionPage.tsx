@@ -38,7 +38,8 @@ export default function CrearOrdenProduccionPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Breadcrumb */}
       <nav className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
         <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
           <Home className="h-4 w-4" />
@@ -68,6 +69,7 @@ export default function CrearOrdenProduccionPage() {
         <span className="font-medium text-gray-700">Crear orden de producción</span>
       </nav>
 
+      {/* Encabezado */}
       <header>
         <h1 className="text-2xl font-bold text-gray-900">Crear orden</h1>
 
@@ -78,6 +80,7 @@ export default function CrearOrdenProduccionPage() {
         </p>
       </header>
 
+      {/* Error */}
       {crearOrden.isError && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
           <p className="text-sm text-red-700">
@@ -86,6 +89,7 @@ export default function CrearOrdenProduccionPage() {
         </div>
       )}
 
+      {/* Formulario */}
       <CrearOrdenProduccionForm
         onSubmit={handleCrearOrden}
         onCancelar={handleCancelar}

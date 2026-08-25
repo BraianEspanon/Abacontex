@@ -38,7 +38,8 @@ export default function RegistrarPedidoPage() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4">
+        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500">
           <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
             <Home className="h-4 w-4" />
@@ -56,6 +57,7 @@ export default function RegistrarPedidoPage() {
           <span className="font-medium text-gray-700">Registrar pedido</span>
         </nav>
 
+        {/* Encabezado */}
         <header>
           <h1 className="text-2xl font-bold text-gray-900">Registrar pedido</h1>
 
@@ -64,8 +66,9 @@ export default function RegistrarPedidoPage() {
           </p>
         </header>
 
+        {/* Error general */}
         {crearPedidoMutation.isError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
             <p className="font-medium text-red-800">No fue posible registrar el pedido.</p>
 
             <p className="mt-1 text-sm text-red-700">Revisá los datos e intentá nuevamente.</p>

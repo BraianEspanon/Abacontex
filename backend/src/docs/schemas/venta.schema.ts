@@ -174,6 +174,18 @@
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/VentaListItem'
+ *         page:
+ *           type: integer
+ *           example: 1
+ *         pageSize:
+ *           type: integer
+ *           example: 10
+ *         totalItems:
+ *           type: integer
+ *           example: 45
+ *         totalPages:
+ *           type: integer
+ *           example: 5
  *
  *     DetalleVentaProductoItem:
  *       type: object

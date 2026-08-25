@@ -98,7 +98,7 @@ export async function findByIdAndEmpresaOrThrow(
 
 export async function findByEmpresa(
   empresaId: number,
-  filtros?: ObtenerVentasQueryDTO,
+  filtros: ObtenerVentasQueryDTO,
   tx?: Prisma.TransactionClient
 ) {
   const db = getDbClient(tx);
@@ -107,7 +107,7 @@ export async function findByEmpresa(
     empresaId,
   };
 
-  if (filtros?.search) {
+  if (filtros.search) {
     const isNumber = !isNaN(Number(filtros.search));
     where.OR = [
       ...(isNumber
@@ -124,11 +124,11 @@ export async function findByEmpresa(
     ];
   }
 
-  if (filtros?.metodoPagoId) {
+  if (filtros.metodoPagoId) {
     where.metodoPagoId = filtros.metodoPagoId;
   }
 
-  if (filtros?.mes) {
+  if (filtros.mes) {
     const añoActual = new Date().getFullYear();
     const fechaInicioMes = new Date(añoActual, filtros.mes - 1, 1);
     const fechaFinMes = new Date(añoActual, filtros.mes, 0, 23, 59, 59, 999);
@@ -139,26 +139,72 @@ export async function findByEmpresa(
     };
   }
 
-  return db.venta.findMany({
-    where,
-    include: {
-      pedido: {
-        select: {
-          idPedido: true,
-          clienteNombre: true,
+  const skip = (filtros.page - 1) * filtros.pageSize;
+
+  const [total, items] = await Promise.all([
+    db.venta.count({ where }),
+    db.venta.findMany({
+      where,
+      include: {
+        pedido: {
+          select: {
+            idPedido: true,
+            clienteNombre: true,
+          },
+        },
+        metodoPago: {
+          select: {
+            idMetodoPago: true,
+            nombre: true,
+          },
         },
       },
-      metodoPago: {
-        select: {
-          idMetodoPago: true,
-          nombre: true,
+      orderBy: {
+        fecha: 'desc',
+      },
+      skip,
+      take: filtros.pageSize,
+    }),
+  ]);
+
+  return { total, items };
+}
+
+export async function findVentasPendientesFacturacion(
+  empresaId: number,
+  filtros: { page: number; pageSize: number },
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const where: Prisma.VentaWhereInput = {
+    empresaId,
+    factura: null, // Que no tenga factura asociada
+    estado: 'CONFIRMADA',
+  };
+
+  const skip = (filtros.page - 1) * filtros.pageSize;
+
+  const [total, items] = await Promise.all([
+    db.venta.count({ where }),
+    db.venta.findMany({
+      where,
+      include: {
+        pedido: {
+          select: {
+            clienteNombre: true,
+          },
         },
       },
-    },
-    orderBy: {
-      fecha: 'desc',
-    },
-  });
+      orderBy: {
+        fecha: 'desc',
+      },
+      skip,
+      take: filtros.pageSize,
+    }),
+  ]);
+
+  return { total, items };
 }
 
 export async function obtenerResumenVentas(

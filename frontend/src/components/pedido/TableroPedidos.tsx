@@ -12,12 +12,14 @@ interface PedidoArrastrado {
 interface TableroPedidosProps {
   kanban: KanbanPedidos['kanban'];
   onVerDetalle?: (idPedido: number) => void;
+  onCrearOrdenProduccion?: (idPedido: number) => void;
   onMarcarListoParaEntregar?: (idPedido: number) => void;
 }
 
 export default function TableroPedidos({
   kanban,
   onVerDetalle,
+  onCrearOrdenProduccion,
   onMarcarListoParaEntregar,
 }: TableroPedidosProps) {
   const [pedidoArrastrado, setPedidoArrastrado] = useState<PedidoArrastrado | null>(null);
@@ -63,7 +65,7 @@ export default function TableroPedidos({
   const arrastrando = pedidoArrastrado !== null;
 
   return (
-    <section className="grid gap-4 xl:grid-cols-4">
+    <section className="grid min-h-[540px] gap-3 xl:grid-cols-4">
       <ColumnaPedidos
         titulo="Pendientes"
         estado="PENDIENTE"
@@ -71,6 +73,7 @@ export default function TableroPedidos({
         arrastrando={arrastrando}
         esDestinoValido={esDestinoValido('PENDIENTE')}
         onVerDetalle={onVerDetalle}
+        onCrearOrdenProduccion={onCrearOrdenProduccion}
         onMarcarListoParaEntregar={onMarcarListoParaEntregar}
         onIniciarArrastre={handleIniciarArrastre}
         onFinalizarArrastre={handleFinalizarArrastre}
@@ -84,6 +87,7 @@ export default function TableroPedidos({
         arrastrando={arrastrando}
         esDestinoValido={esDestinoValido('EN_PRODUCCION')}
         onVerDetalle={onVerDetalle}
+        onCrearOrdenProduccion={onCrearOrdenProduccion}
         onMarcarListoParaEntregar={onMarcarListoParaEntregar}
         onIniciarArrastre={handleIniciarArrastre}
         onFinalizarArrastre={handleFinalizarArrastre}
@@ -97,6 +101,7 @@ export default function TableroPedidos({
         arrastrando={arrastrando}
         esDestinoValido={esDestinoValido('LISTO_PARA_ENTREGAR')}
         onVerDetalle={onVerDetalle}
+        onCrearOrdenProduccion={onCrearOrdenProduccion}
         onMarcarListoParaEntregar={onMarcarListoParaEntregar}
         onIniciarArrastre={handleIniciarArrastre}
         onFinalizarArrastre={handleFinalizarArrastre}
@@ -110,6 +115,7 @@ export default function TableroPedidos({
         arrastrando={arrastrando}
         esDestinoValido={esDestinoValido('COMPLETADO')}
         onVerDetalle={onVerDetalle}
+        onCrearOrdenProduccion={onCrearOrdenProduccion}
         onMarcarListoParaEntregar={onMarcarListoParaEntregar}
         onIniciarArrastre={handleIniciarArrastre}
         onFinalizarArrastre={handleFinalizarArrastre}

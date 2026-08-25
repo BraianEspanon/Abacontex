@@ -1,7 +1,7 @@
 // src/pages/empresa/CrearEmpresaPage.tsx
 
-import { ArrowRight } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, Building2 } from 'lucide-react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import DatosEmpresaForm from '../../components/empresa/DatosEmpresaForm';
@@ -33,6 +33,9 @@ export default function CrearEmpresaPage() {
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [busquedaCandidato, setBusquedaCandidato] = useState('');
+
+  const nombreRef = useRef<HTMLDivElement>(null);
+  const actividadRef = useRef<HTMLDivElement>(null);
 
   const logoPreview = useMemo(() => {
     if (!logo) {
@@ -99,10 +102,12 @@ export default function CrearEmpresaPage() {
 
   const validarFormulario = () => {
     let valido = true;
+    let primerCampoConError: 'nombre' | 'actividad' | null = null;
 
     if (!nombre.trim()) {
       setErrorNombre('El nombre de la empresa es obligatorio.');
       valido = false;
+      primerCampoConError = 'nombre';
     } else {
       setErrorNombre('');
     }
@@ -110,12 +115,34 @@ export default function CrearEmpresaPage() {
     if (!actividad.trim()) {
       setErrorActividad('La actividad de la empresa es obligatoria.');
       valido = false;
+
+      if (!primerCampoConError) {
+        primerCampoConError = 'actividad';
+      }
     } else {
       setErrorActividad('');
     }
 
     if (errorLogo) {
       valido = false;
+    }
+
+    if (!valido) {
+      setTimeout(() => {
+        if (primerCampoConError === 'nombre') {
+          nombreRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        }
+
+        if (primerCampoConError === 'actividad') {
+          actividadRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        }
+      }, 0);
     }
 
     return valido;
@@ -159,16 +186,19 @@ export default function CrearEmpresaPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-abacontex-light-bg">
+      <main className="min-h-screen bg-abacontex-light-bg font-sans">
         {/* ENCABEZADO */}
-        <header>
-          <BokehContainer>
-            <div className="mx-auto w-full max-w-4xl px-4 py-10 text-center sm:px-6 sm:py-14">
-              <h1 className="font-heading text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+        <header className="bg-abacontex-dark text-white">
+          <BokehContainer className="px-4 py-12 sm:px-6 md:py-16">
+            <div className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-abacontex-primary-three text-white shadow-lg">
+                <Building2 className="h-8 w-8" />
+              </div>
+              <h1 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
                 Creá tu empresa
               </h1>
 
-              <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
                 Definí la identidad de tu empresa y conformá el equipo que participará de la
                 simulación empresarial.
               </p>
@@ -202,6 +232,8 @@ export default function CrearEmpresaPage() {
               errorNombre={errorNombre}
               errorActividad={errorActividad}
               errorLogo={errorLogo}
+              nombreRef={nombreRef}
+              actividadRef={actividadRef}
               onNombreChange={(value) => {
                 setNombre(value);
 

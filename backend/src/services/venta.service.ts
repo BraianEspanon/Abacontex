@@ -334,7 +334,7 @@ export async function obtenerVentas(user: AuthUser, filtros: ObtenerVentasQueryD
   const fechaInicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
   const fechaFinMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  const [resumenData, ventas] = await Promise.all([
+  const [resumenData, { total, items: ventas }] = await Promise.all([
     ventaRepository.obtenerResumenVentas(empresa.id, fechaInicioMes, fechaFinMes),
     ventaRepository.findByEmpresa(empresa.id, filtros),
   ]);
@@ -359,5 +359,9 @@ export async function obtenerVentas(user: AuthUser, filtros: ObtenerVentasQueryD
       fecha: venta.fecha,
       estado: venta.estado,
     })),
+    page: filtros.page,
+    pageSize: filtros.pageSize,
+    totalItems: total,
+    totalPages: Math.ceil(total / filtros.pageSize),
   };
 }

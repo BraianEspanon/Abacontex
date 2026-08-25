@@ -830,7 +830,7 @@
                   "key": "nombre",
                   "type": "text",
                   "uuid": "3b2e782a-e865-464d-a10a-ad0220418531",
-                  "value": "Mancuerna 10kg x2"
+                  "value": "Mancuerna 10kg x5"
                 },
                 {
                   "key": "descripcion",
@@ -846,13 +846,13 @@
                 },
                 {
                   "key": "precioUnitario",
-                  "value": "10000",
+                  "value": "20000",
                   "type": "text",
                   "uuid": "71e88f67-4fb3-4835-888b-b3961f837350"
                 },
                 {
                   "key": "margenGanancia",
-                  "value": "30",
+                  "value": "50",
                   "type": "text",
                   "uuid": "30c9e672-81f7-4a85-8655-1f0052b0d486"
                 },
@@ -995,7 +995,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n      \"clienteNombre\":\"Braian\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":4,\r\n            \"cantidad\":20\r\n        }\r\n      ]\r\n}\r\n    \r\n",
+              "raw": "{\r\n      \"clienteNombre\":\"Abel\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":4,\r\n            \"cantidad\":2\r\n        },\r\n        {\r\n            \"productoId\":5,\r\n            \"cantidad\":2\r\n        }\r\n      ]\r\n}\r\n    \r\n",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1056,32 +1056,7 @@
               "variable": [
                 {
                   "key": "idProducto",
-                  "value": "6"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "completar",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{base_Url}}/pedidos/:idProducto/completar",
-              "host": [
-                "{{base_Url}}"
-              ],
-              "path": [
-                "pedidos",
-                ":idProducto",
-                "completar"
-              ],
-              "variable": [
-                {
-                  "key": "idProducto",
-                  "value": "6"
+                  "value": "2"
                 }
               ]
             }
@@ -1117,7 +1092,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"productoId\": 3,\r\n    \"cantidadProducir\": 4,\r\n    \"prioridad\": \"ALTA\"\r\n}",
+              "raw": "{\r\n    \"productoId\": 4,\r\n    \"cantidadProducir\": 2,\r\n    \"prioridad\": \"ALTA\",\r\n    \"pedidoId\":6\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1196,7 +1171,7 @@
               "variable": [
                 {
                   "key": "idOrden",
-                  "value": "2"
+                  "value": "4"
                 }
               ]
             }
@@ -1221,7 +1196,7 @@
               "variable": [
                 {
                   "key": "idOrden",
-                  "value": "2"
+                  "value": "4"
                 }
               ]
             }
@@ -1312,6 +1287,109 @@
       ]
     },
     {
+      "name": "Venta",
+      "item": [
+        {
+          "name": "Ver pedidos listos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/ventas/pedidos-listos",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "ventas",
+                "pedidos-listos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/ventas/",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "ventas",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear venta",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"aplicaIva\":true,\n    \"pedidoId\":2,\n    \"metodoPagoId\":3,\n    \"tipoAjuste\":\"RECARGO\",\n    \"porcentajeAjuste\": 5, \n    \"cantidadCuotas\": 3,\n    \"porcentajeInteres\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/ventas",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "ventas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver venta detallada",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"aplicaIva\":false,\n    \"pedidoId\":3,\n    \"metodoPagoId\":2,\n    \"tipoAjuste\":\"RECARGO\",\n    \"porcentajeAjuste\": 20, \n    \"cantidadCuotas\": 3,\n    \"porcentajeInteres\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/ventas/:idVenta",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "ventas",
+                ":idVenta"
+              ],
+              "variable": [
+                {
+                  "key": "idVenta",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Get Generales",
       "item": [
         {
@@ -1343,6 +1421,153 @@
               ],
               "path": [
                 "roles-empresa"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Metodos-pago",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/metodos-pago/me",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "metodos-pago",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Facturacion",
+      "item": [
+        {
+          "name": "Ver ventas pendientes facturacion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/facturas/ventas-pendientes",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "facturas",
+                "ventas-pendientes"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "1",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "3",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear factura",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"ventaId\": 2,\n    \"tipoFactura\": \"B\",\n    \"condicionFiscal\": \"CONSUMIDOR_FINAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/facturas",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "facturas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver detalle factura",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/facturas/:idFactura",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "facturas",
+                ":idFactura"
+              ],
+              "variable": [
+                {
+                  "key": "idFactura",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver facturas dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/facturas",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "facturas"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "3",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "tipoFactura",
+                  "value": "A",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "br",
+                  "disabled": true
+                }
               ]
             }
           },

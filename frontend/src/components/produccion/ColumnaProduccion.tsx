@@ -54,28 +54,32 @@ export default function ColumnaProduccion({
         onSoltar?.(estado);
       }}
       className={[
-        'min-w-0 rounded-2xl p-4 transition',
-        arrastrando && esDestinoValido ? 'bg-green-50 ring-2 ring-[#496647]/40' : 'bg-gray-100',
+        'flex min-w-0 flex-col rounded-xl p-3 transition',
+        'min-h-[390px]',
+        arrastrando && esDestinoValido ? 'bg-green-50 ring-2 ring-[#496647]/30' : 'bg-[#f1f1ef]',
       ].join(' ')}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">{titulo}</h2>
+      {/* Encabezado */}
+      <div className="mb-3 flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-gray-900">{titulo}</h2>
 
-        <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-600 shadow-sm">
+        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-white px-1.5 py-0.5 text-[11px] font-semibold text-gray-600 shadow-sm">
           {ordenes.length}
         </span>
       </div>
 
+      {/* Zona válida de drop */}
       {arrastrando && esDestinoValido && (
-        <div className="mb-4 rounded-xl border border-dashed border-[#496647] bg-white px-4 py-3 text-center text-xs font-medium text-[#496647]">
+        <div className="mb-3 rounded-lg border border-dashed border-[#6f9468] bg-white px-3 py-2.5 text-center text-xs font-medium text-[#496647]">
           Soltá la orden aquí
         </div>
       )}
 
-      <div className="space-y-4">
+      {/* Contenido */}
+      <div className="flex-1 space-y-2.5">
         {ordenes.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">
-            No hay órdenes en este estado.
+          <div className="flex min-h-[90px] items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white/70 px-4 text-center">
+            <p className="text-xs text-gray-500">No hay órdenes en este estado.</p>
           </div>
         ) : (
           ordenes.map((orden) => (
