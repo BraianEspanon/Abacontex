@@ -225,9 +225,8 @@ export async function eliminarProducto(user: AuthUser, idProducto: number) {
     );
   }
 
-  const tieneOrdenesPendientes = await produccionRepository.hasOrdenesPendientesByProducto(
-    idProducto
-  );
+  const tieneOrdenesPendientes =
+    await produccionRepository.hasOrdenesPendientesByProducto(idProducto);
 
   if (tieneOrdenesPendientes) {
     throw new ConflictError(

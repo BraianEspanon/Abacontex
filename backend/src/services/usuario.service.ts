@@ -110,9 +110,7 @@ export async function getAlumnoSextoConEmpresaOrThrow(user: AuthUser) {
   }
 
   if (usuario.alumno.empresa.curso.año !== 6) {
-    throw new ForbiddenError(
-      'Solo los alumnos de 6° año pueden acceder a este módulo.'
-    );
+    throw new ForbiddenError('Solo los alumnos de 6° año pueden acceder a este módulo.');
   }
 
   return {
