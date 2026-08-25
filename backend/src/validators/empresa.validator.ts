@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const crearEmpresaSchema = z.object({
   body: z.object({
-    nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(100),
+    nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(50),
 
     actividad: z.string().trim().min(1, 'La actividad es obligatoria').max(255),
   }),
@@ -12,7 +12,7 @@ export type CrearEmpresaDTO = z.infer<typeof crearEmpresaSchema>['body'];
 
 export const actualizarEmpresaSchema = z.object({
   body: z.object({
-    nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(100),
+    nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(50),
 
     actividad: z.string().trim().min(1, 'La actividad es obligatoria').max(255),
 
