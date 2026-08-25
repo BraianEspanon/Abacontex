@@ -11,6 +11,8 @@ interface DatosEmpresaFormProps {
   errorNombre?: string;
   errorActividad?: string;
   errorLogo?: string;
+  nombreRef: React.RefObject<HTMLDivElement | null>;
+  actividadRef: React.RefObject<HTMLDivElement | null>;
   onNombreChange: (value: string) => void;
   onActividadChange: (value: string) => void;
   onLogoChange: (file: File | null) => void;
@@ -21,6 +23,23 @@ const TAMANO_MAXIMO_LOGO = 2 * 1024 * 1024;
 
 const TIPOS_IMAGEN_PERMITIDOS = ['image/jpeg', 'image/png'];
 
+const MAX_NOMBRE = 50;
+const MAX_ACTIVIDAD = 255;
+
+const obtenerColorContador = (cantidadActual: number, cantidadMaxima: number) => {
+  const porcentaje = cantidadActual / cantidadMaxima;
+
+  if (porcentaje >= 1) {
+    return 'font-semibold text-red-500';
+  }
+
+  if (porcentaje >= 0.8) {
+    return 'font-semibold text-amber-500';
+  }
+
+  return 'text-abacontex-gray-text';
+};
+
 export default function DatosEmpresaForm({
   nombre,
   actividad,
@@ -29,6 +48,8 @@ export default function DatosEmpresaForm({
   errorNombre,
   errorActividad,
   errorLogo,
+  nombreRef,
+  actividadRef,
   onNombreChange,
   onActividadChange,
   onLogoChange,
@@ -74,7 +95,7 @@ export default function DatosEmpresaForm({
   return (
     <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-7">
       <div className="space-y-6">
-        <div>
+        <div ref={nombreRef}>
           <label
             htmlFor="nombreEmpresa"
             className="mb-2 block font-heading text-lg font-semibold text-abacontex-black-text"
@@ -86,6 +107,7 @@ export default function DatosEmpresaForm({
             id="nombreEmpresa"
             type="text"
             value={nombre}
+            maxLength={MAX_NOMBRE}
             onChange={(event) => onNombreChange(event.target.value)}
             placeholder="Ej. TechVision S.A."
             className={`w-full rounded-full border bg-white px-4 py-3 font-sans outline-none transition ${
@@ -95,10 +117,16 @@ export default function DatosEmpresaForm({
             }`}
           />
 
-          {errorNombre && <p className="mt-2 text-sm text-red-600">{errorNombre}</p>}
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <div>{errorNombre && <p className="text-sm text-red-600">{errorNombre}</p>}</div>
+
+            <span className={`shrink-0 text-xs ${obtenerColorContador(nombre.length, MAX_NOMBRE)}`}>
+              {nombre.length}/{MAX_NOMBRE}
+            </span>
+          </div>
         </div>
 
-        <div>
+        <div ref={actividadRef}>
           <label
             htmlFor="actividadEmpresa"
             className="mb-2 block font-heading text-lg font-semibold text-abacontex-black-text"
@@ -109,6 +137,7 @@ export default function DatosEmpresaForm({
           <textarea
             id="actividadEmpresa"
             value={actividad}
+            maxLength={MAX_ACTIVIDAD}
             onChange={(event) => onActividadChange(event.target.value)}
             placeholder="Describí brevemente el tipo de producto, rubro o servicio..."
             rows={4}
@@ -118,8 +147,15 @@ export default function DatosEmpresaForm({
                 : 'border-gray-300 focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20'
             }`}
           />
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <div>{errorActividad && <p className="text-sm text-red-600">{errorActividad}</p>}</div>
 
-          {errorActividad && <p className="mt-2 text-sm text-red-600">{errorActividad}</p>}
+            <span
+              className={`shrink-0 text-xs ${obtenerColorContador(actividad.length, MAX_ACTIVIDAD)}`}
+            >
+              {actividad.length}/{MAX_ACTIVIDAD}
+            </span>
+          </div>
         </div>
 
         <div className="border-t border-gray-200 pt-5">
