@@ -10,6 +10,7 @@ import { metodosPagoSeed } from './metodos-pago.seed';
 import { rolesEmpresaSeed } from './roles-empresa.seed';
 import { rolesSistemaSeed } from './roles-sistema.seed';
 import { tiposMovimientoSeed } from './tipos-movimiento.seed';
+import { tiposCuentaContableSeed } from './tipos-cuenta-contable.seed';
 
 export const systemSeeds: Seed[] = [
   rolesSistemaSeed,
@@ -22,4 +23,5 @@ export const systemSeeds: Seed[] = [
   cursosSeed,
   metodosPagoCursoSeed,
   estadosOrdenProduccionSeed,
+  tiposCuentaContableSeed,
 ];
