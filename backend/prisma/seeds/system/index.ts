@@ -1,5 +1,6 @@
 import type { Seed } from '../types';
 
+import { cicloLectivoSeed } from './ciclo-lectivo.seed';
 import { categoriasMovimientoSeed } from './categorias-movimiento.seed';
 import { cursosSeed } from './cursos.seed';
 import { estadosMovimientoSeed } from './estados-movimiento.seed';
@@ -12,6 +13,7 @@ import { rolesSistemaSeed } from './roles-sistema.seed';
 import { tiposMovimientoSeed } from './tipos-movimiento.seed';
 
 export const systemSeeds: Seed[] = [
+  cicloLectivoSeed,
   rolesSistemaSeed,
   rolesEmpresaSeed,
   tiposMovimientoSeed,
