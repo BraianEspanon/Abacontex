@@ -1,4 +1,4 @@
-import { BadgeDollarSign, BarChart3, CalendarDays, ReceiptText } from 'lucide-react';
+import { BadgeDollarSign, BarChart3, CalendarDays, ShoppingCart } from 'lucide-react';
 
 import type { ResumenVentas as ResumenVentasType } from '../../types/venta.types';
 
@@ -10,7 +10,7 @@ const formatearMoneda = (valor: number) => {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0,
   }).format(valor);
 };
 
@@ -19,25 +19,21 @@ export default function ResumenVentas({ resumen }: ResumenVentasProps) {
     {
       titulo: 'Ventas registradas',
       valor: resumen.ventasRegistradas.toString(),
-      descripcion: 'Total de operaciones confirmadas',
-      icono: ReceiptText,
+      icono: ShoppingCart,
     },
     {
       titulo: 'Total vendido',
       valor: formatearMoneda(resumen.totalVendido),
-      descripcion: 'Importe acumulado de ventas',
       icono: BadgeDollarSign,
     },
     {
       titulo: 'Ventas del mes',
       valor: resumen.ventasMes.toString(),
-      descripcion: 'Operaciones del mes actual',
       icono: CalendarDays,
     },
     {
       titulo: 'Promedio por venta',
       valor: formatearMoneda(resumen.promedioVenta),
-      descripcion: 'Importe promedio por operación',
       icono: BarChart3,
     },
   ];
@@ -50,21 +46,19 @@ export default function ResumenVentas({ resumen }: ResumenVentasProps) {
         return (
           <article
             key={tarjeta.titulo}
-            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+            className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-500">{tarjeta.titulo}</p>
-
-                <p className="mt-2 text-2xl font-bold text-gray-900">{tarjeta.valor}</p>
-              </div>
-
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#edf3eb] text-[#496647]">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[#496647]">
                 <Icono className="h-5 w-5" />
               </div>
-            </div>
 
-            <p className="mt-3 text-xs text-gray-500">{tarjeta.descripcion}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-800">{tarjeta.titulo}</p>
+
+                <p className="mt-0.5 text-xl font-semibold text-[#496647]">{tarjeta.valor}</p>
+              </div>
+            </div>
           </article>
         );
       })}
