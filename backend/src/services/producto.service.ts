@@ -5,6 +5,8 @@ import * as storageService from '../integrations/storage/storage.service';
 
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as productoRepository from '../repositories/producto.repository';
+import * as produccionRepository from '../repositories/produccion.repository';
+import * as pedidoRepository from '../repositories/pedido.repository';
 
 import {
   ActualizarProductoDTO,
@@ -214,6 +216,23 @@ export async function eliminarProducto(user: AuthUser, idProducto: number) {
   const empresa = await obtenerEmpresaUsuario(user);
 
   await productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
+
+  const tienePedidosPendientes = await pedidoRepository.hasPedidosPendientesByProducto(idProducto);
+
+  if (tienePedidosPendientes) {
+    throw new ConflictError(
+      'El producto posee operaciones pendientes que deben finalizarse o cancelarse previamente.'
+    );
+  }
+
+  const tieneOrdenesPendientes =
+    await produccionRepository.hasOrdenesPendientesByProducto(idProducto);
+
+  if (tieneOrdenesPendientes) {
+    throw new ConflictError(
+      'El producto posee operaciones pendientes que deben finalizarse o cancelarse previamente.'
+    );
+  }
 
   await productoRepository.remove(idProducto);
 }
