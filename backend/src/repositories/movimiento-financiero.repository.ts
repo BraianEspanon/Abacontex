@@ -29,11 +29,11 @@ export async function findAllCategorias(tx?: Prisma.TransactionClient) {
   });
 }
 
-export async function findEstadoRegistrado(tx?: Prisma.TransactionClient) {
+export async function findEstadoPendiente(tx?: Prisma.TransactionClient) {
   const db = getDbClient(tx);
 
   return db.estadoMovimiento.findUniqueOrThrow({
-    where: { nombre: ESTADOS_MOVIMIENTO.REGISTRADO },
+    where: { nombre: ESTADOS_MOVIMIENTO.PENDIENTE },
   });
 }
 
