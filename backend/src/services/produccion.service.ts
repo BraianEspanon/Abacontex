@@ -2,15 +2,15 @@ import { AuthUser } from '../types/express';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 import { ESTADOS_PEDIDOS } from '../constants/estados-pedidos';
 
+import * as usuarioService from './usuario.service';
+
 import * as produccionRepository from '../repositories/produccion.repository';
-import * as usuarioRepository from '../repositories/usuario.repository';
 import * as productoRepository from '../repositories/producto.repository';
 import * as pedidoRepository from '../repositories/pedido.repository';
 import * as transactionRepository from '../repositories/transaction.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
 import { ConflictError } from '../errors/conflict.error';
-import { ForbiddenError } from '../errors/forbidden.error';
 
 import { CrearOrdenProduccionDTO, OrdenProduccionIdDTO } from '../validators/produccion.validator';
 import {
@@ -19,36 +19,8 @@ import {
   mapearDetalleOrden,
 } from '../dto/orden-produccion/ord.mapper';
 
-async function obtenerUsuario(user: AuthUser) {
-  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
-
-  if (!usuario.alumno) {
-    throw new ConflictError(
-      'Debes completar tu registro antes de realizar operaciones sobre productos.'
-    );
-  }
-
-  if (!usuario.alumno.empresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
-  }
-
-  if (usuario.alumno.empresa.curso.año !== 6) {
-    throw new ForbiddenError(
-      'Solo los alumnos de 6° año pueden acceder a las órdenes de producción.'
-    );
-  }
-
-  return {
-    ...usuario,
-    alumno: {
-      ...usuario.alumno,
-      empresa: usuario.alumno.empresa,
-    },
-  };
-}
-
 export async function crearOrdenProduccion(user: AuthUser, data: CrearOrdenProduccionDTO) {
-  const usuario = await obtenerUsuario(user);
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   const alumno = usuario.alumno;
 
@@ -139,7 +111,7 @@ export async function crearOrdenProduccion(user: AuthUser, data: CrearOrdenProdu
 
 export async function obtenerPedidosAsociables(user: AuthUser) {
   // Obtiene el usuario autenticado y valida que pertenezca a una empresa.
-  const usuario = await obtenerUsuario(user);
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   // Obtiene los pedidos de la empresa que poseen productos con faltante de stock.
   const pedidos = await produccionRepository.findPedidosAsociables(usuario.alumno.empresa.id);
@@ -153,7 +125,7 @@ export async function obtenerPedidosAsociables(user: AuthUser) {
 
 export async function obtenerTableroProduccion(user: AuthUser) {
   // Obtiene el usuario autenticado y valida que pertenezca a una empresa.
-  const usuario = await obtenerUsuario(user);
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   // Obtiene todas las órdenes de producción correspondientes a la empresa.
   const ordenes = await produccionRepository.findOrdenesParaTablero(usuario.alumno.empresa.id);
@@ -190,7 +162,7 @@ export async function obtenerTableroProduccion(user: AuthUser) {
 }
 
 export async function iniciarOrdenProduccion(user: AuthUser, data: OrdenProduccionIdDTO) {
-  const usuario = await obtenerUsuario(user);
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   const orden = await produccionRepository.findOrdenByIdAndEmpresaOrThrow(
     data.idOrden,
@@ -214,7 +186,7 @@ export async function iniciarOrdenProduccion(user: AuthUser, data: OrdenProducci
 }
 
 export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduccionIdDTO) {
-  const usuario = await obtenerUsuario(user);
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   const orden = await produccionRepository.findOrdenByIdAndEmpresaOrThrow(
     data.idOrden,
@@ -300,7 +272,7 @@ export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduc
 }
 
 export async function obtenerDetalleOrdenProduccion(user: AuthUser, data: OrdenProduccionIdDTO) {
-  const usuario = await obtenerUsuario(user);
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   const orden = await produccionRepository.findDetalleOrdenProduccionOrThrow(
     data.idOrden,
