@@ -2,9 +2,17 @@ import { z } from 'zod';
 
 export const crearEmpresaSchema = z.object({
   body: z.object({
-    nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(100),
+    nombre: z
+      .string()
+      .trim()
+      .min(1, 'El nombre es obligatorio')
+      .max(50, 'El nombre no puede superar los 50 caracteres'),
 
-    actividad: z.string().trim().min(1, 'La actividad es obligatoria').max(255),
+    actividad: z
+      .string()
+      .trim()
+      .min(1, 'La actividad es obligatoria')
+      .max(255, 'La actividad no puede superar los 255 caracteres'),
   }),
 });
 
@@ -12,9 +20,17 @@ export type CrearEmpresaDTO = z.infer<typeof crearEmpresaSchema>['body'];
 
 export const actualizarEmpresaSchema = z.object({
   body: z.object({
-    nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(100),
+    nombre: z
+      .string()
+      .trim()
+      .min(1, 'El nombre es obligatorio')
+      .max(50, 'El nombre no puede superar los 50 caracteres'),
 
-    actividad: z.string().trim().min(1, 'La actividad es obligatoria').max(255),
+    actividad: z
+      .string()
+      .trim()
+      .min(1, 'La actividad es obligatoria')
+      .max(255, 'La actividad no puede superar los 255 caracteres'),
 
     eliminarLogo: z.coerce.boolean().optional(),
   }),

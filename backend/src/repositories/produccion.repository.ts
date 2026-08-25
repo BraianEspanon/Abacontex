@@ -373,3 +373,18 @@ export async function finalizarOrden(
     },
   });
 }
+
+export async function hasOrdenesPendientesByProducto(productoId: number) {
+  const count = await prisma.ordenProduccion.count({
+    where: {
+      productoId,
+      estado: {
+        nombre: {
+          not: ESTADOS_PRODUCCION.FINALIZADA,
+        },
+      },
+    },
+  });
+
+  return count > 0;
+}

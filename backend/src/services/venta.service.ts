@@ -238,7 +238,7 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
     await pedidoRepository.updateEstadoPedido(pedido.idPedido, estadoPedidoCompletado.idEstado, tx);
 
     const categoriaVenta = await movimientoFinancieroRepository.findCategoriaVenta(tx);
-    const estadoRegistrado = await movimientoFinancieroRepository.findEstadoRegistrado(tx);
+    const estadoRegistrado = await movimientoFinancieroRepository.findEstadoPendiente(tx);
 
     if (!categoriaVenta || !estadoRegistrado) {
       throw new ConflictError(
@@ -253,6 +253,7 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
         idCategoria: categoriaVenta.idCategoria,
         idMetodoPago: data.metodoPagoId,
         idEstado: estadoRegistrado.idEstado,
+        ventaId: venta.idVenta,
         concepto: `Venta - Pedido #${pedido.idPedido}`,
         importe: calculo.totalFinal,
         esAutomatico: true,
