@@ -13,3 +13,14 @@ export const registrarConciliacionSchema = z.object({
 });
 
 export type RegistrarConciliacionDTO = z.infer<typeof registrarConciliacionSchema>['body'];
+
+export const consultarHistorialConciliacionesSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().positive().default(1),
+    pageSize: z.coerce.number().int().positive().default(10),
+  }),
+});
+
+export type ConsultarHistorialConciliacionesDTO = z.infer<
+  typeof consultarHistorialConciliacionesSchema
+>['query'];

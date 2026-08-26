@@ -5,7 +5,12 @@ import * as usuarioService from './usuario.service';
 import * as conciliacionRepository from '../repositories/conciliacion.repository';
 import * as movimientoFinancieroRepository from '../repositories/movimiento-financiero.repository';
 
-import { RegistrarConciliacionDTO } from '../validators/conciliacion.validator';
+import {
+  RegistrarConciliacionDTO,
+  ConsultarHistorialConciliacionesDTO,
+} from '../validators/conciliacion.validator';
+
+import { ConciliacionMapper } from '../dto/finanzas/conciliacion.mapper';
 
 import { ConflictError } from '../errors/conflict.error';
 import { BadRequestError } from '../errors/bad-request-error';
@@ -96,5 +101,21 @@ export async function registrarConciliacion(user: AuthUser, data: RegistrarConci
     diferencia: Number(conciliacion.diferencia),
     observacion: conciliacion.observacion,
     createdAt: conciliacion.createdAt,
+  };
+}
+
+export async function obtenerHistorial(user: AuthUser, query: ConsultarHistorialConciliacionesDTO) {
+  const usuario = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const idEmpresa = usuario.alumno.empresa.id;
+
+  const paginacion = await conciliacionRepository.findHistorial(idEmpresa, query);
+  const totalPages = Math.ceil(paginacion.total / query.pageSize);
+
+  return {
+    items: paginacion.items.map(ConciliacionMapper.toHistorialDTO),
+    page: query.page,
+    pageSize: query.pageSize,
+    totalItems: paginacion.total,
+    totalPages,
   };
 }
