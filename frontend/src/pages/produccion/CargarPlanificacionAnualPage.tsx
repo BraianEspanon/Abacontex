@@ -20,6 +20,8 @@ import type { CrearPlanificacionRequest } from '../../types/planificacion.types'
 
 import { esCursoSexto } from '../../utils/curso.utils';
 
+const MAX_DIGITOS_UNIDADES = 9;
+
 const nombresMeses = [
   '',
   'Enero',
@@ -119,6 +121,17 @@ export default function CargarPlanificacionAnualPage() {
       return;
     }
 
+    /*
+     * Límite defensivo de interfaz:
+     * no permitimos ingresar más de 9 dígitos.
+     *
+     * No se muestra un error al usuario, simplemente
+     * el décimo dígito no llega a incorporarse al campo.
+     */
+    if (valor.length > MAX_DIGITOS_UNIDADES) {
+      return;
+    }
+
     const numero = Number(valor);
 
     if (!Number.isInteger(numero) || numero < 0) {
@@ -205,6 +218,7 @@ export default function CargarPlanificacionAnualPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1100px] space-y-5">
+      {/* Breadcrumb */}
       <nav className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
         <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
           <Home className="h-4 w-4" />
@@ -228,6 +242,7 @@ export default function CargarPlanificacionAnualPage() {
         <span className="font-medium text-gray-700">Cargar planificación</span>
       </nav>
 
+      {/* Encabezado */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Cargar planificación anual</h1>
@@ -247,6 +262,7 @@ export default function CargarPlanificacionAnualPage() {
         />
       </header>
 
+      {/* Error al guardar */}
       {crearPlanificacion.isError && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4">
           <p className="font-medium text-red-800">No fue posible guardar la planificación.</p>
@@ -257,8 +273,11 @@ export default function CargarPlanificacionAnualPage() {
         </div>
       )}
 
+      {/* Contenido */}
       <div className="grid items-start gap-5 lg:grid-cols-[1.55fr_0.7fr]">
+        {/* Columna izquierda */}
         <section className="space-y-4">
+          {/* Período */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="mesInicio" className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -307,6 +326,7 @@ export default function CargarPlanificacionAnualPage() {
             </div>
           </div>
 
+          {/* Tabla mensual */}
           <section className="overflow-hidden border border-gray-200 bg-white">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[620px]">
@@ -365,6 +385,7 @@ export default function CargarPlanificacionAnualPage() {
           </section>
         </section>
 
+        {/* Resumen */}
         <aside className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-[#496647]">Resumen de la planificación</h2>
 
@@ -398,6 +419,7 @@ export default function CargarPlanificacionAnualPage() {
         </aside>
       </div>
 
+      {/* Acciones */}
       <div className="flex justify-end gap-3">
         <Button
           type="button"

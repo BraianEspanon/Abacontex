@@ -1,5 +1,5 @@
 import { Package, Plus, Search, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import Button from '../ui/Button';
 
@@ -13,23 +13,20 @@ interface SelectorProductoPedidoProps {
   onAgregarProducto: (producto: ProductoListado) => void;
 }
 
+const MAX_BUSQUEDA_PRODUCTO = 100;
+
 export default function SelectorProductoPedido({
   productosSeleccionadosIds,
   onAgregarProducto,
 }: SelectorProductoPedidoProps) {
   const [busqueda, setBusqueda] = useState('');
   const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoListado | null>(null);
-
   const [mostrarResultados, setMostrarResultados] = useState(false);
+
+  const selectorRef = useRef<HTMLDivElement>(null);
 
   const busquedaDebounced = useDebounce(busqueda, 300);
 
-  /*
-   * Si no hay búsqueda, obtenemos los primeros productos ordenados
-   * alfabéticamente.
-   *
-   * Si el alumno empieza a escribir, el backend filtra por nombre.
-   */
   const { data, isLoading, isError } = useProductos({
     search: busquedaDebounced.trim() || undefined,
     estadoStock: 'TODOS',
@@ -46,18 +43,62 @@ export default function SelectorProductoPedido({
     return data?.items.filter((producto) => !productosSeleccionadosIds.includes(producto.id)) ?? [];
   }, [data?.items, productosSeleccionadosIds]);
 
+  /*
+   * Si el usuario hace click fuera del selector,
+   * cerramos únicamente el desplegable.
+   *
+   * Si ya existe un producto seleccionado,
+   * la selección permanece intacta.
+   */
+  useEffect(() => {
+    const handleClickFuera = (event: MouseEvent) => {
+      const selector = selectorRef.current;
+
+      if (!selector) {
+        return;
+      }
+
+      if (!selector.contains(event.target as Node)) {
+        setMostrarResultados(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickFuera);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickFuera);
+    };
+  }, []);
+
+  /*
+   * Al seleccionar un producto:
+   * - guardamos el producto;
+   * - limpiamos el texto del buscador;
+   * - cerramos el desplegable.
+   *
+   * A partir de este momento se muestra el producto
+   * como un chip dentro del campo.
+   */
   const handleSeleccionarProducto = (producto: ProductoListado) => {
     setProductoSeleccionado(producto);
-    setBusqueda(producto.nombre);
+    setBusqueda('');
     setMostrarResultados(false);
   };
 
+  /*
+   * La selección solamente se elimina explícitamente
+   * mediante la cruz del chip.
+   */
   const handleQuitarSeleccion = () => {
     setProductoSeleccionado(null);
     setBusqueda('');
-    setMostrarResultados(true);
+    setMostrarResultados(false);
   };
 
+  /*
+   * Agregamos el producto seleccionado al pedido
+   * y dejamos nuevamente disponible el buscador.
+   */
   const handleAgregarProducto = () => {
     if (!productoSeleccionado) {
       return;
@@ -71,69 +112,78 @@ export default function SelectorProductoPedido({
   };
 
   const handleCambiarBusqueda = (valor: string) => {
+    /*
+     * Mientras exista un producto seleccionado,
+     * el buscador permanece bloqueado.
+     */
+    if (productoSeleccionado) {
+      return;
+    }
+
     setBusqueda(valor);
     setMostrarResultados(true);
-
-    /*
-     * Si el usuario modifica manualmente el texto después de
-     * seleccionar un producto, dejamos de considerarlo seleccionado.
-     */
-    if (productoSeleccionado && valor !== productoSeleccionado.nombre) {
-      setProductoSeleccionado(null);
-    }
   };
 
   const handleFocus = () => {
     /*
-     * Si todavía no hay producto seleccionado,
-     * mostramos inmediatamente todos los productos disponibles.
+     * Si hay un producto seleccionado no volvemos
+     * a desplegar los resultados.
      */
-    if (!productoSeleccionado) {
-      setMostrarResultados(true);
+    if (productoSeleccionado) {
+      return;
     }
+
+    setMostrarResultados(true);
   };
 
   return (
-    <div>
+    <div ref={selectorRef}>
       <label htmlFor="buscarProducto" className="mb-1.5 block text-sm font-medium text-gray-700">
         Buscar y agregar un producto
       </label>
 
       <div className="flex items-start gap-3">
         <div className="relative min-w-0 flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          {productoSeleccionado ? (
+            <div className="flex h-9 w-full items-center rounded-lg border border-[#496647] bg-white px-2">
+              <div className="flex max-w-full items-center gap-2 rounded-md bg-gray-100 px-2.5 py-1">
+                <Package className="h-3.5 w-3.5 shrink-0 text-gray-500" />
 
-            <input
-              id="buscarProducto"
-              type="text"
-              value={busqueda}
-              onChange={(event) => handleCambiarBusqueda(event.target.value)}
-              onFocus={handleFocus}
-              placeholder="Escribí el nombre del producto..."
-              autoComplete="off"
-              className={[
-                'w-full rounded-lg border bg-white py-2 pl-10 text-sm outline-none transition',
-                productoSeleccionado ? 'pr-10' : 'pr-3',
-                'border-gray-300 focus:border-[#496647] focus:ring-2 focus:ring-[#496647]/20',
-              ].join(' ')}
-            />
+                <span className="max-w-[320px] truncate text-sm font-medium text-gray-700">
+                  {productoSeleccionado.nombre}
+                </span>
 
-            {productoSeleccionado && (
-              <button
-                type="button"
-                onClick={handleQuitarSeleccion}
-                aria-label="Quitar producto seleccionado"
-                title="Quitar selección"
-                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
+                <button
+                  type="button"
+                  onClick={handleQuitarSeleccion}
+                  aria-label={`Quitar ${productoSeleccionado.nombre}`}
+                  title="Quitar selección"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-gray-400 transition hover:bg-gray-200 hover:text-gray-700"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+
+              <input
+                id="buscarProducto"
+                type="text"
+                maxLength={MAX_BUSQUEDA_PRODUCTO}
+                value={busqueda}
+                onChange={(event) => handleCambiarBusqueda(event.target.value)}
+                onFocus={handleFocus}
+                placeholder="Escribí el nombre del producto..."
+                autoComplete="off"
+                className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-3 pl-10 text-sm outline-none transition focus:border-[#496647] focus:ring-2 focus:ring-[#496647]/20"
+              />
+            </div>
+          )}
 
           {mostrarResultados && !productoSeleccionado && (
-            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+            <div className="absolute right-0 left-0 top-[calc(100%+4px)] z-30 max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
               {isLoading && (
                 <div className="px-4 py-3 text-sm text-gray-500">Cargando productos...</div>
               )}
@@ -200,20 +250,11 @@ export default function SelectorProductoPedido({
         />
       </div>
 
-      {productoSeleccionado && (
-        <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-          <span>Producto seleccionado:</span>
-
-          <span className="font-medium text-gray-700">{productoSeleccionado.nombre}</span>
-
-          <button
-            type="button"
-            onClick={handleQuitarSeleccion}
-            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-red-600 transition hover:bg-red-50"
-          >
-            <X className="h-3.5 w-3.5" />
-            Quitar
-          </button>
+      {!productoSeleccionado && busqueda.length > 0 && (
+        <div className="mt-1 flex justify-end">
+          <span className="text-[11px] text-gray-400">
+            {busqueda.length}/{MAX_BUSQUEDA_PRODUCTO}
+          </span>
         </div>
       )}
     </div>

@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ClipboardList, Flag, Package, Paperclip, Plus, Search } from 'lucide-react';
-import { useEffect } from 'react';
+import { ClipboardList, Flag, Package, Paperclip, Plus, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import Button from '../ui/Button';
 
+import { useDebounce } from '../../hooks/useDebounce';
 import { usePedidosAsociablesProduccion } from '../../hooks/usePedidosAsociablesProduccion';
 import { useProductos } from '../../hooks/useProductos';
 
@@ -13,6 +14,9 @@ import type {
   CrearOrdenProduccionRequest,
   PrioridadOrdenProduccion,
 } from '../../types/produccion.types';
+
+const MAX_BUSQUEDA_PRODUCTO = 100;
+const MAX_DIGITOS_CANTIDAD = 9;
 
 const crearOrdenProduccionFormSchema = z.object({
   pedidoId: z.number().int().positive().optional(),
@@ -44,6 +48,11 @@ interface CrearOrdenProduccionFormProps {
   enviando?: boolean;
   pedidoInicialId?: number;
   bloquearPedido?: boolean;
+}
+
+interface ProductoBuscable {
+  id: number;
+  nombre: string;
 }
 
 const opcionesPrioridad: {
@@ -79,6 +88,13 @@ export default function CrearOrdenProduccionForm({
   pedidoInicialId,
   bloquearPedido = false,
 }: CrearOrdenProduccionFormProps) {
+  const [busquedaProducto, setBusquedaProducto] = useState('');
+  const [mostrarResultadosProducto, setMostrarResultadosProducto] = useState(false);
+
+  const selectorProductoRef = useRef<HTMLDivElement>(null);
+
+  const busquedaProductoDebounced = useDebounce(busquedaProducto, 300);
+
   const {
     register,
     control,
@@ -118,8 +134,9 @@ export default function CrearOrdenProduccionForm({
   });
 
   const { data: productosData, isLoading: cargandoProductos } = useProductos({
+    search: busquedaProductoDebounced.trim() || undefined,
     page: 1,
-    pageSize: 100,
+    pageSize: 50,
     orden: 'NOMBRE_ASC',
   });
 
@@ -132,56 +149,161 @@ export default function CrearOrdenProduccionForm({
     (faltante) => faltante.productoId === productoId
   );
 
-  const productosDisponibles = pedidoSeleccionado
-    ? pedidoSeleccionado.faltantes.map((faltante) => ({
-        id: faltante.productoId,
-        nombre: faltante.productoNombre,
-      }))
-    : (productosData?.items ?? []).map((producto) => ({
-        id: producto.id,
-        nombre: producto.nombre,
-      }));
+  const productosDisponibles: ProductoBuscable[] = useMemo(() => {
+    if (pedidoSeleccionado) {
+      const termino = busquedaProductoDebounced.trim().toLowerCase();
 
-  const productoSeleccionado = productosDisponibles.find((producto) => producto.id === productoId);
+      return pedidoSeleccionado.faltantes
+        .filter((faltante) => faltante.productoNombre.toLowerCase().includes(termino))
+        .map((faltante) => ({
+          id: faltante.productoId,
+          nombre: faltante.productoNombre,
+        }));
+    }
+
+    return (productosData?.items ?? []).map((producto) => ({
+      id: producto.id,
+      nombre: producto.nombre,
+    }));
+  }, [pedidoSeleccionado, productosData?.items, busquedaProductoDebounced]);
+
+  const productoSeleccionadoReal: ProductoBuscable | undefined = (() => {
+    if (!productoId) {
+      return undefined;
+    }
+
+    if (pedidoSeleccionado) {
+      const faltante = pedidoSeleccionado.faltantes.find((item) => item.productoId === productoId);
+
+      return faltante
+        ? {
+            id: faltante.productoId,
+            nombre: faltante.productoNombre,
+          }
+        : undefined;
+    }
+
+    const producto = productosData?.items.find((item) => item.id === productoId);
+
+    if (!producto) {
+      return undefined;
+    }
+
+    return {
+      id: producto.id,
+      nombre: producto.nombre,
+    };
+  })();
 
   const bloquearProducto = pedidoSeleccionado?.faltantes.length === 1;
 
   useEffect(() => {
-    if (!pedidoSeleccionado) {
+    const handleClickFuera = (event: MouseEvent) => {
+      const selector = selectorProductoRef.current;
+
+      if (!selector) {
+        return;
+      }
+
+      if (!selector.contains(event.target as Node)) {
+        setMostrarResultadosProducto(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickFuera);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickFuera);
+    };
+  }, []);
+
+  const handleCambiarPedido = (valor: string) => {
+    const nuevoPedidoId = valor === '' ? undefined : Number(valor);
+
+    setValue('pedidoId', nuevoPedidoId, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    resetField('productoId');
+    resetField('cantidadProducir');
+
+    setBusquedaProducto('');
+    setMostrarResultadosProducto(false);
+
+    if (!nuevoPedidoId) {
+      return;
+    }
+
+    const pedido = pedidosAsociables.find((item) => item.idPedido === nuevoPedidoId);
+
+    if (!pedido) {
+      return;
+    }
+
+    if (pedido.faltantes.length === 1) {
+      const unicoFaltante = pedido.faltantes[0];
+
+      setValue('productoId', unicoFaltante.productoId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+
+      setValue('cantidadProducir', unicoFaltante.cantidadPendiente, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  };
+
+  const handleSeleccionarProducto = (producto: ProductoBuscable) => {
+    setValue('productoId', producto.id, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    if (pedidoSeleccionado) {
+      const faltante = pedidoSeleccionado.faltantes.find((item) => item.productoId === producto.id);
+
+      if (faltante) {
+        setValue('cantidadProducir', faltante.cantidadPendiente, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+    }
+
+    setBusquedaProducto('');
+    setMostrarResultadosProducto(false);
+  };
+
+  const handleQuitarProducto = () => {
+    if (bloquearProducto) {
       return;
     }
 
     resetField('productoId');
     resetField('cantidadProducir');
 
-    if (pedidoSeleccionado.faltantes.length === 1) {
-      const unicoFaltante = pedidoSeleccionado.faltantes[0];
+    setBusquedaProducto('');
+    setMostrarResultadosProducto(false);
+  };
 
-      setValue('productoId', unicoFaltante.productoId, {
-        shouldValidate: true,
-      });
-
-      setValue('cantidadProducir', unicoFaltante.cantidadPendiente, {
-        shouldValidate: true,
-      });
-    }
-  }, [pedidoSeleccionado, resetField, setValue]);
-
-  useEffect(() => {
-    if (!pedidoSeleccionado || !productoId) {
+  const handleFocusProducto = () => {
+    if (productoId || bloquearProducto) {
       return;
     }
 
-    const faltante = pedidoSeleccionado.faltantes.find((item) => item.productoId === productoId);
+    setMostrarResultadosProducto(true);
+  };
 
-    if (!faltante) {
-      return;
+  const limitarCantidadADigitos = (event: React.FormEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+
+    if (input.value.length > MAX_DIGITOS_CANTIDAD) {
+      input.value = input.value.slice(0, MAX_DIGITOS_CANTIDAD);
     }
-
-    setValue('cantidadProducir', faltante.cantidadPendiente, {
-      shouldValidate: true,
-    });
-  }, [pedidoSeleccionado, productoId, setValue]);
+  };
 
   const procesarSubmit = (values: CrearOrdenProduccionFormValues) => {
     const payload: CrearOrdenProduccionRequest = {
@@ -212,7 +334,6 @@ export default function CrearOrdenProduccionForm({
       onSubmit={handleSubmit(procesarSubmit)}
       className="grid items-start gap-5 lg:grid-cols-[1.12fr_0.88fr]"
     >
-      {/* DATOS DE LA ORDEN */}
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="mb-5 flex items-center gap-3">
           <ClipboardList className="h-5 w-5 text-gray-800" />
@@ -221,43 +342,110 @@ export default function CrearOrdenProduccionForm({
         </div>
 
         <div className="space-y-5">
-          {/* Producto */}
-          <div>
-            <label htmlFor="productoId" className="mb-1.5 block text-sm font-medium text-gray-800">
+          <div ref={selectorProductoRef}>
+            <label className="mb-1.5 block text-sm font-medium text-gray-800">
               Producto <span className="text-red-500">*</span>
             </label>
 
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              {productoSeleccionadoReal ? (
+                <div
+                  className={[
+                    'flex h-[42px] w-full items-center rounded-lg border px-2',
+                    bloquearProducto ? 'border-gray-300 bg-gray-100' : 'border-[#496647] bg-white',
+                  ].join(' ')}
+                >
+                  <div className="flex max-w-full items-center gap-2 rounded-md bg-gray-100 px-2.5 py-1">
+                    <Package className="h-3.5 w-3.5 shrink-0 text-gray-500" />
 
-              <select
-                id="productoId"
-                {...register('productoId', {
-                  setValueAs: (value) => (value === '' ? undefined : Number(value)),
-                })}
-                disabled={
-                  cargandoProductos ||
-                  (Boolean(pedidoId) && !pedidoSeleccionado) ||
-                  bloquearProducto
-                }
-                className={[
-                  'w-full appearance-none rounded-lg border bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition',
-                  'disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-600',
-                  errors.productoId
-                    ? 'border-red-400 focus:ring-2 focus:ring-red-100'
-                    : 'border-gray-300 focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20',
-                ].join(' ')}
-              >
-                <option value="">
-                  {pedidoSeleccionado ? 'Seleccioná un producto faltante' : 'Buscar producto'}
-                </option>
+                    <span className="max-w-[320px] truncate text-sm font-medium text-gray-700">
+                      {productoSeleccionadoReal.nombre}
+                    </span>
 
-                {productosDisponibles.map((producto) => (
-                  <option key={producto.id} value={producto.id}>
-                    {producto.nombre}
-                  </option>
-                ))}
-              </select>
+                    {!bloquearProducto && (
+                      <button
+                        type="button"
+                        onClick={handleQuitarProducto}
+                        aria-label={`Quitar ${productoSeleccionadoReal.nombre}`}
+                        title="Quitar selección"
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-gray-400 transition hover:bg-gray-200 hover:text-gray-700"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+
+                    <input
+                      id="productoId"
+                      type="text"
+                      maxLength={MAX_BUSQUEDA_PRODUCTO}
+                      value={busquedaProducto}
+                      onChange={(event) => {
+                        setBusquedaProducto(event.target.value);
+                        setMostrarResultadosProducto(true);
+                      }}
+                      onFocus={handleFocusProducto}
+                      placeholder={
+                        pedidoSeleccionado ? 'Buscar producto faltante' : 'Buscar producto'
+                      }
+                      autoComplete="off"
+                      disabled={
+                        cargandoProductos ||
+                        (Boolean(pedidoId) && !pedidoSeleccionado) ||
+                        bloquearProducto
+                      }
+                      className={[
+                        'w-full rounded-lg border bg-white py-2.5 pr-3 pl-9 text-sm outline-none transition',
+                        'disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-600',
+                        errors.productoId
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-100'
+                          : 'border-gray-300 focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20',
+                      ].join(' ')}
+                    />
+                  </div>
+
+                  {mostrarResultadosProducto && !productoId && (
+                    <div className="absolute top-[calc(100%+4px)] right-0 left-0 z-30 max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                      {cargandoProductos && !pedidoSeleccionado && (
+                        <div className="px-4 py-3 text-sm text-gray-500">Cargando productos...</div>
+                      )}
+
+                      {!cargandoProductos && productosDisponibles.length === 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-500">
+                          {busquedaProductoDebounced.trim()
+                            ? 'No se encontraron productos con esa búsqueda.'
+                            : 'No hay productos disponibles.'}
+                        </div>
+                      )}
+
+                      {productosDisponibles.map((producto) => (
+                        <button
+                          key={producto.id}
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => handleSeleccionarProducto(producto)}
+                          className="flex w-full items-center gap-3 border-b border-gray-100 px-3 py-2.5 text-left transition last:border-b-0 hover:bg-gray-50"
+                        >
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100">
+                            <Package className="h-4 w-4 text-gray-400" />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-gray-900">
+                              {producto.nombre}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {pedidoSeleccionado && pedidoSeleccionado.faltantes.length > 1 && (
@@ -277,7 +465,6 @@ export default function CrearOrdenProduccionForm({
             )}
           </div>
 
-          {/* Cantidad */}
           <div>
             <label
               htmlFor="cantidadProducir"
@@ -296,6 +483,7 @@ export default function CrearOrdenProduccionForm({
                 {...register('cantidadProducir', {
                   setValueAs: (value) => (value === '' ? undefined : Number(value)),
                 })}
+                onInput={limitarCantidadADigitos}
                 placeholder="Ingrese la cantidad"
                 className={[
                   'w-full rounded-lg border px-3 py-2.5 pr-12 text-sm outline-none transition',
@@ -306,7 +494,7 @@ export default function CrearOrdenProduccionForm({
                 ].join(' ')}
               />
 
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500">
+              <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-medium text-gray-500">
                 u.
               </span>
             </div>
@@ -322,7 +510,6 @@ export default function CrearOrdenProduccionForm({
             )}
           </div>
 
-          {/* Prioridad */}
           <div>
             <p className="mb-1.5 text-sm font-medium text-gray-800">
               Prioridad <span className="text-red-500">*</span>
@@ -361,7 +548,6 @@ export default function CrearOrdenProduccionForm({
             )}
           </div>
 
-          {/* Pedido asociado */}
           <div>
             <label htmlFor="pedidoId" className="mb-1.5 block text-sm font-medium text-gray-800">
               Pedido asociado{' '}
@@ -371,30 +557,30 @@ export default function CrearOrdenProduccionForm({
             {bloquearPedido ? (
               <div className="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2.5 text-sm text-gray-700">
                 {pedidoSeleccionado
-                  ? `PED-${pedidoSeleccionado.idPedido
-                      .toString()
-                      .padStart(5, '0')} - ${pedidoSeleccionado.clienteNombre}`
+                  ? `PED-${pedidoSeleccionado.idPedido.toString().padStart(5, '0')} - ${
+                      pedidoSeleccionado.clienteNombre
+                    }`
                   : pedidoInicialId
                     ? `PED-${pedidoInicialId.toString().padStart(5, '0')}`
                     : 'Cargando pedido...'}
               </div>
             ) : (
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
 
                 <select
                   id="pedidoId"
-                  {...register('pedidoId', {
-                    setValueAs: (value) => (value === '' ? undefined : Number(value)),
-                  })}
+                  value={pedidoId ?? ''}
+                  onChange={(event) => handleCambiarPedido(event.target.value)}
                   disabled={cargandoPedidos}
-                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
+                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2.5 pr-3 pl-9 text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
                 >
                   <option value="">Buscar pedido</option>
 
                   {pedidosAsociables.map((pedido) => (
                     <option key={pedido.idPedido} value={pedido.idPedido}>
-                      PED-{pedido.idPedido.toString().padStart(5, '0')} - {pedido.clienteNombre}
+                      PED-
+                      {pedido.idPedido.toString().padStart(5, '0')} - {pedido.clienteNombre}
                     </option>
                   ))}
                 </select>
@@ -410,7 +596,6 @@ export default function CrearOrdenProduccionForm({
         </div>
       </section>
 
-      {/* RESUMEN */}
       <section className="h-fit w-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm lg:max-w-[520px] lg:justify-self-end">
         <div className="mb-4 flex items-center gap-3">
           <Paperclip className="h-5 w-5 text-gray-800" />
@@ -422,7 +607,7 @@ export default function CrearOrdenProduccionForm({
           <ResumenFila
             icono={<Package className="h-4 w-4" />}
             etiqueta="Producto"
-            valor={productoSeleccionado?.nombre ?? '—'}
+            valor={productoSeleccionadoReal?.nombre ?? '—'}
           />
 
           <ResumenFila
@@ -445,7 +630,6 @@ export default function CrearOrdenProduccionForm({
         </div>
       </section>
 
-      {/* ACCIONES */}
       <div className="-mt-1 flex flex-col-reverse gap-3 lg:col-span-2 lg:flex-row lg:justify-end">
         <Button
           type="button"
@@ -491,7 +675,7 @@ function ResumenFila({ icono, etiqueta, valor }: ResumenFilaProps) {
 
 function ChevronRightIcon() {
   return (
-    <div className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-700 text-[9px] font-bold leading-none text-gray-700">
+    <div className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-700 text-[9px] leading-none font-bold text-gray-700">
       »
     </div>
   );
