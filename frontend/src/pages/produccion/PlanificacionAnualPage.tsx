@@ -4,6 +4,8 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Factory,
+  GraduationCap,
   Home,
   Pencil,
   Target,
@@ -15,12 +17,15 @@ import EditarEstimacionMensualModal from '../../components/produccion/EditarEsti
 import Button from '../../components/ui/Button';
 
 import { useActualizarPlanificacionMensual } from '../../hooks/useActualizarPlanificacionMensual';
+import { useAlumnoActual } from '../../hooks/useAlumnoActual';
 import { usePlanificacionAnual } from '../../hooks/usePlanificacionAnual';
 
 import type {
   EstadoMesPlanificacion,
   MesPlanificacionAnual,
 } from '../../types/planificacion.types';
+
+import { esCursoSexto } from '../../utils/curso.utils';
 
 const nombresMeses = [
   '',
@@ -55,7 +60,25 @@ export default function PlanificacionAnualPage() {
 
   const [mesSeleccionado, setMesSeleccionado] = useState<MesPlanificacionAnual | null>(null);
 
-  const { data: planificacion, isLoading, isError, refetch } = usePlanificacionAnual();
+  const {
+    data: alumno,
+    isLoading: cargandoAlumno,
+    isError: errorAlumno,
+    refetch: refetchAlumno,
+  } = useAlumnoActual();
+
+  const esSexto = esCursoSexto(alumno?.curso?.nombre);
+
+  const tieneEmpresa = Boolean(alumno?.empresa);
+
+  const puedeUsarPlanificacion = esSexto && tieneEmpresa;
+
+  const {
+    data: planificacion,
+    isLoading,
+    isError,
+    refetch,
+  } = usePlanificacionAnual(puedeUsarPlanificacion);
 
   const actualizarPlanificacion = useActualizarPlanificacionMensual();
 
@@ -90,6 +113,56 @@ export default function PlanificacionAnualPage() {
       }
     );
   };
+
+  if (cargandoAlumno) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <p className="text-sm text-gray-500">Cargando estimación anual...</p>
+      </div>
+    );
+  }
+
+  if (errorAlumno || !alumno) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+        <h2 className="font-semibold text-red-800">
+          No fue posible comprobar la información del alumno
+        </h2>
+
+        <p className="mt-1 text-sm text-red-700">
+          Ocurrió un problema al consultar tu curso y tus datos actuales.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => refetchAlumno()}
+          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  if (!esSexto) {
+    return (
+      <EstadoPlanificacionNoDisponible
+        icono={<GraduationCap className="h-9 w-9 text-abacontex-primary" />}
+        titulo="La planificación anual no está disponible para tu curso"
+        descripcion="Esta funcionalidad forma parte del módulo de Producción y está disponible únicamente para alumnos de 6.º año."
+      />
+    );
+  }
+
+  if (!tieneEmpresa) {
+    return (
+      <EstadoPlanificacionNoDisponible
+        icono={<Factory className="h-9 w-9 text-abacontex-primary" />}
+        titulo="Todavía no pertenecés a una empresa"
+        descripcion="Para acceder a la planificación anual primero tenés que formar parte de una empresa de tu curso."
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -126,7 +199,6 @@ export default function PlanificacionAnualPage() {
   return (
     <>
       <div className="mx-auto w-full max-w-[1180px] space-y-5">
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500">
           <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
             <Home className="h-4 w-4" />
@@ -144,7 +216,6 @@ export default function PlanificacionAnualPage() {
           <span className="font-semibold text-gray-800">Planificación de producción</span>
         </nav>
 
-        {/* Descripción + volver */}
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-gray-500">
             Definí y monitoreá la producción estimada de tu empresa durante el ciclo lectivo.
@@ -160,7 +231,6 @@ export default function PlanificacionAnualPage() {
           />
         </header>
 
-        {/* Indicadores */}
         <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           <IndicadorCard
             titulo="Ciclo lectivo"
@@ -201,10 +271,8 @@ export default function PlanificacionAnualPage() {
 
         {!tienePlanificacion ? (
           <>
-            {/* Estado vacío */}
             <section className="mx-auto w-full max-w-[980px] rounded-2xl border border-gray-200 bg-white px-7 py-6 shadow-sm">
               <div className="grid items-center gap-4 lg:grid-cols-[1.55fr_0.65fr]">
-                {/* Información */}
                 <div>
                   <h2 className="text-center text-[25px] font-semibold leading-tight text-[#496647]">
                     ¡Aún no has cargado la planificación anual!
@@ -245,7 +313,6 @@ export default function PlanificacionAnualPage() {
                   </div>
                 </div>
 
-                {/* Mascota */}
                 <div className="hidden items-end justify-center lg:flex">
                   <img
                     src="/img/planificacion-anual-mascota.png"
@@ -256,7 +323,6 @@ export default function PlanificacionAnualPage() {
               </div>
             </section>
 
-            {/* Tabla vacía */}
             <section className="overflow-hidden border border-gray-200 bg-white">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[800px]">
@@ -308,7 +374,6 @@ export default function PlanificacionAnualPage() {
             </section>
           </>
         ) : (
-          /* Planificación cargada */
           <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[850px]">
@@ -348,6 +413,57 @@ export default function PlanificacionAnualPage() {
         onGuardar={handleGuardarEstimacion}
       />
     </>
+  );
+}
+
+interface EstadoPlanificacionNoDisponibleProps {
+  icono: React.ReactNode;
+  titulo: string;
+  descripcion: string;
+}
+
+function EstadoPlanificacionNoDisponible({
+  icono,
+  titulo,
+  descripcion,
+}: EstadoPlanificacionNoDisponibleProps) {
+  return (
+    <div className="mx-auto w-full max-w-[1180px] space-y-5">
+      <nav className="flex items-center gap-2 text-sm text-gray-500">
+        <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
+          <Home className="h-4 w-4" />
+          Inicio
+        </Link>
+
+        <ChevronRight className="h-4 w-4" />
+
+        <span className="font-medium text-gray-700">Planificación de producción</span>
+      </nav>
+
+      <header>
+        <h1 className="text-2xl font-bold text-gray-900">Estimación anual</h1>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Definí y monitoreá la producción estimada de tu empresa durante el ciclo lectivo.
+        </p>
+      </header>
+
+      <div className="flex justify-center pt-6">
+        <section className="flex min-h-[360px] w-full max-w-3xl flex-col items-center justify-center rounded-2xl bg-white px-8 py-12 text-center shadow-md">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-abacontex-primary/10">
+            {icono}
+          </div>
+
+          <h2 className="mt-6 font-heading text-2xl font-semibold text-abacontex-black-text">
+            {titulo}
+          </h2>
+
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+            {descripcion}
+          </p>
+        </section>
+      </div>
+    </div>
   );
 }
 

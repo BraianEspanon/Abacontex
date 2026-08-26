@@ -47,14 +47,18 @@ export interface EmpresaActual {
   actividad: string;
   logoUrl: string | null;
   puntos: number;
+
   curso: {
     id: number;
     nombre: string;
+    año: number;
   };
+
   cicloLectivo: {
     id: number;
     nombre: string;
   };
+
   integrantes: IntegranteEmpresa[];
 }
 

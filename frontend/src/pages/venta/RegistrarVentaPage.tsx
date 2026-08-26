@@ -1,10 +1,19 @@
-import { CalendarDays, ChevronRight, Home, Package, ReceiptText, UserRound } from 'lucide-react';
+import {
+  CalendarDays,
+  ChevronRight,
+  Home,
+  Package,
+  ReceiptText,
+  UserRound,
+  WalletCards,
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 import CondicionesVentaForm from '../../components/venta/CondicionesVentaForm';
 import VentaRegistradaModal from '../../components/venta/VentaRegistradaModal';
 
+import { useAlumnoActual } from '../../hooks/useAlumnoActual';
 import { useMetodosPago } from '../../hooks/useMetodosPago';
 import { usePedidosListosVenta } from '../../hooks/usePedidosListosVenta';
 import { useRegistrarVenta } from '../../hooks/useRegistrarVenta';
@@ -35,13 +44,34 @@ export default function RegistrarVentaPage() {
 
   const [ventaRegistrada, setVentaRegistrada] = useState<VentaRegistrada | null>(null);
 
-  const { data: pedidos = [], isLoading, isError, refetch } = usePedidosListosVenta();
+  /*
+   * Primero obtenemos los datos del alumno.
+   *
+   * Ventas está habilitado para todos los cursos,
+   * pero para registrar una venta el alumno debe
+   * pertenecer a una empresa.
+   */
+  const {
+    data: alumno,
+    isLoading: cargandoAlumno,
+    isError: errorAlumno,
+    refetch: refetchAlumno,
+  } = useAlumnoActual();
+
+  const tieneEmpresa = Boolean(alumno?.empresa);
+
+  /*
+   * Estas consultas solo se ejecutan cuando el alumno
+   * pertenece a una empresa.
+   */
+  const { data: pedidos = [], isLoading, isError, refetch } = usePedidosListosVenta(tieneEmpresa);
 
   const {
     data: metodosPago = [],
     isLoading: cargandoMetodosPago,
     isError: errorMetodosPago,
-  } = useMetodosPago();
+    refetch: refetchMetodosPago,
+  } = useMetodosPago(tieneEmpresa);
 
   const registrarVenta = useRegistrarVenta();
 
@@ -141,7 +171,8 @@ export default function RegistrarVentaPage() {
 
           {pedidos.map((pedido) => (
             <option key={pedido.idPedido} value={pedido.idPedido}>
-              PED-{pedido.idPedido.toString().padStart(5, '0')} - {pedido.clienteNombre}
+              PED-
+              {pedido.idPedido.toString().padStart(5, '0')} - {pedido.clienteNombre}
             </option>
           ))}
         </select>
@@ -269,6 +300,51 @@ export default function RegistrarVentaPage() {
     </section>
   ) : null;
 
+  /*
+   * Primero resolvemos el estado del alumno.
+   */
+  if (cargandoAlumno) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <p className="text-sm text-gray-500">Cargando información para registrar la venta...</p>
+      </div>
+    );
+  }
+
+  if (errorAlumno || !alumno) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+        <h2 className="font-semibold text-red-800">
+          No fue posible comprobar la información del alumno
+        </h2>
+
+        <p className="mt-1 text-sm text-red-700">
+          Ocurrió un problema al consultar tus datos actuales.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => refetchAlumno()}
+          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  /*
+   * Ventas está disponible para todos los cursos,
+   * pero requiere pertenecer a una empresa.
+   */
+  if (!tieneEmpresa) {
+    return <EstadoRegistrarVentaSinEmpresa />;
+  }
+
+  /*
+   * Recién acá esperamos las queries dependientes
+   * de la empresa.
+   */
   if (isLoading || cargandoMetodosPago) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
@@ -288,7 +364,10 @@ export default function RegistrarVentaPage() {
 
         <button
           type="button"
-          onClick={() => refetch()}
+          onClick={() => {
+            void refetch();
+            void refetchMetodosPago();
+          }}
           className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
         >
           Reintentar
@@ -300,6 +379,7 @@ export default function RegistrarVentaPage() {
   return (
     <>
       <div className="space-y-5">
+        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500">
           <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
             <Home className="h-4 w-4" />
@@ -317,6 +397,7 @@ export default function RegistrarVentaPage() {
           <span className="font-medium text-gray-700">Registrar venta</span>
         </nav>
 
+        {/* Encabezado */}
         <header>
           <h1 className="text-2xl font-bold text-gray-900">Registrar venta</h1>
 
@@ -387,5 +468,69 @@ export default function RegistrarVentaPage() {
         onCompletarFactura={handleCompletarFactura}
       />
     </>
+  );
+}
+
+function EstadoRegistrarVentaSinEmpresa() {
+  return (
+    <div className="space-y-5">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-sm text-gray-500">
+        <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
+          <Home className="h-4 w-4" />
+          Inicio
+        </Link>
+
+        <ChevronRight className="h-4 w-4" />
+
+        <Link to="/alumno/ventas" className="transition hover:text-gray-700">
+          Ventas
+        </Link>
+
+        <ChevronRight className="h-4 w-4" />
+
+        <span className="font-medium text-gray-700">Registrar venta</span>
+      </nav>
+
+      {/* Encabezado */}
+      <header>
+        <h1 className="text-2xl font-bold text-gray-900">Registrar venta</h1>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Seleccioná un pedido finalizado y completá las condiciones comerciales para registrar la
+          venta.
+        </p>
+      </header>
+
+      {/* Estado sin empresa */}
+      <div className="flex justify-center pt-6">
+        <section className="flex min-h-[360px] w-full max-w-3xl flex-col items-center justify-center rounded-2xl bg-white px-8 py-12 text-center shadow-md">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-abacontex-primary/10">
+            <WalletCards size={36} className="text-abacontex-primary" />
+          </div>
+
+          <h2 className="mt-6 font-heading text-2xl font-semibold text-abacontex-black-text">
+            Todavía no pertenecés a una empresa
+          </h2>
+
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+            Para registrar una venta primero tenés que formar parte de una empresa de tu curso.
+          </p>
+
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+            Cuando seas incorporado a una empresa, vas a poder seleccionar pedidos y registrar las
+            operaciones comerciales correspondientes.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="mt-6 rounded-lg border border-[#6f9468] bg-white px-5 py-2.5 text-sm font-medium text-[#496647] transition hover:bg-[#f1f5ef]"
+          >
+            Volver
+          </button>
+        </section>
+      </div>
+    </div>
   );
 }
