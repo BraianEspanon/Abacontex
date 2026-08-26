@@ -19,7 +19,11 @@ import {
   consultarGraficoSchema,
 } from '../validators/movimiento-financiero.validator';
 
+import conciliacionRoutes from './conciliacion.routes';
+
 const router = Router();
+
+router.use('/conciliaciones', conciliacionRoutes);
 
 router.get('/categorias', authenticate, requireRole(ROLES.ALUMNO), obtenerCategorias);
 

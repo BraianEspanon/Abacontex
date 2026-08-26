@@ -121,3 +121,24 @@ export async function getAlumnoSextoConEmpresaOrThrow(user: AuthUser) {
     },
   };
 }
+
+export async function getAlumnoConEmpresaOrThrow(user: AuthUser) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError('El usuario no está asociado a un alumno.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('El alumno no está asociado a una empresa.');
+  }
+
+  return {
+    ...usuario,
+    alumno: {
+      ...usuario.alumno,
+      empresa: usuario.alumno.empresa,
+    },
+  };
+}
+

@@ -178,3 +178,39 @@ export async function findMovimientosPorRango(
     },
   });
 }
+
+export async function findPosterioresAFecha(
+  idEmpresa: number,
+  fechaDesde?: Date,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const where: Prisma.MovimientoFinancieroWhereInput = {
+    idEmpresa,
+  };
+
+  if (fechaDesde) {
+    where.fecha = {
+      gt: fechaDesde,
+    };
+  }
+
+  return db.movimientoFinanciero.findMany({
+    where,
+    select: {
+      idMovimiento: true,
+      fecha: true,
+      importe: true,
+      categoria: {
+        select: {
+          tipoMovimiento: { select: { nombre: true } },
+        },
+      },
+    },
+    orderBy: {
+      fecha: 'asc',
+    },
+  });
+}
+
