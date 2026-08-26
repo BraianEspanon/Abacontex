@@ -3,6 +3,7 @@ import { useKeycloak } from '@react-keycloak/web';
 import {
   BookOpen,
   Building2,
+  Calculator,
   ClipboardList,
   Factory,
   GraduationCap,
@@ -14,8 +15,11 @@ import {
   Trophy,
   UserRound,
   WalletCards,
-  Calculator,
 } from 'lucide-react';
+
+import { useAlumnoActual } from '../../hooks/useAlumnoActual';
+
+import { esCursoSexto } from '../../utils/curso.utils';
 
 const opcionesMenu = [
   {
@@ -43,6 +47,7 @@ const opcionesMenu = [
     nombre: 'Producción',
     ruta: '/alumno/produccion',
     icono: Factory,
+    soloSexto: true,
   },
   {
     nombre: 'Ventas',
@@ -94,11 +99,24 @@ const opcionesMenu = [
 export default function BarraLateralAlumno() {
   const { keycloak } = useKeycloak();
 
+  const { data: alumno, isLoading: cargandoAlumno, isError: errorAlumno } = useAlumnoActual();
+
   const cerrarSesion = () => {
     void keycloak.logout({
       redirectUri: window.location.origin,
     });
   };
+
+  /*
+   * Producción depende únicamente del curso.
+   *
+   * 5.º → no se muestra.
+   * 6.º → se muestra, tenga o no empresa.
+   *
+   * Si el alumno de 6.º todavía no tiene empresa,
+   * ProduccionPage se encarga de mostrar el estado informativo.
+   */
+  const mostrarProduccion = !cargandoAlumno && !errorAlumno && esCursoSexto(alumno?.curso?.nombre);
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col bg-[#172019] text-white">
@@ -109,6 +127,10 @@ export default function BarraLateralAlumno() {
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
           {opcionesMenu.map((opcion) => {
+            if (opcion.soloSexto && !mostrarProduccion) {
+              return null;
+            }
+
             const Icono = opcion.icono;
 
             return (
@@ -127,6 +149,7 @@ export default function BarraLateralAlumno() {
                   }
                 >
                   <Icono size={18} />
+
                   <span>{opcion.nombre}</span>
                 </NavLink>
               </li>

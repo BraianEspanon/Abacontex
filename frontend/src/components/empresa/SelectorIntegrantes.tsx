@@ -2,23 +2,25 @@
 
 import { Mail, Search, UserRoundPlus, X } from 'lucide-react';
 import { useState } from 'react';
+
 import type { AlumnoDisponible, InvitacionPendiente } from '../../types/empresa.types';
 
 interface SelectorIntegrantesProps {
   alumnos: AlumnoDisponible[];
   seleccionados: AlumnoDisponible[];
   invitaciones: InvitacionPendiente[];
-
   busqueda: string;
   cargandoAlumnos: boolean;
   errorAlumnos: boolean;
-
   onBusquedaChange: (value: string) => void;
   onReintentarBusqueda: () => void;
   onToggleAlumno: (alumno: AlumnoDisponible) => void;
   onAgregarInvitacion: (email: string) => void;
   onEliminarInvitacion: (id: string) => void;
 }
+
+const DOMINIO_INSTITUCIONAL = '@ipgsanmartin.edu.ar';
+const MAXIMO_INVITACIONES = 10;
 
 export default function SelectorIntegrantes({
   alumnos,
@@ -34,6 +36,7 @@ export default function SelectorIntegrantes({
   onEliminarInvitacion,
 }: SelectorIntegrantesProps) {
   const [pestanaActiva, setPestanaActiva] = useState<'registrados' | 'invitacion'>('registrados');
+
   const [email, setEmail] = useState('');
   const [errorEmail, setErrorEmail] = useState('');
 
@@ -54,14 +57,25 @@ export default function SelectorIntegrantes({
       return;
     }
 
-    const yaInvitado = invitaciones.some((invitacion) => invitacion.email === correo);
+    if (!correo.endsWith(DOMINIO_INSTITUCIONAL)) {
+      setErrorEmail(`Solo se permiten correos institucionales (${DOMINIO_INSTITUCIONAL}).`);
+      return;
+    }
+
+    const yaInvitado = invitaciones.some((invitacion) => invitacion.email.toLowerCase() === correo);
 
     if (yaInvitado) {
       setErrorEmail('Ese correo ya fue agregado.');
       return;
     }
 
+    if (invitaciones.length >= MAXIMO_INVITACIONES) {
+      setErrorEmail(`No podés agregar más de ${MAXIMO_INVITACIONES} invitaciones.`);
+      return;
+    }
+
     onAgregarInvitacion(correo);
+
     setEmail('');
     setErrorEmail('');
   };
@@ -71,6 +85,7 @@ export default function SelectorIntegrantes({
       <div className="mb-5">
         <div className="flex items-center gap-2">
           <UserRoundPlus className="h-5 w-5 text-abacontex-primary" />
+
           <h2 className="font-heading text-xl font-bold text-abacontex-black-text">
             Agregar integrantes
           </h2>
@@ -110,14 +125,14 @@ export default function SelectorIntegrantes({
       {pestanaActiva === 'registrados' ? (
         <>
           <div className="relative mb-3">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-abacontex-gray-text" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-abacontex-gray-text" />
 
             <input
               type="search"
               value={busqueda}
               onChange={(event) => onBusquedaChange(event.target.value)}
               placeholder="Buscá por nombre, apellido, correo o curso..."
-              className="w-full rounded-xl border border-gray-300 py-3 pr-4 pl-10 text-sm outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20"
+              className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20"
             />
           </div>
 
@@ -193,7 +208,7 @@ export default function SelectorIntegrantes({
         <div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
-              <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-abacontex-gray-text" />
+              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-abacontex-gray-text" />
 
               <input
                 type="email"
@@ -202,21 +217,36 @@ export default function SelectorIntegrantes({
                   setEmail(event.target.value);
                   setErrorEmail('');
                 }}
-                placeholder="correo@ejemplo.com"
-                className="w-full rounded-xl border border-gray-300 py-3 pr-4 pl-10 text-sm outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20"
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleAgregarInvitacion();
+                  }
+                }}
+                placeholder="alumno@ipgsanmartin.edu.ar"
+                className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-abacontex-primary focus:ring-2 focus:ring-abacontex-primary/20"
               />
             </div>
 
             <button
               type="button"
               onClick={handleAgregarInvitacion}
-              className="rounded-xl bg-abacontex-primary px-5 py-3 text-sm font-medium text-white transition hover:bg-abacontex-primary-two"
+              disabled={invitaciones.length >= MAXIMO_INVITACIONES}
+              className="rounded-xl bg-abacontex-primary px-5 py-3 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
             >
               Agregar
             </button>
           </div>
 
-          {errorEmail && <p className="mt-2 text-sm text-red-600">{errorEmail}</p>}
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <p className={`text-xs ${errorEmail ? 'text-red-600' : 'text-abacontex-gray-text'}`}>
+              {errorEmail || `Solo correos ${DOMINIO_INSTITUCIONAL}`}
+            </p>
+
+            <span className="shrink-0 text-xs text-abacontex-gray-text">
+              {invitaciones.length}/{MAXIMO_INVITACIONES}
+            </span>
+          </div>
         </div>
       )}
 
@@ -247,7 +277,9 @@ export default function SelectorIntegrantes({
                 className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800"
               >
                 {invitacion.email}
+
                 <span className="text-xs">Pendiente</span>
+
                 <X className="h-3.5 w-3.5" />
               </button>
             ))}

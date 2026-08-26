@@ -31,7 +31,7 @@ export default function CEOBienvenida() {
     keycloak.tokenParsed?.given_name ?? keycloak.tokenParsed?.name?.split(' ')[0] ?? 'CEO';
 
   const handleContinue = () => {
-    navigate('/empresa/crear');
+    navigate('/alumno/empresa/crear');
   };
 
   return (
