@@ -8,6 +8,9 @@ interface TablaProductosPedidoProps {
   onEliminarProducto: (productoId: number) => void;
 }
 
+const MIN_CANTIDAD = 1;
+const MAX_CANTIDAD = 1000;
+
 const formatearMoneda = (valor: number) => {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
@@ -101,9 +104,12 @@ export default function TablaProductosPedido({
                       type="button"
                       aria-label={`Disminuir cantidad de ${producto.nombre}`}
                       onClick={() =>
-                        onCambiarCantidad(producto.id, Math.max(1, producto.cantidad - 1))
+                        onCambiarCantidad(
+                          producto.id,
+                          Math.max(MIN_CANTIDAD, producto.cantidad - 1)
+                        )
                       }
-                      disabled={producto.cantidad <= 1}
+                      disabled={producto.cantidad <= MIN_CANTIDAD}
                       className="flex h-9 w-9 items-center justify-center text-gray-500 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
                     >
                       <Minus className="h-3.5 w-3.5" />
@@ -111,36 +117,50 @@ export default function TablaProductosPedido({
 
                     <input
                       type="number"
-                      min={1}
-                      max={1000}
+                      min={MIN_CANTIDAD}
+                      max={MAX_CANTIDAD}
+                      step={1}
                       value={producto.cantidad}
                       aria-label={`Cantidad de ${producto.nombre}`}
                       onChange={(event) => {
-                        const nuevaCantidad = Number(event.target.value);
+                        const valor = event.target.value;
+
+                        if (valor === '') {
+                          return;
+                        }
+
+                        const nuevaCantidad = Number(valor);
 
                         if (
                           Number.isInteger(nuevaCantidad) &&
-                          nuevaCantidad >= 1 &&
-                          nuevaCantidad <= 1000
+                          nuevaCantidad >= MIN_CANTIDAD &&
+                          nuevaCantidad <= MAX_CANTIDAD
                         ) {
                           onCambiarCantidad(producto.id, nuevaCantidad);
                         }
                       }}
-                      className="h-9 w-12 border-x border-gray-200 text-center text-sm font-medium text-gray-800 outline-none"
+                      className="h-9 w-14 border-x border-gray-200 text-center text-sm font-medium text-gray-800 outline-none"
                     />
 
                     <button
                       type="button"
                       aria-label={`Aumentar cantidad de ${producto.nombre}`}
                       onClick={() =>
-                        onCambiarCantidad(producto.id, Math.min(1000, producto.cantidad + 1))
+                        onCambiarCantidad(
+                          producto.id,
+                          Math.min(MAX_CANTIDAD, producto.cantidad + 1)
+                        )
                       }
-                      disabled={producto.cantidad >= 1000}
+                      disabled={producto.cantidad >= MAX_CANTIDAD}
                       className="flex h-9 w-9 items-center justify-center text-gray-500 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
+
+                  <p className="mt-1 text-center text-[10px] text-gray-400">
+                    Máximo {MAX_CANTIDAD.toLocaleString('es-AR')} u.
+                  </p>
                 </td>
 
                 {/* Subtotal */}
