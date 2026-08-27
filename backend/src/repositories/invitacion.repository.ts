@@ -1,5 +1,5 @@
-import { EstadoInvitacion } from '@prisma/client';
-import { prisma } from '../lib/prisma';
+import { EstadoInvitacion, Prisma } from '@prisma/client';
+import { prisma, getDbClient } from '../lib/prisma';
 import { InvitacionDTO } from '../dto/invitacion/inv-crear.dto';
 import { NotFoundError } from '../errors/not-found.error';
 
@@ -121,8 +121,10 @@ export async function findByIdOrThrow(id: number) {
   return invitacion;
 }
 
-export async function aceptar(idInvitacion: number) {
-  await prisma.invitacionEmpresa.update({
+export async function aceptar(idInvitacion: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.invitacionEmpresa.update({
     where: {
       id: idInvitacion,
     },
@@ -132,8 +134,10 @@ export async function aceptar(idInvitacion: number) {
   });
 }
 
-export async function rechazar(idInvitacion: number) {
-  return prisma.invitacionEmpresa.update({
+export async function rechazar(idInvitacion: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.invitacionEmpresa.update({
     where: {
       id: idInvitacion,
     },
@@ -165,8 +169,10 @@ export async function expirar(id: number) {
   });
 }
 
-export async function finalizar(idInvitacion: number) {
-  await prisma.invitacionEmpresa.update({
+export async function finalizar(idInvitacion: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.invitacionEmpresa.update({
     where: {
       id: idInvitacion,
     },

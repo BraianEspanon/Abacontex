@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma';
+import { prisma, getDbClient } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { AlumnoDocenteFiltrosDTO } from '../validators/docente.validator';
 import { NotFoundError } from '../errors/not-found.error';
@@ -36,8 +36,10 @@ type CrearAlumnoData = {
   idRolEmpresa: number;
 };
 
-export async function create(id: string, data: CrearAlumnoData) {
-  await prisma.alumno.create({
+export async function create(id: string, data: CrearAlumnoData, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.alumno.create({
     data: {
       id,
       idCurso: data.idCurso,
