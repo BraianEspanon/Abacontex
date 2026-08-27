@@ -425,6 +425,7 @@ export async function modificarRolesEmpresa(
       entityId: empresa.id,
       empresaId: empresa.id,
       newValues: { nuevosRoles: roles },
+      oldValues: empresa.alumnos,
       description: 'El docente modificó los roles de la empresa',
     });
   });
