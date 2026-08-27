@@ -153,6 +153,7 @@ export async function findByKeycloakIdWithEmpresa(keycloakId: string) {
       alumno: {
         include: {
           empresa: true,
+          rolEmpresa: true,
         },
       },
     },
