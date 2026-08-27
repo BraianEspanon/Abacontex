@@ -6,7 +6,7 @@ import * as usuarioRepository from '../repositories/usuario.repository';
 
 export interface RegistrarAuditoriaParams {
   tx: Prisma.TransactionClient;
-  user: AuthUser;
+  usuarioId: string;
   action: AuditAction | string;
   entity: AuditEntity | string;
   entityId: string | number;
@@ -22,9 +22,6 @@ export interface RegistrarAuditoriaParams {
  * ESTE MÉTODO DEBE SER LLAMADO SIEMPRE DENTRO DEL CALLBACK DE UNA TRANSACCIÓN.
  */
 export async function registrarAccion(params: RegistrarAuditoriaParams) {
-  // Buscamos el usuario en base de datos para obtener su ID interno (UUID) en lugar del keycloakId
-  const usuario = await usuarioRepository.findByKeycloakIdOrThrow(params.user.keycloakId);
-
   // Aseguramos que los valores sean JSON válidos para Prisma o DbNull si no vienen
   const oldValuesParsed = params.oldValues 
     ? (params.oldValues as Prisma.InputJsonValue) 
@@ -36,7 +33,7 @@ export async function registrarAccion(params: RegistrarAuditoriaParams) {
 
   return createLog(
     {
-      performedById: usuario.id,
+      performedById: params.usuarioId,
       action: params.action,
       entity: params.entity,
       entityId: String(params.entityId),

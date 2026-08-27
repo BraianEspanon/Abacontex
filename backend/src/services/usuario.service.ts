@@ -2,12 +2,17 @@ import { AuthUser } from '../types/express';
 import { getRolSistema } from './role.service';
 import { UploadedFile } from '../integrations/storage/storage.types';
 import { STORAGE_FOLDERS } from '../constants/storage-folders';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
+
+import * as auditLogService from './audit-log.service';
 
 import * as keycloakAdminService from '../integrations/keycloak/keycloak-admin.service';
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as storageService from '../integrations/storage/storage.service';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import { ActualizarContraseñaDTO, ActualizarUsuarioDTO } from '../validators/usuario.validator';
+
 import { BadRequestError } from '../errors/bad-request-error';
 import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
@@ -21,9 +26,21 @@ export async function syncUsuario(user: AuthUser) {
 
   const rolSistema = await getRolSistema(user.roles);
 
-  usuario = await usuarioRepository.create(user, rolSistema.idRol);
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const nuevoUsuario = await usuarioRepository.create(user, rolSistema.idRol, tx);
 
-  return usuario;
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: nuevoUsuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.USUARIO,
+      entityId: nuevoUsuario.id,
+      newValues: nuevoUsuario,
+      description: 'Sincronización inicial del usuario desde Keycloak',
+    });
+
+    return nuevoUsuario;
+  });
 }
 
 export async function getUsuarioActual(user: AuthUser) {
@@ -64,10 +81,27 @@ export async function actualizarUsuarioActual(
       lastName: data.apellido,
     });
 
-    await usuarioRepository.update(user.keycloakId, {
-      ...data,
-      fotoPerfilUrl,
-      fotoPerfilPublicId,
+    await transactionRepository.ejecutarTransaccion(async (tx) => {
+      const usuarioActualizado = await usuarioRepository.update(
+        user.keycloakId,
+        {
+          ...data,
+          fotoPerfilUrl,
+          fotoPerfilPublicId,
+        },
+        tx
+      );
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.UPDATE,
+        entity: AUDIT_ENTITIES.USUARIO,
+        entityId: usuario.id,
+        oldValues: usuario,
+        newValues: usuarioActualizado,
+        description: 'Actualización de datos del perfil',
+      });
     });
 
     if (foto && usuario.fotoPerfilPublicId) {
@@ -94,6 +128,17 @@ export async function actualizarPassword(user: AuthUser, data: ActualizarContras
   await keycloakAdminService.verifyPassword(usuario.email, data.currentPassword);
 
   await keycloakAdminService.updatePassword(user.keycloakId, data.newPassword);
+
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.UPDATE_PASSWORD,
+      entity: AUDIT_ENTITIES.USUARIO,
+      entityId: usuario.id,
+      description: 'Actualización de contraseña del usuario',
+    });
+  });
 }
 
 export async function getAlumnoSextoConEmpresaOrThrow(user: AuthUser) {

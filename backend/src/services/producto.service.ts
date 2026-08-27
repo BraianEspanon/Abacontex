@@ -36,7 +36,10 @@ async function obtenerEmpresaUsuario(user: AuthUser) {
     throw new ConflictError('No perteneces a ninguna empresa.');
   }
 
-  return usuario.alumno.empresa;
+  return {
+    empresa: usuario.alumno.empresa,
+    usuarioId: usuario.id
+  };
 }
 
 function calcularPrecios(precioUnitario: number, margenGanancia: number) {
@@ -54,7 +57,7 @@ export async function crearProducto(
   data: CrearProductoDTO,
   foto?: Express.Multer.File
 ) {
-  const empresa = await obtenerEmpresaUsuario(user);
+  const { empresa, usuarioId } = await obtenerEmpresaUsuario(user);
 
   const productoExistente = await productoRepository.findByNombre(empresa.id, data.nombre);
 
@@ -92,7 +95,7 @@ export async function crearProducto(
 
     await auditLogService.registrarAccion({
       tx,
-      user,
+      usuarioId,
       action: AUDIT_ACTIONS.CREATE,
       entity: AUDIT_ENTITIES.PRODUCTO,
       entityId: productoCreado.id,
@@ -111,7 +114,7 @@ export async function actualizarProducto(
   data: ActualizarProductoDTO,
   foto?: Express.Multer.File
 ) {
-  const empresa = await obtenerEmpresaUsuario(user);
+  const { empresa, usuarioId } = await obtenerEmpresaUsuario(user);
 
   const producto = await productoRepository.findByIdAndEmpresaWithStorageOrThrow(
     idProducto,
@@ -169,7 +172,7 @@ export async function actualizarProducto(
 
       await auditLogService.registrarAccion({
         tx,
-        user,
+        usuarioId,
         action: AUDIT_ACTIONS.UPDATE,
         entity: AUDIT_ENTITIES.PRODUCTO,
         entityId: result.id,
@@ -209,13 +212,13 @@ export async function actualizarProducto(
 }
 
 export async function getProducto(user: AuthUser, idProducto: number) {
-  const empresa = await obtenerEmpresaUsuario(user);
+  const { empresa } = await obtenerEmpresaUsuario(user);
 
   return productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
 }
 
 export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductosDTO) {
-  const empresa = await obtenerEmpresaUsuario(user);
+  const { empresa } = await obtenerEmpresaUsuario(user);
 
   const { totalItems, resumen, items } = await productoRepository.findByEmpresa(
     empresa.id,
@@ -249,7 +252,7 @@ export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductos
 }
 
 export async function eliminarProducto(user: AuthUser, idProducto: number) {
-  const empresa = await obtenerEmpresaUsuario(user);
+  const { empresa, usuarioId } = await obtenerEmpresaUsuario(user);
 
   const producto = await productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
 
@@ -275,7 +278,7 @@ export async function eliminarProducto(user: AuthUser, idProducto: number) {
 
     await auditLogService.registrarAccion({
       tx,
-      user,
+      usuarioId,
       action: AUDIT_ACTIONS.DELETE,
       entity: AUDIT_ENTITIES.PRODUCTO,
       entityId: productoEliminado.id,

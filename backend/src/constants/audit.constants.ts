@@ -4,6 +4,7 @@ export const AUDIT_ACTIONS = {
   DELETE: 'DELETE',
   INICIAR_PRODUCCION: 'INICIAR_PRODUCCION',
   FINALIZAR_PRODUCCION: 'FINALIZAR_PRODUCCION',
+  UPDATE_PASSWORD: 'UPDATE_PASSWORD',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -14,6 +15,7 @@ export const AUDIT_ENTITIES = {
   ORDEN_PRODUCCION: 'OrdenProduccion',
   VENTA: 'Venta',
   EMPRESA: 'Empresa',
+  USUARIO: 'Usuario',
 } as const;
 
 export type AuditEntity = (typeof AUDIT_ENTITIES)[keyof typeof AUDIT_ENTITIES];
