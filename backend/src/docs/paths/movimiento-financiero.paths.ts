@@ -49,6 +49,29 @@
  *         description: No autenticado.
  *
  * /finanzas/movimientos:
+ *   post:
+ *     tags:
+ *       - Finanzas
+ *     summary: Registrar un nuevo movimiento financiero
+ *     description: Permite registrar manualmente un ingreso o egreso de caja.
+ *     security:
+ *       - oauth2: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegistrarMovimientoRequest'
+ *     responses:
+ *       200:
+ *         description: Movimiento registrado exitosamente.
+ *       400:
+ *         description: Error de validación, fecha inválida o método de pago incorrecto.
+ *       401:
+ *         description: No autenticado.
+ *       404:
+ *         description: Categoría no encontrada.
+ *
  *   get:
  *     tags:
  *       - Finanzas
@@ -108,6 +131,24 @@
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/TipoMovimientoItem'
+ *       401:
+ *         description: No autenticado.
+ *
+ * /finanzas/categorias:
+ *   get:
+ *     tags:
+ *       - Finanzas
+ *     summary: Obtener categorías de movimientos financieros agrupadas
+ *     description: Devuelve las categorías habilitadas para la empresa, agrupadas por su tipo de movimiento (ingreso / egreso).
+ *     security:
+ *       - oauth2: []
+ *     responses:
+ *       200:
+ *         description: Categorías obtenidas exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoriasAgrupadasResponse'
  *       401:
  *         description: No autenticado.
  */
