@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma';
+import { prisma, getDbClient } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { ActualizarEmpresaDTO, CrearEmpresaDTO } from '../validators/empresa.validator';
 import { NotFoundError } from '../errors/not-found.error';
@@ -17,8 +17,9 @@ type ActualizarEmpresaPersistenceDTO = ActualizarEmpresaDTO & {
   logoPublicId: string | null;
 };
 
-export async function update(id: number, data: ActualizarEmpresaPersistenceDTO) {
-  return prisma.empresa.update({
+export async function update(id: number, data: ActualizarEmpresaPersistenceDTO, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+  return db.empresa.update({
     where: {
       id,
     },
@@ -40,32 +41,33 @@ export async function create(
   data: CrearEmpresaPersistenceDTO,
   idCurso: number,
   idCicloLectivo: number,
-  idUsuario: string
+  idUsuario: string,
+  tx?: Prisma.TransactionClient
 ) {
-  return prisma.$transaction(async (tx) => {
-    const empresa = await tx.empresa.create({
-      data: {
-        nombre: data.nombre,
-        actividad: data.actividad,
-        logoUrl: data.logoUrl,
-        logoPublicId: data.logoPublicId,
-        puntos: 0,
-        idCurso: idCurso,
-        idCicloLectivo: idCicloLectivo,
-      },
-    });
+  const db = getDbClient(tx);
 
-    await tx.alumno.update({
-      where: {
-        id: idUsuario,
-      },
-      data: {
-        idEmpresa: empresa.id,
-      },
-    });
-
-    return empresa;
+  const empresa = await db.empresa.create({
+    data: {
+      nombre: data.nombre,
+      actividad: data.actividad,
+      logoUrl: data.logoUrl,
+      logoPublicId: data.logoPublicId,
+      puntos: 0,
+      idCurso: idCurso,
+      idCicloLectivo: idCicloLectivo,
+    },
   });
+
+  await db.alumno.update({
+    where: {
+      id: idUsuario,
+    },
+    data: {
+      idEmpresa: empresa.id,
+    },
+  });
+
+  return empresa;
 }
 
 export async function findByIdWithAlumnos(idEmpresa: number) {

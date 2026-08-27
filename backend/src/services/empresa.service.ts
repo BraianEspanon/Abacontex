@@ -1,7 +1,9 @@
 import { AuthUser } from '../types/express';
 
 import { STORAGE_FOLDERS } from '../constants/storage-folders';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
+import * as auditLogService from './audit-log.service';
 import * as storageService from '../integrations/storage/storage.service';
 import { UploadedFile } from '../integrations/storage/storage.types';
 
@@ -10,6 +12,7 @@ import * as alumnoRepository from '../repositories/alumno.repository';
 import * as empresaRepository from '../repositories/empresa.repository';
 import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
 import * as invitacionRepository from '../repositories/invitacion.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import {
   ActualizarEmpresaDTO,
@@ -73,16 +76,32 @@ export async function crearEmpresa(
       uploaded = await storageService.upload(logo, STORAGE_FOLDERS.EMPRESAS);
     }
 
-    return await empresaRepository.create(
-      {
-        ...data,
-        logoUrl: uploaded?.url ?? null,
-        logoPublicId: uploaded?.publicId ?? null,
-      },
-      alumno.idCurso,
-      1, //REVISAR CUANDO ESTÉ CICLO LECTIVO
-      usuario.id
-    );
+    return transactionRepository.ejecutarTransaccion(async (tx) => {
+      const empresaCreada = await empresaRepository.create(
+        {
+          ...data,
+          logoUrl: uploaded?.url ?? null,
+          logoPublicId: uploaded?.publicId ?? null,
+        },
+        alumno.idCurso,
+        1, //REVISAR CUANDO ESTÉ CICLO LECTIVO
+        usuario.id,
+        tx
+      );
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.CREATE,
+        entity: AUDIT_ENTITIES.EMPRESA,
+        entityId: empresaCreada.id,
+        empresaId: empresaCreada.id,
+        newValues: empresaCreada,
+        description: 'Se creó una nueva empresa',
+      });
+
+      return empresaCreada;
+    });
   } catch (error) {
     if (uploaded) {
       await storageService.deleteFile(uploaded.publicId);
@@ -156,10 +175,28 @@ export async function actualizarEmpresa(
       logoPublicId = null;
     }
 
-    await empresaRepository.update(empresa.id, {
-      ...data,
-      logoUrl,
-      logoPublicId,
+    await transactionRepository.ejecutarTransaccion(async (tx) => {
+      const empresaActualizada = await empresaRepository.update(
+        empresa.id,
+        {
+          ...data,
+          logoUrl,
+          logoPublicId,
+        },
+        tx
+      );
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.UPDATE,
+        entity: AUDIT_ENTITIES.EMPRESA,
+        entityId: empresa.id,
+        empresaId: empresa.id,
+        oldValues: empresa,
+        newValues: empresaActualizada,
+        description: 'Actualización de datos de la empresa',
+      });
     });
 
     if (logo && empresa.logoPublicId) {
@@ -236,7 +273,20 @@ export async function agregarParticipantes(user: AuthUser, data: AgregarParticip
     }
   }
 
-  await alumnoRepository.agregarAEmpresa(ids, usuario.alumno.idEmpresa!);
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    await alumnoRepository.agregarAEmpresa(ids, usuario.alumno!.idEmpresa!, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.EMPRESA,
+      entityId: usuario.alumno!.idEmpresa!,
+      empresaId: usuario.alumno!.idEmpresa!,
+      newValues: { idsAgregados: ids },
+      description: 'Se agregaron participantes a la empresa',
+    });
+  });
 }
 
 export async function cambiarRolParticipante(
@@ -272,7 +322,21 @@ export async function cambiarRolParticipante(
     throw new ForbiddenError('El Director Ejecutivo no puede asignar el rol CEO');
   }
 
-  await alumnoRepository.updateRolEmpresa(alumno.id, idRolEmpresa);
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const alumnoModificado = await alumnoRepository.updateRolEmpresa(alumno.id, idRolEmpresa, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.ALUMNO,
+      entityId: alumno.id,
+      empresaId: usuario.alumno!.idEmpresa!,
+      oldValues: alumno,
+      newValues: alumnoModificado,
+      description: 'Se modificó el rol de un participante en la empresa',
+    });
+  });
 }
 
 export async function modificarRolesEmpresa(
@@ -346,7 +410,20 @@ export async function modificarRolesEmpresa(
     throw new ConflictError('La empresa debe tener exactamente un Director Ejecutivo');
   }
 
-  await alumnoRepository.updateRoles(roles);
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    await alumnoRepository.updateRoles(roles, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.EMPRESA,
+      entityId: empresa.id,
+      empresaId: empresa.id,
+      newValues: { nuevosRoles: roles },
+      description: 'El docente modificó los roles de la empresa',
+    });
+  });
 }
 
 export async function crearInvitaciones(user: AuthUser, data: CrearInvitacionesDTO) {
@@ -380,7 +457,20 @@ export async function crearInvitaciones(user: AuthUser, data: CrearInvitacionesD
     fechaExpiracion: obtenerFechaExpiracionInvitacion(),
   }));
 
-  await invitacionRepository.crearInvitaciones(invitaciones);
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const invitacionesCreadas = await invitacionRepository.crearInvitaciones(invitaciones, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.INVITACION,
+      entityId: alumno.empresa!.id, // id de empresa sirve como agrupador para multiples invitaciones
+      empresaId: alumno.empresa!.id,
+      newValues: { cantidad: invitacionesCreadas.length, emails: data.emails },
+      description: 'Se crearon nuevas invitaciones para la empresa',
+    });
+  });
 
   await Promise.all(
     invitaciones.map((invitacion) =>

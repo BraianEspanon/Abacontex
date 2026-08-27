@@ -3,20 +3,20 @@ import { prisma, getDbClient } from '../lib/prisma';
 import { InvitacionDTO } from '../dto/invitacion/inv-crear.dto';
 import { NotFoundError } from '../errors/not-found.error';
 
-export async function crearInvitaciones(data: InvitacionDTO[]) {
-  return prisma.$transaction(async (tx) => {
-    const invitaciones = [];
+export async function crearInvitaciones(data: InvitacionDTO[], tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
 
-    for (const invitacion of data) {
-      const creada = await tx.invitacionEmpresa.create({
-        data: invitacion,
-      });
+  const invitaciones = [];
 
-      invitaciones.push(creada);
-    }
+  for (const invitacion of data) {
+    const creada = await db.invitacionEmpresa.create({
+      data: invitacion,
+    });
 
-    return invitaciones;
-  });
+    invitaciones.push(creada);
+  }
+
+  return invitaciones;
 }
 
 export async function findByEmail(email: string) {
