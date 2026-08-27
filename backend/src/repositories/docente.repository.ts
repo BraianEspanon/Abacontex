@@ -105,7 +105,11 @@ export async function findCursosByDocente(keycloakId: string) {
   });
 }
 
-export async function updateCursosProfesor(idUsuario: string, cursoIds: number[], tx?: Prisma.TransactionClient) {
+export async function updateCursosProfesor(
+  idUsuario: string,
+  cursoIds: number[],
+  tx?: Prisma.TransactionClient
+) {
   const db = getDbClient(tx);
 
   await db.profesorCursos.deleteMany({
