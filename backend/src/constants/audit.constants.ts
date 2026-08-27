@@ -21,6 +21,8 @@ export const AUDIT_ENTITIES = {
   USUARIO: 'Usuario',
   ALUMNO: 'Alumno',
   INVITACION: 'Invitacion',
+  PLANIFICACION: 'Planificacion',
+  DETALLE_PLANIFICACION: 'DetallePlanificacion',
 } as const;
 
 export type AuditEntity = (typeof AUDIT_ENTITIES)[keyof typeof AUDIT_ENTITIES];

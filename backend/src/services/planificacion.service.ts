@@ -1,6 +1,8 @@
 import { AuthUser } from '../types/express';
 import { ESTADOS_PLANIFICACION } from '../constants/estados-planificacion';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
+import * as auditLogService from './audit-log.service';
 import * as usuarioService from './usuario.service';
 
 import * as planificacionRepository from '../repositories/planificacion.repository';
@@ -83,6 +85,25 @@ export async function crearPlanificacion(user: AuthUser, data: CrearPlanificacio
         tx
       );
     }
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.PLANIFICACION,
+      entityId: planificacion.idPlanificacion,
+      empresaId: empresaId,
+      newValues: {
+        cicloLectivo: cicloLectivo.año,
+        mesInicio: data.mesInicio,
+        mesFin: data.mesFin,
+        estimaciones: data.detalles.map((d) => ({
+          mes: d.mes,
+          unidadesEstimadas: d.unidadesEstimadas ?? 0,
+        })),
+      },
+      description: 'Se inicializó la planificación anual de producción',
+    });
 
     return planificacionRepository.findByEmpresaAndCiclo(empresaId, cicloLectivo.id, tx);
   });
@@ -239,5 +260,25 @@ export async function actualizarPlanificacionMensual(
   }
 
   // Actualiza únicamente la cantidad estimada del mes.
-  return planificacionRepository.updateDetalle(detalle.idDetalle, unidadesEstimadas);
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const detalleActualizado = await planificacionRepository.updateDetalle(
+      detalle.idDetalle,
+      unidadesEstimadas,
+      tx
+    );
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.DETALLE_PLANIFICACION,
+      entityId: detalle.idDetalle,
+      empresaId: usuario.alumno.empresa.id,
+      oldValues: { unidadesEstimadas: detalle.unidadesEstimadas },
+      newValues: { unidadesEstimadas },
+      description: `Se actualizó la estimación de producción para el mes ${detalle.mes}`,
+    });
+
+    return detalleActualizado;
+  });
 }
