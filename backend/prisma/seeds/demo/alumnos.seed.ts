@@ -140,13 +140,13 @@ export const alumnosSeed: Seed = {
       update: {
         idCurso: curso5to.idCurso,
         idEmpresa: null,
-        idRolEmpresa: null,
+        idRolEmpresa: rolCFO.idRol,
       },
       create: {
         id: usuarioAlumno.id,
         idCurso: curso5to.idCurso,
         idEmpresa: null,
-        idRolEmpresa: null,
+        idRolEmpresa: rolCFO.idRol,
       },
     });
 

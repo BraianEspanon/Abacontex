@@ -1,8 +1,9 @@
 import { AuthUser } from '../types/express';
 import { ESTADOS_PLANIFICACION } from '../constants/estados-planificacion';
 
+import * as usuarioService from './usuario.service';
+
 import * as planificacionRepository from '../repositories/planificacion.repository';
-import * as usuarioRepository from '../repositories/usuario.repository';
 import * as cicloLectivoRepository from '../repositories/ciclo-lectivo.repository';
 import * as transactionRepository from '../repositories/transaction.repository';
 import * as produccionRepository from '../repositories/produccion.repository';
@@ -13,17 +14,7 @@ import { BadRequestError } from '../errors/bad-request-error';
 import { CrearPlanificacionDTO } from '../validators/planificacion.validator';
 
 export async function crearPlanificacion(user: AuthUser, data: CrearPlanificacionDTO) {
-  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
-
-  if (!usuario.alumno) {
-    throw new ConflictError(
-      'Debes completar tu registro antes de realizar operaciones sobre producción.'
-    );
-  }
-
-  if (!usuario.alumno.empresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
-  }
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   const empresaId = usuario.alumno.empresa.id;
 
@@ -113,18 +104,8 @@ function calcularEstadoMes(
 }
 
 export async function obtenerPlanificacionAnual(user: AuthUser) {
-  // Obtiene el usuario autenticado y valida que pertenezca a una empresa.
-  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
-
-  if (!usuario.alumno) {
-    throw new ConflictError(
-      'Debes completar tu registro antes de realizar operaciones sobre producción.'
-    );
-  }
-
-  if (!usuario.alumno.empresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
-  }
+  // Obtiene el usuario autenticado y valida que pertenezca a una empresa y sea de 6to.
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   const empresaId = usuario.alumno.empresa.id;
 
@@ -233,18 +214,8 @@ export async function actualizarPlanificacionMensual(
   unidadesEstimadas: number,
   idDetalle: number
 ) {
-  // Obtiene el usuario autenticado y valida que pertenezca a una empresa.
-  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
-
-  if (!usuario.alumno) {
-    throw new ConflictError(
-      'Debes completar tu registro antes de realizar operaciones sobre producción.'
-    );
-  }
-
-  if (!usuario.alumno.empresa) {
-    throw new ConflictError('No perteneces a ninguna empresa.');
-  }
+  // Obtiene el usuario autenticado y valida que pertenezca a una empresa y sea de 6to.
+  const usuario = await usuarioService.getAlumnoSextoConEmpresaOrThrow(user);
 
   // Obtiene el ciclo lectivo al que pertenece la empresa.
   const cicloLectivoId = usuario.alumno.empresa.cicloLectivo.id;

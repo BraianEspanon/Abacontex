@@ -86,7 +86,7 @@ export async function registrarMovimiento(user: AuthUser, data: RegistrarMovimie
     throw new NotFoundError('La categoría de movimiento no existe.');
   }
 
-  const estadoRegistrado = await movimientoFinancieroRepository.findEstadoRegistrado();
+  const estadoRegistrado = await movimientoFinancieroRepository.findEstadoPendiente();
 
   return movimientoFinancieroRepository.create({
     idEmpresa: empresa.id,

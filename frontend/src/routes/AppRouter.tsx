@@ -83,7 +83,7 @@ export default function AppRouter() {
 
       {/* Crear empresa */}
       <Route
-        path="/empresa/crear"
+        path="/alumno/empresa/crear"
         element={
           <ProtectedRoute>
             <CrearEmpresaPage />

@@ -95,4 +95,63 @@
  *         nombre:
  *           type: string
  *           example: "INGRESO"
+ *
+ *     CategoriaFinancieraItem:
+ *       type: object
+ *       properties:
+ *         idCategoria:
+ *           type: integer
+ *           example: 1
+ *         nombre:
+ *           type: string
+ *           example: "Venta de productos"
+ *         descripcion:
+ *           type: string
+ *           nullable: true
+ *           example: "Ingresos por ventas de productos físicos"
+ *
+ *     CategoriasAgrupadasResponse:
+ *       type: object
+ *       additionalProperties:
+ *         type: array
+ *         items:
+ *           $ref: '#/components/schemas/CategoriaFinancieraItem'
+ *       example:
+ *         ingreso:
+ *           - idCategoria: 1
+ *             nombre: "Ventas"
+ *             descripcion: "Ingresos por ventas"
+ *         egreso:
+ *           - idCategoria: 2
+ *             nombre: "Sueldos"
+ *             descripcion: "Pago de sueldos"
+ *
+ *     RegistrarMovimientoRequest:
+ *       type: object
+ *       required:
+ *         - fecha
+ *         - idCategoria
+ *         - concepto
+ *         - importe
+ *         - idMetodoPago
+ *       properties:
+ *         fecha:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-08-27T10:00:00.000Z
+ *         idCategoria:
+ *           type: integer
+ *           example: 1
+ *         concepto:
+ *           type: string
+ *           example: "Pago de servicios"
+ *         importe:
+ *           type: number
+ *           example: 5000.50
+ *         idMetodoPago:
+ *           type: integer
+ *           example: 2
+ *         observaciones:
+ *           type: string
+ *           example: "Factura A #0001-00000012"
  */

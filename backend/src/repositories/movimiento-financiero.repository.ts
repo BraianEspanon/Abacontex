@@ -29,11 +29,11 @@ export async function findAllCategorias(tx?: Prisma.TransactionClient) {
   });
 }
 
-export async function findEstadoRegistrado(tx?: Prisma.TransactionClient) {
+export async function findEstadoPendiente(tx?: Prisma.TransactionClient) {
   const db = getDbClient(tx);
 
   return db.estadoMovimiento.findUniqueOrThrow({
-    where: { nombre: ESTADOS_MOVIMIENTO.REGISTRADO },
+    where: { nombre: ESTADOS_MOVIMIENTO.PENDIENTE },
   });
 }
 
@@ -175,6 +175,41 @@ export async function findMovimientosPorRango(
           tipoMovimiento: { select: { nombre: true } },
         },
       },
+    },
+  });
+}
+
+export async function findPosterioresAFecha(
+  idEmpresa: number,
+  fechaDesde?: Date,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const where: Prisma.MovimientoFinancieroWhereInput = {
+    idEmpresa,
+  };
+
+  if (fechaDesde) {
+    where.fecha = {
+      gt: fechaDesde,
+    };
+  }
+
+  return db.movimientoFinanciero.findMany({
+    where,
+    select: {
+      idMovimiento: true,
+      fecha: true,
+      importe: true,
+      categoria: {
+        select: {
+          tipoMovimiento: { select: { nombre: true } },
+        },
+      },
+    },
+    orderBy: {
+      fecha: 'asc',
     },
   });
 }

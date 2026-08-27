@@ -24,11 +24,18 @@ export interface VentasQueryParams {
   search?: string;
   metodoPagoId?: number;
   mes?: number;
+  page?: number;
+  pageSize?: number;
 }
 
 export interface VentasResponse {
   resumen: ResumenVentas;
   items: VentaListado[];
+
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
 }
 
 /**

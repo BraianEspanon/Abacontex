@@ -321,3 +321,20 @@ export async function cubrirFaltante(
     },
   });
 }
+
+export async function hasPedidosPendientesByProducto(productoId: number) {
+  const count = await prisma.detallePedido.count({
+    where: {
+      productoId,
+      pedido: {
+        estado: {
+          nombre: {
+            not: ESTADOS_PEDIDOS.COMPLETADO,
+          },
+        },
+      },
+    },
+  });
+
+  return count > 0;
+}

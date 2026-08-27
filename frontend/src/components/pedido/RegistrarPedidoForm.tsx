@@ -6,7 +6,6 @@ import SelectorProductoPedido from './SelectorProductoPedido';
 import TablaProductosPedido from './TablaProductosPedido';
 
 import type { CrearPedidoRequest, ProductoPedidoSeleccionado } from '../../types/pedido.types';
-
 import type { ProductoListado } from '../../types/producto.types';
 
 interface RegistrarPedidoFormProps {
@@ -22,6 +21,8 @@ interface ErroresFormulario {
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const MAX_NOMBRE_CLIENTE = 100;
 
 const formatearMoneda = (valor: number) => {
   return new Intl.NumberFormat('es-AR', {
@@ -92,13 +93,18 @@ export default function RegistrarPedidoForm({
   const validar = () => {
     const nuevosErrores: ErroresFormulario = {};
 
-    if (!clienteNombre.trim()) {
+    const nombreNormalizado = clienteNombre.trim();
+    const mailNormalizado = clienteMail.trim();
+
+    if (!nombreNormalizado) {
       nuevosErrores.clienteNombre = 'El nombre del cliente es obligatorio.';
+    } else if (nombreNormalizado.length > MAX_NOMBRE_CLIENTE) {
+      nuevosErrores.clienteNombre = `El nombre del cliente no puede superar los ${MAX_NOMBRE_CLIENTE} caracteres.`;
     }
 
-    if (!clienteMail.trim()) {
+    if (!mailNormalizado) {
       nuevosErrores.clienteMail = 'El correo electrónico es obligatorio.';
-    } else if (!EMAIL_REGEX.test(clienteMail.trim())) {
+    } else if (!EMAIL_REGEX.test(mailNormalizado)) {
       nuevosErrores.clienteMail = 'Ingresá un correo electrónico válido.';
     }
 
@@ -137,6 +143,7 @@ export default function RegistrarPedidoForm({
       {/* =====================================================
           DATOS DEL CLIENTE
       ====================================================== */}
+
       <section className="px-5 py-4">
         <h2 className="text-lg font-semibold text-[#496647]">Datos del cliente</h2>
 
@@ -153,7 +160,7 @@ export default function RegistrarPedidoForm({
             <input
               id="clienteNombre"
               type="text"
-              maxLength={100}
+              maxLength={MAX_NOMBRE_CLIENTE}
               value={clienteNombre}
               onChange={(event) => {
                 setClienteNombre(event.target.value);
@@ -174,9 +181,17 @@ export default function RegistrarPedidoForm({
               ].join(' ')}
             />
 
-            {errores.clienteNombre && (
-              <p className="mt-1 text-xs text-red-600">{errores.clienteNombre}</p>
-            )}
+            <div className="mt-1 flex items-start justify-between gap-3">
+              <div>
+                {errores.clienteNombre && (
+                  <p className="text-xs text-red-600">{errores.clienteNombre}</p>
+                )}
+              </div>
+
+              <span className="shrink-0 text-[11px] text-gray-400">
+                {clienteNombre.length}/{MAX_NOMBRE_CLIENTE}
+              </span>
+            </div>
           </div>
 
           {/* Email */}
@@ -218,6 +233,7 @@ export default function RegistrarPedidoForm({
       {/* =====================================================
           PRODUCTOS
       ====================================================== */}
+
       <section className="border-t border-gray-200 px-5 py-4">
         <h2 className="text-lg font-semibold text-[#496647]">Productos del pedido</h2>
 
@@ -270,6 +286,7 @@ export default function RegistrarPedidoForm({
       {/* =====================================================
           ACCIONES
       ====================================================== */}
+
       <footer className="flex flex-col-reverse gap-3 border-t border-gray-200 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           type="button"

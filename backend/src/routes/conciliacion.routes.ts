@@ -1,0 +1,39 @@
+import { Router } from 'express';
+import { ROLES } from '../constants/roles';
+
+import { authenticate } from '../middleware/auth.middleware';
+import { requireRole } from '../middleware/role.middleware';
+import { validate } from '../middleware/validate.middleware';
+
+import {
+  obtenerResumen,
+  registrar,
+  obtenerHistorial,
+} from '../controllers/conciliacion.controller';
+
+import {
+  registrarConciliacionSchema,
+  consultarHistorialConciliacionesSchema,
+} from '../validators/conciliacion.validator';
+
+const router = Router();
+
+router.get('/resumen', authenticate, requireRole(ROLES.ALUMNO), obtenerResumen);
+
+router.post(
+  '/',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(registrarConciliacionSchema),
+  registrar
+);
+
+router.get(
+  '/',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(consultarHistorialConciliacionesSchema),
+  obtenerHistorial
+);
+
+export default router;

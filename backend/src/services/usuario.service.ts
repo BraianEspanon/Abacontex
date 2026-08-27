@@ -9,6 +9,8 @@ import * as storageService from '../integrations/storage/storage.service';
 
 import { ActualizarContraseñaDTO, ActualizarUsuarioDTO } from '../validators/usuario.validator';
 import { BadRequestError } from '../errors/bad-request-error';
+import { ConflictError } from '../errors/conflict.error';
+import { ForbiddenError } from '../errors/forbidden.error';
 
 export async function syncUsuario(user: AuthUser) {
   let usuario = await usuarioRepository.findByKeycloakId(user.keycloakId);
@@ -92,4 +94,50 @@ export async function actualizarPassword(user: AuthUser, data: ActualizarContras
   await keycloakAdminService.verifyPassword(usuario.email, data.currentPassword);
 
   await keycloakAdminService.updatePassword(user.keycloakId, data.newPassword);
+}
+
+export async function getAlumnoSextoConEmpresaOrThrow(user: AuthUser) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError(
+      'Debes completar tu registro antes de realizar operaciones sobre productos.'
+    );
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('No perteneces a ninguna empresa.');
+  }
+
+  if (usuario.alumno.empresa.curso.año !== 6) {
+    throw new ForbiddenError('Solo los alumnos de 6° año pueden acceder a este módulo.');
+  }
+
+  return {
+    ...usuario,
+    alumno: {
+      ...usuario.alumno,
+      empresa: usuario.alumno.empresa,
+    },
+  };
+}
+
+export async function getAlumnoConEmpresaOrThrow(user: AuthUser) {
+  const usuario = await usuarioRepository.findByKeycloakIdWithEmpresaFullOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ConflictError('El usuario no está asociado a un alumno.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ConflictError('El alumno no está asociado a una empresa.');
+  }
+
+  return {
+    ...usuario,
+    alumno: {
+      ...usuario.alumno,
+      empresa: usuario.alumno.empresa,
+    },
+  };
 }
