@@ -3,10 +3,13 @@ import { AuthUser } from '../types/express';
 import { ESTADOS_PEDIDOS } from '../constants/estados-pedidos';
 import { METODOS_PAGO } from '../constants/metodos-pago';
 import { CUOTAS_VENTA } from '../constants/cantidad-cuotas';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
 import { Prisma } from '@prisma/client';
 
 import { ObtenerVentasQueryDTO, RegistrarVentaDTO } from '../validators/venta.validator';
+
+import * as auditLogService from './audit-log.service';
 
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as pedidoRepository from '../repositories/pedido.repository';
@@ -234,8 +237,41 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
       tx
     );
 
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.VENTA,
+      entityId: venta.idVenta,
+      empresaId: empresa.id,
+      newValues: {
+        ventaId: venta.idVenta,
+        pedidoId: pedido.idPedido,
+        totalFinal: calculo.totalFinal,
+        metodoPagoId: data.metodoPagoId,
+        aplicaIva: venta.aplicaIva,
+        detalles: calculo.detallesVenta.map((d) => ({
+          productoId: d.productoId,
+          cantidad: d.cantidad,
+          subtotal: d.subtotal,
+        })),
+      },
+      description: 'Se registró una nueva venta',
+    });
+
     const estadoPedidoCompletado = await pedidoRepository.findEstadoCompletado(tx);
     await pedidoRepository.updateEstadoPedido(pedido.idPedido, estadoPedidoCompletado.idEstado, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.PEDIDO,
+      entityId: pedido.idPedido,
+      empresaId: empresa.id,
+      newValues: { estado: estadoPedidoCompletado.nombre },
+      description: 'El pedido pasó a Completado al registrarse su venta',
+    });
 
     const categoriaVenta = await movimientoFinancieroRepository.findCategoriaVenta(tx);
     const estadoRegistrado = await movimientoFinancieroRepository.findEstadoPendiente(tx);
@@ -246,7 +282,7 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
       );
     }
 
-    await movimientoFinancieroRepository.create(
+    const movimiento = await movimientoFinancieroRepository.create(
       {
         idEmpresa: empresa.id,
         idUsuario: usuario.id,
@@ -260,6 +296,22 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
       },
       tx
     );
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.MOVIMIENTO_FINANCIERO,
+      entityId: movimiento.idMovimiento,
+      empresaId: empresa.id,
+      newValues: {
+        importe: movimiento.importe,
+        concepto: movimiento.concepto,
+        categoriaId: movimiento.idCategoria,
+        ventaId: movimiento.ventaId,
+      },
+      description: 'Se registró un movimiento financiero automático asociado a la venta',
+    });
 
     return {
       ...venta,
