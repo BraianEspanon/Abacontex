@@ -1,12 +1,15 @@
 import { AuthUser } from '../types/express';
 import { IVA } from '../constants/iva';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
+import * as auditLogService from './audit-log.service';
 import * as storageService from '../integrations/storage/storage.service';
 
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as productoRepository from '../repositories/producto.repository';
 import * as produccionRepository from '../repositories/produccion.repository';
 import * as pedidoRepository from '../repositories/pedido.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import {
   ActualizarProductoDTO,
@@ -76,14 +79,30 @@ export async function crearProducto(
     data.margenGanancia
   );
 
-  return productoRepository.create(
-    empresa.id,
-    data,
-    fotoUrl,
-    fotoPublicId,
-    precioVenta,
-    precioConsumidorFinal
-  );
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const productoCreado = await productoRepository.create(
+      empresa.id,
+      data,
+      fotoUrl,
+      fotoPublicId,
+      precioVenta,
+      precioConsumidorFinal,
+      tx
+    );
+
+    await auditLogService.registrarAccion({
+      tx,
+      user,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.PRODUCTO,
+      entityId: productoCreado.id,
+      empresaId: productoCreado.empresaId,
+      newValues: productoCreado,
+      description: 'Creación de nuevo producto',
+    });
+
+    return productoCreado;
+  });
 }
 
 export async function actualizarProducto(
@@ -137,14 +156,31 @@ export async function actualizarProducto(
       data.margenGanancia
     );
 
-    const productoActualizado = await productoRepository.update(
-      idProducto,
-      data,
-      fotoUrl,
-      fotoPublicId,
-      precioVenta,
-      precioConsumidorFinal
-    );
+    const productoActualizado = await transactionRepository.ejecutarTransaccion(async (tx) => {
+      const result = await productoRepository.update(
+        idProducto,
+        data,
+        fotoUrl,
+        fotoPublicId,
+        precioVenta,
+        precioConsumidorFinal,
+        tx
+      );
+
+      await auditLogService.registrarAccion({
+        tx,
+        user,
+        action: AUDIT_ACTIONS.UPDATE,
+        entity: AUDIT_ENTITIES.PRODUCTO,
+        entityId: result.id,
+        empresaId: result.empresaId,
+        oldValues: producto,
+        newValues: result,
+        description: 'Actualización de producto',
+      });
+
+      return result;
+    });
 
     // Si reemplazamos, recién ahora borrar la vieja
     if (foto && producto.fotoPublicId) {
@@ -215,7 +251,7 @@ export async function obtenerProductos(user: AuthUser, filtros: ObtenerProductos
 export async function eliminarProducto(user: AuthUser, idProducto: number) {
   const empresa = await obtenerEmpresaUsuario(user);
 
-  await productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
+  const producto = await productoRepository.findByIdAndEmpresaOrThrow(idProducto, empresa.id);
 
   const tienePedidosPendientes = await pedidoRepository.hasPedidosPendientesByProducto(idProducto);
 
@@ -234,5 +270,19 @@ export async function eliminarProducto(user: AuthUser, idProducto: number) {
     );
   }
 
-  await productoRepository.remove(idProducto);
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const productoEliminado = await productoRepository.remove(idProducto, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      user,
+      action: AUDIT_ACTIONS.DELETE,
+      entity: AUDIT_ENTITIES.PRODUCTO,
+      entityId: productoEliminado.id,
+      empresaId: productoEliminado.empresaId,
+      oldValues: producto,
+      newValues: productoEliminado,
+      description: 'Eliminación (baja lógica) de producto',
+    });
+  });
 }

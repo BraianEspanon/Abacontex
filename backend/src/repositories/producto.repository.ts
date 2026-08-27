@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma';
+import { prisma, getDbClient } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 
 import {
@@ -222,9 +222,12 @@ export async function create(
   fotoUrl: string | null,
   fotoPublicId: string | null,
   precioVenta: number,
-  precioConsumidorFinal: number
+  precioConsumidorFinal: number,
+  tx?: Prisma.TransactionClient
 ) {
-  return prisma.producto.create({
+  const db = getDbClient(tx);
+
+  return db.producto.create({
     data: {
       empresaId,
 
@@ -250,9 +253,12 @@ export async function update(
   fotoUrl: string | null,
   fotoPublicId: string | null,
   precioVenta: number,
-  precioConsumidorFinal: number
+  precioConsumidorFinal: number,
+  tx?: Prisma.TransactionClient
 ) {
-  return prisma.producto.update({
+  const db = getDbClient(tx);
+
+  return db.producto.update({
     where: {
       id,
     },
@@ -271,8 +277,10 @@ export async function update(
   });
 }
 
-export async function remove(idProducto: number) {
-  return prisma.producto.update({
+export async function remove(idProducto: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.producto.update({
     where: {
       id: idProducto,
     },
