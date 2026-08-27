@@ -7,7 +7,7 @@ import {
 } from '../validators/docente.validator';
 
 export const crearDocente = async (req: Request, res: Response) => {
-  const docente = await docenteService.crearDocente(req.body);
+  const docente = await docenteService.crearDocente(req.user!, req.body);
 
   res.status(201).json(docente);
 };
