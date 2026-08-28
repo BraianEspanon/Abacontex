@@ -1,9 +1,13 @@
 import { AuthUser } from '../types/express';
 import { Prisma } from '@prisma/client';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
+import * as auditLogService from './audit-log.service';
 import * as usuarioService from './usuario.service';
+
 import * as conciliacionRepository from '../repositories/conciliacion.repository';
 import * as movimientoFinancieroRepository from '../repositories/movimiento-financiero.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import {
   RegistrarConciliacionDTO,
@@ -81,27 +85,51 @@ export async function registrarConciliacion(user: AuthUser, data: RegistrarConci
     );
   }
 
-  const conciliacion = await conciliacionRepository.create({
-    empresaId: idEmpresa,
-    alumnoId: idAlumno,
-    fecha: new Date(),
-    saldoEsperado: new Prisma.Decimal(saldoEsperado),
-    saldoContado: new Prisma.Decimal(data.saldoContado),
-    diferencia: new Prisma.Decimal(diferencia),
-    observacion: data.observacion ? data.observacion.trim() : null,
-  });
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const conciliacion = await conciliacionRepository.create(
+      {
+        empresaId: idEmpresa,
+        alumnoId: idAlumno,
+        fecha: new Date(),
+        saldoEsperado: new Prisma.Decimal(saldoEsperado),
+        saldoContado: new Prisma.Decimal(data.saldoContado),
+        diferencia: new Prisma.Decimal(diferencia),
+        observacion: data.observacion ? data.observacion.trim() : null,
+      },
+      tx
+    );
 
-  return {
-    idConciliacion: conciliacion.idConciliacion,
-    empresaId: conciliacion.empresaId,
-    alumnoId: conciliacion.alumnoId,
-    fecha: conciliacion.fecha,
-    saldoEsperado: Number(conciliacion.saldoEsperado),
-    saldoContado: Number(conciliacion.saldoContado),
-    diferencia: Number(conciliacion.diferencia),
-    observacion: conciliacion.observacion,
-    createdAt: conciliacion.createdAt,
-  };
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.CONCILIACION,
+      entityId: conciliacion.idConciliacion,
+      empresaId: idEmpresa,
+      newValues: {
+        idConciliacion: conciliacion.idConciliacion,
+        empresaId: idEmpresa,
+        fecha: conciliacion.fecha,
+        saldoEsperado,
+        saldoContado: data.saldoContado,
+        diferencia,
+        observacion: data.observacion ? data.observacion.trim() : null,
+      },
+      description: 'Se registró una nueva conciliación de caja',
+    });
+
+    return {
+      idConciliacion: conciliacion.idConciliacion,
+      empresaId: conciliacion.empresaId,
+      alumnoId: conciliacion.alumnoId,
+      fecha: conciliacion.fecha,
+      saldoEsperado: Number(conciliacion.saldoEsperado),
+      saldoContado: Number(conciliacion.saldoContado),
+      diferencia: Number(conciliacion.diferencia),
+      observacion: conciliacion.observacion,
+      createdAt: conciliacion.createdAt,
+    };
+  });
 }
 
 export async function obtenerHistorial(user: AuthUser, query: ConsultarHistorialConciliacionesDTO) {

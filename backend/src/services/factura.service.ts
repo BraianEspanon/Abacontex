@@ -1,8 +1,12 @@
 import { AuthUser } from '../types/express';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
+
+import * as auditLogService from './audit-log.service';
 
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as ventaRepository from '../repositories/venta.repository';
 import * as facturaRepository from '../repositories/factura.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import {
   ObtenerVentasPendientesDTO,
@@ -95,14 +99,38 @@ export async function generarFactura(user: AuthUser, data: GenerarFacturaDTO) {
   const localidad = 'Formosa';
 
   // 5. Crear factura
-  const nuevaFactura = await facturaRepository.create({
-    ...data,
-    cai,
-    fechaVencimiento,
-    localidad,
+  const factura = await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const nuevaFactura = await facturaRepository.create(
+      {
+        ...data,
+        cai,
+        fechaVencimiento,
+        localidad,
+      },
+      tx
+    );
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.FACTURA,
+      entityId: nuevaFactura.idFactura,
+      empresaId: empresa.id,
+      newValues: {
+        idFactura: nuevaFactura.idFactura,
+        ventaId: data.ventaId,
+        tipoFactura: data.tipoFactura,
+        condicionFiscal: data.condicionFiscal,
+        cai,
+      },
+      description: `Se generó la factura #${nuevaFactura.idFactura} tipo ${data.tipoFactura} para la venta #${data.ventaId}`,
+    });
+
+    return nuevaFactura;
   });
 
-  return obtenerDetalleFactura(user, nuevaFactura.idFactura);
+  return obtenerDetalleFactura(user, factura.idFactura);
 }
 
 export async function obtenerDetalleFactura(user: AuthUser, idFactura: number) {

@@ -1,7 +1,9 @@
 import { AuthUser } from '../types/express';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 import { ESTADOS_PEDIDOS } from '../constants/estados-pedidos';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
+import * as auditLogService from './audit-log.service';
 import * as usuarioService from './usuario.service';
 
 import * as produccionRepository from '../repositories/produccion.repository';
@@ -91,6 +93,23 @@ export async function crearOrdenProduccion(user: AuthUser, data: CrearOrdenProdu
       tx
     );
 
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.ORDEN_PRODUCCION,
+      entityId: orden.idOrden,
+      empresaId: alumno.empresa.id,
+      newValues: {
+        ordenId: orden.idOrden,
+        productoId: orden.productoId,
+        cantidad: orden.cantidad,
+        prioridad: orden.prioridad,
+        pedidoId: orden.pedidoId,
+      },
+      description: 'Se creó una nueva orden de producción',
+    });
+
     await produccionRepository.crearHistorialEstado(
       orden.idOrden,
       estadoPendiente.idEstado,
@@ -103,6 +122,17 @@ export async function crearOrdenProduccion(user: AuthUser, data: CrearOrdenProdu
       const estadoEnProduccion = await pedidoRepository.findEstadoEnProduccion(tx);
 
       await pedidoRepository.updateEstadoPedido(pedidoId, estadoEnProduccion.idEstado, tx);
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.UPDATE,
+        entity: AUDIT_ENTITIES.PEDIDO,
+        entityId: pedidoId,
+        empresaId: alumno.empresa.id,
+        newValues: { estado: estadoEnProduccion.nombre },
+        description: 'El pedido pasó a En Producción al crear su primera orden',
+      });
     }
 
     return orden;
@@ -177,12 +207,29 @@ export async function iniciarOrdenProduccion(user: AuthUser, data: OrdenProducci
 
   const estadoEnProduccion = await produccionRepository.findEstadoEnProduccion();
 
-  return produccionRepository.iniciarOrdenProduccion(
-    orden.idOrden,
-    orden.estado.idEstado,
-    estadoEnProduccion.idEstado,
-    usuario.id
-  );
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const ordenIniciada = await produccionRepository.iniciarOrdenProduccion(
+      orden.idOrden,
+      orden.estado.idEstado,
+      estadoEnProduccion.idEstado,
+      usuario.id,
+      tx
+    );
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.INICIAR_PRODUCCION,
+      entity: AUDIT_ENTITIES.ORDEN_PRODUCCION,
+      entityId: orden.idOrden,
+      empresaId: usuario.alumno.empresa.id,
+      oldValues: { estado: orden.estado.nombre },
+      newValues: { estado: ordenIniciada.estado.nombre },
+      description: 'Se inició la orden de producción',
+    });
+
+    return ordenIniciada;
+  });
 }
 
 export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduccionIdDTO) {
@@ -208,17 +255,17 @@ export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduc
 
     // Cierra el período correspondiente al estado En Producción.
     await produccionRepository.cerrarHistorialEstado(
-      tx,
       orden.idOrden,
       orden.estado.idEstado,
-      ahora
+      ahora,
+      tx
     );
 
     // Actualiza la orden al estado Finalizada.
     const ordenFinalizada = await produccionRepository.finalizarOrden(
-      tx,
       orden.idOrden,
-      estadoFinalizada.idEstado
+      estadoFinalizada.idEstado,
+      tx
     );
 
     // Registra el inicio del estado Finalizada.
@@ -230,6 +277,17 @@ export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduc
       tx
     );
 
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.FINALIZAR_PRODUCCION,
+      entity: AUDIT_ENTITIES.ORDEN_PRODUCCION,
+      entityId: orden.idOrden,
+      empresaId: usuario.alumno.empresa.id,
+      newValues: { estado: estadoFinalizada.nombre },
+      description: 'Se finalizó la orden de producción',
+    });
+
     /*
      * Si la orden está asociada a un pedido,
      * la producción se utiliza para cubrir el faltante
@@ -237,6 +295,17 @@ export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduc
      */
     if (orden.pedidoId) {
       await pedidoRepository.cubrirFaltante(orden.pedidoId, orden.productoId, orden.cantidad, tx);
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.UPDATE,
+        entity: AUDIT_ENTITIES.PEDIDO,
+        entityId: orden.pedidoId,
+        empresaId: usuario.alumno.empresa.id,
+        newValues: { productoCubierto: orden.productoId, cantidad: orden.cantidad },
+        description: 'Se cubrió parte de los faltantes del pedido mediante producción',
+      });
 
       /*
        * Una vez cubierto el faltante de este producto,
@@ -257,14 +326,40 @@ export async function finalizarOrdenProduccion(user: AuthUser, data: OrdenProduc
           estadoListoParaEntregar.idEstado,
           tx
         );
+
+        await auditLogService.registrarAccion({
+          tx,
+          usuarioId: usuario.id,
+          action: AUDIT_ACTIONS.UPDATE,
+          entity: AUDIT_ENTITIES.PEDIDO,
+          entityId: orden.pedidoId,
+          empresaId: usuario.alumno.empresa.id,
+          newValues: { estado: estadoListoParaEntregar.nombre },
+          description: 'El pedido pasó a Listo Para Entregar por no poseer faltantes',
+        });
       }
     } else {
       /*
        * Si la orden NO está asociada a un pedido,
        * la producción pasa a formar parte del stock disponible.
        */
-
+      const producto = await productoRepository.findByIdAndEmpresaOrThrow(
+        orden.productoId,
+        usuario.alumno.empresa.id
+      );
       await productoRepository.incrementarStock(tx, orden.productoId, orden.cantidad);
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.UPDATE,
+        entity: AUDIT_ENTITIES.PRODUCTO,
+        entityId: orden.productoId,
+        empresaId: usuario.alumno.empresa.id,
+        oldValues: { stock: producto.stock },
+        newValues: { stock: producto.stock + orden.cantidad },
+        description: 'Aumento de stock por finalización de orden de producción',
+      });
     }
 
     return ordenFinalizada;

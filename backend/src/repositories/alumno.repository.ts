@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma';
+import { prisma, getDbClient } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { AlumnoDocenteFiltrosDTO } from '../validators/docente.validator';
 import { NotFoundError } from '../errors/not-found.error';
@@ -36,8 +36,10 @@ type CrearAlumnoData = {
   idRolEmpresa: number;
 };
 
-export async function create(id: string, data: CrearAlumnoData) {
-  await prisma.alumno.create({
+export async function create(id: string, data: CrearAlumnoData, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.alumno.create({
     data: {
       id,
       idCurso: data.idCurso,
@@ -113,8 +115,14 @@ export async function findByIds(ids: string[]) {
   });
 }
 
-export async function agregarAEmpresa(ids: string[], idEmpresa: number) {
-  return prisma.alumno.updateMany({
+export async function agregarAEmpresa(
+  ids: string[],
+  idEmpresa: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.alumno.updateMany({
     where: {
       id: {
         in: ids,
@@ -150,8 +158,14 @@ export async function findByIdWithEmpresaRolOrThrow(keycloakId: string) {
   return usuario;
 }
 
-export async function updateRolEmpresa(id: string, idRolEmpresa: number) {
-  return prisma.alumno.update({
+export async function updateRolEmpresa(
+  id: string,
+  idRolEmpresa: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.alumno.update({
     where: {
       id,
     },
@@ -165,11 +179,15 @@ export async function updateRoles(
   roles: {
     idAlumno: string;
     idRolEmpresa: number;
-  }[]
+  }[],
+  tx?: Prisma.TransactionClient
 ) {
-  return prisma.$transaction(
+  const db = getDbClient(tx);
+
+  // Removemos prisma.$transaction porque ya lo controlamos desde el servicio
+  return Promise.all(
     roles.map((rol) =>
-      prisma.alumno.update({
+      db.alumno.update({
         where: {
           id: rol.idAlumno,
         },

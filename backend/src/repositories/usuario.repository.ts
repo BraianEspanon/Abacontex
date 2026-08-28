@@ -1,10 +1,13 @@
 import { NotFoundError } from '../errors/not-found.error';
-import { prisma } from '../lib/prisma';
+import { prisma, getDbClient } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 import { AuthUser } from '../types/express';
 import { ActualizarUsuarioDTO } from '../validators/usuario.validator';
 
-export async function create(user: AuthUser, rolSistemaId: number) {
-  return await prisma.usuario.create({
+export async function create(user: AuthUser, rolSistemaId: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return await db.usuario.create({
     data: {
       keycloakId: user.keycloakId,
       email: user.email,
@@ -150,6 +153,7 @@ export async function findByKeycloakIdWithEmpresa(keycloakId: string) {
       alumno: {
         include: {
           empresa: true,
+          rolEmpresa: true,
         },
       },
     },
@@ -234,8 +238,13 @@ type ActualizarUsuarioPersistenceDTO = ActualizarUsuarioDTO & {
   fotoPerfilPublicId: string | null;
 };
 
-export async function update(keycloakId: string, data: ActualizarUsuarioPersistenceDTO) {
-  return prisma.usuario.update({
+export async function update(
+  keycloakId: string,
+  data: ActualizarUsuarioPersistenceDTO,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+  return db.usuario.update({
     where: {
       keycloakId,
     },

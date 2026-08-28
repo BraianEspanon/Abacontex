@@ -1,13 +1,19 @@
+import { AuthUser } from '../types/express';
+import { ROLES } from '../constants/roles';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
+
+import * as auditLogService from './audit-log.service';
+//import * as emailService from '../integrations/email/email.service';
+
 import * as rolSistemaRepository from '../repositories/rol-sistema.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
+import * as usuarioRepository from '../repositories/usuario.repository';
 import * as empresaRepository from '../repositories/empresa.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
-//import * as emailService from '../integrations/email/email.service';
 import * as keycloakAdminService from '../integrations/keycloak/keycloak-admin.service';
+import * as transactionRepository from '../repositories/transaction.repository';
 
-import { ROLES } from '../constants/roles';
-import { AuthUser } from '../types/express';
 import {
   DashboardDocenteDTO,
   /*DashboardDocenteFiltrosDTO,*/
@@ -30,13 +36,15 @@ import {
 import { EmpresaDetalleDocenteDTO } from '../dto/docente/doc-empresa-detalle.dto';
 import { EmpresasDocenteResponseDTO } from '../dto/docente/doc-empresa.dto';
 import { AlumnosDocenteResponseDTO } from '../dto/docente/doc-alumno.dto';
+import { DocenteActualResponseDTO } from '../dto/docente/doc-actual.dto';
 import { toDocenteActualResponse } from '../dto/docente/doc.mapper';
 
 import { NotFoundError } from '../errors/not-found.error';
-import { DocenteActualResponseDTO } from '../dto/docente/doc-actual.dto';
 
-export async function crearDocente(data: CrearDocenteDTO) {
+export async function crearDocente(user: AuthUser, data: CrearDocenteDTO) {
   let keycloakId: string | undefined;
+
+  const usuarioAdmin = await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
 
   try {
     keycloakId = await keycloakAdminService.createUser({
@@ -61,14 +69,29 @@ export async function crearDocente(data: CrearDocenteDTO) {
     }
 
     // Crear usuario y asignar cursos en una transacción
-    const usuario = await docenteRepository.crearDocente(
-      keycloakId,
-      data.email,
-      data.nombre,
-      data.apellido,
-      rolSistema.idRol,
-      data.cursoIds
-    );
+    const usuario = await transactionRepository.ejecutarTransaccion(async (tx) => {
+      const usuarioCreado = await docenteRepository.crearDocente(
+        keycloakId!, // we know it's defined here
+        data.email,
+        data.nombre,
+        data.apellido,
+        rolSistema.idRol,
+        data.cursoIds,
+        tx
+      );
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuarioAdmin.id,
+        action: AUDIT_ACTIONS.CREATE,
+        entity: AUDIT_ENTITIES.USUARIO,
+        entityId: usuarioCreado.id,
+        newValues: { usuario: usuarioCreado, cursos: data.cursoIds },
+        description: 'Se creó un nuevo docente en el sistema',
+      });
+
+      return usuarioCreado;
+    });
 
     console.info(`[DOCENTE] Creado ${usuario.email} con ${data.cursoIds.length} curso(s)`);
     /*
@@ -119,7 +142,22 @@ export async function actualizarCursosDocenteActual(
 
   await cursoRepository.findByIdsOrThrow(data.cursoIds);
 
-  await docenteRepository.updateCursosProfesor(docente.id, data.cursoIds);
+  const oldCursosIds = docente.profesorCursos.map((pc) => pc.curso.idCurso);
+
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    await docenteRepository.updateCursosProfesor(docente.id, data.cursoIds, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: docente.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.USUARIO,
+      entityId: docente.id,
+      oldValues: { cursosIds: oldCursosIds },
+      newValues: { cursosIds: data.cursoIds },
+      description: 'Se actualizaron los cursos asignados al docente',
+    });
+  });
 
   return obtenerDocenteActual(user);
 }

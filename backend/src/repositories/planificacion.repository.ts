@@ -105,7 +105,7 @@ export async function create(
     mesFin: number;
     estado: EstadoPlanificacion;
   },
-  tx: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient
 ) {
   const db = getDbClient(tx);
 
@@ -126,7 +126,7 @@ export async function createDetalle(
     mes: number;
     unidadesEstimadas: number | null;
   },
-  tx: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient
 ) {
   const db = getDbClient(tx);
 
