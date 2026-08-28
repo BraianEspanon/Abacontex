@@ -305,10 +305,14 @@ export async function registrarVenta(user: AuthUser, data: RegistrarVentaDTO) {
       entityId: movimiento.idMovimiento,
       empresaId: empresa.id,
       newValues: {
+        idMovimiento: movimiento.idMovimiento,
         importe: movimiento.importe,
         concepto: movimiento.concepto,
-        categoriaId: movimiento.idCategoria,
+        idCategoria: movimiento.idCategoria,
+        idMetodoPago: movimiento.idMetodoPago,
+        fecha: movimiento.fecha,
         ventaId: movimiento.ventaId,
+        esAutomatico: true,
       },
       description: 'Se registró un movimiento financiero automático asociado a la venta',
     });

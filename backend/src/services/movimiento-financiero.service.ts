@@ -1,15 +1,19 @@
 import { AuthUser } from '../types/express';
 import { Prisma } from '@prisma/client';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
+
+import * as auditLogService from './audit-log.service';
+
+import * as usuarioRepository from '../repositories/usuario.repository';
+import * as metodoPagoRepository from '../repositories/metodo-pago.repository';
+import * as movimientoFinancieroRepository from '../repositories/movimiento-financiero.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import {
   RegistrarMovimientoDTO,
   ConsultarHistorialDTO,
   ConsultarGraficoDTO,
 } from '../validators/movimiento-financiero.validator';
-
-import * as usuarioRepository from '../repositories/usuario.repository';
-import * as metodoPagoRepository from '../repositories/metodo-pago.repository';
-import * as movimientoFinancieroRepository from '../repositories/movimiento-financiero.repository';
 
 import { MovimientoFinancieroMapper } from '../dto/finanzas/movimiento-financiero.mapper';
 
@@ -88,17 +92,44 @@ export async function registrarMovimiento(user: AuthUser, data: RegistrarMovimie
 
   const estadoRegistrado = await movimientoFinancieroRepository.findEstadoPendiente();
 
-  return movimientoFinancieroRepository.create({
-    idEmpresa: empresa.id,
-    idUsuario: usuario.id,
-    idCategoria: data.idCategoria,
-    idMetodoPago: data.idMetodoPago,
-    idEstado: estadoRegistrado.idEstado,
-    fecha: fechaIngresada,
-    concepto: data.concepto,
-    importe: new Prisma.Decimal(data.importe),
-    observaciones: data.observaciones || null,
-    esAutomatico: false,
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const movimiento = await movimientoFinancieroRepository.create(
+      {
+        idEmpresa: empresa.id,
+        idUsuario: usuario.id,
+        idCategoria: data.idCategoria,
+        idMetodoPago: data.idMetodoPago,
+        idEstado: estadoRegistrado.idEstado,
+        fecha: fechaIngresada,
+        concepto: data.concepto,
+        importe: new Prisma.Decimal(data.importe),
+        observaciones: data.observaciones || null,
+        esAutomatico: false,
+      },
+      tx
+    );
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.MOVIMIENTO_FINANCIERO,
+      entityId: movimiento.idMovimiento,
+      empresaId: empresa.id,
+      newValues: {
+        idMovimiento: movimiento.idMovimiento,
+        importe: movimiento.importe,
+        concepto: movimiento.concepto,
+        idCategoria: movimiento.idCategoria,
+        idMetodoPago: movimiento.idMetodoPago,
+        fecha: movimiento.fecha,
+        ventaId: null,
+        esAutomatico: false,
+      },
+      description: `Se registró un movimiento financiero manual (${categoria.tipoMovimiento.nombre})`,
+    });
+
+    return movimiento;
   });
 }
 
