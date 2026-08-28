@@ -9,7 +9,7 @@ export async function createLog(
   tx?: Prisma.TransactionClient
 ) {
   const db = getDbClient(tx);
-  
+
   return db.auditLog.create({
     data,
   });

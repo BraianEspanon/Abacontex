@@ -38,7 +38,7 @@ async function obtenerEmpresaUsuario(user: AuthUser) {
 
   return {
     empresa: usuario.alumno.empresa,
-    usuarioId: usuario.id
+    usuarioId: usuario.id,
   };
 }
 

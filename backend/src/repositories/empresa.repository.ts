@@ -17,7 +17,11 @@ type ActualizarEmpresaPersistenceDTO = ActualizarEmpresaDTO & {
   logoPublicId: string | null;
 };
 
-export async function update(id: number, data: ActualizarEmpresaPersistenceDTO, tx?: Prisma.TransactionClient) {
+export async function update(
+  id: number,
+  data: ActualizarEmpresaPersistenceDTO,
+  tx?: Prisma.TransactionClient
+) {
   const db = getDbClient(tx);
   return db.empresa.update({
     where: {

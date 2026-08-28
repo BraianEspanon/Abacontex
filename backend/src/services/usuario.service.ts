@@ -18,7 +18,7 @@ import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
 
 export async function syncUsuario(user: AuthUser) {
-  let usuario = await usuarioRepository.findByKeycloakId(user.keycloakId);
+  const usuario = await usuarioRepository.findByKeycloakId(user.keycloakId);
 
   if (usuario) {
     return usuario;

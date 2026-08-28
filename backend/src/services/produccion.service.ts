@@ -100,7 +100,7 @@ export async function crearOrdenProduccion(user: AuthUser, data: CrearOrdenProdu
       entity: AUDIT_ENTITIES.ORDEN_PRODUCCION,
       entityId: orden.idOrden,
       empresaId: alumno.empresa.id,
-      newValues: { 
+      newValues: {
         ordenId: orden.idOrden,
         productoId: orden.productoId,
         cantidad: orden.cantidad,
