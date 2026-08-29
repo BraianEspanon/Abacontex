@@ -142,10 +142,6 @@ export async function actualizarEmpresa(
     throw new ConflictError('No perteneces a ninguna empresa.');
   }
 
-  if (usuario.alumno.rolEmpresa?.nombreRol !== 'CEO') {
-    throw new ForbiddenError('Solo un Director Ejecutivo (CEO) puede actualizar una empresa');
-  }
-
   const empresa = usuario.alumno.empresa;
   if (empresa.nombre !== data.nombre) {
     const empresaExistente = await empresaRepository.findBynombre(data.nombre);
