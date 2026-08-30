@@ -1,5 +1,5 @@
 import { AuthUser } from '../types/express';
-import { RegistrarCuentaDTO } from '../validators/cuenta.validator';
+import { RegistrarCuentaDTO, EditarCuentaDTO } from '../validators/cuenta.validator';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
 import * as auditLogService from './audit-log.service';
@@ -86,4 +86,50 @@ export async function obtenerTiposCuenta(user: AuthUser) {
       descripcion: rubro.descripcion,
     })),
   }));
+}
+
+export async function editarCuenta(user: AuthUser, idCuenta: number, data: EditarCuentaDTO) {
+  const usuario = await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+  const cuentaExistente = await cuentaRepository.findByIdOrThrow(idCuenta);
+
+  await cuentaRepository.ensureNombreIsUniqueExcludingId(data.nombre, idCuenta);
+
+  const cuentaActualizada = await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const actualizada = await cuentaRepository.updateCuenta(idCuenta, data, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.CUENTA_CONTABLE,
+      entityId: actualizada.idCuenta,
+      oldValues: {
+        nombre: cuentaExistente.nombre,
+        descripcion: cuentaExistente.descripcion,
+      },
+      newValues: {
+        nombre: actualizada.nombre,
+        descripcion: actualizada.descripcion,
+      },
+      description: `Se actualizó la cuenta contable ${actualizada.codigo}`,
+    });
+
+    return actualizada;
+  });
+
+  return {
+    idCuenta: cuentaActualizada.idCuenta,
+    codigo: cuentaActualizada.codigo,
+    nombre: cuentaActualizada.nombre,
+    descripcion: cuentaActualizada.descripcion,
+    rubro: {
+      idRubro: cuentaActualizada.rubro.idRubro,
+      nombre: cuentaActualizada.rubro.nombre,
+      tipoCuenta: {
+        idTipoCuenta: cuentaActualizada.rubro.tipoCuenta.idTipoCuenta,
+        nombre: cuentaActualizada.rubro.tipoCuenta.nombre,
+        abreviatura: cuentaActualizada.rubro.tipoCuenta.abreviatura,
+      },
+    },
+  };
 }

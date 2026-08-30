@@ -5,8 +5,12 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { registrarCuenta, obtenerTiposCuenta } from '../controllers/cuenta.controller';
-import { registrarCuentaSchema } from '../validators/cuenta.validator';
+import {
+  registrarCuenta,
+  obtenerTiposCuenta,
+  editarCuenta,
+} from '../controllers/cuenta.controller';
+import { registrarCuentaSchema, editarCuentaSchema } from '../validators/cuenta.validator';
 
 const router = Router();
 
@@ -18,6 +22,14 @@ router.post(
   requireRole(ROLES.DOCENTE),
   validate(registrarCuentaSchema),
   registrarCuenta
+);
+
+router.patch(
+  '/:idCuenta',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(editarCuentaSchema),
+  editarCuenta
 );
 
 export default router;

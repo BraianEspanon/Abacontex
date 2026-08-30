@@ -1,5 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
+
+import { EditarCuentaDTO } from '../validators/cuenta.validator';
+
 import { NotFoundError } from '../errors/not-found.error';
 import { ConflictError } from '../errors/conflict.error';
 
@@ -46,6 +49,57 @@ export async function findByNombre(nombre: string, tx?: Prisma.TransactionClient
 
 export async function ensureNombreIsUnique(nombre: string, tx?: Prisma.TransactionClient) {
   const existente = await findByNombre(nombre, tx);
+
+  if (existente) {
+    throw new ConflictError('Ya existe una cuenta registrada con el nombre ingresado.', {
+      nombre,
+    });
+  }
+}
+
+export async function findById(idCuenta: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.cuentaContable.findUnique({
+    where: { idCuenta },
+    include: {
+      rubro: {
+        include: {
+          tipoCuenta: true,
+        },
+      },
+    },
+  });
+}
+
+export async function findByIdOrThrow(idCuenta: number, tx?: Prisma.TransactionClient) {
+  const cuenta = await findById(idCuenta, tx);
+
+  if (!cuenta) {
+    throw new NotFoundError('Cuenta contable no encontrada.', { idCuenta });
+  }
+
+  return cuenta;
+}
+
+export async function ensureNombreIsUniqueExcludingId(
+  nombre: string,
+  idCuentaExcluir: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const existente = await db.cuentaContable.findFirst({
+    where: {
+      idCuenta: {
+        not: idCuentaExcluir,
+      },
+      nombre: {
+        equals: nombre,
+        mode: 'insensitive',
+      },
+    },
+  });
 
   if (existente) {
     throw new ConflictError('Ya existe una cuenta registrada con el nombre ingresado.', {
@@ -109,6 +163,26 @@ export async function createCuenta(
   const db = getDbClient(tx);
 
   return db.cuentaContable.create({
+    data,
+    include: {
+      rubro: {
+        include: {
+          tipoCuenta: true,
+        },
+      },
+    },
+  });
+}
+
+export async function updateCuenta(
+  idCuenta: number,
+  data: EditarCuentaDTO,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.cuentaContable.update({
+    where: { idCuenta },
     data,
     include: {
       rubro: {

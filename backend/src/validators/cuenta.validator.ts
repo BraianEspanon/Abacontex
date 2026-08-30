@@ -25,3 +25,24 @@ export const registrarCuentaSchema = z.object({
 });
 
 export type RegistrarCuentaDTO = z.infer<typeof registrarCuentaSchema>['body'];
+
+export const editarCuentaSchema = z.object({
+  params: z.object({
+    idCuenta: z.coerce.number().int().positive('ID de cuenta inválido'),
+  }),
+  body: z.object({
+    nombre: z
+      .string()
+      .trim()
+      .min(1, 'El nombre es obligatorio')
+      .max(100, 'El nombre debe tener como máximo 100 caracteres'),
+
+    descripcion: z
+      .string()
+      .trim()
+      .min(1, 'La descripción es obligatoria')
+      .max(255, 'La descripción debe tener como máximo 255 caracteres'),
+  }),
+});
+
+export type EditarCuentaDTO = z.infer<typeof editarCuentaSchema>['body'];
