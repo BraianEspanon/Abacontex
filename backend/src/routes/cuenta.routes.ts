@@ -5,10 +5,12 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { registrarCuenta } from '../controllers/cuenta.controller';
+import { registrarCuenta, obtenerTiposCuenta } from '../controllers/cuenta.controller';
 import { registrarCuentaSchema } from '../validators/cuenta.validator';
 
 const router = Router();
+
+router.get('/tipos', authenticate, requireRole(ROLES.ALUMNO, ROLES.DOCENTE), obtenerTiposCuenta);
 
 router.post(
   '/',

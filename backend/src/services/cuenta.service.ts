@@ -69,3 +69,21 @@ export async function registrarCuenta(user: AuthUser, data: RegistrarCuentaDTO) 
     },
   };
 }
+
+export async function obtenerTiposCuenta(user: AuthUser) {
+  await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  const tipos = await cuentaRepository.findTiposWithRubros();
+
+  return tipos.map((tipo) => ({
+    idTipoCuenta: tipo.idTipoCuenta,
+    nombre: tipo.nombre,
+    abreviatura: tipo.abreviatura,
+    descripcion: tipo.descripcion,
+    rubros: tipo.rubros.map((rubro) => ({
+      idRubro: rubro.idRubro,
+      nombre: rubro.nombre,
+      descripcion: rubro.descripcion,
+    })),
+  }));
+}

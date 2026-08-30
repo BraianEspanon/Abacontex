@@ -77,6 +77,26 @@ export async function findRubroByIdOrThrow(idRubro: number, tx?: Prisma.Transact
   return rubro;
 }
 
+export async function findTiposWithRubros(tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.tipoCuentaContable.findMany({
+    include: {
+      rubros: {
+        where: {
+          activo: true,
+        },
+        orderBy: {
+          nombre: 'asc',
+        },
+      },
+    },
+    orderBy: {
+      idTipoCuenta: 'asc',
+    },
+  });
+}
+
 export async function createCuenta(
   data: {
     codigo: string;

@@ -13,3 +13,9 @@ export async function registrarCuenta(req: Request, res: Response) {
 
   res.status(201).json(resultado);
 }
+
+export async function obtenerTiposCuenta(req: Request, res: Response) {
+  const resultado = await cuentaService.obtenerTiposCuenta(req.user!);
+
+  res.status(200).json(resultado);
+}
