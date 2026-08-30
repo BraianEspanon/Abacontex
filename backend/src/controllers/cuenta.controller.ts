@@ -2,7 +2,11 @@ import { Request, Response } from 'express';
 
 import * as cuentaService from '../services/cuenta.service';
 
-import { registrarCuentaSchema, editarCuentaSchema } from '../validators/cuenta.validator';
+import {
+  registrarCuentaSchema,
+  editarCuentaSchema,
+  obtenerCuentasSchema,
+} from '../validators/cuenta.validator';
 
 export async function registrarCuenta(req: Request, res: Response) {
   const { body } = registrarCuentaSchema.parse({
@@ -16,6 +20,16 @@ export async function registrarCuenta(req: Request, res: Response) {
 
 export async function obtenerTiposCuenta(req: Request, res: Response) {
   const resultado = await cuentaService.obtenerTiposCuenta(req.user!);
+
+  res.status(200).json(resultado);
+}
+
+export async function obtenerCuentas(req: Request, res: Response) {
+  const { query } = obtenerCuentasSchema.parse({
+    query: req.query,
+  });
+
+  const resultado = await cuentaService.obtenerCuentas(req.user!, query);
 
   res.status(200).json(resultado);
 }

@@ -8,13 +8,26 @@ import { validate } from '../middleware/validate.middleware';
 import {
   registrarCuenta,
   obtenerTiposCuenta,
+  obtenerCuentas,
   editarCuenta,
 } from '../controllers/cuenta.controller';
-import { registrarCuentaSchema, editarCuentaSchema } from '../validators/cuenta.validator';
+import {
+  registrarCuentaSchema,
+  editarCuentaSchema,
+  obtenerCuentasSchema,
+} from '../validators/cuenta.validator';
 
 const router = Router();
 
 router.get('/tipos', authenticate, requireRole(ROLES.ALUMNO, ROLES.DOCENTE), obtenerTiposCuenta);
+
+router.get(
+  '/',
+  authenticate,
+  requireRole(ROLES.ALUMNO, ROLES.DOCENTE),
+  validate(obtenerCuentasSchema),
+  obtenerCuentas
+);
 
 router.post(
   '/',

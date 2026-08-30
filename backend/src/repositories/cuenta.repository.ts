@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 
-import { EditarCuentaDTO } from '../validators/cuenta.validator';
+import { EditarCuentaDTO, ObtenerCuentasDTO } from '../validators/cuenta.validator';
 
 import { NotFoundError } from '../errors/not-found.error';
 import { ConflictError } from '../errors/conflict.error';
@@ -149,6 +149,52 @@ export async function findTiposWithRubros(tx?: Prisma.TransactionClient) {
       idTipoCuenta: 'asc',
     },
   });
+}
+
+export async function findAllPaginated(filtros: ObtenerCuentasDTO, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+  const { search, idTipoCuenta, idRubro, page, pageSize } = filtros;
+
+  const where: Prisma.CuentaContableWhereInput = {};
+
+  if (search) {
+    where.nombre = {
+      contains: search,
+      mode: 'insensitive',
+    };
+  }
+
+  if (idRubro) {
+    where.idRubro = idRubro;
+  } else if (idTipoCuenta) {
+    where.rubro = {
+      idTipoCuenta,
+    };
+  }
+
+  const [totalItems, items] = await Promise.all([
+    db.cuentaContable.count({ where }),
+    db.cuentaContable.findMany({
+      where,
+      include: {
+        rubro: {
+          include: {
+            tipoCuenta: true,
+          },
+        },
+      },
+      orderBy: {
+        codigo: 'asc',
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+
+  return {
+    totalItems,
+    items,
+  };
 }
 
 export async function createCuenta(

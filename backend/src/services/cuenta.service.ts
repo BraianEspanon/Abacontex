@@ -1,5 +1,9 @@
 import { AuthUser } from '../types/express';
-import { RegistrarCuentaDTO, EditarCuentaDTO } from '../validators/cuenta.validator';
+import {
+  RegistrarCuentaDTO,
+  EditarCuentaDTO,
+  ObtenerCuentasDTO,
+} from '../validators/cuenta.validator';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
 import * as auditLogService from './audit-log.service';
@@ -131,5 +135,33 @@ export async function editarCuenta(user: AuthUser, idCuenta: number, data: Edita
         abreviatura: cuentaActualizada.rubro.tipoCuenta.abreviatura,
       },
     },
+  };
+}
+
+export async function obtenerCuentas(user: AuthUser, filtros: ObtenerCuentasDTO) {
+  await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  const { totalItems, items } = await cuentaRepository.findAllPaginated(filtros);
+
+  return {
+    items: items.map((cuenta) => ({
+      idCuenta: cuenta.idCuenta,
+      codigo: cuenta.codigo,
+      nombre: cuenta.nombre,
+      descripcion: cuenta.descripcion,
+      rubro: {
+        idRubro: cuenta.rubro.idRubro,
+        nombre: cuenta.rubro.nombre,
+        tipoCuenta: {
+          idTipoCuenta: cuenta.rubro.tipoCuenta.idTipoCuenta,
+          nombre: cuenta.rubro.tipoCuenta.nombre,
+          abreviatura: cuenta.rubro.tipoCuenta.abreviatura,
+        },
+      },
+    })),
+    page: filtros.page,
+    pageSize: filtros.pageSize,
+    totalItems,
+    totalPages: Math.ceil(totalItems / filtros.pageSize),
   };
 }
