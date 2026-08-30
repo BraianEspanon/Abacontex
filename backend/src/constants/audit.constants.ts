@@ -26,6 +26,7 @@ export const AUDIT_ENTITIES = {
   MOVIMIENTO_FINANCIERO: 'MovimientoFinanciero',
   FACTURA: 'Factura',
   CONCILIACION: 'Conciliacion',
+  CUENTA_CONTABLE: 'CuentaContable',
 } as const;
 
 export type AuditEntity = (typeof AUDIT_ENTITIES)[keyof typeof AUDIT_ENTITIES];

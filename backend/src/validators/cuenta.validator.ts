@@ -1,0 +1,27 @@
+import { z } from 'zod';
+
+export const registrarCuentaSchema = z.object({
+  body: z.object({
+    codigo: z
+      .string()
+      .trim()
+      .min(1, 'El código es obligatorio')
+      .max(20, 'El código debe tener como máximo 20 caracteres'),
+
+    nombre: z
+      .string()
+      .trim()
+      .min(1, 'El nombre es obligatorio')
+      .max(100, 'El nombre debe tener como máximo 100 caracteres'),
+
+    idRubro: z.number().int().positive('Debe seleccionar un rubro válido'),
+
+    descripcion: z
+      .string()
+      .trim()
+      .min(1, 'La descripción es obligatoria')
+      .max(255, 'La descripción debe tener como máximo 255 caracteres'),
+  }),
+});
+
+export type RegistrarCuentaDTO = z.infer<typeof registrarCuentaSchema>['body'];
