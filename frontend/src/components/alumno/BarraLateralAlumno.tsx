@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useKeycloak } from '@react-keycloak/web';
 import {
+  BadgeDollarSign,
   BookOpen,
   Building2,
   Calculator,
@@ -62,7 +63,7 @@ const opcionesMenu = [
   {
     nombre: 'Finanzas',
     ruta: '/alumno/finanzas',
-    icono: Package,
+    icono: BadgeDollarSign,
   },
   {
     nombre: 'Contabilidad',
