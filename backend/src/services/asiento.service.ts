@@ -1,16 +1,26 @@
+// Este service implementa un patrón Strategy
+// ya que según el tipo de Acción pendiente de asiento, se hace una actividad u otra
+
 import { AuthUser } from '../types/express';
 import { TIPOS_MOVIMIENTO_ASIENTO } from '../constants/asiento.constants';
 
 import { PaginatedResponse } from '../dto/paginated-response.dto';
-import { OperacionPendienteItemDTO } from '../dto/contabilidad/asiento.dto';
-import { AsientoMapper } from '../dto/contabilidad/asiento.mapper';
+import {
+  OperacionPendienteItemDTO,
+  DetallePendienteResponseDTO,
+} from '../dto/contabilidad/asiento.dto';
 
-import { ObtenerPendientesDTO } from '../validators/asiento.validator';
+import { ObtenerPendientesDTO, ObtenerDetallePendienteDTO } from '../validators/asiento.validator';
 
 import * as usuarioService from './usuario.service';
 
 import * as usuarioRepository from '../repositories/usuario.repository';
-import * as asientoRepository from '../repositories/asiento.repository';
+
+import {
+  getAllAsientoStrategies,
+  getAsientoStrategy,
+} from './asiento-strategies/asiento-strategy.registry';
+import { OperacionPendienteContext } from './asiento-strategies/asiento-strategy.interface';
 
 export async function obtenerTiposMovimiento(user: AuthUser) {
   await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
@@ -23,21 +33,16 @@ export async function obtenerPendientes(
   filtros: ObtenerPendientesDTO
 ): Promise<PaginatedResponse<OperacionPendienteItemDTO>> {
   const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
-  const empresaId = usuarioConEmpresa.alumno.empresa.id;
 
-  const [ventas, movimientos, conciliaciones] = await Promise.all([
-    asientoRepository.findVentasPendientes(empresaId),
-    asientoRepository.findMovimientosPendientes(empresaId),
-    asientoRepository.findConciliacionesPendientes(empresaId),
-  ]);
+  const ctx: OperacionPendienteContext = {
+    empresaId: usuarioConEmpresa.alumno.empresa.id,
+    esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+  };
 
-  const todosPendientes: OperacionPendienteItemDTO[] = [
-    ...ventas.map(AsientoMapper.ventaToPendienteDTO),
-    ...movimientos.map(AsientoMapper.movimientoToPendienteDTO),
-    ...conciliaciones.map(AsientoMapper.conciliacionToPendienteDTO),
-  ];
+  const estrategias = getAllAsientoStrategies();
+  const listados = await Promise.all(estrategias.map((e) => e.getPendientes(ctx)));
 
-  // Ordenar cronológicamente ascendente (las más antiguas primero)
+  const todosPendientes = listados.flat();
   todosPendientes.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
 
   // Paginación en memoria del listado consolidado
@@ -53,4 +58,20 @@ export async function obtenerPendientes(
     totalItems,
     totalPages,
   };
+}
+
+export async function obtenerDetallePendiente(
+  user: AuthUser,
+  params: ObtenerDetallePendienteDTO
+): Promise<DetallePendienteResponseDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+
+  const ctx: OperacionPendienteContext = {
+    empresaId: usuarioConEmpresa.alumno.empresa.id,
+    esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+  };
+
+  const estrategia = getAsientoStrategy(params.tipo);
+
+  return estrategia.getDetalle(params.id, ctx);
 }

@@ -56,3 +56,96 @@ export async function findConciliacionesPendientes(
     },
   });
 }
+
+export async function findVentaPendienteById(
+  idVenta: number,
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.venta.findFirst({
+    where: {
+      idVenta,
+      empresaId,
+    },
+    include: {
+      asientoContable: {
+        select: {
+          idAsiento: true,
+        },
+      },
+      pedido: {
+        select: {
+          clienteNombre: true,
+          clienteMail: true,
+        },
+      },
+      metodoPago: {
+        select: {
+          nombre: true,
+        },
+      },
+      detalles: {
+        include: {
+          producto: {
+            select: {
+              nombre: true,
+              precioUnitario: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function findMovimientoPendienteById(
+  idMovimiento: number,
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.movimientoFinanciero.findFirst({
+    where: {
+      idMovimiento,
+      idEmpresa: empresaId,
+    },
+    include: {
+      asientoContable: {
+        select: {
+          idAsiento: true,
+        },
+      },
+      categoria: {
+        include: {
+          tipoMovimiento: true,
+        },
+      },
+      metodoPago: true,
+    },
+  });
+}
+
+export async function findConciliacionPendienteById(
+  idConciliacion: number,
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.conciliacionFinanciera.findFirst({
+    where: {
+      idConciliacion,
+      empresaId,
+    },
+    include: {
+      asientoContable: {
+        select: {
+          idAsiento: true,
+        },
+      },
+    },
+  });
+}

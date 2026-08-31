@@ -2,7 +2,10 @@ import { Request, Response } from 'express';
 
 import * as asientoService from '../services/asiento.service';
 
-import { obtenerPendientesSchema } from '../validators/asiento.validator';
+import {
+  obtenerPendientesSchema,
+  obtenerDetallePendienteSchema,
+} from '../validators/asiento.validator';
 
 export async function obtenerTiposMovimiento(req: Request, res: Response) {
   const resultado = await asientoService.obtenerTiposMovimiento(req.user!);
@@ -16,6 +19,16 @@ export async function obtenerPendientes(req: Request, res: Response) {
   });
 
   const resultado = await asientoService.obtenerPendientes(req.user!, query);
+
+  res.status(200).json(resultado);
+}
+
+export async function obtenerDetallePendiente(req: Request, res: Response) {
+  const { params } = obtenerDetallePendienteSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await asientoService.obtenerDetallePendiente(req.user!, params);
 
   res.status(200).json(resultado);
 }

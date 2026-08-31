@@ -5,8 +5,15 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { obtenerTiposMovimiento, obtenerPendientes } from '../controllers/asiento.controller';
-import { obtenerPendientesSchema } from '../validators/asiento.validator';
+import {
+  obtenerTiposMovimiento,
+  obtenerPendientes,
+  obtenerDetallePendiente,
+} from '../controllers/asiento.controller';
+import {
+  obtenerPendientesSchema,
+  obtenerDetallePendienteSchema,
+} from '../validators/asiento.validator';
 
 const router = Router();
 
@@ -18,6 +25,14 @@ router.get(
   requireRole(ROLES.ALUMNO),
   validate(obtenerPendientesSchema),
   obtenerPendientes
+);
+
+router.get(
+  '/pendientes/:tipo/:id',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(obtenerDetallePendienteSchema),
+  obtenerDetallePendiente
 );
 
 export default router;
