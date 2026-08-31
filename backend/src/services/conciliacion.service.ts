@@ -22,8 +22,8 @@ import { BadRequestError } from '../errors/bad-request-error';
 async function calcularEstadoCaja(idEmpresa: number) {
   const ultimaConciliacion = await conciliacionRepository.findUltimaByEmpresa(idEmpresa);
 
-  const fechaDesde = ultimaConciliacion ? ultimaConciliacion.fecha : undefined;
-  const movimientos = await movimientoFinancieroRepository.findPosterioresAFecha(
+  const fechaDesde = ultimaConciliacion ? ultimaConciliacion.createdAt : undefined;
+  const movimientos = await movimientoFinancieroRepository.findRegistradosPosterioresA(
     idEmpresa,
     fechaDesde
   );
