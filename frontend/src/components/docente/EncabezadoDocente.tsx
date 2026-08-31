@@ -7,6 +7,8 @@ const titulosPorRuta: Record<string, string> = {
   '/docente/cursos': 'Cursos',
   '/docente/empresas': 'Empresas',
   '/docente/alumnos': 'Alumnos',
+
+  '/docente/manual-cuentas': 'Manual de cuentas',
 };
 
 export default function EncabezadoDocente() {

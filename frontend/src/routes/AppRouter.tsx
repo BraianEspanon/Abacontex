@@ -38,6 +38,8 @@ import PlanificacionAnualPage from '../pages/produccion/PlanificacionAnualPage';
 import CargarPlanificacionAnualPage from '../pages/produccion/CargarPlanificacionAnualPage';
 
 import FinanzasPage from '../pages/finanzas/FinanzasPage';
+import ManualCuentasPage from '../pages/cuenta/ManualCuentasPage';
+import ManualCuentasDocentePage from '../pages/cuenta/ManualCuentasDocentePage';
 
 export default function AppRouter() {
   return (
@@ -115,6 +117,7 @@ export default function AppRouter() {
         <Route index element={<InicioDocente />} />
         <Route path="perfil" element={<PerfilDocente />} />
         <Route path="empresas" element={<EmpresasDocente />} />
+        <Route path="manual-cuentas" element={<ManualCuentasDocentePage />} />
       </Route>
 
       <Route path="/docente/login" element={<LoginDocente />} />
@@ -154,6 +157,9 @@ export default function AppRouter() {
 
         {/* Finanzas */}
         <Route path="finanzas" element={<FinanzasPage />} />
+
+        {/* Manual de cuentas */}
+        <Route path="manual-cuentas" element={<ManualCuentasPage />} />
       </Route>
     </Routes>
   );
