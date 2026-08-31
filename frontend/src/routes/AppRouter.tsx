@@ -37,6 +37,8 @@ import RegistrarVentaPage from '../pages/venta/RegistrarVentaPage';
 import PlanificacionAnualPage from '../pages/produccion/PlanificacionAnualPage';
 import CargarPlanificacionAnualPage from '../pages/produccion/CargarPlanificacionAnualPage';
 
+import FinanzasPage from '../pages/finanzas/FinanzasPage';
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -149,6 +151,9 @@ export default function AppRouter() {
         {/* Ventas */}
         <Route path="ventas" element={<VentasPage />} />
         <Route path="ventas/registrar" element={<RegistrarVentaPage />} />
+
+        {/* Finanzas */}
+        <Route path="finanzas" element={<FinanzasPage />} />
       </Route>
     </Routes>
   );
