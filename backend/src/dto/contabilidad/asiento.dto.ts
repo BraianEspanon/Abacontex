@@ -61,3 +61,17 @@ export type DetallePendienteResponseDTO =
   | DetallePendienteVentaDTO
   | DetallePendienteMovimientoDTO
   | DetallePendienteConciliacionDTO;
+
+export interface CuentaConFolioItemDTO {
+  idCuenta: number;
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+  numeroFolio: number | null;
+}
+
+export interface CuentasConFolioResponseDTO {
+  proximoFolioDisponible: number;
+  cuentas: CuentaConFolioItemDTO[];
+}
+

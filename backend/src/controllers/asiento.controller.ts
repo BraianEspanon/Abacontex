@@ -43,3 +43,9 @@ export async function crearAsientoContable(req: Request, res: Response) {
 
   res.status(201).json(resultado);
 }
+
+export async function obtenerCuentasConFolios(req: Request, res: Response) {
+  const resultado = await asientoService.obtenerCuentasConFolios(req.user!);
+
+  res.status(200).json(resultado);
+}

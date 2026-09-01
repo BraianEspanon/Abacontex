@@ -9,6 +9,8 @@ import { PaginatedResponse } from '../dto/paginated-response.dto';
 import {
   OperacionPendienteItemDTO,
   DetallePendienteResponseDTO,
+  CuentasConFolioResponseDTO,
+  CuentaConFolioItemDTO,
 } from '../dto/contabilidad/asiento.dto';
 
 import {
@@ -220,4 +222,29 @@ export async function crearAsientoContable(user: AuthUser, data: CrearAsientoDTO
 
     return asientoCreado;
   });
+}
+
+export async function obtenerCuentasConFolios(user: AuthUser): Promise<CuentasConFolioResponseDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const [cuentas, ultimoNumeroFolio] = await Promise.all([
+    asientoRepository.findAllCuentasConFolioByEmpresa(empresaId),
+    asientoRepository.findUltimoNumeroFolioByEmpresa(empresaId),
+  ]);
+
+  const proximoFolioDisponible = ultimoNumeroFolio + 1;
+
+  const cuentasMapped: CuentaConFolioItemDTO[] = cuentas.map((c) => ({
+    idCuenta: c.idCuenta,
+    codigo: c.codigo,
+    nombre: c.nombre,
+    descripcion: c.descripcion,
+    numeroFolio: c.foliosEmpresa[0]?.numeroFolio ?? null,
+  }));
+
+  return {
+    proximoFolioDisponible,
+    cuentas: cuentasMapped,
+  };
 }

@@ -10,6 +10,7 @@ import {
   obtenerPendientes,
   obtenerDetallePendiente,
   crearAsientoContable,
+  obtenerCuentasConFolios,
 } from '../controllers/asiento.controller';
 import {
   obtenerPendientesSchema,
@@ -20,6 +21,7 @@ import {
 const router = Router();
 
 router.get('/tipos-movimiento', authenticate, requireRole(ROLES.ALUMNO), obtenerTiposMovimiento);
+router.get('/cuentas', authenticate, requireRole(ROLES.ALUMNO), obtenerCuentasConFolios);
 
 router.get(
   '/pendientes',

@@ -282,3 +282,29 @@ export async function createAsientoContable(
     },
   });
 }
+
+export async function findAllCuentasConFolioByEmpresa(
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.cuentaContable.findMany({
+    where: {
+      activo: true,
+    },
+    include: {
+      foliosEmpresa: {
+        where: {
+          empresaId,
+        },
+        select: {
+          numeroFolio: true,
+        },
+      },
+    },
+    orderBy: {
+      codigo: 'asc',
+    },
+  });
+}
