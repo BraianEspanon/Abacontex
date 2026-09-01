@@ -23,6 +23,7 @@ const titulosPorRuta: Record<string, string> = {
   '/alumno/logros': 'Logros',
   '/alumno/manual-cuentas': 'Manual de cuentas',
   '/alumno/perfil': 'Perfil',
+  '/alumno/perfil/editar': 'Perfil',
 };
 
 export default function EstructuraPanelAlumno() {
