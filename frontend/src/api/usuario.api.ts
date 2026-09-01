@@ -17,10 +17,24 @@ export async function obtenerUsuarioActual(): Promise<UsuarioActual> {
 
   return respuesta.data;
 }
+
 export async function actualizarUsuarioActual(
   datos: ActualizarUsuarioActualRequest
 ): Promise<UsuarioActual> {
-  const respuesta = await clienteApi.patch<UsuarioActual>('/usuarios/me', datos);
+  const formData = new FormData();
+
+  formData.append('nombre', datos.nombre);
+  formData.append('apellido', datos.apellido);
+
+  if (datos.foto) {
+    formData.append('foto', datos.foto);
+  }
+
+  if (datos.eliminarFoto) {
+    formData.append('eliminarFoto', 'true');
+  }
+
+  const respuesta = await clienteApi.patch<UsuarioActual>('/usuarios/me', formData);
 
   return respuesta.data;
 }

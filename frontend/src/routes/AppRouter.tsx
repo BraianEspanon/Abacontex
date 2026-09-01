@@ -23,6 +23,9 @@ import CEOBienvenida from '../pages/onboarding/CEOBienvenida';
 import RedireccionInicial from '../pages/onboarding/RedireccionIncial';
 import InvitacionPage from '../pages/onboarding/InvitacionPage';
 
+import PerfilAlumno from '../pages/alumnos/PerfilAlumno';
+import EditarPerfilAlumno from '../pages/alumnos/EditarPerfilAlumno';
+
 import RegistroDocentePage from '../pages/docente/RegistroDocente';
 import LoginDocente from '../pages/docente/LoginDocente';
 
@@ -131,6 +134,10 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       >
+        {/* Perfil */}
+        <Route path="perfil" element={<PerfilAlumno />} />
+        <Route path="perfil/editar" element={<EditarPerfilAlumno />} />
+
         {/* Empresa */}
         <Route path="empresa" element={<MiEmpresaPage />} />
         <Route path="empresa/editar" element={<EditarEmpresaPage />} />
