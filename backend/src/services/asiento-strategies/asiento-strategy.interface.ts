@@ -23,6 +23,11 @@ export interface OperacionPendienteStrategy {
 
   getDetalle(id: number, ctx: OperacionPendienteContext): Promise<DetallePendienteResponseDTO>;
 
+  getDetalleOperacion(
+    id: number,
+    ctx: OperacionPendienteContext
+  ): Promise<DetallePendienteResponseDTO>;
+
   validarYObtenerFecha(
     id: number,
     ctx: OperacionPendienteContext,

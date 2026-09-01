@@ -1,5 +1,6 @@
 import { Prisma, TipoOrigenAsiento, MovimientoCuentaContable } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
+import { NotFoundError } from '../errors/not-found.error';
 
 export async function findVentasPendientes(empresaId: number, tx?: Prisma.TransactionClient) {
   const db = getDbClient(tx);
@@ -388,4 +389,51 @@ export async function findLibroDiarioByEmpresa(empresaId: number, tx?: Prisma.Tr
       createdAt: 'asc',
     },
   });
+}
+
+export async function findAsientoByIdAndEmpresa(
+  idAsiento: number,
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.asientoContable.findFirst({
+    where: {
+      idAsiento,
+      empresaId,
+    },
+    include: {
+      detalles: {
+        include: {
+          cuenta: {
+            select: {
+              idCuenta: true,
+              codigo: true,
+              nombre: true,
+            },
+          },
+        },
+        orderBy: {
+          orden: 'asc',
+        },
+      },
+    },
+  });
+}
+
+export async function findAsientoByIdAndEmpresaOrThrow(
+  idAsiento: number,
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const asiento = await findAsientoByIdAndEmpresa(idAsiento, empresaId, tx);
+
+  if (!asiento) {
+    throw new NotFoundError(
+      'El asiento contable solicitado no existe o no pertenece a tu empresa.'
+    );
+  }
+
+  return asiento;
 }

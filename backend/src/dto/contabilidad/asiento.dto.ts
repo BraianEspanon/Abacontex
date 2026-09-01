@@ -126,3 +126,30 @@ export interface LibroDiarioCompletoResponseDTO {
   totalHaberGeneral: number;
   asientos: AsientoLibroDiarioDTO[];
 }
+
+export interface RenglonAsientoDetalleDTO {
+  idDetalle: number;
+  orden: number;
+  cuentaId: number;
+  codigoCuenta: string;
+  nombreCuenta: string;
+  movimiento: string;
+  movimientoAbreviatura: string;
+  debe: number;
+  haber: number;
+}
+
+export interface AsientoDetalleEdicionDTO {
+  idAsiento: number;
+  numeroAsiento: number;
+  fechaHecho: Date;
+  fechaAsiento: Date;
+  conceptoGeneral: string;
+  origen: string;
+  ventaId: number | null;
+  movimientoFinancieroId: number | null;
+  conciliacionId: number | null;
+  operacionId: number | null;
+  operacionOrigen: DetallePendienteResponseDTO | null;
+  detalles: RenglonAsientoDetalleDTO[];
+}

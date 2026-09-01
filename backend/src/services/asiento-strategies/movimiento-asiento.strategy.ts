@@ -53,6 +53,22 @@ export class MovimientoAsientoStrategy implements OperacionPendienteStrategy {
     return this.toDetallePendienteDTO(movimiento);
   }
 
+  async getDetalleOperacion(
+    id: number,
+    ctx: OperacionPendienteContext
+  ): Promise<DetallePendienteMovimientoDTO> {
+    const movimiento = await asientoRepository.findMovimientoPendienteById(id, ctx.empresaId);
+
+    if (!movimiento) {
+      throw new NotFoundError(
+        'El movimiento financiero solicitado no existe o no pertenece a tu empresa.'
+      );
+    }
+
+    return this.toDetallePendienteDTO(movimiento);
+  }
+
+
   private toPendienteDTO(movimiento: MovimientoPendientePayload): OperacionPendienteItemDTO {
     return {
       id: movimiento.idMovimiento,

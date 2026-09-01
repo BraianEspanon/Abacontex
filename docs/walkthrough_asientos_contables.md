@@ -25,8 +25,7 @@ _Permite consultar la historia de registraciones de la empresa y corregir errore
 
 - [x] **`GET /contabilidad/asientos/ultimos`** (y `GET /contabilidad/asientos`): Consulta rápida de los últimos $N$ asientos registrados ordenados por `createdAt: 'desc'` (widget de la pantalla principal).
 - [x] **`GET /contabilidad/asientos/libro-diario`**: Consulta del Libro Diario completo en orden cronológico ascendente (`createdAt: 'asc'`), incluyendo folios, variaciones patrimoniales ($A+$, $R-$, etc.) y totales acumulados al pie (`totalDebeGeneral` y `totalHaberGeneral`).
-
-- [ ] **`GET /contabilidad/asientos/:idAsiento`**: Consultar un asiento específico por ID.
+- [x] **`GET /contabilidad/asientos/:idAsiento`**: Consultar un asiento específico por ID para la pantalla de edición o vista detallada.
 - [ ] **`PATCH /contabilidad/asientos/:idAsiento`**: Modificar renglones e importes de un asiento existente (re-validando partida doble).
 
 ---

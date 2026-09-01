@@ -15,6 +15,7 @@ import {
   AsientosResumenMetricasDTO,
   LibroDiarioCompletoResponseDTO,
   AsientoLibroDiarioDTO,
+  AsientoDetalleEdicionDTO,
 } from '../dto/contabilidad/asiento.dto';
 
 import {
@@ -22,6 +23,7 @@ import {
   ObtenerDetallePendienteDTO,
   CrearAsientoDTO,
   ObtenerUltimosAsientosDTO,
+  ObtenerAsientoPorIdDTO,
 } from '../validators/asiento.validator';
 
 import * as usuarioService from './usuario.service';
@@ -349,5 +351,58 @@ export async function obtenerLibroDiario(user: AuthUser): Promise<LibroDiarioCom
     totalDebeGeneral,
     totalHaberGeneral,
     asientos: asientosMapped,
+  };
+}
+
+export async function obtenerAsientoPorId(
+  user: AuthUser,
+  params: ObtenerAsientoPorIdDTO
+): Promise<AsientoDetalleEdicionDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const asiento = await asientoRepository.findAsientoByIdAndEmpresaOrThrow(
+    params.idAsiento,
+    empresaId
+  );
+
+  const operacionId =
+    asiento.ventaId ?? asiento.movimientoFinancieroId ?? asiento.conciliacionId ?? null;
+
+  let operacionOrigen = null;
+  if (asiento.origen !== 'AJUSTE' && operacionId !== null) {
+    const ctx: OperacionPendienteContext = {
+      empresaId,
+      esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+    };
+    const strategy = getAsientoStrategy(asiento.origen);
+    if (strategy) {
+      operacionOrigen = await strategy.getDetalleOperacion(operacionId, ctx);
+    }
+  }
+
+  return {
+    idAsiento: asiento.idAsiento,
+    numeroAsiento: asiento.numeroAsiento,
+    fechaHecho: asiento.fecha,
+    fechaAsiento: asiento.createdAt,
+    conceptoGeneral: asiento.conceptoGeneral,
+    origen: asiento.origen,
+    ventaId: asiento.ventaId,
+    movimientoFinancieroId: asiento.movimientoFinancieroId,
+    conciliacionId: asiento.conciliacionId,
+    operacionId,
+    operacionOrigen,
+    detalles: asiento.detalles.map((d) => ({
+      idDetalle: d.idDetalleAsiento,
+      orden: d.orden,
+      cuentaId: d.cuentaId,
+      codigoCuenta: d.cuenta.codigo,
+      nombreCuenta: d.cuenta.nombre,
+      movimiento: d.movimiento,
+      movimientoAbreviatura: MAPA_TIPOS_MOVIMIENTO[d.movimiento]?.simbolo ?? d.movimiento,
+      debe: Number(d.debe),
+      haber: Number(d.haber),
+    })),
   };
 }

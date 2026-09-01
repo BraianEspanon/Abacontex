@@ -14,12 +14,14 @@ import {
   obtenerUltimosAsientos,
   obtenerResumenMetricas,
   obtenerLibroDiario,
+  obtenerAsientoPorId,
 } from '../controllers/asiento.controller';
 import {
   obtenerPendientesSchema,
   obtenerDetallePendienteSchema,
   crearAsientoSchema,
   obtenerUltimosAsientosSchema,
+  obtenerAsientoPorIdSchema,
 } from '../validators/asiento.validator';
 
 const router = Router();
@@ -37,7 +39,6 @@ router.get(
   obtenerUltimosAsientos
 );
 
-
 router.get(
   '/pendientes',
   authenticate,
@@ -52,6 +53,14 @@ router.get(
   requireRole(ROLES.ALUMNO),
   validate(obtenerDetallePendienteSchema),
   obtenerDetallePendiente
+);
+
+router.get(
+  '/:idAsiento',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(obtenerAsientoPorIdSchema),
+  obtenerAsientoPorId
 );
 
 router.post(

@@ -62,6 +62,28 @@ export class ConciliacionAsientoStrategy implements OperacionPendienteStrategy {
     return this.toDetallePendienteDTO(conciliacion);
   }
 
+  async getDetalleOperacion(
+    id: number,
+    ctx: OperacionPendienteContext
+  ): Promise<DetallePendienteConciliacionDTO> {
+    if (!ctx.esSextoAño) {
+      throw new ForbiddenError(
+        'Las conciliaciones financieras solo corresponden a alumnos de 6° año.'
+      );
+    }
+
+    const conciliacion = await asientoRepository.findConciliacionPendienteById(id, ctx.empresaId);
+
+    if (!conciliacion) {
+      throw new NotFoundError(
+        'La conciliación financiera solicitada no existe o no pertenece a tu empresa.'
+      );
+    }
+
+    return this.toDetallePendienteDTO(conciliacion);
+  }
+
+
   private toPendienteDTO(conciliacion: ConciliacionPendientePayload): OperacionPendienteItemDTO {
     const diff = Number(conciliacion.diferencia);
     const concepto = diff < 0 ? 'Faltante de caja' : 'Sobrante de caja';

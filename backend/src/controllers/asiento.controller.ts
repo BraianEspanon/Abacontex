@@ -7,6 +7,7 @@ import {
   obtenerDetallePendienteSchema,
   crearAsientoSchema,
   obtenerUltimosAsientosSchema,
+  obtenerAsientoPorIdSchema,
 } from '../validators/asiento.validator';
 
 export async function obtenerTiposMovimiento(req: Request, res: Response) {
@@ -69,6 +70,16 @@ export async function obtenerResumenMetricas(req: Request, res: Response) {
 
 export async function obtenerLibroDiario(req: Request, res: Response) {
   const resultado = await asientoService.obtenerLibroDiario(req.user!);
+
+  res.status(200).json(resultado);
+}
+
+export async function obtenerAsientoPorId(req: Request, res: Response) {
+  const { params } = obtenerAsientoPorIdSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await asientoService.obtenerAsientoPorId(req.user!, params);
 
   res.status(200).json(resultado);
 }

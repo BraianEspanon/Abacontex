@@ -44,3 +44,11 @@ export const obtenerUltimosAsientosSchema = z.object({
 });
 
 export type ObtenerUltimosAsientosDTO = z.infer<typeof obtenerUltimosAsientosSchema>['query'];
+
+export const obtenerAsientoPorIdSchema = z.object({
+  params: z.object({
+    idAsiento: z.coerce.number().int().positive('ID de asiento inválido'),
+  }),
+});
+
+export type ObtenerAsientoPorIdDTO = z.infer<typeof obtenerAsientoPorIdSchema>['params'];

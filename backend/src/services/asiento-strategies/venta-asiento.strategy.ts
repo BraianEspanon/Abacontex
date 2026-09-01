@@ -42,6 +42,20 @@ export class VentaAsientoStrategy implements OperacionPendienteStrategy {
     return this.toDetallePendienteDTO(venta, ctx.esSextoAño);
   }
 
+  async getDetalleOperacion(
+    id: number,
+    ctx: OperacionPendienteContext
+  ): Promise<DetallePendienteVentaDTO> {
+    const venta = await asientoRepository.findVentaPendienteById(id, ctx.empresaId);
+
+    if (!venta) {
+      throw new NotFoundError('La venta solicitada no existe o no pertenece a tu empresa.');
+    }
+
+    return this.toDetallePendienteDTO(venta, ctx.esSextoAño);
+  }
+
+
   private toPendienteDTO(venta: VentaPendientePayload): OperacionPendienteItemDTO {
     return {
       id: venta.idVenta,
