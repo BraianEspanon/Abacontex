@@ -44,4 +44,3 @@ export const obtenerUltimosAsientosSchema = z.object({
 });
 
 export type ObtenerUltimosAsientosDTO = z.infer<typeof obtenerUltimosAsientosSchema>['query'];
-

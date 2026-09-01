@@ -89,7 +89,8 @@ export interface DetalleAsientoItemDTO {
 export interface AsientoResumenItemDTO {
   idAsiento: number;
   numeroAsiento: number;
-  fecha: Date;
+  fechaHecho: Date;
+  fechaAsiento: Date;
   conceptoGeneral: string;
   origen: string;
   totalDebe: number;
@@ -100,4 +101,28 @@ export interface AsientoResumenItemDTO {
 export interface AsientosResumenMetricasDTO {
   asientosRegistradosCount: number;
   pendientesRegistrarCount: number;
+}
+
+export interface RenglonLibroDiarioDTO {
+  idDetalle: number;
+  nombreCuenta: string;
+  movimientoAbreviatura: string;
+  numeroFolio: number | null;
+  debe: number;
+  haber: number;
+}
+
+export interface AsientoLibroDiarioDTO {
+  idAsiento: number;
+  numeroAsiento: number;
+  fechaHecho: Date;
+  fechaAsiento: Date;
+  conceptoGeneral: string;
+  detalles: RenglonLibroDiarioDTO[];
+}
+
+export interface LibroDiarioCompletoResponseDTO {
+  totalDebeGeneral: number;
+  totalHaberGeneral: number;
+  asientos: AsientoLibroDiarioDTO[];
 }

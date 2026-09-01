@@ -337,7 +337,7 @@ export async function findUltimosAsientosByEmpresa(
       },
     },
     orderBy: {
-      numeroAsiento: 'desc',
+      createdAt: 'desc',
     },
     take: limit,
   });
@@ -349,6 +349,43 @@ export async function countAsientosByEmpresa(empresaId: number, tx?: Prisma.Tran
   return db.asientoContable.count({
     where: {
       empresaId,
+    },
+  });
+}
+
+export async function findLibroDiarioByEmpresa(empresaId: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.asientoContable.findMany({
+    where: {
+      empresaId,
+    },
+    include: {
+      detalles: {
+        include: {
+          cuenta: {
+            select: {
+              idCuenta: true,
+              codigo: true,
+              nombre: true,
+              foliosEmpresa: {
+                where: {
+                  empresaId,
+                },
+                select: {
+                  numeroFolio: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          orden: 'asc',
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'asc',
     },
   });
 }

@@ -66,3 +66,9 @@ export async function obtenerResumenMetricas(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function obtenerLibroDiario(req: Request, res: Response) {
+  const resultado = await asientoService.obtenerLibroDiario(req.user!);
+
+  res.status(200).json(resultado);
+}

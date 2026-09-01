@@ -23,8 +23,9 @@ _Es el bloque principal necesario para que los alumnos puedan cargar y validar a
 
 _Permite consultar la historia de registraciones de la empresa y corregir errores._
 
-- [x] **`GET /contabilidad/asientos/ultimos`**: Consulta rápida de los últimos $N$ asientos (widget de referencia en la pantalla principal).
-- [ ] **`GET /contabilidad/asientos`**: Consulta del Libro Diario completo paginado, ordenado por fecha y con totales calculados al pie.
+- [x] **`GET /contabilidad/asientos/ultimos`** (y `GET /contabilidad/asientos`): Consulta rápida de los últimos $N$ asientos registrados ordenados por `createdAt: 'desc'` (widget de la pantalla principal).
+- [x] **`GET /contabilidad/asientos/libro-diario`**: Consulta del Libro Diario completo en orden cronológico ascendente (`createdAt: 'asc'`), incluyendo folios, variaciones patrimoniales ($A+$, $R-$, etc.) y totales acumulados al pie (`totalDebeGeneral` y `totalHaberGeneral`).
+
 - [ ] **`GET /contabilidad/asientos/:idAsiento`**: Consultar un asiento específico por ID.
 - [ ] **`PATCH /contabilidad/asientos/:idAsiento`**: Modificar renglones e importes de un asiento existente (re-validando partida doble).
 

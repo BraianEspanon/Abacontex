@@ -2,7 +2,7 @@
 // ya que según el tipo de Acción pendiente de asiento, se hace una actividad u otra
 
 import { AuthUser } from '../types/express';
-import { TIPOS_MOVIMIENTO_ASIENTO } from '../constants/asiento.constants';
+import { TIPOS_MOVIMIENTO_ASIENTO, MAPA_TIPOS_MOVIMIENTO } from '../constants/asiento.constants';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
 import { PaginatedResponse } from '../dto/paginated-response.dto';
@@ -13,6 +13,8 @@ import {
   CuentaConFolioItemDTO,
   AsientoResumenItemDTO,
   AsientosResumenMetricasDTO,
+  LibroDiarioCompletoResponseDTO,
+  AsientoLibroDiarioDTO,
 } from '../dto/contabilidad/asiento.dto';
 
 import {
@@ -268,7 +270,8 @@ export async function obtenerUltimosAsientos(
     return {
       idAsiento: a.idAsiento,
       numeroAsiento: a.numeroAsiento,
-      fecha: a.fecha,
+      fechaHecho: a.fecha,
+      fechaAsiento: a.createdAt,
       conceptoGeneral: a.conceptoGeneral,
       origen: a.origen,
       totalDebe,
@@ -307,5 +310,44 @@ export async function obtenerResumenMetricas(user: AuthUser): Promise<AsientosRe
   return {
     asientosRegistradosCount,
     pendientesRegistrarCount,
+  };
+}
+
+export async function obtenerLibroDiario(user: AuthUser): Promise<LibroDiarioCompletoResponseDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const asientos = await asientoRepository.findLibroDiarioByEmpresa(empresaId);
+
+  let totalDebeGeneral = 0;
+  let totalHaberGeneral = 0;
+
+  const asientosMapped: AsientoLibroDiarioDTO[] = asientos.map((a) => {
+    for (const d of a.detalles) {
+      totalDebeGeneral += Number(d.debe);
+      totalHaberGeneral += Number(d.haber);
+    }
+
+    return {
+      idAsiento: a.idAsiento,
+      numeroAsiento: a.numeroAsiento,
+      fechaHecho: a.fecha,
+      fechaAsiento: a.createdAt,
+      conceptoGeneral: a.conceptoGeneral,
+      detalles: a.detalles.map((d) => ({
+        idDetalle: d.idDetalleAsiento,
+        nombreCuenta: d.cuenta.nombre,
+        movimientoAbreviatura: MAPA_TIPOS_MOVIMIENTO[d.movimiento]?.simbolo ?? d.movimiento,
+        numeroFolio: d.cuenta.foliosEmpresa[0]?.numeroFolio ?? null,
+        debe: Number(d.debe),
+        haber: Number(d.haber),
+      })),
+    };
+  });
+
+  return {
+    totalDebeGeneral,
+    totalHaberGeneral,
+    asientos: asientosMapped,
   };
 }

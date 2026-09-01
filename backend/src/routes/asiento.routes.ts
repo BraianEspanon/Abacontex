@@ -13,6 +13,7 @@ import {
   obtenerCuentasConFolios,
   obtenerUltimosAsientos,
   obtenerResumenMetricas,
+  obtenerLibroDiario,
 } from '../controllers/asiento.controller';
 import {
   obtenerPendientesSchema,
@@ -23,6 +24,7 @@ import {
 
 const router = Router();
 
+router.get('/libro-diario', authenticate, requireRole(ROLES.ALUMNO), obtenerLibroDiario);
 router.get('/tipos-movimiento', authenticate, requireRole(ROLES.ALUMNO), obtenerTiposMovimiento);
 router.get('/cuentas', authenticate, requireRole(ROLES.ALUMNO), obtenerCuentasConFolios);
 router.get('/resumen', authenticate, requireRole(ROLES.ALUMNO), obtenerResumenMetricas);
@@ -34,6 +36,7 @@ router.get(
   validate(obtenerUltimosAsientosSchema),
   obtenerUltimosAsientos
 );
+
 
 router.get(
   '/pendientes',
