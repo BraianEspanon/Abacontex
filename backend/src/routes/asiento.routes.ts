@@ -12,6 +12,7 @@ import {
   crearAsientoContable,
   obtenerCuentasConFolios,
   obtenerUltimosAsientos,
+  obtenerResumenMetricas,
 } from '../controllers/asiento.controller';
 import {
   obtenerPendientesSchema,
@@ -24,6 +25,7 @@ const router = Router();
 
 router.get('/tipos-movimiento', authenticate, requireRole(ROLES.ALUMNO), obtenerTiposMovimiento);
 router.get('/cuentas', authenticate, requireRole(ROLES.ALUMNO), obtenerCuentasConFolios);
+router.get('/resumen', authenticate, requireRole(ROLES.ALUMNO), obtenerResumenMetricas);
 
 router.get(
   '/ultimos',

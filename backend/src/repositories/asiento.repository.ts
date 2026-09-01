@@ -342,3 +342,13 @@ export async function findUltimosAsientosByEmpresa(
     take: limit,
   });
 }
+
+export async function countAsientosByEmpresa(empresaId: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.asientoContable.count({
+    where: {
+      empresaId,
+    },
+  });
+}

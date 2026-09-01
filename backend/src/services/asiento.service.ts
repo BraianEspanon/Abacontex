@@ -12,6 +12,7 @@ import {
   CuentasConFolioResponseDTO,
   CuentaConFolioItemDTO,
   AsientoResumenItemDTO,
+  AsientosResumenMetricasDTO,
 } from '../dto/contabilidad/asiento.dto';
 
 import {
@@ -284,4 +285,27 @@ export async function obtenerUltimosAsientos(
       })),
     };
   });
+}
+
+export async function obtenerResumenMetricas(user: AuthUser): Promise<AsientosResumenMetricasDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const ctx: OperacionPendienteContext = {
+    empresaId,
+    esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+  };
+
+  const estrategias = getAllAsientoStrategies();
+  const [asientosRegistradosCount, listadosPendientes] = await Promise.all([
+    asientoRepository.countAsientosByEmpresa(empresaId),
+    Promise.all(estrategias.map((e) => e.getPendientes(ctx))),
+  ]);
+
+  const pendientesRegistrarCount = listadosPendientes.flat().length;
+
+  return {
+    asientosRegistradosCount,
+    pendientesRegistrarCount,
+  };
 }

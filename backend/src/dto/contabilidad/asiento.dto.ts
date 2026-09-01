@@ -96,3 +96,8 @@ export interface AsientoResumenItemDTO {
   totalHaber: number;
   detalles: DetalleAsientoItemDTO[];
 }
+
+export interface AsientosResumenMetricasDTO {
+  asientosRegistradosCount: number;
+  pendientesRegistrarCount: number;
+}

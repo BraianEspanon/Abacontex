@@ -60,3 +60,9 @@ export async function obtenerUltimosAsientos(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function obtenerResumenMetricas(req: Request, res: Response) {
+  const resultado = await asientoService.obtenerResumenMetricas(req.user!);
+
+  res.status(200).json(resultado);
+}

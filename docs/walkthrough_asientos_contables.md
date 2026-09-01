@@ -12,6 +12,7 @@ _Es el bloque principal necesario para que los alumnos puedan cargar y validar a
 
 - [x] **`GET /contabilidad/asientos/tipos-movimiento`**: Catálogo de variaciones patrimoniales ($A+$, $A-$, $P+$, etc.) para los desplegables del frontend.
 - [x] **`GET /contabilidad/asientos/cuentas`**: Catálogo de cuentas contables activas enriquecido con el número de folio de la empresa y el `proximoFolioDisponible`.
+- [x] **`GET /contabilidad/asientos/resumen`**: Resumen de métricas superiores (`asientosRegistradosCount` y `pendientesRegistrarCount`) para las tarjetas del panel contable.
 - [x] **`GET /contabilidad/asientos/pendientes`**: Consulta de operaciones comerciales (ventas, movimientos financieros, conciliaciones) pendientes de registrar por empresa.
 - [x] **`GET /contabilidad/asientos/pendientes/:tipo/:id`**: Obtener el detalle y contexto de la operación seleccionada (diferenciando pedagógicamente 5° vs 6° año).
 - [x] **`POST /contabilidad/asientos`**: Registrar nuevo asiento contable (valida partida doble $\text{Debe} = \text{Haber}$, autogestiona folios contables por cuenta y empresa, asigna `numeroAsiento` secuencial, deriva la fecha de la operación origen y registra auditoría).
