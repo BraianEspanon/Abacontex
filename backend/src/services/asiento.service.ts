@@ -11,12 +11,14 @@ import {
   DetallePendienteResponseDTO,
   CuentasConFolioResponseDTO,
   CuentaConFolioItemDTO,
+  AsientoResumenItemDTO,
 } from '../dto/contabilidad/asiento.dto';
 
 import {
   ObtenerPendientesDTO,
   ObtenerDetallePendienteDTO,
   CrearAsientoDTO,
+  ObtenerUltimosAsientosDTO,
 } from '../validators/asiento.validator';
 
 import * as usuarioService from './usuario.service';
@@ -247,4 +249,39 @@ export async function obtenerCuentasConFolios(user: AuthUser): Promise<CuentasCo
     proximoFolioDisponible,
     cuentas: cuentasMapped,
   };
+}
+
+export async function obtenerUltimosAsientos(
+  user: AuthUser,
+  query: ObtenerUltimosAsientosDTO
+): Promise<AsientoResumenItemDTO[]> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const asientos = await asientoRepository.findUltimosAsientosByEmpresa(empresaId, query.limit);
+
+  return asientos.map((a) => {
+    const totalDebe = a.detalles.reduce((acc, d) => acc + Number(d.debe), 0);
+    const totalHaber = a.detalles.reduce((acc, d) => acc + Number(d.haber), 0);
+
+    return {
+      idAsiento: a.idAsiento,
+      numeroAsiento: a.numeroAsiento,
+      fecha: a.fecha,
+      conceptoGeneral: a.conceptoGeneral,
+      origen: a.origen,
+      totalDebe,
+      totalHaber,
+      detalles: a.detalles.map((d) => ({
+        idDetalle: d.idDetalleAsiento,
+        orden: d.orden,
+        cuentaId: d.cuentaId,
+        codigoCuenta: d.cuenta.codigo,
+        nombreCuenta: d.cuenta.nombre,
+        movimiento: d.movimiento,
+        debe: Number(d.debe),
+        haber: Number(d.haber),
+      })),
+    };
+  });
 }

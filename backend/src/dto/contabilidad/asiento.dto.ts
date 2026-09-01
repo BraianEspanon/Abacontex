@@ -75,3 +75,24 @@ export interface CuentasConFolioResponseDTO {
   cuentas: CuentaConFolioItemDTO[];
 }
 
+export interface DetalleAsientoItemDTO {
+  idDetalle: number;
+  orden: number;
+  cuentaId: number;
+  codigoCuenta: string;
+  nombreCuenta: string;
+  movimiento: string;
+  debe: number;
+  haber: number;
+}
+
+export interface AsientoResumenItemDTO {
+  idAsiento: number;
+  numeroAsiento: number;
+  fecha: Date;
+  conceptoGeneral: string;
+  origen: string;
+  totalDebe: number;
+  totalHaber: number;
+  detalles: DetalleAsientoItemDTO[];
+}

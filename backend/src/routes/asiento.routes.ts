@@ -11,17 +11,27 @@ import {
   obtenerDetallePendiente,
   crearAsientoContable,
   obtenerCuentasConFolios,
+  obtenerUltimosAsientos,
 } from '../controllers/asiento.controller';
 import {
   obtenerPendientesSchema,
   obtenerDetallePendienteSchema,
   crearAsientoSchema,
+  obtenerUltimosAsientosSchema,
 } from '../validators/asiento.validator';
 
 const router = Router();
 
 router.get('/tipos-movimiento', authenticate, requireRole(ROLES.ALUMNO), obtenerTiposMovimiento);
 router.get('/cuentas', authenticate, requireRole(ROLES.ALUMNO), obtenerCuentasConFolios);
+
+router.get(
+  '/ultimos',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(obtenerUltimosAsientosSchema),
+  obtenerUltimosAsientos
+);
 
 router.get(
   '/pendientes',

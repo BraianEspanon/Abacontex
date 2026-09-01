@@ -36,3 +36,12 @@ export const crearAsientoSchema = z.object({
 });
 
 export type CrearAsientoDTO = z.infer<typeof crearAsientoSchema>['body'];
+
+export const obtenerUltimosAsientosSchema = z.object({
+  query: z.object({
+    limit: z.coerce.number().int().positive().max(20).default(5),
+  }),
+});
+
+export type ObtenerUltimosAsientosDTO = z.infer<typeof obtenerUltimosAsientosSchema>['query'];
+

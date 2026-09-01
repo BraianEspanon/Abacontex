@@ -6,6 +6,7 @@ import {
   obtenerPendientesSchema,
   obtenerDetallePendienteSchema,
   crearAsientoSchema,
+  obtenerUltimosAsientosSchema,
 } from '../validators/asiento.validator';
 
 export async function obtenerTiposMovimiento(req: Request, res: Response) {
@@ -46,6 +47,16 @@ export async function crearAsientoContable(req: Request, res: Response) {
 
 export async function obtenerCuentasConFolios(req: Request, res: Response) {
   const resultado = await asientoService.obtenerCuentasConFolios(req.user!);
+
+  res.status(200).json(resultado);
+}
+
+export async function obtenerUltimosAsientos(req: Request, res: Response) {
+  const { query } = obtenerUltimosAsientosSchema.parse({
+    query: req.query,
+  });
+
+  const resultado = await asientoService.obtenerUltimosAsientos(req.user!, query);
 
   res.status(200).json(resultado);
 }

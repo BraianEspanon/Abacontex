@@ -308,3 +308,37 @@ export async function findAllCuentasConFolioByEmpresa(
     },
   });
 }
+
+export async function findUltimosAsientosByEmpresa(
+  empresaId: number,
+  limit: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.asientoContable.findMany({
+    where: {
+      empresaId,
+    },
+    include: {
+      detalles: {
+        include: {
+          cuenta: {
+            select: {
+              idCuenta: true,
+              codigo: true,
+              nombre: true,
+            },
+          },
+        },
+        orderBy: {
+          orden: 'asc',
+        },
+      },
+    },
+    orderBy: {
+      numeroAsiento: 'desc',
+    },
+    take: limit,
+  });
+}
