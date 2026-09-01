@@ -9,10 +9,12 @@ import {
   obtenerTiposMovimiento,
   obtenerPendientes,
   obtenerDetallePendiente,
+  crearAsientoContable,
 } from '../controllers/asiento.controller';
 import {
   obtenerPendientesSchema,
   obtenerDetallePendienteSchema,
+  crearAsientoSchema,
 } from '../validators/asiento.validator';
 
 const router = Router();
@@ -33,6 +35,14 @@ router.get(
   requireRole(ROLES.ALUMNO),
   validate(obtenerDetallePendienteSchema),
   obtenerDetallePendiente
+);
+
+router.post(
+  '/',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(crearAsientoSchema),
+  crearAsientoContable
 );
 
 export default router;

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, TipoOrigenAsiento, MovimientoCuentaContable } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 
 export async function findVentasPendientes(empresaId: number, tx?: Prisma.TransactionClient) {
@@ -144,6 +144,139 @@ export async function findConciliacionPendienteById(
       asientoContable: {
         select: {
           idAsiento: true,
+        },
+      },
+    },
+  });
+}
+
+export async function findUltimoNumeroAsientoByEmpresa(
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const ultimoAsiento = await db.asientoContable.findFirst({
+    where: { empresaId },
+    orderBy: { numeroAsiento: 'desc' },
+    select: { numeroAsiento: true },
+  });
+
+  return ultimoAsiento?.numeroAsiento ?? 0;
+}
+
+export async function findFolioCuentaEmpresa(
+  empresaId: number,
+  cuentaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.folioCuentaEmpresa.findUnique({
+    where: {
+      empresaId_cuentaId: {
+        empresaId,
+        cuentaId,
+      },
+    },
+  });
+}
+
+export async function findUltimoNumeroFolioByEmpresa(
+  empresaId: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const ultimoFolio = await db.folioCuentaEmpresa.findFirst({
+    where: { empresaId },
+    orderBy: { numeroFolio: 'desc' },
+    select: { numeroFolio: true },
+  });
+
+  return ultimoFolio?.numeroFolio ?? 0;
+}
+
+export async function createFolioCuentaEmpresa(
+  data: {
+    empresaId: number;
+    cuentaId: number;
+    numeroFolio: number;
+  },
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.folioCuentaEmpresa.create({
+    data: {
+      empresaId: data.empresaId,
+      cuentaId: data.cuentaId,
+      numeroFolio: data.numeroFolio,
+    },
+  });
+}
+
+export interface CrearAsientoDataInput {
+  empresaId: number;
+  alumnoId: string;
+  numeroAsiento: number;
+  fecha: Date;
+  conceptoGeneral: string;
+  origen: TipoOrigenAsiento;
+  ventaId?: number | null | undefined;
+  movimientoFinancieroId?: number | null | undefined;
+  conciliacionId?: number | null | undefined;
+  detalles: Array<{
+    cuentaId: number;
+    orden: number;
+    movimiento: MovimientoCuentaContable;
+    debe: number;
+    haber: number;
+  }>;
+}
+
+export async function createAsientoContable(
+  data: CrearAsientoDataInput,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.asientoContable.create({
+    data: {
+      empresaId: data.empresaId,
+      alumnoId: data.alumnoId,
+      numeroAsiento: data.numeroAsiento,
+      fecha: data.fecha,
+      conceptoGeneral: data.conceptoGeneral,
+      origen: data.origen,
+      ventaId: data.ventaId ?? null,
+      movimientoFinancieroId: data.movimientoFinancieroId ?? null,
+      conciliacionId: data.conciliacionId ?? null,
+      detalles: {
+        createMany: {
+          data: data.detalles.map((d) => ({
+            cuentaId: d.cuentaId,
+            orden: d.orden,
+            movimiento: d.movimiento,
+            debe: d.debe,
+            haber: d.haber,
+          })),
+        },
+      },
+    },
+    include: {
+      detalles: {
+        include: {
+          cuenta: {
+            select: {
+              idCuenta: true,
+              codigo: true,
+              nombre: true,
+            },
+          },
+        },
+        orderBy: {
+          orden: 'asc',
         },
       },
     },

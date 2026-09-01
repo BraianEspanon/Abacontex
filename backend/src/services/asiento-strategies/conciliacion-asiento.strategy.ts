@@ -88,4 +88,40 @@ export class ConciliacionAsientoStrategy implements OperacionPendienteStrategy {
       observacion: conciliacion.observacion,
     };
   }
+
+  async validarYObtenerFecha(
+    id: number,
+    ctx: OperacionPendienteContext,
+    tx?: Prisma.TransactionClient
+  ) {
+    if (!ctx.esSextoAño) {
+      throw new ForbiddenError(
+        'Las conciliaciones financieras solo corresponden a alumnos de 6° año.'
+      );
+    }
+
+    const conciliacion = await asientoRepository.findConciliacionPendienteById(
+      id,
+      ctx.empresaId,
+      tx
+    );
+
+    if (!conciliacion) {
+      throw new NotFoundError(
+        'La conciliación financiera solicitada no existe o no pertenece a tu empresa.'
+      );
+    }
+
+    if (conciliacion.asientoContable) {
+      throw new ConflictError(
+        'Esta conciliación financiera ya posee un asiento contable registrado en el Libro Diario.'
+      );
+    }
+
+    if (Number(conciliacion.diferencia) === 0) {
+      throw new ConflictError('La conciliación elegida no registró una diferencia.');
+    }
+
+    return { fecha: conciliacion.fecha, conciliacionId: conciliacion.idConciliacion };
+  }
 }

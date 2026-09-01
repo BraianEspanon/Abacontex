@@ -89,4 +89,24 @@ export class VentaAsientoStrategy implements OperacionPendienteStrategy {
 
     return dto;
   }
+
+  async validarYObtenerFecha(
+    id: number,
+    ctx: OperacionPendienteContext,
+    tx?: Prisma.TransactionClient
+  ) {
+    const venta = await asientoRepository.findVentaPendienteById(id, ctx.empresaId, tx);
+
+    if (!venta) {
+      throw new NotFoundError('La venta solicitada no existe o no pertenece a tu empresa.');
+    }
+
+    if (venta.asientoContable) {
+      throw new ConflictError(
+        'Esta venta ya posee un asiento contable registrado en el Libro Diario.'
+      );
+    }
+
+    return { fecha: venta.fecha, ventaId: venta.idVenta };
+  }
 }

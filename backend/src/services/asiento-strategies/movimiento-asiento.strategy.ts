@@ -38,6 +38,12 @@ export class MovimientoAsientoStrategy implements OperacionPendienteStrategy {
       );
     }
 
+    if (movimiento.ventaId !== null) {
+      throw new ConflictError(
+        'Los movimientos financieros automáticos originados por ventas se registran mediante el asiento contable de la venta asociada.'
+      );
+    }
+
     if (movimiento.asientoContable) {
       throw new ConflictError(
         'Este movimiento financiero ya posee un asiento contable registrado en el Libro Diario.'
@@ -70,5 +76,33 @@ export class MovimientoAsientoStrategy implements OperacionPendienteStrategy {
       importe: Number(movimiento.importe),
       medioPago: movimiento.metodoPago.nombre,
     };
+  }
+
+  async validarYObtenerFecha(
+    id: number,
+    ctx: OperacionPendienteContext,
+    tx?: Prisma.TransactionClient
+  ) {
+    const movimiento = await asientoRepository.findMovimientoPendienteById(id, ctx.empresaId, tx);
+
+    if (!movimiento) {
+      throw new NotFoundError(
+        'El movimiento financiero solicitado no existe o no pertenece a tu empresa.'
+      );
+    }
+
+    if (movimiento.ventaId !== null) {
+      throw new ConflictError(
+        'Los movimientos financieros automáticos originados por ventas se registran mediante el asiento contable de la venta asociada.'
+      );
+    }
+
+    if (movimiento.asientoContable) {
+      throw new ConflictError(
+        'Este movimiento financiero ya posee un asiento contable registrado en el Libro Diario.'
+      );
+    }
+
+    return { fecha: movimiento.fecha, movimientoFinancieroId: movimiento.idMovimiento };
   }
 }
