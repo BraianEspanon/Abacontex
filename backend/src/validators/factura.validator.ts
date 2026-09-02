@@ -32,6 +32,7 @@ export const obtenerFacturasSchema = z.object({
     search: z.string().trim().optional(),
     tipoFactura: z.enum(['A', 'B']).optional(),
     mes: z.coerce.number().int().min(1).max(12).optional(),
+    ordenFecha: z.enum(['asc', 'desc']).default('desc').optional(),
     page: z.coerce.number().int().positive().default(1),
     pageSize: z.coerce.number().int().positive().max(100).default(10),
   }),

@@ -24,6 +24,13 @@
  *           minimum: 1
  *           maximum: 12
  *       - in: query
+ *         name: ordenFecha
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Ordenar por fecha de emisión (ascendente o descendente)
+ *       - in: query
  *         name: page
  *         schema:
  *           type: integer
