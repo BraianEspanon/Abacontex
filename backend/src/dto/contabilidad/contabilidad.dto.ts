@@ -13,3 +13,22 @@ export interface CuentaLibroMayorItemDTO {
   esSaldoCorrecto: boolean;
   mensajeError: string | null;
 }
+
+export type TipoResultadoEjercicio = 'GANANCIA' | 'PERDIDA' | 'NEUTRO';
+
+export interface CuentaResultadoItemDTO {
+  cuentaId: number;
+  codigo: string;
+  nombre: string;
+  saldo: number;
+}
+
+export interface EstadoResultadosResponseDTO {
+  ingresos: CuentaResultadoItemDTO[];
+  egresos: CuentaResultadoItemDTO[];
+  totalIngresos: number;
+  totalEgresos: number;
+  resultadoEjercicio: number;
+  tipoResultado: TipoResultadoEjercicio;
+}
+

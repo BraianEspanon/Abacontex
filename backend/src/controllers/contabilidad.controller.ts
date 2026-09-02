@@ -6,3 +6,9 @@ export async function obtenerLibroMayor(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function obtenerEstadoResultados(req: Request, res: Response) {
+  const resultado = await contabilidadService.obtenerEstadoResultados(req.user!);
+
+  res.status(200).json(resultado);
+}

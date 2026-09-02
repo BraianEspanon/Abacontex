@@ -1,5 +1,11 @@
 import { AuthUser } from '../types/express';
-import { CuentaLibroMayorItemDTO, TipoSaldoLibroMayor } from '../dto/contabilidad/contabilidad.dto';
+import {
+  CuentaLibroMayorItemDTO,
+  TipoSaldoLibroMayor,
+  EstadoResultadosResponseDTO,
+  CuentaResultadoItemDTO,
+  TipoResultadoEjercicio,
+} from '../dto/contabilidad/contabilidad.dto';
 
 import * as usuarioService from './usuario.service';
 import * as contabilidadRepository from '../repositories/contabilidad.repository';
@@ -95,4 +101,55 @@ export async function obtenerLibroMayor(user: AuthUser): Promise<CuentaLibroMayo
   cuentas.sort((a, b) => a.codigo.localeCompare(b.codigo));
 
   return cuentas;
+}
+
+export async function obtenerEstadoResultados(
+  user: AuthUser
+): Promise<EstadoResultadosResponseDTO> {
+  const cuentasMayor = await obtenerLibroMayor(user);
+
+  const ingresos: CuentaResultadoItemDTO[] = [];
+  const egresos: CuentaResultadoItemDTO[] = [];
+
+  for (const c of cuentasMayor) {
+    const tipoUpper = c.tipoCuenta.toUpperCase();
+
+    if (tipoUpper.includes('INGRESO') || tipoUpper.includes('RESULTADO_POSITIVO')) {
+      ingresos.push({
+        cuentaId: c.cuentaId,
+        codigo: c.codigo,
+        nombre: c.nombre,
+        saldo: c.saldo,
+      });
+    } else if (tipoUpper.includes('EGRESO') || tipoUpper.includes('RESULTADO_NEGATIVO')) {
+      egresos.push({
+        cuentaId: c.cuentaId,
+        codigo: c.codigo,
+        nombre: c.nombre,
+        saldo: c.saldo,
+      });
+    }
+  }
+
+  const totalIngresos = Number(ingresos.reduce((acc, c) => acc + c.saldo, 0).toFixed(2));
+  const totalEgresos = Number(egresos.reduce((acc, c) => acc + c.saldo, 0).toFixed(2));
+
+  const diff = Number((totalIngresos - totalEgresos).toFixed(2));
+  const resultadoEjercicio = Math.abs(diff);
+
+  let tipoResultado: TipoResultadoEjercicio = 'NEUTRO';
+  if (diff > 0) {
+    tipoResultado = 'GANANCIA';
+  } else if (diff < 0) {
+    tipoResultado = 'PERDIDA';
+  }
+
+  return {
+    ingresos,
+    egresos,
+    totalIngresos,
+    totalEgresos,
+    resultadoEjercicio,
+    tipoResultado,
+  };
 }
