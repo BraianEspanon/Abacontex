@@ -1,0 +1,8 @@
+import { Request, Response } from 'express';
+import * as contabilidadService from '../services/contabilidad.service';
+
+export async function obtenerLibroMayor(req: Request, res: Response) {
+  const resultado = await contabilidadService.obtenerLibroMayor(req.user!);
+
+  res.status(200).json(resultado);
+}
