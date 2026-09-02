@@ -116,20 +116,18 @@ export async function obtenerEstadoResultados(
     const tipoUpper = c.tipoCuenta.toUpperCase();
 
     if (tipoUpper.includes('INGRESO') || tipoUpper.includes('RESULTADO_POSITIVO')) {
-      const saldoNeto = Number((c.totalCredito - c.totalDebito).toFixed(2));
       ingresos.push({
         cuentaId: c.cuentaId,
         codigo: c.codigo,
         nombre: c.nombre,
-        saldo: saldoNeto,
+        saldo: c.saldo,
       });
     } else if (tipoUpper.includes('EGRESO') || tipoUpper.includes('RESULTADO_NEGATIVO')) {
-      const saldoNeto = Number((c.totalDebito - c.totalCredito).toFixed(2));
       egresos.push({
         cuentaId: c.cuentaId,
         codigo: c.codigo,
         nombre: c.nombre,
-        saldo: saldoNeto,
+        saldo: c.saldo,
       });
     }
   }
@@ -169,28 +167,25 @@ export async function obtenerBalanceGeneral(user: AuthUser): Promise<BalanceGene
     const tipoUpper = c.tipoCuenta.toUpperCase();
 
     if (tipoUpper.includes('ACTIVO')) {
-      const saldoNeto = Number((c.totalDebito - c.totalCredito).toFixed(2));
       activos.push({
         cuentaId: c.cuentaId,
         codigo: c.codigo,
         nombre: c.nombre,
-        saldo: saldoNeto,
+        saldo: c.saldo,
       });
     } else if (tipoUpper.includes('PASIVO')) {
-      const saldoNeto = Number((c.totalCredito - c.totalDebito).toFixed(2));
       pasivos.push({
         cuentaId: c.cuentaId,
         codigo: c.codigo,
         nombre: c.nombre,
-        saldo: saldoNeto,
+        saldo: c.saldo,
       });
     } else if (tipoUpper.includes('PATRIMONIO_NETO')) {
-      const saldoNeto = Number((c.totalCredito - c.totalDebito).toFixed(2));
       patrimonioNeto.push({
         cuentaId: c.cuentaId,
         codigo: c.codigo,
         nombre: c.nombre,
-        saldo: saldoNeto,
+        saldo: c.saldo,
       });
     }
   }
