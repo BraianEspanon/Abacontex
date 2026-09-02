@@ -239,3 +239,19 @@ export async function updateCuenta(
     },
   });
 }
+
+export async function findManyByIds(ids: number[], tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.cuentaContable.findMany({
+    where: {
+      idCuenta: {
+        in: ids,
+      },
+      activo: true,
+    },
+    select: {
+      idCuenta: true,
+    },
+  });
+}
