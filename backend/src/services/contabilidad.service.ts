@@ -3,8 +3,9 @@ import {
   CuentaLibroMayorItemDTO,
   TipoSaldoLibroMayor,
   EstadoResultadosResponseDTO,
-  CuentaResultadoItemDTO,
+  CuentaReporteItemDTO,
   TipoResultadoEjercicio,
+  BalanceGeneralResponseDTO,
 } from '../dto/contabilidad/contabilidad.dto';
 
 import * as usuarioService from './usuario.service';
@@ -108,25 +109,27 @@ export async function obtenerEstadoResultados(
 ): Promise<EstadoResultadosResponseDTO> {
   const cuentasMayor = await obtenerLibroMayor(user);
 
-  const ingresos: CuentaResultadoItemDTO[] = [];
-  const egresos: CuentaResultadoItemDTO[] = [];
+  const ingresos: CuentaReporteItemDTO[] = [];
+  const egresos: CuentaReporteItemDTO[] = [];
 
   for (const c of cuentasMayor) {
     const tipoUpper = c.tipoCuenta.toUpperCase();
 
     if (tipoUpper.includes('INGRESO') || tipoUpper.includes('RESULTADO_POSITIVO')) {
+      const saldoNeto = Number((c.totalCredito - c.totalDebito).toFixed(2));
       ingresos.push({
         cuentaId: c.cuentaId,
         codigo: c.codigo,
         nombre: c.nombre,
-        saldo: c.saldo,
+        saldo: saldoNeto,
       });
     } else if (tipoUpper.includes('EGRESO') || tipoUpper.includes('RESULTADO_NEGATIVO')) {
+      const saldoNeto = Number((c.totalDebito - c.totalCredito).toFixed(2));
       egresos.push({
         cuentaId: c.cuentaId,
         codigo: c.codigo,
         nombre: c.nombre,
-        saldo: c.saldo,
+        saldo: saldoNeto,
       });
     }
   }
@@ -151,5 +154,77 @@ export async function obtenerEstadoResultados(
     totalEgresos,
     resultadoEjercicio,
     tipoResultado,
+  };
+}
+
+export async function obtenerBalanceGeneral(user: AuthUser): Promise<BalanceGeneralResponseDTO> {
+  const cuentasMayor = await obtenerLibroMayor(user);
+  const estadoResultados = await obtenerEstadoResultados(user);
+
+  const activos: CuentaReporteItemDTO[] = [];
+  const pasivos: CuentaReporteItemDTO[] = [];
+  const patrimonioNeto: CuentaReporteItemDTO[] = [];
+
+  for (const c of cuentasMayor) {
+    const tipoUpper = c.tipoCuenta.toUpperCase();
+
+    if (tipoUpper.includes('ACTIVO')) {
+      const saldoNeto = Number((c.totalDebito - c.totalCredito).toFixed(2));
+      activos.push({
+        cuentaId: c.cuentaId,
+        codigo: c.codigo,
+        nombre: c.nombre,
+        saldo: saldoNeto,
+      });
+    } else if (tipoUpper.includes('PASIVO')) {
+      const saldoNeto = Number((c.totalCredito - c.totalDebito).toFixed(2));
+      pasivos.push({
+        cuentaId: c.cuentaId,
+        codigo: c.codigo,
+        nombre: c.nombre,
+        saldo: saldoNeto,
+      });
+    } else if (tipoUpper.includes('PATRIMONIO_NETO')) {
+      const saldoNeto = Number((c.totalCredito - c.totalDebito).toFixed(2));
+      patrimonioNeto.push({
+        cuentaId: c.cuentaId,
+        codigo: c.codigo,
+        nombre: c.nombre,
+        saldo: saldoNeto,
+      });
+    }
+  }
+
+  const totalActivo = Number(activos.reduce((acc, c) => acc + c.saldo, 0).toFixed(2));
+  const totalPasivo = Number(pasivos.reduce((acc, c) => acc + c.saldo, 0).toFixed(2));
+  const sumCuentasPN = Number(patrimonioNeto.reduce((acc, c) => acc + c.saldo, 0).toFixed(2));
+
+  let impactoResultado = 0;
+  if (estadoResultados.tipoResultado === 'GANANCIA') {
+    impactoResultado = estadoResultados.resultadoEjercicio;
+  } else if (estadoResultados.tipoResultado === 'PERDIDA') {
+    impactoResultado = -estadoResultados.resultadoEjercicio;
+  }
+
+  const totalPatrimonioNeto = Number((sumCuentasPN + impactoResultado).toFixed(2));
+  const totalPasivoMasPatrimonioNeto = Number((totalPasivo + totalPatrimonioNeto).toFixed(2));
+
+  const esBalanceEquilibrado = totalActivo === totalPasivoMasPatrimonioNeto;
+  const mensajeError = esBalanceEquilibrado
+    ? null
+    : `La ecuación patrimonial no cuadra: Total Activo ($${totalActivo}) no es igual a Pasivo + Patrimonio Neto ($${totalPasivoMasPatrimonioNeto}).`;
+
+  return {
+    activos,
+    pasivos,
+    patrimonioNeto,
+    resultadoEjercicio: estadoResultados.resultadoEjercicio,
+    tipoResultadoEjercicio: estadoResultados.tipoResultado,
+    totalActivo,
+    totalPasivo,
+    totalPatrimonioNeto,
+    totalPasivoMasPatrimonioNeto,
+    esBalanceEquilibrado,
+    mensajeError,
   };
 }

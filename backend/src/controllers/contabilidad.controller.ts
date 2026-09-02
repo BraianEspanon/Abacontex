@@ -12,3 +12,9 @@ export async function obtenerEstadoResultados(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function obtenerBalanceGeneral(req: Request, res: Response) {
+  const resultado = await contabilidadService.obtenerBalanceGeneral(req.user!);
+
+  res.status(200).json(resultado);
+}

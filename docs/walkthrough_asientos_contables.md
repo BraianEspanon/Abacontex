@@ -36,7 +36,8 @@ _Vistas automáticas de solo lectura generadas a partir de los asientos registra
 
 - [x] **`GET /contabilidad/libro-mayor`**: Agrupa movimientos por cuenta, calcula débitos, créditos, saldos y verifica la regla contable de tipo de saldo (`esSaldoCorrecto` y `mensajeError`).
 - [x] **`GET /contabilidad/estado-resultados`**: Muestra Ingresos vs. Egresos, calcula sus totales acumulados y determina el Resultado del Ejercicio (`GANANCIA`, `PERDIDA` o `NEUTRO`).
-- [ ] **`GET /contabilidad/balance-general`**: Presenta la igualdad patrimonial ($\text{Activo} = \text{Pasivo} + \text{Patrimonio Neto}$).
+- [x] **`GET /contabilidad/balance-general`**: Presenta las cuentas patrimoniales (Activo, Pasivo, Patrimonio Neto), integra el resultado del ejercicio y verifica la Ecuación Patrimonial Fundamental ($\text{Activo} = \text{Pasivo} + \text{Patrimonio Neto}$).
+
 
 ---
 

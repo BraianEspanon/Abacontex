@@ -16,7 +16,7 @@ export interface CuentaLibroMayorItemDTO {
 
 export type TipoResultadoEjercicio = 'GANANCIA' | 'PERDIDA' | 'NEUTRO';
 
-export interface CuentaResultadoItemDTO {
+export interface CuentaReporteItemDTO {
   cuentaId: number;
   codigo: string;
   nombre: string;
@@ -24,11 +24,24 @@ export interface CuentaResultadoItemDTO {
 }
 
 export interface EstadoResultadosResponseDTO {
-  ingresos: CuentaResultadoItemDTO[];
-  egresos: CuentaResultadoItemDTO[];
+  ingresos: CuentaReporteItemDTO[];
+  egresos: CuentaReporteItemDTO[];
   totalIngresos: number;
   totalEgresos: number;
   resultadoEjercicio: number;
   tipoResultado: TipoResultadoEjercicio;
 }
 
+export interface BalanceGeneralResponseDTO {
+  activos: CuentaReporteItemDTO[];
+  pasivos: CuentaReporteItemDTO[];
+  patrimonioNeto: CuentaReporteItemDTO[];
+  resultadoEjercicio: number;
+  tipoResultadoEjercicio: TipoResultadoEjercicio;
+  totalActivo: number;
+  totalPasivo: number;
+  totalPatrimonioNeto: number;
+  totalPasivoMasPatrimonioNeto: number;
+  esBalanceEquilibrado: boolean;
+  mensajeError: string | null;
+}
