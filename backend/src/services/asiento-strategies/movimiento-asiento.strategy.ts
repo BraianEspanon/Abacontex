@@ -68,7 +68,6 @@ export class MovimientoAsientoStrategy implements OperacionPendienteStrategy {
     return this.toDetallePendienteDTO(movimiento);
   }
 
-
   private toPendienteDTO(movimiento: MovimientoPendientePayload): OperacionPendienteItemDTO {
     return {
       id: movimiento.idMovimiento,

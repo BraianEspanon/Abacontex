@@ -8,6 +8,7 @@ import {
   crearAsientoSchema,
   obtenerUltimosAsientosSchema,
   obtenerAsientoPorIdSchema,
+  editarAsientoSchema,
 } from '../validators/asiento.validator';
 
 export async function obtenerTiposMovimiento(req: Request, res: Response) {
@@ -80,6 +81,17 @@ export async function obtenerAsientoPorId(req: Request, res: Response) {
   });
 
   const resultado = await asientoService.obtenerAsientoPorId(req.user!, params);
+
+  res.status(200).json(resultado);
+}
+
+export async function editarAsientoContable(req: Request, res: Response) {
+  const { params, body } = editarAsientoSchema.parse({
+    params: req.params,
+    body: req.body,
+  });
+
+  const resultado = await asientoService.editarAsientoContable(req.user!, params, body);
 
   res.status(200).json(resultado);
 }

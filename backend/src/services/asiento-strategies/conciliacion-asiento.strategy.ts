@@ -83,7 +83,6 @@ export class ConciliacionAsientoStrategy implements OperacionPendienteStrategy {
     return this.toDetallePendienteDTO(conciliacion);
   }
 
-
   private toPendienteDTO(conciliacion: ConciliacionPendientePayload): OperacionPendienteItemDTO {
     const diff = Number(conciliacion.diferencia);
     const concepto = diff < 0 ? 'Faltante de caja' : 'Sobrante de caja';

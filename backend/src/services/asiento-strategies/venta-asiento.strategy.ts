@@ -55,7 +55,6 @@ export class VentaAsientoStrategy implements OperacionPendienteStrategy {
     return this.toDetallePendienteDTO(venta, ctx.esSextoAño);
   }
 
-
   private toPendienteDTO(venta: VentaPendientePayload): OperacionPendienteItemDTO {
     return {
       id: venta.idVenta,

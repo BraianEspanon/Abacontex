@@ -52,3 +52,25 @@ export const obtenerAsientoPorIdSchema = z.object({
 });
 
 export type ObtenerAsientoPorIdDTO = z.infer<typeof obtenerAsientoPorIdSchema>['params'];
+
+export const editarAsientoLineaSchema = z.object({
+  idDetalle: z.number().int().positive().optional(),
+  cuentaId: z.number().int().positive(),
+  movimiento: z.nativeEnum(MovimientoCuentaContable),
+  debe: z.number().min(0).default(0),
+  haber: z.number().min(0).default(0),
+});
+
+export const editarAsientoSchema = z.object({
+  params: z.object({
+    idAsiento: z.coerce.number().int().positive('ID de asiento inválido'),
+  }),
+  body: z.object({
+    detalles: z
+      .array(editarAsientoLineaSchema)
+      .min(2, 'El asiento debe incluir al menos 2 renglones'),
+  }),
+});
+
+export type EditarAsientoParamsDTO = z.infer<typeof editarAsientoSchema>['params'];
+export type EditarAsientoBodyDTO = z.infer<typeof editarAsientoSchema>['body'];

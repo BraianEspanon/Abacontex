@@ -1,6 +1,7 @@
 import { Prisma, TipoOrigenAsiento, MovimientoCuentaContable } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 import { NotFoundError } from '../errors/not-found.error';
+import { BadRequestError } from '../errors/bad-request-error';
 
 export async function findVentasPendientes(empresaId: number, tx?: Prisma.TransactionClient) {
   const db = getDbClient(tx);
@@ -436,4 +437,114 @@ export async function findAsientoByIdAndEmpresaOrThrow(
   }
 
   return asiento;
+}
+
+export interface EditarAsientoDetalleLineaInput {
+  idDetalle?: number | undefined;
+  cuentaId: number;
+  movimiento: MovimientoCuentaContable;
+  debe: number;
+  haber: number;
+}
+
+interface DetalleParaActualizarItem {
+  idDetalle: number;
+  orden: number;
+  cuentaId: number;
+  movimiento: MovimientoCuentaContable;
+  debe: number;
+  haber: number;
+}
+
+export async function updateAsientoContable(
+  idAsiento: number,
+  detalles: EditarAsientoDetalleLineaInput[],
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const detallesExistentes = await db.detalleAsientoContable.findMany({
+    where: { asientoId: idAsiento },
+    select: { idDetalleAsiento: true },
+  });
+
+  const idsExistentes = new Set(detallesExistentes.map((d) => d.idDetalleAsiento));
+  const idsMantener = new Set<number>();
+  const detallesParaActualizar: DetalleParaActualizarItem[] = [];
+  const detallesParaCrear: Prisma.DetalleAsientoContableCreateManyInput[] = [];
+
+  for (const [index, d] of detalles.entries()) {
+    const orden = index + 1;
+
+    if (d.idDetalle) {
+      if (!idsExistentes.has(d.idDetalle)) {
+        throw new BadRequestError(
+          `El renglón contable #${d.idDetalle} no pertenece al asiento contable solicitado.`
+        );
+      }
+
+      idsMantener.add(d.idDetalle);
+      detallesParaActualizar.push({
+        idDetalle: d.idDetalle,
+        orden,
+        cuentaId: d.cuentaId,
+        movimiento: d.movimiento,
+        debe: d.debe,
+        haber: d.haber,
+      });
+    } else {
+      detallesParaCrear.push({
+        asientoId: idAsiento,
+        orden,
+        cuentaId: d.cuentaId,
+        movimiento: d.movimiento,
+        debe: d.debe,
+        haber: d.haber,
+      });
+    }
+  }
+
+  const idsParaEliminar = Array.from(idsExistentes).filter((id) => !idsMantener.has(id));
+  if (idsParaEliminar.length > 0) {
+    await db.detalleAsientoContable.deleteMany({
+      where: {
+        idDetalleAsiento: {
+          in: idsParaEliminar,
+        },
+      },
+    });
+  }
+
+  for (const item of detallesParaActualizar) {
+    await db.detalleAsientoContable.update({
+      where: { idDetalleAsiento: item.idDetalle },
+      data: { orden: -item.orden },
+    });
+  }
+
+  for (const item of detallesParaActualizar) {
+    await db.detalleAsientoContable.update({
+      where: { idDetalleAsiento: item.idDetalle },
+      data: {
+        orden: item.orden,
+        cuentaId: item.cuentaId,
+        movimiento: item.movimiento,
+        debe: item.debe,
+        haber: item.haber,
+      },
+    });
+  }
+
+  if (detallesParaCrear.length > 0) {
+    await db.detalleAsientoContable.createMany({
+      data: detallesParaCrear,
+    });
+  }
+
+  return db.asientoContable.update({
+    where: { idAsiento },
+    data: {
+      updatedAt: new Date(),
+    },
+  });
 }

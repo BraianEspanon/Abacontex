@@ -15,6 +15,7 @@ import {
   obtenerResumenMetricas,
   obtenerLibroDiario,
   obtenerAsientoPorId,
+  editarAsientoContable,
 } from '../controllers/asiento.controller';
 import {
   obtenerPendientesSchema,
@@ -22,6 +23,7 @@ import {
   crearAsientoSchema,
   obtenerUltimosAsientosSchema,
   obtenerAsientoPorIdSchema,
+  editarAsientoSchema,
 } from '../validators/asiento.validator';
 
 const router = Router();
@@ -61,6 +63,14 @@ router.get(
   requireRole(ROLES.ALUMNO),
   validate(obtenerAsientoPorIdSchema),
   obtenerAsientoPorId
+);
+
+router.patch(
+  '/:idAsiento',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(editarAsientoSchema),
+  editarAsientoContable
 );
 
 router.post(
