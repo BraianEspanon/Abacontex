@@ -40,6 +40,10 @@ import RegistrarVentaPage from '../pages/venta/RegistrarVentaPage';
 import PlanificacionAnualPage from '../pages/produccion/PlanificacionAnualPage';
 import CargarPlanificacionAnualPage from '../pages/produccion/CargarPlanificacionAnualPage';
 
+import FacturacionPage from '../pages/facturacion/FacturacionPage';
+import VentasPendientesFacturacionPage from '../pages/facturacion/VentasPendientesFacturacionPage';
+import GenerarFacturaPage from '../pages/facturacion/GenerarFacturaPage';
+
 import FinanzasPage from '../pages/finanzas/FinanzasPage';
 import ManualCuentasPage from '../pages/cuenta/ManualCuentasPage';
 import ManualCuentasDocentePage from '../pages/cuenta/ManualCuentasDocentePage';
@@ -161,6 +165,11 @@ export default function AppRouter() {
         {/* Ventas */}
         <Route path="ventas" element={<VentasPage />} />
         <Route path="ventas/registrar" element={<RegistrarVentaPage />} />
+
+        {/* Facturación */}
+        <Route path="facturacion" element={<FacturacionPage />} />
+        <Route path="facturacion/ventas-pendientes" element={<VentasPendientesFacturacionPage />} />
+        <Route path="facturacion/nueva" element={<GenerarFacturaPage />} />
 
         {/* Finanzas */}
         <Route path="finanzas" element={<FinanzasPage />} />
