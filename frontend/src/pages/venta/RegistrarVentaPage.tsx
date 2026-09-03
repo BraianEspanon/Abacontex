@@ -115,7 +115,7 @@ export default function RegistrarVentaPage() {
       return;
     }
 
-    console.log('Completar factura para venta:', ventaRegistrada.idVenta);
+    navigate(`/alumno/facturacion/nueva?ventaId=${ventaRegistrada.idVenta}`);
   };
 
   const handleCambiarPedido = (valor: string) => {
