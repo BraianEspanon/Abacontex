@@ -1,0 +1,515 @@
+// Este service implementa un patrón Strategy
+// ya que según el tipo de Acción pendiente de asiento, se hace una actividad u otra
+
+import { Prisma } from '@prisma/client';
+import { AuthUser } from '../types/express';
+import { TIPOS_MOVIMIENTO_ASIENTO, MAPA_TIPOS_MOVIMIENTO } from '../constants/asiento.constants';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
+
+import { PaginatedResponse } from '../dto/paginated-response.dto';
+import {
+  OperacionPendienteItemDTO,
+  DetallePendienteResponseDTO,
+  CuentasConFolioResponseDTO,
+  CuentaConFolioItemDTO,
+  AsientoResumenItemDTO,
+  AsientosResumenMetricasDTO,
+  LibroDiarioCompletoResponseDTO,
+  AsientoLibroDiarioDTO,
+  AsientoDetalleEdicionDTO,
+} from '../dto/contabilidad/asiento.dto';
+
+import {
+  ObtenerPendientesDTO,
+  ObtenerDetallePendienteDTO,
+  CrearAsientoDTO,
+  ObtenerUltimosAsientosDTO,
+  ObtenerAsientoPorIdDTO,
+  EditarAsientoParamsDTO,
+  EditarAsientoBodyDTO,
+} from '../validators/asiento.validator';
+
+import * as usuarioService from './usuario.service';
+import * as auditLogService from './audit-log.service';
+
+import * as usuarioRepository from '../repositories/usuario.repository';
+import * as asientoRepository from '../repositories/asiento.repository';
+import * as cuentaRepository from '../repositories/cuenta.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
+
+import {
+  getAllAsientoStrategies,
+  getAsientoStrategy,
+} from './asiento-strategies/asiento-strategy.registry';
+import { OperacionPendienteContext } from './asiento-strategies/asiento-strategy.interface';
+import { BadRequestError } from '../errors/bad-request-error';
+import { NotFoundError } from '../errors/not-found.error';
+
+interface RenglonAsientoInput {
+  idDetalle?: number | undefined;
+  cuentaId: number;
+  debe: number;
+  haber: number;
+}
+
+function validarPartidaDobleYRenglones(detalles: RenglonAsientoInput[]) {
+  const totalDebe = detalles.reduce((acc, d) => acc + d.debe, 0);
+  const totalHaber = detalles.reduce((acc, d) => acc + d.haber, 0);
+
+  if (Math.abs(totalDebe - totalHaber) > 0.001) {
+    throw new BadRequestError(
+      `El asiento está desbalanceado. Total Debe (${totalDebe.toFixed(
+        2
+      )}) debe ser igual a Total Haber (${totalHaber.toFixed(2)}).`
+    );
+  }
+
+  for (const d of detalles) {
+    if (d.debe === 0 && d.haber === 0) {
+      throw new BadRequestError(
+        'Cada renglón contable debe contener un importe mayor a cero en el Debe o en el Haber.'
+      );
+    }
+    if (d.debe > 0 && d.haber > 0) {
+      throw new BadRequestError(
+        'Un renglón contable no puede tener importe simultáneamente en el Debe y en el Haber.'
+      );
+    }
+  }
+
+  return { totalDebe, totalHaber };
+}
+
+async function validarCuentasActivasExistentes(
+  detalles: RenglonAsientoInput[],
+  tx?: Prisma.TransactionClient
+) {
+  const cuentaIdsUnicos = Array.from(new Set(detalles.map((d) => d.cuentaId)));
+  const cuentasExistentes = await cuentaRepository.findManyByIds(cuentaIdsUnicos, tx);
+
+  if (cuentasExistentes.length !== cuentaIdsUnicos.length) {
+    const idsEncontrados = new Set(cuentasExistentes.map((c) => c.idCuenta));
+    const idsFaltantes = cuentaIdsUnicos.filter((id) => !idsEncontrados.has(id));
+
+    throw new NotFoundError(
+      `Una o más cuentas contables no existen o no están activas (${idsFaltantes.join(', ')}).`
+    );
+  }
+}
+
+async function asegurarFoliosEmpresa(
+  empresaId: number,
+  detalles: RenglonAsientoInput[],
+  tx: Prisma.TransactionClient
+) {
+  let ultimoNumeroFolio = await asientoRepository.findUltimoNumeroFolioByEmpresa(empresaId, tx);
+
+  for (const d of detalles) {
+    const folioExistente = await asientoRepository.findFolioCuentaEmpresa(
+      empresaId,
+      d.cuentaId,
+      tx
+    );
+
+    if (!folioExistente) {
+      ultimoNumeroFolio += 1;
+      await asientoRepository.createFolioCuentaEmpresa(
+        {
+          empresaId,
+          cuentaId: d.cuentaId,
+          numeroFolio: ultimoNumeroFolio,
+        },
+        tx
+      );
+    }
+  }
+}
+
+export async function obtenerTiposMovimiento(user: AuthUser) {
+  await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  return TIPOS_MOVIMIENTO_ASIENTO;
+}
+
+export async function obtenerPendientes(
+  user: AuthUser,
+  filtros: ObtenerPendientesDTO
+): Promise<PaginatedResponse<OperacionPendienteItemDTO>> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+
+  const ctx: OperacionPendienteContext = {
+    empresaId: usuarioConEmpresa.alumno.empresa.id,
+    esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+  };
+
+  const estrategias = getAllAsientoStrategies();
+  const listados = await Promise.all(estrategias.map((e) => e.getPendientes(ctx)));
+
+  const todosPendientes = listados.flat();
+  todosPendientes.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+
+  // Paginación en memoria del listado consolidado
+  const totalItems = todosPendientes.length;
+  const totalPages = Math.ceil(totalItems / filtros.pageSize) || 1;
+  const startIndex = (filtros.page - 1) * filtros.pageSize;
+  const paginatedItems = todosPendientes.slice(startIndex, startIndex + filtros.pageSize);
+
+  return {
+    items: paginatedItems,
+    page: filtros.page,
+    pageSize: filtros.pageSize,
+    totalItems,
+    totalPages,
+  };
+}
+
+export async function obtenerDetallePendiente(
+  user: AuthUser,
+  params: ObtenerDetallePendienteDTO
+): Promise<DetallePendienteResponseDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+
+  const ctx: OperacionPendienteContext = {
+    empresaId: usuarioConEmpresa.alumno.empresa.id,
+    esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+  };
+
+  const estrategia = getAsientoStrategy(params.tipo);
+
+  return estrategia.getDetalle(params.id, ctx);
+}
+
+export async function crearAsientoContable(user: AuthUser, data: CrearAsientoDTO) {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+  const alumnoId = usuarioConEmpresa.alumno.id;
+
+  validarPartidaDobleYRenglones(data.detalles);
+
+  return transactionRepository.ejecutarTransaccion(async (tx) => {
+    const ctx: OperacionPendienteContext = {
+      empresaId,
+      esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+    };
+
+    if (!data.operacionId) {
+      throw new BadRequestError(
+        `El ID de operación es obligatorio para asientos de origen ${data.tipo}.`
+      );
+    }
+
+    const estrategia = getAsientoStrategy(data.tipo);
+    const resultadoValidacion = await estrategia.validarYObtenerFecha(data.operacionId, ctx, tx);
+
+    const fechaAsiento = resultadoValidacion.fecha;
+    const ventaId = resultadoValidacion.ventaId;
+    const movimientoFinancieroId = resultadoValidacion.movimientoFinancieroId;
+    const conciliacionId = resultadoValidacion.conciliacionId;
+
+    await validarCuentasActivasExistentes(data.detalles, tx);
+
+    const ultimoNumeroAsiento = await asientoRepository.findUltimoNumeroAsientoByEmpresa(
+      empresaId,
+      tx
+    );
+    const numeroAsiento = ultimoNumeroAsiento + 1;
+
+    await asegurarFoliosEmpresa(empresaId, data.detalles, tx);
+
+    const asientoCreado = await asientoRepository.createAsientoContable(
+      {
+        empresaId,
+        alumnoId,
+        numeroAsiento,
+        fecha: fechaAsiento,
+        conceptoGeneral: data.conceptoGeneral,
+        origen: data.tipo,
+        ventaId: ventaId ?? null,
+        movimientoFinancieroId: movimientoFinancieroId ?? null,
+        conciliacionId: conciliacionId ?? null,
+        detalles: data.detalles.map((d, index) => ({
+          cuentaId: d.cuentaId,
+          orden: index + 1,
+          movimiento: d.movimiento,
+          debe: d.debe,
+          haber: d.haber,
+        })),
+      },
+      tx
+    );
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuarioConEmpresa.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.ASIENTO_CONTABLE,
+      entityId: asientoCreado.idAsiento,
+      empresaId,
+      alumnoId,
+      newValues: {
+        idAsiento: asientoCreado.idAsiento,
+        numeroAsiento: asientoCreado.numeroAsiento,
+        origen: data.tipo,
+        conceptoGeneral: data.conceptoGeneral,
+      },
+      description: `Registró el asiento contable N° ${asientoCreado.numeroAsiento} (${data.tipo}) en el Libro Diario.`,
+    });
+
+    return asientoCreado;
+  });
+}
+
+export async function obtenerCuentasConFolios(user: AuthUser): Promise<CuentasConFolioResponseDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const [cuentas, ultimoNumeroFolio] = await Promise.all([
+    asientoRepository.findAllCuentasConFolioByEmpresa(empresaId),
+    asientoRepository.findUltimoNumeroFolioByEmpresa(empresaId),
+  ]);
+
+  const proximoFolioDisponible = ultimoNumeroFolio + 1;
+
+  const cuentasMapped: CuentaConFolioItemDTO[] = cuentas.map((c) => ({
+    idCuenta: c.idCuenta,
+    codigo: c.codigo,
+    nombre: c.nombre,
+    descripcion: c.descripcion,
+    numeroFolio: c.foliosEmpresa[0]?.numeroFolio ?? null,
+  }));
+
+  return {
+    proximoFolioDisponible,
+    cuentas: cuentasMapped,
+  };
+}
+
+export async function obtenerUltimosAsientos(
+  user: AuthUser,
+  query: ObtenerUltimosAsientosDTO
+): Promise<AsientoResumenItemDTO[]> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const asientos = await asientoRepository.findUltimosAsientosByEmpresa(empresaId, query.limit);
+
+  return asientos.map((a) => {
+    const totalDebe = a.detalles.reduce((acc, d) => acc + Number(d.debe), 0);
+    const totalHaber = a.detalles.reduce((acc, d) => acc + Number(d.haber), 0);
+
+    return {
+      idAsiento: a.idAsiento,
+      numeroAsiento: a.numeroAsiento,
+      fechaHecho: a.fecha,
+      fechaAsiento: a.createdAt,
+      conceptoGeneral: a.conceptoGeneral,
+      origen: a.origen,
+      totalDebe,
+      totalHaber,
+      detalles: a.detalles.map((d) => ({
+        idDetalle: d.idDetalleAsiento,
+        orden: d.orden,
+        cuentaId: d.cuentaId,
+        codigoCuenta: d.cuenta.codigo,
+        nombreCuenta: d.cuenta.nombre,
+        movimiento: d.movimiento,
+        debe: Number(d.debe),
+        haber: Number(d.haber),
+      })),
+    };
+  });
+}
+
+export async function obtenerResumenMetricas(user: AuthUser): Promise<AsientosResumenMetricasDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const ctx: OperacionPendienteContext = {
+    empresaId,
+    esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+  };
+
+  const estrategias = getAllAsientoStrategies();
+  const [asientosRegistradosCount, listadosPendientes] = await Promise.all([
+    asientoRepository.countAsientosByEmpresa(empresaId),
+    Promise.all(estrategias.map((e) => e.getPendientes(ctx))),
+  ]);
+
+  const pendientesRegistrarCount = listadosPendientes.flat().length;
+
+  return {
+    asientosRegistradosCount,
+    pendientesRegistrarCount,
+  };
+}
+
+export async function obtenerLibroDiario(user: AuthUser): Promise<LibroDiarioCompletoResponseDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const asientos = await asientoRepository.findLibroDiarioByEmpresa(empresaId);
+
+  let totalDebeGeneral = 0;
+  let totalHaberGeneral = 0;
+
+  const asientosMapped: AsientoLibroDiarioDTO[] = asientos.map((a) => {
+    for (const d of a.detalles) {
+      totalDebeGeneral += Number(d.debe);
+      totalHaberGeneral += Number(d.haber);
+    }
+
+    return {
+      idAsiento: a.idAsiento,
+      numeroAsiento: a.numeroAsiento,
+      fechaHecho: a.fecha,
+      fechaAsiento: a.createdAt,
+      conceptoGeneral: a.conceptoGeneral,
+      detalles: a.detalles.map((d) => ({
+        idDetalle: d.idDetalleAsiento,
+        nombreCuenta: d.cuenta.nombre,
+        movimientoAbreviatura: MAPA_TIPOS_MOVIMIENTO[d.movimiento]?.simbolo ?? d.movimiento,
+        numeroFolio: d.cuenta.foliosEmpresa[0]?.numeroFolio ?? null,
+        debe: Number(d.debe),
+        haber: Number(d.haber),
+      })),
+    };
+  });
+
+  return {
+    totalDebeGeneral,
+    totalHaberGeneral,
+    asientos: asientosMapped,
+  };
+}
+
+export async function obtenerAsientoPorId(
+  user: AuthUser,
+  params: ObtenerAsientoPorIdDTO
+): Promise<AsientoDetalleEdicionDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+
+  const asiento = await asientoRepository.findAsientoByIdAndEmpresaOrThrow(
+    params.idAsiento,
+    empresaId
+  );
+
+  const operacionId =
+    asiento.ventaId ?? asiento.movimientoFinancieroId ?? asiento.conciliacionId ?? null;
+
+  let operacionOrigen = null;
+  if (asiento.origen !== 'AJUSTE' && operacionId !== null) {
+    const ctx: OperacionPendienteContext = {
+      empresaId,
+      esSextoAño: usuarioConEmpresa.alumno.empresa.curso.año === 6,
+    };
+    const strategy = getAsientoStrategy(asiento.origen);
+    if (strategy) {
+      operacionOrigen = await strategy.getDetalleOperacion(operacionId, ctx);
+    }
+  }
+
+  return {
+    idAsiento: asiento.idAsiento,
+    numeroAsiento: asiento.numeroAsiento,
+    fechaHecho: asiento.fecha,
+    fechaAsiento: asiento.createdAt,
+    conceptoGeneral: asiento.conceptoGeneral,
+    origen: asiento.origen,
+    ventaId: asiento.ventaId,
+    movimientoFinancieroId: asiento.movimientoFinancieroId,
+    conciliacionId: asiento.conciliacionId,
+    operacionId,
+    operacionOrigen,
+    detalles: asiento.detalles.map((d) => ({
+      idDetalle: d.idDetalleAsiento,
+      orden: d.orden,
+      cuentaId: d.cuentaId,
+      codigoCuenta: d.cuenta.codigo,
+      nombreCuenta: d.cuenta.nombre,
+      movimiento: d.movimiento,
+      movimientoAbreviatura: MAPA_TIPOS_MOVIMIENTO[d.movimiento]?.simbolo ?? d.movimiento,
+      debe: Number(d.debe),
+      haber: Number(d.haber),
+    })),
+  };
+}
+
+export async function editarAsientoContable(
+  user: AuthUser,
+  params: EditarAsientoParamsDTO,
+  body: EditarAsientoBodyDTO
+): Promise<AsientoDetalleEdicionDTO> {
+  const usuarioConEmpresa = await usuarioService.getAlumnoConEmpresaOrThrow(user);
+  const empresaId = usuarioConEmpresa.alumno.empresa.id;
+  const alumnoId = usuarioConEmpresa.alumno.id;
+
+  const asientoExistente = await asientoRepository.findAsientoByIdAndEmpresaOrThrow(
+    params.idAsiento,
+    empresaId
+  );
+
+  const idsEnviados = body.detalles
+    .map((d) => d.idDetalle)
+    .filter((id): id is number => id !== undefined);
+
+  if (new Set(idsEnviados).size !== idsEnviados.length) {
+    throw new BadRequestError(
+      'Se incluyeron IDs de renglones contables (idDetalle) duplicados en la solicitud.'
+    );
+  }
+
+  const { totalDebe, totalHaber } = validarPartidaDobleYRenglones(body.detalles);
+
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    await validarCuentasActivasExistentes(body.detalles, tx);
+
+    await asegurarFoliosEmpresa(empresaId, body.detalles, tx);
+
+    await asientoRepository.updateAsientoContable(params.idAsiento, body.detalles, tx);
+
+    const oldTotalDebe = asientoExistente.detalles.reduce((acc, d) => acc + Number(d.debe), 0);
+    const oldTotalHaber = asientoExistente.detalles.reduce((acc, d) => acc + Number(d.haber), 0);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuarioConEmpresa.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.ASIENTO_CONTABLE,
+      entityId: params.idAsiento,
+      empresaId,
+      alumnoId,
+      oldValues: {
+        idAsiento: asientoExistente.idAsiento,
+        numeroAsiento: asientoExistente.numeroAsiento,
+        conceptoGeneral: asientoExistente.conceptoGeneral,
+        totalDebe: oldTotalDebe,
+        totalHaber: oldTotalHaber,
+        detallesCount: asientoExistente.detalles.length,
+        detalles: asientoExistente.detalles.map((d) => ({
+          cuentaId: d.cuentaId,
+          movimiento: d.movimiento,
+          debe: Number(d.debe),
+          haber: Number(d.haber),
+        })),
+      },
+      newValues: {
+        idAsiento: asientoExistente.idAsiento,
+        numeroAsiento: asientoExistente.numeroAsiento,
+        conceptoGeneral: asientoExistente.conceptoGeneral,
+        totalDebe,
+        totalHaber,
+        detallesCount: body.detalles.length,
+        detalles: body.detalles.map((d) => ({
+          cuentaId: d.cuentaId,
+          movimiento: d.movimiento,
+          debe: d.debe,
+          haber: d.haber,
+        })),
+      },
+      description: `Modificó los renglones del asiento contable N° ${asientoExistente.numeroAsiento} en el Libro Diario.`,
+    });
+  });
+
+  return obtenerAsientoPorId(user, params);
+}

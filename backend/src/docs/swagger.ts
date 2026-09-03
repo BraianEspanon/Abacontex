@@ -74,6 +74,15 @@ export const swaggerSpec = swaggerJsdoc({
         description: 'Gestión de caja, ingresos, egresos y conciliación financiera.',
       },
       {
+        name: 'Asientos Contables',
+        description:
+          'Gestión y registraciones del Libro Diario, asientos y operaciones pendientes.',
+      },
+      {
+        name: 'Contabilidad',
+        description: 'Reportes de Libro Mayor, Estado de Resultados y Balance General.',
+      },
+      {
         name: 'Cursos',
         description: 'Consulta de cursos disponibles.',
       },
