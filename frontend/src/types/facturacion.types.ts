@@ -30,6 +30,7 @@ export interface FacturasQueryParams {
   search?: string;
   tipoFactura?: TipoFactura;
   mes?: number;
+  ordenFecha?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
 }

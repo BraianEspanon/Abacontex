@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 
 import type { FacturaListado } from '../../types/facturacion.types';
 
@@ -15,6 +15,8 @@ interface TablaFacturasProps {
   pageSize: number;
   totalItems: number;
   totalPages: number;
+  ordenFecha: 'asc' | 'desc';
+  onOrdenFechaChange: () => void;
   onPageChange: (page: number) => void;
   onVerDetalle: (idFactura: number) => void;
 }
@@ -38,6 +40,8 @@ export default function TablaFacturas({
   pageSize,
   totalItems,
   totalPages,
+  ordenFecha,
+  onOrdenFechaChange,
   onPageChange,
   onVerDetalle,
 }: TablaFacturasProps) {
@@ -57,7 +61,25 @@ export default function TablaFacturas({
 
               <th className="px-4 py-3 text-center font-semibold">Cliente</th>
 
-              <th className="px-4 py-3 text-left font-semibold">Fecha</th>
+              <th className="px-4 py-3 text-left font-semibold">
+                <button
+                  type="button"
+                  onClick={onOrdenFechaChange}
+                  className="inline-flex cursor-pointer items-center gap-1.5 transition hover:text-abacontex-primary"
+                  aria-label={
+                    ordenFecha === 'desc'
+                      ? 'Ordenar por fecha ascendente'
+                      : 'Ordenar por fecha descendente'
+                  }
+                >
+                  Fecha
+                  {ordenFecha === 'desc' ? (
+                    <ArrowDown className="size-4" />
+                  ) : (
+                    <ArrowUp className="size-4" />
+                  )}
+                </button>
+              </th>
 
               <th className="px-4 py-3 text-center font-semibold">Tipo</th>
 

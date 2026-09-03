@@ -25,6 +25,7 @@ export default function FacturacionPage() {
   const [mes, setMes] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(1);
   const [idFacturaSeleccionada, setIdFacturaSeleccionada] = useState<number | null>(null);
+  const [ordenFecha, setOrdenFecha] = useState<'asc' | 'desc'>('desc');
 
   const {
     data: alumno,
@@ -40,6 +41,7 @@ export default function FacturacionPage() {
       search: search.trim() || undefined,
       tipoFactura,
       mes,
+      ordenFecha,
       page,
       pageSize: PAGE_SIZE,
     },
@@ -70,6 +72,12 @@ export default function FacturacionPage() {
     setSearch('');
     setTipoFactura(undefined);
     setMes(undefined);
+    setPage(1);
+  };
+
+  const handleOrdenFechaChange = () => {
+    setOrdenFecha((ordenActual) => (ordenActual === 'desc' ? 'asc' : 'desc'));
+
     setPage(1);
   };
 
@@ -242,6 +250,8 @@ export default function FacturacionPage() {
           pageSize={data.pageSize}
           totalItems={data.totalItems}
           totalPages={data.totalPages}
+          ordenFecha={ordenFecha}
+          onOrdenFechaChange={handleOrdenFechaChange}
           onPageChange={handleCambiarPagina}
           onVerDetalle={(idFactura) => setIdFacturaSeleccionada(idFactura)}
         />
