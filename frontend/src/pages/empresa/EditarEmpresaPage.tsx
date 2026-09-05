@@ -11,6 +11,8 @@ import EditarEmpresaForm, {
 } from '../../components/empresa/EditarEmpresaForm';
 import ResumenIntegrantes from '../../components/empresa/ResumenIntegrantes';
 import VistaPreviaEmpresa from '../../components/empresa/VistaPreviaEmpresa';
+import Button from '../../components/ui/Button';
+
 import { useActualizarEmpresa } from '../../hooks/useActualizarEmpresa';
 import { useEmpresaActual } from '../../hooks/useEmpresaActual';
 
@@ -226,24 +228,21 @@ export default function EditarEmpresaPage() {
       </section>
 
       <div className="mt-4 flex max-w-6xl justify-end gap-3">
-        <button
+        <Button
           type="button"
+          label="Cancelar"
+          variant="outline"
           onClick={() => navigate('/alumno/empresa')}
-          className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-abacontex-black-text transition hover:bg-gray-50"
-        >
-          Cancelar
-        </button>
+        />
 
-        <button
+        <Button
           type="submit"
           form="editar-empresa-form"
+          label={isPending ? 'Guardando...' : 'Guardar cambios'}
+          variant="solid"
+          icon={<Save size={16} />}
           disabled={isPending || (!isDirty && !logo && !eliminarLogo)}
-          className="flex items-center gap-2 rounded-lg bg-abacontex-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Save size={16} />
-
-          {isPending ? 'Guardando...' : 'Guardar cambios'}
-        </button>
+        />
       </div>
 
       {isSuccess && (

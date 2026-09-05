@@ -1,3 +1,5 @@
+// src/components/finanzas/TabsFinanzas.tsx
+
 export type TabFinanzas = 'flujo' | 'movimientos' | 'conciliacion';
 
 interface Props {
@@ -39,9 +41,9 @@ export default function TabsFinanzas({ tabActiva, onChange, mostrarConciliacion 
             key={tab.id}
             type="button"
             onClick={() => onChange(tab.id)}
-            className={`rounded-lg px-5 py-2 text-sm font-medium transition ${
+            className={`cursor-pointer rounded-lg px-5 py-2 text-sm font-medium transition ${
               seleccionada
-                ? 'bg-abacontex-primary text-white shadow-sm'
+                ? 'bg-abacontex-primary-three text-white shadow-sm'
                 : 'text-gray-500 hover:bg-white hover:text-gray-800'
             }`}
           >

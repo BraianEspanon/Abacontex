@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
 
+import Button from '../ui/Button';
+
 import { useConciliaciones } from '../../hooks/useConciliaciones';
 import { useRegistrarConciliacion } from '../../hooks/useRegistrarConciliacion';
 import { useResumenConciliacion } from '../../hooks/useResumenConciliacion';
@@ -330,27 +332,26 @@ export default function ConciliacionFinanciera({ tabs }: Props) {
 
           {/* ACCIONES */}
           <div className="mt-3 flex justify-center gap-3 border-t border-gray-100 pt-3">
-            <button
+            <Button
               type="button"
-              onClick={limpiarFormulario}
+              label="Cancelar"
+              variant="outline"
               disabled={registrarConciliacionMutation.isPending}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
-            >
-              Cancelar
-            </button>
+              onClick={limpiarFormulario}
+            />
 
-            <button
+            <Button
               type="button"
-              onClick={() => void handleRegistrar()}
+              label={
+                registrarConciliacionMutation.isPending
+                  ? 'Registrando...'
+                  : 'Registrar conciliación'
+              }
+              variant="solid"
+              icon={<Save size={14} />}
               disabled={registrarConciliacionMutation.isPending || saldoContadoNumero === null}
-              className="inline-flex items-center gap-2 rounded-md bg-abacontex-primary px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Save size={14} />
-
-              {registrarConciliacionMutation.isPending
-                ? 'Registrando...'
-                : 'Registrar conciliación'}
-            </button>
+              onClick={() => void handleRegistrar()}
+            />
           </div>
         </div>
       </section>
@@ -438,13 +439,13 @@ export default function ConciliacionFinanciera({ tabs }: Props) {
                   type="button"
                   onClick={() => setPage((paginaActual) => Math.max(1, paginaActual - 1))}
                   disabled={page <= 1}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
                   aria-label="Página anterior"
                 >
                   <ChevronLeft size={14} />
                 </button>
 
-                <span className="flex h-7 min-w-7 items-center justify-center rounded-md bg-abacontex-primary px-2 text-xs font-medium text-white">
+                <span className="flex h-7 min-w-7 items-center justify-center rounded-md bg-abacontex-primary-three px-2 text-xs font-medium text-white">
                   {page}
                 </span>
 
@@ -452,7 +453,7 @@ export default function ConciliacionFinanciera({ tabs }: Props) {
                   type="button"
                   onClick={() => setPage((paginaActual) => paginaActual + 1)}
                   disabled={page >= (historial.totalPages ?? 1)}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
                   aria-label="Página siguiente"
                 >
                   <ChevronRight size={14} />
