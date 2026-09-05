@@ -1,10 +1,14 @@
 import { ArrowRight, Building2, ChevronRight, CircleHelp, Home } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+import Button from '../../components/ui/Button';
 
 import { useAlumnoActual } from '../../hooks/useAlumnoActual';
 import { useEmpresaActual } from '../../hooks/useEmpresaActual';
 
 export default function MiEmpresaPage() {
+  const navigate = useNavigate();
+
   const { data: empresa, isLoading: cargandoEmpresa, isError: errorEmpresa } = useEmpresaActual();
 
   const { data: alumno, isLoading: cargandoAlumno, isError: errorAlumno } = useAlumnoActual();
@@ -107,13 +111,14 @@ export default function MiEmpresaPage() {
                 con tus compañeros.
               </p>
 
-              <Link
-                to="/alumno/empresa/crear"
-                className="mt-7 inline-flex items-center gap-2 rounded-lg bg-abacontex-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-abacontex-primary-two"
-              >
-                Crear mi empresa
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              <Button
+                type="button"
+                label="Crear mi empresa"
+                variant="solid"
+                icon={<ArrowRight className="h-4 w-4" />}
+                onClick={() => navigate('/alumno/empresa/crear')}
+                className="mt-7"
+              />
             </section>
           </div>
         </div>
@@ -194,12 +199,12 @@ export default function MiEmpresaPage() {
             </p>
           </div>
 
-          <Link
-            to="/alumno/empresa/editar"
-            className="rounded-lg bg-abacontex-primary px-5 py-2.5 text-center font-medium text-white transition hover:bg-abacontex-primary-two"
-          >
-            Editar empresa
-          </Link>
+          <Button
+            type="button"
+            label="Editar empresa"
+            variant="solid"
+            onClick={() => navigate('/alumno/empresa/editar')}
+          />
         </div>
       </section>
     </div>

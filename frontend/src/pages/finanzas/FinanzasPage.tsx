@@ -8,6 +8,7 @@ import MovimientosFinancieros from '../../components/finanzas/MovimientosFinanci
 import RegistrarMovimientoModal from '../../components/finanzas/RegistrarMovimientoModal';
 import ResumenFinanciero from '../../components/finanzas/ResumenFinanciero';
 import TabsFinanzas from '../../components/finanzas/TabsFinanzas';
+import Button from '../../components/ui/Button';
 
 import { useAlumnoActual } from '../../hooks/useAlumnoActual';
 import { useEmpresaActual } from '../../hooks/useEmpresaActual';
@@ -234,14 +235,13 @@ export default function FinanzasPage() {
             </p>
           </div>
 
-          <button
+          <Button
             type="button"
+            label="Nuevo movimiento"
+            variant="solid"
+            icon={<CirclePlus className="h-4 w-4" />}
             onClick={() => setModalMovimientoAbierto(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-abacontex-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-abacontex-primary-two"
-          >
-            <CirclePlus className="h-4 w-4" />
-            Nuevo movimiento
-          </button>
+          />
         </header>
 
         {/* Resumen general */}

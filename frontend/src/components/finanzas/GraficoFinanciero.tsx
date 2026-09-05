@@ -1,3 +1,5 @@
+// src/components/finanzas/GraficoFinanciero.tsx
+
 import {
   Bar,
   BarChart,
@@ -54,20 +56,24 @@ export default function GraficoFinanciero({ periodo, onPeriodoChange }: Props) {
         </h2>
 
         <div className="inline-flex self-start overflow-hidden rounded-lg border border-gray-300">
-          {opciones.map((opcion) => (
-            <button
-              key={opcion.value}
-              type="button"
-              onClick={() => onPeriodoChange(opcion.value)}
-              className={`px-3 py-1.5 text-xs font-medium transition ${
-                periodo === opcion.value
-                  ? 'bg-abacontex-primary text-white'
-                  : 'bg-white text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              {opcion.label}
-            </button>
-          ))}
+          {opciones.map((opcion) => {
+            const seleccionada = periodo === opcion.value;
+
+            return (
+              <button
+                key={opcion.value}
+                type="button"
+                onClick={() => onPeriodoChange(opcion.value)}
+                className={`cursor-pointer px-3 py-1.5 text-xs font-medium transition ${
+                  seleccionada
+                    ? 'bg-abacontex-primary-three text-white'
+                    : 'bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                }`}
+              >
+                {opcion.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
