@@ -126,7 +126,7 @@ export default function TablaProductos({
               </th>
 
               <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-gray-600">
-                Precio unitario
+                Precio de venta
               </th>
 
               <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -178,7 +178,7 @@ export default function TablaProductos({
 
                   <td className="px-6 py-4">
                     <span className="text-sm font-semibold text-gray-800">
-                      {formatearPrecio(producto.precioUnitario)}
+                      {formatearPrecio(producto.precioVenta)}
                     </span>
                   </td>
 

@@ -50,6 +50,11 @@ export default function RegistrarPedidoForm({
     [productos]
   );
 
+  const cantidadTotalUnidades = useMemo(
+    () => productos.reduce((total, producto) => total + producto.cantidad, 0),
+    [productos]
+  );
+
   const agregarProducto = (producto: ProductoListado) => {
     if (productos.some((item) => item.id === producto.id)) {
       return;
@@ -259,9 +264,9 @@ export default function RegistrarPedidoForm({
         <div className="mt-4 flex justify-end">
           <div className="w-full max-w-[280px] rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Total de productos</span>
+              <span>Total de unidades</span>
 
-              <span className="font-medium text-gray-800">{productos.length}</span>
+              <span className="font-medium text-gray-800">{cantidadTotalUnidades}</span>
             </div>
 
             <div className="mt-2 flex items-center justify-between text-sm">
