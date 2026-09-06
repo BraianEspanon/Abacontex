@@ -119,7 +119,13 @@ export default function RegistrarVentaPage() {
   };
 
   const handleCambiarPedido = (valor: string) => {
-    setPedidoId(valor === '' ? null : Number(valor));
+    if (valor === '') {
+      setPedidoId(null);
+      setAplicaIva(false);
+      return;
+    }
+
+    setPedidoId(Number(valor));
   };
 
   const renderSelectorPedido = () => (
@@ -133,27 +139,29 @@ export default function RegistrarVentaPage() {
           <h2 className="text-lg font-semibold text-gray-900">Pedido asociado</h2>
         </div>
 
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-sm font-medium text-gray-800">Aplicar IVA</span>
+        {pedidoSeleccionado && (
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-sm font-medium text-gray-800">Aplicar IVA</span>
 
-          <button
-            type="button"
-            role="switch"
-            aria-checked={aplicaIva}
-            onClick={() => setAplicaIva((valor) => !valor)}
-            className={[
-              'relative h-7 w-12 rounded-full transition',
-              aplicaIva ? 'bg-[#6f9468]' : 'bg-gray-300',
-            ].join(' ')}
-          >
-            <span
+            <button
+              type="button"
+              role="switch"
+              aria-checked={aplicaIva}
+              onClick={() => setAplicaIva((valor) => !valor)}
               className={[
-                'absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all',
-                aplicaIva ? 'left-6' : 'left-1',
+                'relative h-7 w-12 rounded-full transition',
+                aplicaIva ? 'bg-[#6f9468]' : 'bg-gray-300',
               ].join(' ')}
-            />
-          </button>
-        </div>
+            >
+              <span
+                className={[
+                  'absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all',
+                  aplicaIva ? 'left-6' : 'left-1',
+                ].join(' ')}
+              />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mt-5">

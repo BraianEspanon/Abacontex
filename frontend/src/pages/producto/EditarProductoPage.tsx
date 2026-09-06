@@ -18,7 +18,7 @@ const editarProductoSchema = z.object({
     .string()
     .trim()
     .min(1, 'El nombre del producto es obligatorio.')
-    .max(100, 'El nombre no puede superar los 100 caracteres.'),
+    .max(50, 'El nombre no puede superar los 50 caracteres.'),
 
   descripcion: z
     .string()
@@ -46,7 +46,6 @@ export default function EditarProductoPage() {
   const navigate = useNavigate();
 
   const [imagenSeleccionada, setImagenSeleccionada] = useState<File | null>(null);
-
   const [eliminarImagen, setEliminarImagen] = useState(false);
 
   const productoId = Number(id);
@@ -85,8 +84,8 @@ export default function EditarProductoPage() {
     reset({
       nombre: producto.nombre,
       descripcion: producto.descripcion,
-      precioUnitario: producto.precioUnitario,
-      margenGanancia: producto.margenGanancia,
+      precioUnitario: Number(producto.precioUnitario),
+      margenGanancia: Number(producto.margenGanancia),
     });
   }, [producto, reset]);
 
@@ -128,62 +127,42 @@ export default function EditarProductoPage() {
 
   if (!productoIdValido) {
     return (
-      <div className="min-h-screen bg-[#f5f6f4]">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold text-gray-900">Producto inválido</h1>
+      <div className="space-y-5">
+        <h1 className="text-2xl font-bold text-gray-900">Producto inválido</h1>
 
-          <p className="mt-3 text-sm text-gray-500">El identificador del producto no es válido.</p>
+        <p className="text-sm text-gray-500">El identificador del producto no es válido.</p>
 
-          <Link
-            to="/alumno/productos"
-            className="mt-5 inline-flex text-sm font-semibold text-[#4f6f52]"
-          >
-            Volver a productos
-          </Link>
-        </div>
+        <Link to="/alumno/productos" className="inline-flex text-sm font-semibold text-[#4f6f52]">
+          Volver a productos
+        </Link>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f6f4]">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mt-7 h-7 w-48 rounded bg-gray-200" />
-
-          <div className="mt-4 h-4 w-80 rounded bg-gray-200" />
-
-          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="h-[650px] rounded-2xl bg-white shadow-sm" />
-
-            <div className="h-[500px] rounded-2xl bg-white shadow-sm" />
-          </div>
-        </div>
+      <div className="flex min-h-[300px] items-center justify-center">
+        <p className="text-sm text-gray-500">Cargando producto...</p>
       </div>
     );
   }
 
   if (isError || !producto) {
     return (
-      <div className="min-h-screen bg-[#f5f6f4]">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold text-gray-900">No fue posible cargar el producto</h1>
+      <div className="space-y-5">
+        <h1 className="text-2xl font-bold text-gray-900">No fue posible cargar el producto</h1>
 
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-5">
-            <p className="text-sm font-medium text-red-700">
-              Ocurrió un error al obtener los datos del producto.
-            </p>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+          <p className="text-sm font-medium text-red-700">
+            Ocurrió un error al obtener los datos del producto.
+          </p>
 
-            {error instanceof Error && <p className="mt-2 text-sm text-red-600">{error.message}</p>}
-          </div>
-
-          <Link
-            to="/alumno/productos"
-            className="mt-5 inline-flex text-sm font-semibold text-[#4f6f52]"
-          >
-            Volver a productos
-          </Link>
+          {error instanceof Error && <p className="mt-2 text-sm text-red-600">{error.message}</p>}
         </div>
+
+        <Link to="/alumno/productos" className="inline-flex text-sm font-semibold text-[#4f6f52]">
+          Volver a productos
+        </Link>
       </div>
     );
   }
@@ -191,56 +170,49 @@ export default function EditarProductoPage() {
   const hayCambios = isDirty || imagenSeleccionada !== null || eliminarImagen;
 
   return (
-    <div className="min-h-screen bg-[#f5f6f4]">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <nav className="mb-5 flex items-center gap-2 text-sm">
-          <Link
-            to="/alumno"
-            className="inline-flex items-center gap-1 text-gray-500 transition hover:text-[#4f6f52]"
-          >
-            <Home size={15} />
-            Inicio
-          </Link>
+    <div className="space-y-5">
+      <nav className="flex items-center gap-2 text-sm text-gray-500">
+        <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
+          <Home className="h-4 w-4" />
+          Inicio
+        </Link>
 
-          <ChevronRight size={15} className="text-gray-400" />
+        <ChevronRight className="h-4 w-4" />
 
-          <Link to="/alumno/productos" className="text-gray-500 transition hover:text-[#4f6f52]">
-            Productos
-          </Link>
+        <Link to="/alumno/productos" className="transition hover:text-gray-700">
+          Productos
+        </Link>
 
-          <ChevronRight size={15} className="text-gray-400" />
+        <ChevronRight className="h-4 w-4" />
 
-          <span aria-current="page" className="font-semibold text-gray-900">
-            Editar producto
-          </span>
-        </nav>
+        <span className="font-medium text-gray-700">Editar producto</span>
+      </nav>
 
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-950">Editar producto</h1>
+      <header>
+        <h1 className="text-2xl font-bold text-gray-900">Editar producto</h1>
 
-          <p className="mt-2 text-sm text-gray-500">
-            Actualizá la información del producto seleccionado.
-          </p>
-        </div>
+        <p className="mt-2 text-base text-gray-500">
+          Actualizá la información del producto seleccionado.
+        </p>
+      </header>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <EditarProductoForm
-            register={register}
-            control={control}
-            errors={errors}
-            stock={producto.stock}
-            fotoActualUrl={producto.fotoUrl}
-            imagenSeleccionada={imagenSeleccionada}
-            eliminarImagen={eliminarImagen}
-            onImagenSeleccionada={setImagenSeleccionada}
-            onEliminarImagen={setEliminarImagen}
-            isPending={actualizarProductoMutation.isPending}
-            isError={actualizarProductoMutation.isError}
-            hayCambios={hayCambios}
-            onCancelar={handleCancelar}
-          />
-        </form>
-      </div>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <EditarProductoForm
+          register={register}
+          control={control}
+          errors={errors}
+          stock={producto.stock}
+          fotoActualUrl={producto.fotoUrl}
+          imagenSeleccionada={imagenSeleccionada}
+          eliminarImagen={eliminarImagen}
+          onImagenSeleccionada={setImagenSeleccionada}
+          onEliminarImagen={setEliminarImagen}
+          isPending={actualizarProductoMutation.isPending}
+          isError={actualizarProductoMutation.isError}
+          hayCambios={hayCambios}
+          onCancelar={handleCancelar}
+        />
+      </form>
     </div>
   );
 }

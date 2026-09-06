@@ -1,4 +1,6 @@
-import { ArchiveRestore, Box, DollarSign, PackageX } from 'lucide-react';
+// src/components/pedido/ResumenPedidos.tsx
+
+import { ClipboardList, Clock3, Factory, PackageCheck } from 'lucide-react';
 
 import type { ResumenPedidos as ResumenPedidosType } from '../../types/pedido.types';
 
@@ -12,7 +14,7 @@ export default function ResumenPedidos({ resumen }: ResumenPedidosProps) {
       titulo: 'Pedidos totales',
       valor: resumen.total,
       descripcion: 'Todos los pedidos',
-      icono: Box,
+      icono: ClipboardList,
       clasesIcono: 'bg-[#eef4eb] text-[#496647]',
       clasesValor: 'text-gray-900',
     },
@@ -20,15 +22,15 @@ export default function ResumenPedidos({ resumen }: ResumenPedidosProps) {
       titulo: 'Pendientes',
       valor: resumen.pendientes,
       descripcion: 'En espera de producción',
-      icono: ArchiveRestore,
-      clasesIcono: 'bg-[#eef4eb] text-[#496647]',
+      icono: Clock3,
+      clasesIcono: 'bg-amber-50 text-amber-600',
       clasesValor: 'text-gray-900',
     },
     {
       titulo: 'En producción',
       valor: resumen.enProduccion,
       descripcion: 'Órdenes activas',
-      icono: PackageX,
+      icono: Factory,
       clasesIcono: 'bg-red-50 text-red-500',
       clasesValor: 'text-red-500',
     },
@@ -36,8 +38,8 @@ export default function ResumenPedidos({ resumen }: ResumenPedidosProps) {
       titulo: 'Terminados',
       valor: resumen.listosParaEntregar,
       descripcion: 'Listos para entregar',
-      icono: DollarSign,
-      clasesIcono: 'bg-gray-100 text-[#496647]',
+      icono: PackageCheck,
+      clasesIcono: 'bg-green-50 text-[#496647]',
       clasesValor: 'text-[#6f9468]',
     },
   ];

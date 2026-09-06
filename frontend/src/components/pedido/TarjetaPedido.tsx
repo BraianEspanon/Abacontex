@@ -1,3 +1,5 @@
+// src/components/pedido/TarjetaPedido.tsx
+
 import {
   CalendarDays,
   CheckCircle2,
@@ -7,7 +9,7 @@ import {
   MoreHorizontal,
   Package,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { EstadoPedido, TarjetaPedido as TarjetaPedidoType } from '../../types/pedido.types';
 
@@ -51,6 +53,8 @@ export default function TarjetaPedido({
 }: TarjetaPedidoProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const puedeMarcarListoParaEntregar = estado === 'PENDIENTE' && !pedido.tieneFaltantesStock;
 
   const puedeCrearOrdenProduccion = estado === 'PENDIENTE' && pedido.tieneFaltantesStock;
@@ -58,6 +62,32 @@ export default function TarjetaPedido({
   const tieneAcciones = puedeCrearOrdenProduccion || puedeMarcarListoParaEntregar;
 
   const puedeArrastrarse = puedeMarcarListoParaEntregar;
+
+  /*
+   * Cierra el menú de acciones cuando se hace click
+   * en cualquier parte fuera del menú.
+   */
+  useEffect(() => {
+    if (!menuAbierto) {
+      return;
+    }
+
+    const handleClickFuera = (event: MouseEvent) => {
+      if (!menuRef.current) {
+        return;
+      }
+
+      if (!menuRef.current.contains(event.target as Node)) {
+        setMenuAbierto(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickFuera);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickFuera);
+    };
+  }, [menuAbierto]);
 
   return (
     <article
@@ -95,10 +125,11 @@ export default function TarjetaPedido({
           </div>
 
           {tieneAcciones && (
-            <div className="relative shrink-0">
+            <div ref={menuRef} className="relative shrink-0">
               <button
                 type="button"
                 aria-label="Más acciones"
+                aria-expanded={menuAbierto}
                 onClick={(event) => {
                   event.stopPropagation();
 
@@ -111,7 +142,7 @@ export default function TarjetaPedido({
               </button>
 
               {menuAbierto && (
-                <div className="absolute right-0 top-7 z-30 w-56 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+                <div className="absolute top-7 right-0 z-30 w-56 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
                   {puedeCrearOrdenProduccion && onCrearOrdenProduccion && (
                     <button
                       type="button"
