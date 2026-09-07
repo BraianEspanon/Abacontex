@@ -10,6 +10,7 @@ interface ProductoDemo {
   precioUnitario: number;
   margenGanancia: number;
   fotoUrl: string | null;
+  fotoPublicId?: string | null;
 }
 
 const IVA = 0.21;
@@ -55,6 +56,7 @@ async function crearOActualizarProductoActivo(prisma: PrismaClient, producto: Pr
         precioVenta,
         precioConsumidorFinal,
         fotoUrl: producto.fotoUrl,
+        fotoPublicId: producto.fotoPublicId ?? null,
       },
     });
 
@@ -72,6 +74,7 @@ async function crearOActualizarProductoActivo(prisma: PrismaClient, producto: Pr
       precioVenta,
       precioConsumidorFinal,
       fotoUrl: producto.fotoUrl,
+      fotoPublicId: producto.fotoPublicId ?? null,
       activo: true,
     },
   });
@@ -93,7 +96,13 @@ export const productosSeed: Seed = {
       },
     });
 
-    if (!techNova || !innovaSoft) {
+    const luzDeLuna = await prisma.empresa.findUnique({
+      where: {
+        nombre: 'Luz de luna',
+      },
+    });
+
+    if (!techNova || !innovaSoft || !luzDeLuna) {
       throw new Error('Las empresas de demo no existen.');
     }
 
@@ -133,6 +142,36 @@ export const productosSeed: Seed = {
       precioUnitario: 50000,
       margenGanancia: 15,
       fotoUrl: null,
+    });
+
+    // ==========================
+    // LUZ DE LUNA
+    // ==========================
+
+    await crearOActualizarProductoActivo(prisma, {
+      empresaId: luzDeLuna.id,
+      nombre: 'Velador estrellas',
+      descripcion:
+        'Velador decorativo con base de madera y diseño de estrellas, pensado para brindar una iluminación cálida y crear un ambiente acogedor y original.',
+      stock: 0,
+      precioUnitario: 16000,
+      margenGanancia: 25,
+      fotoUrl:
+        'https://res.cloudinary.com/scwkazap/image/upload/v1788794514/abacontex/productos/ojkdgt5y7ouqnarugjxe.jpg',
+      fotoPublicId: 'abacontex/productos/ojkdgt5y7ouqnarugjxe',
+    });
+
+    await crearOActualizarProductoActivo(prisma, {
+      empresaId: luzDeLuna.id,
+      nombre: 'Velador estilo industrial',
+      descripcion:
+        'Velador de estilo industrial, fabricado en madera y materiales reciclados, con estructura regulable que permite orientar la iluminación de forma práctica y funcional.',
+      stock: 5,
+      precioUnitario: 12000,
+      margenGanancia: 25,
+      fotoUrl:
+        'https://res.cloudinary.com/scwkazap/image/upload/v1788794621/abacontex/productos/uwto8uq3mo7o2wv7w7hp.jpg',
+      fotoPublicId: 'abacontex/productos/uwto8uq3mo7o2wv7w7hp',
     });
 
     console.log('Productos demo creados');

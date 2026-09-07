@@ -95,6 +95,17 @@ export default function RegistrarPedidoForm({
     setProductos((actuales) => actuales.filter((producto) => producto.id !== productoId));
   };
 
+  const cargarDatosDemo = () => {
+    setClienteNombre('Lionel Andrés Messi Cuccittini');
+    setClienteMail('leomessi10@gmail.com');
+
+    setErrores((actuales) => ({
+      ...actuales,
+      clienteNombre: undefined,
+      clienteMail: undefined,
+    }));
+  };
+
   const validar = () => {
     const nuevosErrores: ErroresFormulario = {};
 
@@ -232,6 +243,18 @@ export default function RegistrarPedidoForm({
               <p className="mt-1 text-xs text-red-600">{errores.clienteMail}</p>
             )}
           </div>
+        </div>
+
+        {/* Botón auxiliar para la demo */}
+        <div className="mt-1 flex justify-end">
+          <button
+            type="button"
+            onClick={cargarDatosDemo}
+            title="Cargar datos para la demostración"
+            className="rounded-md px-2.5 py-1 text-[11px] font-medium text-[#496647]/60 transition-all hover:bg-[#6f9468]/10 hover:text-[#496647]"
+          >
+            Demo
+          </button>
         </div>
       </section>
 
