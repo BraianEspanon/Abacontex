@@ -152,12 +152,7 @@ export const pedidosSeed: Seed = {
       throw new Error('La empresa o el usuario demo no existen.');
     }
 
-    const [
-      veladorEstrellas,
-      veladorIndustrial,
-      estadoCompletado,
-      estadoListo,
-    ] = await Promise.all([
+    const [veladorEstrellas, veladorIndustrial, estadoCompletado, estadoListo] = await Promise.all([
       prisma.producto.findFirst({
         where: {
           empresaId: luzDeLuna.id,
@@ -184,12 +179,7 @@ export const pedidosSeed: Seed = {
       }),
     ]);
 
-    if (
-      !veladorEstrellas ||
-      !veladorIndustrial ||
-      !estadoCompletado ||
-      !estadoListo
-    ) {
+    if (!veladorEstrellas || !veladorIndustrial || !estadoCompletado || !estadoListo) {
       throw new Error(
         'No se encontraron los datos requeridos para generar los pedidos demo de Luz de luna.'
       );
@@ -198,7 +188,7 @@ export const pedidosSeed: Seed = {
     // ------------------------------------------
     // PEDIDO #1 (Noel Araoz - COMPLETADO)
     // ------------------------------------------
-    let pedido1 = await prisma.pedido.findFirst({
+    const pedido1 = await prisma.pedido.findFirst({
       where: {
         empresaId: luzDeLuna.id,
         clienteMail: 'n.araoz@gmail.com',
@@ -277,7 +267,7 @@ export const pedidosSeed: Seed = {
     // ------------------------------------------
     // PEDIDO #2 (Nazarena Bacci - LISTO_PARA_ENTREGAR)
     // ------------------------------------------
-    let pedido2 = await prisma.pedido.findFirst({
+    const pedido2 = await prisma.pedido.findFirst({
       where: {
         empresaId: luzDeLuna.id,
         clienteMail: 'n.bacci@gmail.com',

@@ -29,35 +29,31 @@ export const ventasSeed: Seed = {
       },
     });
 
-    const [
-      veladorIndustrial,
-      metodoCredito,
-      categoriaVentas,
-      estadoPendienteMov,
-    ] = await Promise.all([
-      prisma.producto.findFirst({
-        where: {
-          empresaId: luzDeLuna.id,
-          nombre: 'Velador estilo industrial',
-          activo: true,
-        },
-      }),
-      prisma.metodoPago.findUnique({
-        where: {
-          nombre: 'Crédito',
-        },
-      }),
-      prisma.categoriaMovimiento.findFirst({
-        where: {
-          nombre: 'Ventas',
-        },
-      }),
-      prisma.estadoMovimiento.findUnique({
-        where: {
-          nombre: 'PENDIENTE',
-        },
-      }),
-    ]);
+    const [veladorIndustrial, metodoCredito, categoriaVentas, estadoPendienteMov] =
+      await Promise.all([
+        prisma.producto.findFirst({
+          where: {
+            empresaId: luzDeLuna.id,
+            nombre: 'Velador estilo industrial',
+            activo: true,
+          },
+        }),
+        prisma.metodoPago.findUnique({
+          where: {
+            nombre: 'Crédito',
+          },
+        }),
+        prisma.categoriaMovimiento.findFirst({
+          where: {
+            nombre: 'Ventas',
+          },
+        }),
+        prisma.estadoMovimiento.findUnique({
+          where: {
+            nombre: 'PENDIENTE',
+          },
+        }),
+      ]);
 
     if (
       !pedido1 ||
