@@ -153,7 +153,7 @@ export const productosSeed: Seed = {
       nombre: 'Velador estrellas',
       descripcion:
         'Velador decorativo con base de madera y diseño de estrellas, pensado para brindar una iluminación cálida y crear un ambiente acogedor y original.',
-      stock: 5,
+      stock: 0,
       precioUnitario: 16000,
       margenGanancia: 25,
       fotoUrl:
@@ -166,7 +166,7 @@ export const productosSeed: Seed = {
       nombre: 'Velador estilo industrial',
       descripcion:
         'Velador de estilo industrial, fabricado en madera y materiales reciclados, con estructura regulable que permite orientar la iluminación de forma práctica y funcional.',
-      stock: 10,
+      stock: 5,
       precioUnitario: 12000,
       margenGanancia: 25,
       fotoUrl:
