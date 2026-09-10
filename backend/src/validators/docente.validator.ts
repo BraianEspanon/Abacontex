@@ -1,10 +1,22 @@
 import { z } from 'zod';
 
+const regexNombre = /^[\p{L}\s'-]+$/u;
+
 export const crearDocenteSchema = z.object({
   body: z.object({
-    nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+    nombre: z
+      .string()
+      .trim()
+      .min(2, 'El nombre debe tener al menos 2 caracteres')
+      .max(100, 'El nombre no puede tener más de 100 caracteres')
+      .regex(regexNombre, 'El nombre solo puede contener letras y espacios'),
 
-    apellido: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
+    apellido: z
+      .string()
+      .trim()
+      .min(2, 'El apellido debe tener al menos 2 caracteres')
+      .max(100, 'El apellido no puede tener más de 100 caracteres')
+      .regex(regexNombre, 'El apellido solo puede contener letras y espacios'),
 
     email: z.email('El correo electrónico no es válido'),
 
