@@ -437,3 +437,27 @@ export async function obtenerAlumnos(
     })),
   };
 }
+
+export async function validarEmailDocente(email: string) {
+  const usuarioDb = await usuarioRepository.findByEmail(email);
+
+  if (usuarioDb) {
+    return {
+      disponible: false,
+      mensaje: 'El correo electrónico ingresado ya se encuentra registrado.',
+    };
+  }
+
+  const usuarioKeycloak = await keycloakAdminService.getUserByEmail(email);
+
+  if (usuarioKeycloak) {
+    return {
+      disponible: false,
+      mensaje: 'El correo electrónico ingresado ya se encuentra registrado.',
+    };
+  }
+
+  return {
+    disponible: true,
+  };
+}

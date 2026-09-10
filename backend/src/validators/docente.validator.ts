@@ -74,3 +74,9 @@ export const obtenerAlumnosSchema = z.object({
 });
 
 export type AlumnoDocenteFiltrosDTO = z.infer<typeof obtenerAlumnosSchema>['query'];
+
+export const validarEmailDocenteSchema = z.object({
+  query: z.object({
+    email: z.email('El correo electrónico no es válido'),
+  }),
+});
