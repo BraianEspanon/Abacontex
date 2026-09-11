@@ -481,3 +481,46 @@ export async function sendVerifyEmail(keycloakId: string) {
     });
   }
 }
+
+export async function getUserByEmail(email: string) {
+  const token = await getAdminToken();
+
+  try {
+    const response = await fetch(
+      `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users?email=${encodeURIComponent(email)}&exact=true`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new ExternalServiceError(
+        'Keycloak',
+        'No fue posible consultar el usuario en Keycloak.',
+        {
+          details: {
+            operation: 'GET_USER_BY_EMAIL',
+            status: response.status,
+          },
+        }
+      );
+    }
+
+    const users: Array<{ id: string; email?: string; username?: string }> = await response.json();
+
+    return users.length > 0 ? users[0] : null;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw new ExternalServiceError('Keycloak', 'No fue posible comunicarse con Keycloak.', {
+      details: {
+        operation: 'GET_USER_BY_EMAIL',
+        cause: error,
+      },
+    });
+  }
+}

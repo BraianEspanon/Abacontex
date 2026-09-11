@@ -10,6 +10,7 @@ import {
   obtenerAlumnosSchema,
   obtenerEmpresaSchema,
   obtenerEmpresasSchema,
+  validarEmailDocenteSchema,
 } from '../validators/docente.validator';
 import {
   crearDocente,
@@ -20,6 +21,7 @@ import {
   obtenerDetalleEmpresaDocente,
   obtenerAlumnos,
   actualizarCursosDocenteActual,
+  validarEmailDocente,
 } from '../controllers/docente.controller';
 import { ROLES } from '../constants/roles';
 
@@ -32,6 +34,14 @@ router.post(
   validate(crearDocenteSchema),
   crearDocente
 );
+router.get(
+  '/validar-email',
+  authenticate,
+  requireRole(ROLES.ADMIN),
+  validate(validarEmailDocenteSchema),
+  validarEmailDocente
+);
+
 router.get('/me', authenticate, requireRole(ROLES.DOCENTE), obtenerDocenteActual);
 router.patch(
   '/me/cursos',

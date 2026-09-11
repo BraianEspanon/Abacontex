@@ -62,6 +62,16 @@
                             </div>
                         </div>
 
+                        <#if messagesPerField.existsError('username')>
+                        <div class="error-message" style="margin-top: 1rem;">
+                            <span>${kcSanitize(messagesPerField.get('username'))?no_esc}</span>
+                        </div>
+                        <#elseif message?has_content && message.type == 'error'>
+                        <div class="error-message" style="margin-top: 1rem;">
+                            <span>${kcSanitize(message.summary)?no_esc}</span>
+                        </div>
+                        </#if>
+
                         <!-- Submit -->
                         <div class="form-actions" style="margin-top: 2rem;">
                             <button tabindex="2" type="submit" class="btn-login">

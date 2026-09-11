@@ -65,3 +65,11 @@ export async function obtenerAlumnos(req: Request, res: Response) {
 
   res.json(alumnos);
 }
+
+export async function validarEmailDocente(req: Request, res: Response) {
+  const email = req.query.email as string;
+
+  const resultado = await docenteService.validarEmailDocente(email);
+
+  res.status(200).json(resultado);
+}
