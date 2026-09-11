@@ -29,14 +29,33 @@
             </div>
         </div>
 
-        <!-- Panel derecho: formulario -->
+        <!-- Panel derecho: confirmación o formulario -->
         <div class="right-panel">
-            <h1 class="login-title">Iniciar sesión</h1>
+            <#if message?has_content && message.type != 'error'>
+                <!-- Pantalla intermedia de confirmación -->
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: #5A7956; display: flex; align-items: center; justify-content: center; font-size: 38px; color: white; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(90, 121, 86, 0.35);">
+                    ✓
+                </div>
 
-            <div id="kc-form">
-                <div id="kc-form-wrapper">
+                <h1 class="login-title" style="margin-bottom: 1rem; font-size: 3rem;">¡Revisa tu correo!</h1>
 
-                    <#if realm.password>
+                <p style="color: #c2c2c2; text-align: center; max-width: 440px; margin: 0 0 2rem; font-size: 1.1rem; line-height: 1.6; font-family: 'Outfit', sans-serif;">
+                    ${kcSanitize(message.summary)?no_esc}
+                </p>
+
+                <div style="width: 100%; max-width: 380px; display: flex; justify-content: center;">
+                    <a href="${url.loginUrl}" class="btn-login" style="display: flex; align-items: center; justify-content: center; text-decoration: none; width: 85%;">
+                        Volver a iniciar sesión
+                    </a>
+                </div>
+            <#else>
+                <!-- Formulario estándar de inicio de sesión -->
+                <h1 class="login-title">Iniciar sesión</h1>
+
+                <div id="kc-form">
+                    <div id="kc-form-wrapper">
+
+                        <#if realm.password>
                     <form id="kc-form-login" onsubmit="login.disabled = true; return true;"
                           action="${url.loginAction}" method="post">
 
@@ -100,6 +119,10 @@
                         <div class="error-message">
                             <span>${kcSanitize(messagesPerField.getFirstError('username','password'))?no_esc}</span>
                         </div>
+                        <#elseif message?has_content && message.type == 'error'>
+                        <div class="error-message">
+                            <span>${kcSanitize(message.summary)?no_esc}</span>
+                        </div>
                         </#if>
 
                         <!-- Submit -->
@@ -142,6 +165,7 @@
 
                 </div>
             </div>
+            </#if>
         </div>
 
     </div>
