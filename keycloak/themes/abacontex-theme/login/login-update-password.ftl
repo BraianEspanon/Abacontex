@@ -115,7 +115,7 @@
 
                             <div class="field-group" style="margin-bottom: 0;">
                                 <label for="password-new">Nueva contraseña</label>
-                                <div class="input-wrapper <#if messagesPerField.existsError('password')>has-error</#if>">
+                                <div id="wrapper-password-new" class="input-wrapper <#if messagesPerField.existsError('password') || (message?has_content && message.type == 'error')>has-error</#if>">
                                     <span class="input-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -137,7 +137,7 @@
 
                             <div class="field-group" style="margin-bottom: 0;">
                                 <label for="password-confirm">Confirme la contraseña</label>
-                                <div class="input-wrapper <#if messagesPerField.existsError('password-confirm')>has-error</#if>">
+                                <div id="wrapper-password-confirm" class="input-wrapper <#if messagesPerField.existsError('password-confirm')>has-error</#if>">
                                     <span class="input-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -174,6 +174,17 @@
                                 </ul>
                             </div>
 
+                            <!-- Mensajes de error (servidor y cliente) -->
+                            <#if message?has_content && message.type == 'error'>
+                            <div class="error-message" id="kc-error-message" style="margin-top: 0.8rem; margin-bottom: 0.4rem; text-align: center;">
+                                <span id="kc-error-text">${kcSanitize(message.summary)?no_esc}</span>
+                            </div>
+                            <#else>
+                            <div class="error-message" id="kc-error-message" style="display: none; margin-top: 0.8rem; margin-bottom: 0.4rem; text-align: center;">
+                                <span id="kc-error-text"></span>
+                            </div>
+                            </#if>
+
                             <div class="form-actions" style="margin-top: 0.4rem;">
                                 <button tabindex="3" type="submit" class="btn-login">
                                     Guardar contraseña
@@ -192,16 +203,77 @@
     </div>
 
     <script>
-        document.getElementById('password-new').addEventListener('input', function() {
-            const val = this.value;
-            updateRequirement('req-length', val.length >= 8, 'Mínimo 8 carac.');
-            updateRequirement('req-uppercase', /[A-Z]/.test(val), '1 Mayúscula');
-            updateRequirement('req-lowercase', /[a-z]/.test(val), '1 Minúscula');
-            updateRequirement('req-number', /[0-9]/.test(val), '1 Número');
-        });
+        var form = document.getElementById('kc-passwd-update-form');
+        var passNew = document.getElementById('password-new');
+        var passConfirm = document.getElementById('password-confirm');
+        var errorContainer = document.getElementById('kc-error-message');
+        var errorText = document.getElementById('kc-error-text');
+        var wrapperNew = document.getElementById('wrapper-password-new');
+        var wrapperConfirm = document.getElementById('wrapper-password-confirm');
+
+        function showError(text) {
+            if (errorText) errorText.innerText = text;
+            if (errorContainer) errorContainer.style.display = 'block';
+            if (wrapperNew) wrapperNew.classList.add('has-error');
+        }
+
+        function hideError() {
+            if (errorContainer) errorContainer.style.display = 'none';
+            if (wrapperNew) wrapperNew.classList.remove('has-error');
+            if (wrapperConfirm) wrapperConfirm.classList.remove('has-error');
+        }
+
+        function checkRequirements(val) {
+            var hasLength = val.length >= 8;
+            var hasUpper = /[A-Z]/.test(val);
+            var hasLower = /[a-z]/.test(val);
+            var hasNumber = /[0-9]/.test(val);
+
+            updateRequirement('req-length', hasLength, 'Mínimo 8 caracteres');
+            updateRequirement('req-uppercase', hasUpper, 'Una Mayúscula');
+            updateRequirement('req-lowercase', hasLower, 'Una Minúscula');
+            updateRequirement('req-number', hasNumber, 'Un Número');
+
+            return hasLength && hasUpper && hasLower && hasNumber;
+        }
+
+        if (passNew) {
+            passNew.addEventListener('input', function() {
+                checkRequirements(this.value);
+                hideError();
+            });
+        }
+
+        if (passConfirm) {
+            passConfirm.addEventListener('input', function() {
+                hideError();
+            });
+        }
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                var val = passNew ? passNew.value : '';
+                var confirmVal = passConfirm ? passConfirm.value : '';
+
+                var valid = checkRequirements(val);
+
+                if (!valid) {
+                    e.preventDefault();
+                    showError('La contraseña debe contener al menos 8 caracteres, una mayúscula, una minúscula y un número.');
+                    return false;
+                }
+
+                if (val !== confirmVal) {
+                    e.preventDefault();
+                    if (wrapperConfirm) wrapperConfirm.classList.add('has-error');
+                    showError('Las contraseñas no coinciden.');
+                    return false;
+                }
+            });
+        }
 
         function updateRequirement(elementId, isValid, text) {
-            const el = document.getElementById(elementId);
+            var el = document.getElementById(elementId);
             if (!el) return;
             if (isValid) {
                 el.classList.remove('invalid');
@@ -215,8 +287,8 @@
         }
 
         function togglePasswordVisibility(inputId, iconId) {
-            const input = document.getElementById(inputId);
-            const icon = document.getElementById(iconId);
+            var input = document.getElementById(inputId);
+            var icon = document.getElementById(iconId);
             if (!input || !icon) return;
             
             if (input.type === 'password') {

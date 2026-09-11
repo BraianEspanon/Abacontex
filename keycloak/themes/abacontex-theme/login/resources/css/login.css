@@ -729,12 +729,12 @@ body.login-pf,
 
 /* Estado de error para el contenedor del input */
 .input-wrapper.has-error {
-  border-color: #e06d6d !important; /* Rojo suave/coral */
+  box-shadow: 0 0 0 2px rgba(224, 75, 75, 0.75) !important;
 }
 
-/* Cambia el color del icono si hay un error para dar más feedback */
+.input-wrapper.has-error .input-icon,
 .input-wrapper.has-error .input-icon svg {
-  color: #e06d6d;
+  color: #f8f6f2 !important;
 }
 
 /* Texto del error debajo del input */
