@@ -1,14 +1,8 @@
-import { AuthUser } from '../types/express';
 import { BadRequestError } from '../errors/bad-request-error';
-import {
-  DigitalizarEjercicioDTO,
-  DigitalizarEjercicioResponseDTO,
-} from '../validators/ejercicio.validator';
+import { DigitalizarEjercicioResponseDTO } from '../dto/ejercicio/ejercicio.dto';
 import { ocrService } from '../integrations/ocr/ocr.service';
 
 export async function digitalizarEjercicio(
-  user: AuthUser,
-  data: DigitalizarEjercicioDTO,
   file?: Express.Multer.File
 ): Promise<DigitalizarEjercicioResponseDTO> {
   // 1. Validar presencia del archivo adjunto
