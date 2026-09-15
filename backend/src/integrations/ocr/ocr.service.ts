@@ -25,9 +25,43 @@ REGLAS DE EXTRACCIÓN:
    - Resaltá en negrita comprobantes comerciales (ej. **Factura Original**, **Duplicado Factura A**).
    - Mantené los títulos y subtítulos institucionales del encabezado con ### o **.`;
 
-export class GeminiOcrProvider implements IOcrProvider {
-  private readonly modelName = 'gemini-3.6-flash';
+const MODELOS_CANDIDATOS = ['gemini-3.6-flash' /*, 'gemini-2.0-flash'*/];
+const MAX_REINTENTOS_POR_MODELO = 2;
 
+function esperar(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function esErrorAltaDemanda(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+
+  const err = error as Record<string, unknown>;
+  const innerError =
+    typeof err.error === 'object' && err.error !== null
+      ? (err.error as Record<string, unknown>)
+      : undefined;
+
+  const status = err.status ?? err.code ?? err.statusCode ?? innerError?.status ?? innerError?.code;
+  const message =
+    typeof err.message === 'string'
+      ? err.message.toLowerCase()
+      : typeof innerError?.message === 'string'
+        ? innerError.message.toLowerCase()
+        : '';
+
+  return (
+    status === 503 ||
+    status === 429 ||
+    status === '503' ||
+    status === '429' ||
+    status === 'UNAVAILABLE' ||
+    message.includes('high demand') ||
+    message.includes('unavailable') ||
+    message.includes('resource exhausted')
+  );
+}
+
+export class GeminiOcrProvider implements IOcrProvider {
   async extraerTexto(buffer: Buffer, mimetype: string): Promise<ExtraccionDocumentoResult> {
     if (!process.env.GEMINI_API_KEY) {
       throw new BadRequestError(
@@ -35,58 +69,84 @@ export class GeminiOcrProvider implements IOcrProvider {
       );
     }
 
-    try {
-      const response = await aiClient.models.generateContent({
-        model: this.modelName,
-        contents: [
-          {
-            role: 'user',
-            parts: [
+    const base64Data = buffer.toString('base64');
+    let ultimoError: unknown = null;
+
+    for (const modelo of MODELOS_CANDIDATOS) {
+      for (let intento = 1; intento <= MAX_REINTENTOS_POR_MODELO; intento++) {
+        try {
+          const response = await aiClient.models.generateContent({
+            model: modelo,
+            contents: [
               {
-                inlineData: {
-                  data: buffer.toString('base64'),
-                  mimeType: mimetype,
-                },
-              },
-              {
-                text: 'Transcribí el enunciado del ejercicio contable siguiendo las reglas del sistema.',
+                role: 'user',
+                parts: [
+                  {
+                    inlineData: {
+                      data: base64Data,
+                      mimeType: mimetype,
+                    },
+                  },
+                  {
+                    text: 'Transcribí el enunciado del ejercicio contable siguiendo las reglas del sistema.',
+                  },
+                ],
               },
             ],
-          },
-        ],
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.1,
-        },
-      });
+            config: {
+              systemInstruction: SYSTEM_INSTRUCTION,
+              temperature: 0.1,
+            },
+          });
 
-      const rawText = response.text?.trim();
+          const rawText = response.text?.trim();
 
-      if (!rawText) {
-        throw new BadRequestError(
-          'No se pudo extraer texto del archivo. Verifique que la imagen sea legible.'
-        );
+          if (!rawText) {
+            throw new BadRequestError(
+              'No se pudo extraer texto del archivo. Verifique que la imagen sea legible.'
+            );
+          }
+
+          const cleanedText = rawText
+            .replace(/^```(?:markdown)?\s*\n/i, '')
+            .replace(/\n```\s*$/i, '')
+            .trim();
+
+          return {
+            enunciadoTexto: cleanedText,
+          };
+        } catch (error: unknown) {
+          if (error instanceof BadRequestError) {
+            throw error;
+          }
+
+          ultimoError = error;
+
+          if (esErrorAltaDemanda(error)) {
+            console.warn(
+              `Modelo ${modelo} con alta demanda/503 (intento ${intento}/${MAX_REINTENTOS_POR_MODELO}). Esperando antes de reintentar...`
+            );
+            await esperar(intento * 1500);
+            continue;
+          }
+
+          // Si el error no es de saturación/demanda, no insistimos con el mismo modelo
+          break;
+        }
       }
+    }
 
-      // Si el modelo envolvió la respuesta en ```markdown ... ```, limpiamos la envoltura
-      const cleanedText = rawText
-        .replace(/^```(?:markdown)?\s*\n/i, '')
-        .replace(/\n```\s*$/i, '')
-        .trim();
+    console.error('Error definitivo durante la digitalización con Gemini:', ultimoError);
 
-      return {
-        enunciadoTexto: cleanedText,
-      };
-    } catch (error) {
-      if (error instanceof BadRequestError) {
-        throw error;
-      }
-
-      console.error('Error durante la digitalización con Gemini:', error);
+    if (esErrorAltaDemanda(ultimoError)) {
       throw new BadRequestError(
-        'No fue posible digitalizar el documento. Intente nuevamente o verifique que el archivo sea legible.'
+        'El servicio de digitalización está experimentando una alta demanda temporal. Por favor, intentá nuevamente en unos segundos.'
       );
     }
+
+    throw new BadRequestError(
+      'No fue posible digitalizar el documento. Intente nuevamente o verifique que el archivo sea legible.'
+    );
   }
 }
 

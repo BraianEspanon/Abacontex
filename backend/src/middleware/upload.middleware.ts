@@ -20,12 +20,7 @@ export const upload = multer({
   },
 });
 
-const ALLOWED_DOCUMENT_MIME_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'application/pdf',
-];
+const ALLOWED_DOCUMENT_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
 export const uploadDocumento = multer({
   storage: multer.memoryStorage(),
@@ -44,4 +39,3 @@ export const uploadDocumento = multer({
     callback(null, true);
   },
 });
-
