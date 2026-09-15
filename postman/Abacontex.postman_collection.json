@@ -298,6 +298,42 @@
           "response": []
         },
         {
+          "name": "Validar mail",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/docentes/validar-email?email=f.prado@ipgsanmartin.edu.ar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "validar-email"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "f.prado@ipgsanmartin.edu.ar"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "me cursos",
           "request": {
             "method": "PATCH",
@@ -2290,6 +2326,43 @@
               "path": [
                 "contabilidad",
                 "balance-general"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ejercicios",
+      "item": [
+        {
+          "name": "digitalizar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": [
+                    "/home/braian/github/Abacontex/docs/muestras/1.jpeg"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/digitalizar",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                "digitalizar"
               ]
             }
           },
