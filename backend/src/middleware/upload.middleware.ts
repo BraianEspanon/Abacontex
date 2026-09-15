@@ -21,12 +21,24 @@ export const upload = multer({
 });
 
 const ALLOWED_DOCUMENT_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+const DEFAULT_MAX_DOCUMENT_SIZE_MB = 10;
+
+function getDocumentMaxFileSize(): number {
+  const envSize = process.env.OCR_MAX_FILE_SIZE_MB;
+  if (envSize) {
+    const parsed = Number(envSize);
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return parsed * 1024 * 1024;
+    }
+  }
+  return DEFAULT_MAX_DOCUMENT_SIZE_MB * 1024 * 1024;
+}
 
 export const uploadDocumento = multer({
   storage: multer.memoryStorage(),
 
   limits: {
-    fileSize: 10 * 1024 * 1024,
+    fileSize: getDocumentMaxFileSize(),
   },
 
   fileFilter(_req, file, callback) {

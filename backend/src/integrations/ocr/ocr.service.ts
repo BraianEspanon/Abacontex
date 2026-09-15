@@ -25,8 +25,20 @@ REGLAS DE EXTRACCIÓN:
    - Resaltá en negrita comprobantes comerciales (ej. **Factura Original**, **Duplicado Factura A**).
    - Mantené los títulos y subtítulos institucionales del encabezado con ### o **.`;
 
-const MODELOS_CANDIDATOS = ['gemini-3.6-flash' /*, 'gemini-2.0-flash'*/];
+const DEFAULT_MODELOS = ['gemini-3.6-flash', 'gemini-3.7-flash'];
 const MAX_REINTENTOS_POR_MODELO = 2;
+
+function getModelosCandidatos(): string[] {
+  const envModels = process.env.GEMINI_OCR_MODELS;
+  if (envModels) {
+    const parsed = envModels
+      .split(',')
+      .map((m) => m.trim())
+      .filter(Boolean);
+    if (parsed.length > 0) return parsed;
+  }
+  return DEFAULT_MODELOS;
+}
 
 function esperar(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -72,7 +84,9 @@ export class GeminiOcrProvider implements IOcrProvider {
     const base64Data = buffer.toString('base64');
     let ultimoError: unknown = null;
 
-    for (const modelo of MODELOS_CANDIDATOS) {
+    const modelos = getModelosCandidatos();
+
+    for (const modelo of modelos) {
       for (let intento = 1; intento <= MAX_REINTENTOS_POR_MODELO; intento++) {
         try {
           const response = await aiClient.models.generateContent({
@@ -150,4 +164,27 @@ export class GeminiOcrProvider implements IOcrProvider {
   }
 }
 
-export const ocrService = new GeminiOcrProvider();
+export class MockOcrProvider implements IOcrProvider {
+  async extraerTexto(_buffer: Buffer, _mimetype: string): Promise<ExtraccionDocumentoResult> {
+    return {
+      enunciadoTexto:
+        '1. 01/03/2024 - Se inicia la actividad comercial con un capital de $ 500.000 en efectivo y $ 1.200.000 en mercaderías.\n\n' +
+        '2. 05/03/2024 - Se compran mercaderías por $ 300.000 abonando el 50% con cheque de Banco Nación y el resto en cuenta corriente a 30 días.\n\n' +
+        '3. 12/03/2024 - Se venden mercaderías por $ 450.000 en efectivo. El costo de las mercaderías vendidas fue de $ 200.000.',
+    };
+  }
+}
+
+export class DelegatingOcrService implements IOcrProvider {
+  private geminiProvider = new GeminiOcrProvider();
+  private mockProvider = new MockOcrProvider();
+
+  async extraerTexto(buffer: Buffer, mimetype: string): Promise<ExtraccionDocumentoResult> {
+    if (process.env.OCR_MOCK_ENABLED === 'true') {
+      return this.mockProvider.extraerTexto(buffer, mimetype);
+    }
+    return this.geminiProvider.extraerTexto(buffer, mimetype);
+  }
+}
+
+export const ocrService: IOcrProvider = new DelegatingOcrService();
