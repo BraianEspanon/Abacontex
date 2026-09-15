@@ -42,6 +42,10 @@ export const swaggerSpec = swaggerJsdoc({
         description: 'Operaciones de creación y consulta para docentes.',
       },
       {
+        name: 'Ejercicios',
+        description: 'Gestión y digitalización asistida por IA de ejercicios contables.',
+      },
+      {
         name: 'Manual de cuentas',
         description: 'Gestión y consulta del Manual de Cuentas globales.',
       },
