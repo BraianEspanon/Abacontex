@@ -152,3 +152,14 @@ export async function obtenerDetalleEmpresaDocente(
 
   return respuesta.data;
 }
+
+export interface CambiarRolParticipanteRequest {
+  idRolEmpresa: number;
+}
+
+export async function cambiarRolParticipante(
+  idAlumno: string,
+  datos: CambiarRolParticipanteRequest
+): Promise<void> {
+  await clienteApi.patch(`/empresas/me/participantes/${idAlumno}/rol`, datos);
+}

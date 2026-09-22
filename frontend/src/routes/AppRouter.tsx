@@ -43,6 +43,7 @@ import CargarPlanificacionAnualPage from '../pages/produccion/CargarPlanificacio
 import FacturacionPage from '../pages/facturacion/FacturacionPage';
 import VentasPendientesFacturacionPage from '../pages/facturacion/VentasPendientesFacturacionPage';
 import GenerarFacturaPage from '../pages/facturacion/GenerarFacturaPage';
+import EquipoEmpresaPage from '../pages/empresa/EquipoEmpresaPage';
 
 import FinanzasPage from '../pages/finanzas/FinanzasPage';
 import ManualCuentasPage from '../pages/cuenta/ManualCuentasPage';
@@ -145,6 +146,7 @@ export default function AppRouter() {
         {/* Empresa */}
         <Route path="empresa" element={<MiEmpresaPage />} />
         <Route path="empresa/editar" element={<EditarEmpresaPage />} />
+        <Route path="empresa/equipo" element={<EquipoEmpresaPage />} />
 
         {/* Productos */}
         <Route path="productos" element={<ProductosPage />} />
