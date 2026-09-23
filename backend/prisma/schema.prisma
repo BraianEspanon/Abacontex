@@ -44,8 +44,9 @@ model Usuario {
   historialOrdenes       HistorialEstadoOrdenProduccion[]
   ventas                 Venta[]
 
-  alumno    Alumno?
-  auditLogs AuditLog[]
+  alumno            Alumno?
+  auditLogs         AuditLog[]
+  ejerciciosCreados Ejercicio[]
 
   @@map("usuarios")
 }
@@ -83,6 +84,7 @@ model Curso {
   alumnos    Alumno[]
   profesores ProfesorCursos[]
   empresas   Empresa[]
+  ejercicios Ejercicio[]
 
   @@index([año])
   @@map("cursos")
@@ -869,4 +871,145 @@ model FolioCuentaEmpresa {
   @@index([empresaId])
   @@index([cuentaId])
   @@map("folios_cuenta_empresa")
+}
+
+enum EstadoEjercicio {
+  BORRADOR
+  PUBLICADO
+  FINALIZADO
+}
+
+enum TipoPlantillaEjercicio {
+  LIBRO_DIARIO
+  LIBRO_MAYOR
+  LIBRO_IVA
+  HOJA_TRABAJO
+}
+
+enum TipoEjercicioIA {
+  COMPRAS_VENTAS_BASICAS
+  OPERACIONES_COMERCIALES_INTEGRADAS
+  AJUSTES_HOJA_TRABAJO
+  COSTOS_PROCESO_PRODUCTIVO
+}
+
+enum DificultadEjercicio {
+  BASICO
+  INTERMEDIO
+  AVANZADO
+}
+
+enum ContenidoAdicionalIA {
+  IVA
+  DESCUENTOS
+  INTERESES
+}
+
+enum EstadoResolucionEjercicio {
+  PENDIENTE
+  EN_EDICION
+  COMPLETADA
+}
+
+model Ejercicio {
+  idEjercicio Int @id @default(autoincrement())
+
+  docenteId String
+  docente   Usuario @relation(fields: [docenteId], references: [id])
+
+  cursoId Int
+  curso   Curso @relation(fields: [cursoId], references: [idCurso])
+
+  titulo       String          @db.VarChar(100)
+  enunciado    String
+  estado       EstadoEjercicio @default(BORRADOR)
+  indicaciones String?         @db.VarChar(200)
+  fechaLimite  DateTime        @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  plantillas   EjercicioPlantilla[]
+  generacionIA GeneracionEjercicioIA?
+  resolucion   ResolucionDocente?
+
+  @@index([docenteId])
+  @@index([cursoId])
+  @@index([estado])
+  @@index([fechaLimite])
+  @@map("ejercicios")
+}
+
+model EjercicioPlantilla {
+  idEjercicioPlantilla Int @id @default(autoincrement())
+
+  ejercicioId Int
+  ejercicio   Ejercicio @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: Cascade)
+
+  tipo TipoPlantillaEjercicio
+
+  resolucionesDocente ResolucionDocentePlantilla[]
+
+  @@unique([ejercicioId, tipo])
+  @@index([ejercicioId])
+  @@map("ejercicios_plantillas")
+}
+
+model GeneracionEjercicioIA {
+  idGeneracion Int @id @default(autoincrement())
+
+  ejercicioId Int       @unique
+  ejercicio   Ejercicio @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: Cascade)
+
+  tipoEjercicio     TipoEjercicioIA
+  dificultad        DificultadEjercicio
+  contextoAdicional String?             @db.VarChar(200)
+
+  contenidos GeneracionIAContenido[]
+
+  @@map("generaciones_ejercicios_ia")
+}
+
+model GeneracionIAContenido {
+  idGeneracionContenido Int @id @default(autoincrement())
+
+  generacionId Int
+  generacion   GeneracionEjercicioIA @relation(fields: [generacionId], references: [idGeneracion], onDelete: Cascade)
+
+  contenido ContenidoAdicionalIA
+
+  @@unique([generacionId, contenido])
+  @@index([generacionId])
+  @@map("generaciones_ia_contenidos")
+}
+
+model ResolucionDocente {
+  idResolucion Int @id @default(autoincrement())
+
+  ejercicioId Int       @unique
+  ejercicio   Ejercicio @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: Cascade)
+
+  estado EstadoResolucionEjercicio @default(PENDIENTE)
+
+  plantillas ResolucionDocentePlantilla[]
+
+  @@map("resoluciones_docente")
+}
+
+model ResolucionDocentePlantilla {
+  idResolucionPlantilla Int @id @default(autoincrement())
+
+  resolucionId Int
+  resolucion   ResolucionDocente @relation(fields: [resolucionId], references: [idResolucion], onDelete: Cascade)
+
+  ejercicioPlantillaId Int
+  ejercicioPlantilla   EjercicioPlantilla @relation(fields: [ejercicioPlantillaId], references: [idEjercicioPlantilla], onDelete: Cascade)
+
+  estado    EstadoResolucionEjercicio @default(PENDIENTE)
+  contenido Json?
+
+  @@unique([resolucionId, ejercicioPlantillaId])
+  @@index([resolucionId])
+  @@index([ejercicioPlantillaId])
+  @@map("resoluciones_docente_plantillas")
 }
