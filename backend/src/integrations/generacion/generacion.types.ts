@@ -5,11 +5,11 @@ import {
 } from '../../constants/ejercicio.constants';
 
 export interface ConstruirPromptParams {
-  cursoAño?: number;
+  cursoAño?: number | undefined;
   tipoEjercicio: TipoEjercicio;
   dificultad: DificultadEjercicio;
-  contenidosAdicionales?: ContenidoAdicional[];
-  contextoAdicional?: string;
+  contenidosAdicionales?: ContenidoAdicional[] | undefined;
+  contextoAdicional?: string | undefined;
 }
 
 export interface PromptGeneracionResult {

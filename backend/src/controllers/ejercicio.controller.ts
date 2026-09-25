@@ -6,3 +6,9 @@ export async function digitalizarEjercicio(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function generarEjercicio(req: Request, res: Response) {
+  const resultado = await ejercicioService.generarEjercicio(req.body, req.user!);
+
+  res.status(200).json(resultado);
+}
