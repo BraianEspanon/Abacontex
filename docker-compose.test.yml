@@ -39,7 +39,10 @@ services:
       GEMINI_OCR_MODELS: ${GEMINI_OCR_MODELS}
       OCR_MAX_FILE_SIZE_MB: ${OCR_MAX_FILE_SIZE_MB}
       OCR_MOCK_ENABLED: ${OCR_MOCK_ENABLED}
-      
+
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL_GENERACION: ${GROQ_MODEL_GENERACION}
+
     depends_on:
       postgres:
         condition: service_healthy

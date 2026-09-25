@@ -1,2 +1,3 @@
 .env
 /generated/prisma
+backend/src/integrations/ocr/prueba.md
