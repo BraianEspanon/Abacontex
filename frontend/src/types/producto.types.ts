@@ -15,6 +15,7 @@ export interface ProductoListado {
   fotoUrl: string | null;
   precioUnitario: number;
   precioVenta: number;
+  precioConsumidorFinal: number;
   stock: number;
 }
 
@@ -22,13 +23,21 @@ export interface Producto {
   id: number;
   nombre: string;
   descripcion: string;
+
   precioUnitario: number;
   margenGanancia: number;
   precioVenta: number;
+  precioConsumidorFinal: number;
+
   stock: number;
+
   fotoUrl: string | null;
+
   empresaId: number;
   activo: boolean;
+
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface ProductosQueryParams {

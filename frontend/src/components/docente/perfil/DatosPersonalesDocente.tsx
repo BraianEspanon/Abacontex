@@ -94,7 +94,6 @@ export default function DatosPersonalesDocente({ usuario }: DatosPersonalesDocen
       {
         nombre: nombreLimpio,
         apellido: apellidoLimpio,
-        idRolEmpresa: null,
       },
       {
         onSuccess: () => {

@@ -16,6 +16,9 @@ const titulosPorRuta: Record<string, string> = {
   '/alumno/produccion': 'Producción',
   '/alumno/ventas': 'Ventas',
   '/alumno/facturacion': 'Facturación',
+  '/alumno/facturacion/ventas-pendientes': 'Facturación',
+  '/alumno/facturacion/nueva': 'Generar factura',
+
   '/alumno/finanzas': 'Finanzas',
   '/alumno/contabilidad': 'Contabilidad',
   '/alumno/ejercicios': 'Mis ejercicios',
@@ -23,6 +26,7 @@ const titulosPorRuta: Record<string, string> = {
   '/alumno/logros': 'Logros',
   '/alumno/manual-cuentas': 'Manual de cuentas',
   '/alumno/perfil': 'Perfil',
+  '/alumno/perfil/editar': 'Perfil',
 };
 
 export default function EstructuraPanelAlumno() {

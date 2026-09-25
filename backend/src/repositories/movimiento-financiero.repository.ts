@@ -179,7 +179,7 @@ export async function findMovimientosPorRango(
   });
 }
 
-export async function findPosterioresAFecha(
+export async function findRegistradosPosterioresA(
   idEmpresa: number,
   fechaDesde?: Date,
   tx?: Prisma.TransactionClient
@@ -191,7 +191,7 @@ export async function findPosterioresAFecha(
   };
 
   if (fechaDesde) {
-    where.fecha = {
+    where.createdAt = {
       gt: fechaDesde,
     };
   }
@@ -209,7 +209,7 @@ export async function findPosterioresAFecha(
       },
     },
     orderBy: {
-      fecha: 'asc',
+      createdAt: 'asc',
     },
   });
 }

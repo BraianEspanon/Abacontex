@@ -230,50 +230,51 @@ export async function tieneFaltantes(pedidoId: number, tx?: Prisma.TransactionCl
 
 export async function createPedido(
   data: Prisma.PedidoCreateInput,
-  detalles: DetallePedidoCalculado[]
+  detalles: DetallePedidoCalculado[],
+  tx?: Prisma.TransactionClient
 ) {
-  return prisma.$transaction(async (tx) => {
-    const pedido = await tx.pedido.create({
-      data: {
-        ...data,
-        detalles: {
-          create: detalles.map((detalle) => ({
-            productoId: detalle.productoId,
-            cantidad: detalle.cantidad,
-            cantidadConStock: detalle.cantidadConStock,
-            cantidadPendiente: detalle.cantidadPendiente,
-            precioUnitario: detalle.precioUnitario,
-            precioUnitarioConIva: detalle.precioUnitarioConIva,
-            subtotal: detalle.subtotal,
-            subtotalConIva: detalle.subtotalConIva,
-          })),
-        },
-      },
-      include: {
-        estado: true,
-        detalles: true,
-      },
-    });
+  const db = getDbClient(tx);
 
-    for (const detalle of detalles) {
-      if (detalle.cantidadConStock === 0) {
-        continue;
-      }
+  const pedido = await db.pedido.create({
+    data: {
+      ...data,
+      detalles: {
+        create: detalles.map((detalle) => ({
+          productoId: detalle.productoId,
+          cantidad: detalle.cantidad,
+          cantidadConStock: detalle.cantidadConStock,
+          cantidadPendiente: detalle.cantidadPendiente,
+          precioUnitario: detalle.precioUnitario,
+          precioUnitarioConIva: detalle.precioUnitarioConIva,
+          subtotal: detalle.subtotal,
+          subtotalConIva: detalle.subtotalConIva,
+        })),
+      },
+    },
+    include: {
+      estado: true,
+      detalles: true,
+    },
+  });
 
-      await tx.producto.update({
-        where: {
-          id: detalle.productoId,
-        },
-        data: {
-          stock: {
-            decrement: detalle.cantidadConStock,
-          },
-        },
-      });
+  for (const detalle of detalles) {
+    if (detalle.cantidadConStock === 0) {
+      continue;
     }
 
-    return pedido;
-  });
+    await db.producto.update({
+      where: {
+        id: detalle.productoId,
+      },
+      data: {
+        stock: {
+          decrement: detalle.cantidadConStock,
+        },
+      },
+    });
+  }
+
+  return pedido;
 }
 
 export async function updateEstadoPedido(

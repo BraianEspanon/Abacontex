@@ -1,5 +1,6 @@
 import { NotFoundError } from '../errors/not-found.error';
-import { prisma } from '../lib/prisma';
+import { prisma, getDbClient } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function crearDocente(
   usuarioKeycloakId: string,
@@ -7,28 +8,29 @@ export async function crearDocente(
   nombre: string,
   apellido: string,
   rolSistemaId: number,
-  cursoIds: number[]
+  cursoIds: number[],
+  tx?: Prisma.TransactionClient
 ) {
-  return prisma.$transaction(async (tx) => {
-    const usuario = await tx.usuario.create({
-      data: {
-        keycloakId: usuarioKeycloakId,
-        email: email,
-        nombre: nombre,
-        apellido: apellido,
-        rolSistemaId: rolSistemaId,
-      },
-    });
+  const db = getDbClient(tx);
 
-    await tx.profesorCursos.createMany({
-      data: cursoIds.map((idCurso) => ({
-        idCurso,
-        idUsuario: usuario.id,
-      })),
-    });
-
-    return usuario;
+  const usuario = await db.usuario.create({
+    data: {
+      keycloakId: usuarioKeycloakId,
+      email: email,
+      nombre: nombre,
+      apellido: apellido,
+      rolSistemaId: rolSistemaId,
+    },
   });
+
+  await db.profesorCursos.createMany({
+    data: cursoIds.map((idCurso) => ({
+      idCurso,
+      idUsuario: usuario.id,
+    })),
+  });
+
+  return usuario;
 }
 
 export async function findByKeycloakId(keycloakId: string) {
@@ -103,19 +105,23 @@ export async function findCursosByDocente(keycloakId: string) {
   });
 }
 
-export async function updateCursosProfesor(idUsuario: string, cursoIds: number[]) {
-  await prisma.$transaction(async (tx) => {
-    await tx.profesorCursos.deleteMany({
-      where: {
-        idUsuario,
-      },
-    });
+export async function updateCursosProfesor(
+  idUsuario: string,
+  cursoIds: number[],
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
 
-    await tx.profesorCursos.createMany({
-      data: cursoIds.map((idCurso) => ({
-        idCurso,
-        idUsuario,
-      })),
-    });
+  await db.profesorCursos.deleteMany({
+    where: {
+      idUsuario,
+    },
+  });
+
+  await db.profesorCursos.createMany({
+    data: cursoIds.map((idCurso) => ({
+      idCurso,
+      idUsuario,
+    })),
   });
 }

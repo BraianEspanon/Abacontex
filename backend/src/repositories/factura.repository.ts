@@ -174,6 +174,7 @@ export async function findFacturasByEmpresa(
   }
 
   const skip = (filtros.page - 1) * filtros.pageSize;
+  const ordenFecha = filtros.ordenFecha || 'desc';
 
   const [total, items] = await Promise.all([
     db.factura.count({ where }),
@@ -188,7 +189,7 @@ export async function findFacturasByEmpresa(
           },
         },
       },
-      orderBy: { fechaEmision: 'desc' },
+      orderBy: { fechaEmision: ordenFecha },
       skip,
       take: filtros.pageSize,
     }),

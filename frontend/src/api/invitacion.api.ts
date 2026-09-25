@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import api from '../services/axios';
 
-import type { Invitacion } from '../types/invitacion.types';
+import type { Invitacion, InvitacionEmpresaEnviada } from '../types/invitacion.types';
 
 export interface CrearInvitacionesRequest {
   emails: string[];
@@ -32,4 +32,10 @@ export async function rechazarInvitacion(idInvitacion: number): Promise<void> {
 
 export async function crearInvitacionesEmpresa(datos: CrearInvitacionesRequest): Promise<void> {
   await api.post('/empresas/me/invitaciones', datos);
+}
+
+export async function obtenerInvitacionesEnviadas(): Promise<InvitacionEmpresaEnviada[]> {
+  const response = await api.get<InvitacionEmpresaEnviada[]>('/empresas/me/invitaciones/enviadas');
+
+  return response.data;
 }

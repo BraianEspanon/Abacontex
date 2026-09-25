@@ -8,6 +8,7 @@ interface DetalleVentaModalProps {
   cargando: boolean;
   error: boolean;
   onCerrar: () => void;
+  onGenerarFactura?: (idVenta: number) => void;
 }
 
 const formatearFecha = (fecha: string) => {
@@ -45,6 +46,7 @@ export default function DetalleVentaModal({
   cargando,
   error,
   onCerrar,
+  onGenerarFactura,
 }: DetalleVentaModalProps) {
   if (!abierto) {
     return null;
@@ -301,14 +303,24 @@ export default function DetalleVentaModal({
               </div>
             </section>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={onCerrar}
-                className="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                className="cursor-pointer rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
                 Cerrar
               </button>
+
+              {onGenerarFactura && (
+                <button
+                  type="button"
+                  onClick={() => onGenerarFactura(venta.idVenta)}
+                  className="cursor-pointer rounded-xl bg-abacontex-primary-three px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two"
+                >
+                  Generar factura
+                </button>
+              )}
             </div>
           </div>
         )}

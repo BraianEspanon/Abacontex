@@ -24,3 +24,11 @@ export interface Invitacion {
   createdBy: Invitador;
   fechaExpiracion: string;
 }
+
+export interface InvitacionEmpresaEnviada {
+  id: number;
+  empresaId: number;
+  email: string;
+  estado: string;
+  fechaExpiracion: string;
+}

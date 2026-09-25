@@ -195,8 +195,50 @@ export default function CrearOrdenProduccionForm({
     };
   })();
 
-  const bloquearProducto = pedidoSeleccionado?.faltantes.length === 1;
+  const hayUnSoloFaltante = pedidoSeleccionado?.faltantes.length === 1;
 
+  const bloquearProducto = Boolean(hayUnSoloFaltante && productoId);
+
+  /*
+   * Si el pedido tiene un único producto faltante,
+   * lo seleccionamos automáticamente.
+   *
+   * Este efecto es necesario porque pedidosAsociables
+   * se obtiene de forma asíncrona. De esta manera también
+   * funciona cuando el pedido viene precargado desde la URL.
+   *
+   * No modificamos estados locales de React dentro del efecto.
+   */
+  useEffect(() => {
+    if (!pedidoSeleccionado) {
+      return;
+    }
+
+    if (pedidoSeleccionado.faltantes.length !== 1) {
+      return;
+    }
+
+    const unicoFaltante = pedidoSeleccionado.faltantes[0];
+
+    if (productoId === unicoFaltante.productoId) {
+      return;
+    }
+
+    setValue('productoId', unicoFaltante.productoId, {
+      shouldValidate: true,
+      shouldDirty: false,
+    });
+
+    setValue('cantidadProducir', unicoFaltante.cantidadPendiente, {
+      shouldValidate: true,
+      shouldDirty: false,
+    });
+  }, [pedidoSeleccionado, productoId, setValue]);
+
+  /*
+   * Cierra el listado de productos si el usuario
+   * hace click fuera del selector.
+   */
   useEffect(() => {
     const handleClickFuera = (event: MouseEvent) => {
       const selector = selectorProductoRef.current;
@@ -220,40 +262,53 @@ export default function CrearOrdenProduccionForm({
   const handleCambiarPedido = (valor: string) => {
     const nuevoPedidoId = valor === '' ? undefined : Number(valor);
 
-    setValue('pedidoId', nuevoPedidoId, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-
+    /*
+     * Siempre limpiamos el producto y la cantidad
+     * correspondientes al pedido anterior.
+     */
     resetField('productoId');
     resetField('cantidadProducir');
 
     setBusquedaProducto('');
     setMostrarResultadosProducto(false);
 
+    setValue('pedidoId', nuevoPedidoId, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    /*
+     * Si el nuevo pedido ya está disponible y posee un
+     * único faltante, podemos completarlo directamente.
+     *
+     * Esto evita esperar al siguiente render cuando el
+     * cambio fue iniciado por el usuario.
+     */
     if (!nuevoPedidoId) {
       return;
     }
 
-    const pedido = pedidosAsociables.find((item) => item.idPedido === nuevoPedidoId);
+    const nuevoPedido = pedidosAsociables.find((pedido) => pedido.idPedido === nuevoPedidoId);
 
-    if (!pedido) {
+    if (!nuevoPedido) {
       return;
     }
 
-    if (pedido.faltantes.length === 1) {
-      const unicoFaltante = pedido.faltantes[0];
-
-      setValue('productoId', unicoFaltante.productoId, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-
-      setValue('cantidadProducir', unicoFaltante.cantidadPendiente, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
+    if (nuevoPedido.faltantes.length !== 1) {
+      return;
     }
+
+    const unicoFaltante = nuevoPedido.faltantes[0];
+
+    setValue('productoId', unicoFaltante.productoId, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    setValue('cantidadProducir', unicoFaltante.cantidadPendiente, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
 
   const handleSeleccionarProducto = (producto: ProductoBuscable) => {
@@ -271,6 +326,12 @@ export default function CrearOrdenProduccionForm({
           shouldDirty: true,
         });
       }
+    } else {
+      /*
+       * Si es una orden manual y cambia el producto,
+       * no conservamos la cantidad anterior.
+       */
+      resetField('cantidadProducir');
     }
 
     setBusquedaProducto('');
@@ -286,7 +347,7 @@ export default function CrearOrdenProduccionForm({
     resetField('cantidadProducir');
 
     setBusquedaProducto('');
-    setMostrarResultadosProducto(false);
+    setMostrarResultadosProducto(true);
   };
 
   const handleFocusProducto = () => {
@@ -334,6 +395,12 @@ export default function CrearOrdenProduccionForm({
       onSubmit={handleSubmit(procesarSubmit)}
       className="grid items-start gap-5 lg:grid-cols-[1.12fr_0.88fr]"
     >
+      {/* Campo real de React Hook Form */}
+      <input type="hidden" {...register('productoId')} />
+
+      {/* =====================================================
+          DATOS DE LA ORDEN
+      ====================================================== */}
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="mb-5 flex items-center gap-3">
           <ClipboardList className="h-5 w-5 text-gray-800" />
@@ -342,6 +409,7 @@ export default function CrearOrdenProduccionForm({
         </div>
 
         <div className="space-y-5">
+          {/* Producto */}
           <div ref={selectorProductoRef}>
             <label className="mb-1.5 block text-sm font-medium text-gray-800">
               Producto <span className="text-red-500">*</span>
@@ -381,7 +449,6 @@ export default function CrearOrdenProduccionForm({
                     <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
 
                     <input
-                      id="productoId"
                       type="text"
                       maxLength={MAX_BUSQUEDA_PRODUCTO}
                       value={busquedaProducto}
@@ -454,9 +521,9 @@ export default function CrearOrdenProduccionForm({
               </p>
             )}
 
-            {bloquearProducto && (
+            {hayUnSoloFaltante && productoSeleccionadoReal && (
               <p className="mt-1 text-xs text-gray-500">
-                El producto fue determinado automáticamente según el faltante del pedido.
+                El producto fue determinado automáticamente según el único faltante del pedido.
               </p>
             )}
 
@@ -465,6 +532,7 @@ export default function CrearOrdenProduccionForm({
             )}
           </div>
 
+          {/* Cantidad */}
           <div>
             <label
               htmlFor="cantidadProducir"
@@ -510,6 +578,7 @@ export default function CrearOrdenProduccionForm({
             )}
           </div>
 
+          {/* Prioridad */}
           <div>
             <p className="mb-1.5 text-sm font-medium text-gray-800">
               Prioridad <span className="text-red-500">*</span>
@@ -548,6 +617,7 @@ export default function CrearOrdenProduccionForm({
             )}
           </div>
 
+          {/* Pedido asociado */}
           <div>
             <label htmlFor="pedidoId" className="mb-1.5 block text-sm font-medium text-gray-800">
               Pedido asociado{' '}
@@ -596,6 +666,9 @@ export default function CrearOrdenProduccionForm({
         </div>
       </section>
 
+      {/* =====================================================
+          RESUMEN
+      ====================================================== */}
       <section className="h-fit w-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm lg:max-w-[520px] lg:justify-self-end">
         <div className="mb-4 flex items-center gap-3">
           <Paperclip className="h-5 w-5 text-gray-800" />
@@ -630,6 +703,9 @@ export default function CrearOrdenProduccionForm({
         </div>
       </section>
 
+      {/* =====================================================
+          ACCIONES
+      ====================================================== */}
       <div className="-mt-1 flex flex-col-reverse gap-3 lg:col-span-2 lg:flex-row lg:justify-end">
         <Button
           type="button"

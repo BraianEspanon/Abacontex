@@ -7,7 +7,7 @@ export async function findUltimaByEmpresa(idEmpresa: number, tx?: Prisma.Transac
 
   return db.conciliacionFinanciera.findFirst({
     where: { empresaId: idEmpresa },
-    orderBy: { fecha: 'desc' },
+    orderBy: { createdAt: 'desc' },
   });
 }
 

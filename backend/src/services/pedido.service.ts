@@ -1,10 +1,14 @@
 import { Prisma } from '@prisma/client';
 import { AuthUser } from '../types/express';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
 import { CrearPedidoDTO, PedidoIdDTO } from '../validators/pedido.validator';
 
+import * as auditLogService from './audit-log.service';
+
 import * as pedidoRepository from '../repositories/pedido.repository';
 import * as alumnoRepository from '../repositories/alumno.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import { ForbiddenError } from '../errors/forbidden.error';
 import { NotFoundError } from '../errors/not-found.error';
@@ -52,30 +56,81 @@ export async function crearPedido(user: AuthUser, data: CrearPedidoDTO) {
   );
 
   //Transacción
-  const pedido = await pedidoRepository.createPedido(
-    {
-      empresa: {
-        connect: {
-          id: usuario.alumno.empresa.id,
+  const pedido = await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const pedidoCreado = await pedidoRepository.createPedido(
+      {
+        empresa: {
+          connect: {
+            id: usuario.alumno!.empresa!.id,
+          },
         },
-      },
-      usuario: {
-        connect: {
-          id: usuario.alumno.id,
+        usuario: {
+          connect: {
+            id: usuario.alumno!.id,
+          },
         },
-      },
-      estado: {
-        connect: {
-          idEstado: estadoPendiente.idEstado,
+        estado: {
+          connect: {
+            idEstado: estadoPendiente.idEstado,
+          },
         },
+        clienteNombre: data.clienteNombre,
+        clienteMail: data.clienteMail,
+        montoTotal,
+        montoTotalConIva,
       },
-      clienteNombre: data.clienteNombre,
-      clienteMail: data.clienteMail,
-      montoTotal,
-      montoTotalConIva,
-    },
-    detalles
-  );
+      detalles,
+      tx
+    );
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.CREATE,
+      entity: AUDIT_ENTITIES.PEDIDO,
+      entityId: pedidoCreado.idPedido,
+      empresaId: usuario.alumno!.empresa!.id,
+      newValues: {
+        pedido: {
+          idPedido: pedidoCreado.idPedido,
+          montoTotal,
+          clienteNombre: data.clienteNombre,
+        },
+        productos: detalles.map((d) => {
+          const prod = productos.find((p) => p.id === d.productoId);
+          return {
+            id: d.productoId,
+            nombre: prod?.nombre ?? 'Desconocido',
+            cantidad: d.cantidad,
+            faltante: d.cantidadPendiente,
+          };
+        }),
+        cantidadFaltantes: faltantesStock.length,
+      },
+      description: 'Se creó un nuevo pedido',
+    });
+
+    for (const detalle of detalles) {
+      if (detalle.cantidadConStock > 0) {
+        const productoOld = productos.find((p) => p.id === detalle.productoId);
+        if (productoOld) {
+          await auditLogService.registrarAccion({
+            tx,
+            usuarioId: usuario.id,
+            action: AUDIT_ACTIONS.UPDATE,
+            entity: AUDIT_ENTITIES.PRODUCTO,
+            entityId: detalle.productoId,
+            empresaId: usuario.alumno!.empresa!.id,
+            oldValues: { stock: productoOld.stock },
+            newValues: { stock: productoOld.stock - detalle.cantidadConStock },
+            description: `Se descontó stock del producto por el pedido #${pedidoCreado.idPedido}`,
+          });
+        }
+      }
+    }
+
+    return pedidoCreado;
+  });
 
   // Respuesta
   return toCrearPedidoResponse(pedido, faltantesStock);
@@ -206,10 +261,27 @@ export async function marcarPedidoListoParaEntregar(
   const estado = await pedidoRepository.findEstadoListoParaEntregar();
 
   // Actualizar
-  const pedidoActualizado = await pedidoRepository.updateEstadoPedido(
-    pedido.idPedido,
-    estado.idEstado
-  );
+  const pedidoActualizado = await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const actualizado = await pedidoRepository.updateEstadoPedido(
+      pedido.idPedido,
+      estado.idEstado,
+      tx
+    );
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      entity: AUDIT_ENTITIES.PEDIDO,
+      entityId: pedido.idPedido,
+      empresaId: usuario.alumno!.empresa!.id,
+      oldValues: { estado: pedido.estado.nombre },
+      newValues: { estado: actualizado.estado.nombre },
+      description: 'Se marcó el pedido como listo para entregar',
+    });
+
+    return actualizado;
+  });
 
   // Respuesta
   const response: PedidoCambioEstadoResponseDTO = {

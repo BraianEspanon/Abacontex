@@ -1,4 +1,3 @@
-import { NavLink } from 'react-router-dom';
 import { useKeycloak } from '@react-keycloak/web';
 import {
   BookOpen,
@@ -16,6 +15,8 @@ import {
   UsersRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+
 import { useUsuarioActual } from '../../hooks/useUsuarioActual';
 
 interface OpcionMenu {
@@ -70,6 +71,7 @@ const opcionesMenu: OpcionMenu[] = [
   {
     etiqueta: 'Manual de cuentas',
     icono: BookOpen,
+    ruta: '/docente/manual-cuentas',
   },
   {
     etiqueta: 'Perfil',
@@ -80,6 +82,7 @@ const opcionesMenu: OpcionMenu[] = [
 
 export default function BarraLateralDocente() {
   const { keycloak } = useKeycloak();
+
   const { data: usuario, isLoading: cargandoUsuario } = useUsuarioActual();
 
   const nombreCompleto = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Docente';
@@ -101,7 +104,6 @@ export default function BarraLateralDocente() {
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col bg-[#17231b] text-white">
-      {/* Logo */}
       <div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#769a75]">
           <span className="text-lg font-bold">✦</span>
@@ -114,7 +116,6 @@ export default function BarraLateralDocente() {
         </div>
       </div>
 
-      {/* Menú */}
       <nav className="flex-1 space-y-1 px-3 py-4">
         {opcionesMenu.map(({ etiqueta, icono: Icono, ruta }) => {
           if (ruta) {
@@ -133,6 +134,7 @@ export default function BarraLateralDocente() {
                 }
               >
                 <Icono size={18} />
+
                 <span>{etiqueta}</span>
               </NavLink>
             );
@@ -142,18 +144,18 @@ export default function BarraLateralDocente() {
             <button
               key={etiqueta}
               type="button"
-              className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white/55"
               disabled
               title="Próximamente"
+              className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white/55"
             >
               <Icono size={18} />
+
               <span>{etiqueta}</span>
             </button>
           );
         })}
       </nav>
 
-      {/* Usuario */}
       <div className="border-t border-white/10 p-4">
         <div className="mb-4 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f0e9] text-sm font-semibold text-[#17231b]">

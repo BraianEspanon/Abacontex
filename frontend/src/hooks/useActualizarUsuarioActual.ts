@@ -15,6 +15,9 @@ export function useActualizarUsuarioActual() {
         queryClient.invalidateQueries({
           queryKey: ['docente-actual'],
         }),
+        queryClient.invalidateQueries({
+          queryKey: ['alumno-actual'],
+        }),
       ]);
     },
   });

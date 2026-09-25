@@ -1,4 +1,4 @@
-import { CircleDollarSign, PackageCheck, PackageOpen, Timer } from 'lucide-react';
+import { CircleCheckBig, ClipboardList, Clock3, Factory } from 'lucide-react';
 
 import type { ResumenProduccion } from '../../types/produccion.types';
 
@@ -10,30 +10,30 @@ const tarjetas = [
   {
     clave: 'total',
     titulo: 'Órdenes totales',
-    icono: PackageOpen,
-    iconoClases: 'bg-gray-100 text-[#496647]',
+    icono: ClipboardList,
+    iconoClases: 'bg-[#eef4eb] text-[#496647]',
     valorClases: 'text-[#496647]',
   },
   {
     clave: 'pendientes',
     titulo: 'Pendientes',
-    icono: PackageCheck,
-    iconoClases: 'bg-gray-100 text-[#496647]',
-    valorClases: 'text-[#496647]',
+    icono: Clock3,
+    iconoClases: 'bg-amber-50 text-amber-600',
+    valorClases: 'text-amber-600',
   },
   {
     clave: 'enProceso',
     titulo: 'En proceso',
-    icono: Timer,
-    iconoClases: 'bg-gray-100 text-[#496647]',
-    valorClases: 'text-[#496647]',
+    icono: Factory,
+    iconoClases: 'bg-blue-50 text-blue-600',
+    valorClases: 'text-blue-600',
   },
   {
     clave: 'finalizadas',
     titulo: 'Finalizadas',
-    icono: CircleDollarSign,
-    iconoClases: 'bg-gray-100 text-[#496647]',
-    valorClases: 'text-[#496647]',
+    icono: CircleCheckBig,
+    iconoClases: 'bg-green-50 text-green-600',
+    valorClases: 'text-green-600',
   },
 ] as const;
 
@@ -52,7 +52,7 @@ export default function ResumenOrdenesProduccion({ resumen }: ResumenOrdenesProd
                 iconoClases,
               ].join(' ')}
             >
-              <Icono className="h-5 w-5" />
+              <Icono className="h-5 w-5" strokeWidth={2} />
             </div>
 
             <div>

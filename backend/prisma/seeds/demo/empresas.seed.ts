@@ -73,5 +73,34 @@ export const empresasSeed: Seed = {
         idCicloLectivo: ciclo2026.id,
       },
     });
+
+    await prisma.empresa.upsert({
+      where: {
+        nombre: 'Luz de luna',
+      },
+      update: {
+        actividad:
+          'Empresa dedicada al diseño y fabricación de veladores artesanales en madera, integrando materiales reciclados para ofrecer productos funcionales, originales y sustentables.',
+        logoUrl:
+          'https://res.cloudinary.com/scwkazap/image/upload/v1788793809/abacontex/empresas/z3vkogsc3rh3sjt7ajfp.jpg',
+        logoPublicId: 'abacontex/empresas/z3vkogsc3rh3sjt7ajfp',
+        puntos: 0,
+        activo: true,
+        idCurso: curso6to.idCurso,
+        idCicloLectivo: ciclo2026.id,
+      },
+      create: {
+        nombre: 'Luz de luna',
+        actividad:
+          'Empresa dedicada al diseño y fabricación de veladores artesanales en madera, integrando materiales reciclados para ofrecer productos funcionales, originales y sustentables.',
+        logoUrl:
+          'https://res.cloudinary.com/scwkazap/image/upload/v1788793809/abacontex/empresas/z3vkogsc3rh3sjt7ajfp.jpg',
+        logoPublicId: 'abacontex/empresas/z3vkogsc3rh3sjt7ajfp',
+        puntos: 0,
+        activo: true,
+        idCurso: curso6to.idCurso,
+        idCicloLectivo: ciclo2026.id,
+      },
+    });
   },
 };

@@ -23,6 +23,9 @@ import CEOBienvenida from '../pages/onboarding/CEOBienvenida';
 import RedireccionInicial from '../pages/onboarding/RedireccionIncial';
 import InvitacionPage from '../pages/onboarding/InvitacionPage';
 
+import PerfilAlumno from '../pages/alumnos/PerfilAlumno';
+import EditarPerfilAlumno from '../pages/alumnos/EditarPerfilAlumno';
+
 import RegistroDocentePage from '../pages/docente/RegistroDocente';
 import LoginDocente from '../pages/docente/LoginDocente';
 
@@ -36,6 +39,15 @@ import VentasPage from '../pages/venta/VentasPage';
 import RegistrarVentaPage from '../pages/venta/RegistrarVentaPage';
 import PlanificacionAnualPage from '../pages/produccion/PlanificacionAnualPage';
 import CargarPlanificacionAnualPage from '../pages/produccion/CargarPlanificacionAnualPage';
+
+import FacturacionPage from '../pages/facturacion/FacturacionPage';
+import VentasPendientesFacturacionPage from '../pages/facturacion/VentasPendientesFacturacionPage';
+import GenerarFacturaPage from '../pages/facturacion/GenerarFacturaPage';
+import EquipoEmpresaPage from '../pages/empresa/EquipoEmpresaPage';
+
+import FinanzasPage from '../pages/finanzas/FinanzasPage';
+import ManualCuentasPage from '../pages/cuenta/ManualCuentasPage';
+import ManualCuentasDocentePage from '../pages/cuenta/ManualCuentasDocentePage';
 
 export default function AppRouter() {
   return (
@@ -113,6 +125,7 @@ export default function AppRouter() {
         <Route index element={<InicioDocente />} />
         <Route path="perfil" element={<PerfilDocente />} />
         <Route path="empresas" element={<EmpresasDocente />} />
+        <Route path="manual-cuentas" element={<ManualCuentasDocentePage />} />
       </Route>
 
       <Route path="/docente/login" element={<LoginDocente />} />
@@ -126,9 +139,14 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       >
+        {/* Perfil */}
+        <Route path="perfil" element={<PerfilAlumno />} />
+        <Route path="perfil/editar" element={<EditarPerfilAlumno />} />
+
         {/* Empresa */}
         <Route path="empresa" element={<MiEmpresaPage />} />
         <Route path="empresa/editar" element={<EditarEmpresaPage />} />
+        <Route path="empresa/equipo" element={<EquipoEmpresaPage />} />
 
         {/* Productos */}
         <Route path="productos" element={<ProductosPage />} />
@@ -149,6 +167,17 @@ export default function AppRouter() {
         {/* Ventas */}
         <Route path="ventas" element={<VentasPage />} />
         <Route path="ventas/registrar" element={<RegistrarVentaPage />} />
+
+        {/* Facturación */}
+        <Route path="facturacion" element={<FacturacionPage />} />
+        <Route path="facturacion/ventas-pendientes" element={<VentasPendientesFacturacionPage />} />
+        <Route path="facturacion/nueva" element={<GenerarFacturaPage />} />
+
+        {/* Finanzas */}
+        <Route path="finanzas" element={<FinanzasPage />} />
+
+        {/* Manual de cuentas */}
+        <Route path="manual-cuentas" element={<ManualCuentasPage />} />
       </Route>
     </Routes>
   );

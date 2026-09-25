@@ -24,7 +24,8 @@ export interface UsuarioActual {
 export interface ActualizarUsuarioActualRequest {
   nombre: string;
   apellido: string;
-  idRolEmpresa: number | null;
+  foto?: File | null;
+  eliminarFoto?: boolean;
 }
 
 export interface ActualizarPasswordRequest {

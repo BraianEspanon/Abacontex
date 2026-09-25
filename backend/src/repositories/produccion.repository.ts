@@ -234,9 +234,11 @@ export async function crearHistorialEstado(
   estadoId: number,
   usuarioId: string,
   fechaInicio: Date,
-  tx: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient
 ) {
-  return tx.historialEstadoOrdenProduccion.create({
+  const db = getDbClient(tx);
+
+  return db.historialEstadoOrdenProduccion.create({
     data: {
       ordenId,
       estadoId,
@@ -247,12 +249,14 @@ export async function crearHistorialEstado(
 }
 
 export async function cerrarHistorialEstado(
-  tx: Prisma.TransactionClient,
   ordenId: number,
   estadoId: number,
-  fechaFin: Date
+  fechaFin: Date,
+  tx?: Prisma.TransactionClient
 ) {
-  return tx.historialEstadoOrdenProduccion.updateMany({
+  const db = getDbClient(tx);
+
+  return db.historialEstadoOrdenProduccion.updateMany({
     where: {
       ordenId,
       estadoId,
@@ -274,7 +278,7 @@ export async function createOrdenProduccion(
     cantidad: number;
     prioridad: PrioridadOrden;
   },
-  tx: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient
 ) {
   const db = getDbClient(tx);
 
@@ -308,58 +312,60 @@ export async function iniciarOrdenProduccion(
   idOrden: number,
   estadoPendienteId: number,
   estadoEnProduccionId: number,
-  usuarioId: string
+  usuarioId: string,
+  tx?: Prisma.TransactionClient
 ) {
-  return prisma.$transaction(async (tx) => {
-    const ahora = new Date();
+  const db = getDbClient(tx);
+  const ahora = new Date();
 
-    // Cierra el período correspondiente al estado Pendiente.
-    await tx.historialEstadoOrdenProduccion.updateMany({
-      where: {
-        ordenId: idOrden,
-        estadoId: estadoPendienteId,
-        fechaFin: null,
-      },
-      data: {
-        fechaFin: ahora,
-      },
-    });
-
-    // Actualiza la orden al estado En Producción.
-    const orden = await tx.ordenProduccion.update({
-      where: {
-        idOrden,
-      },
-      data: {
-        estadoId: estadoEnProduccionId,
-      },
-      include: {
-        producto: true,
-        estado: true,
-        pedido: true,
-      },
-    });
-
-    // Registra el inicio del nuevo estado.
-    await tx.historialEstadoOrdenProduccion.create({
-      data: {
-        ordenId: idOrden,
-        estadoId: estadoEnProduccionId,
-        usuarioId,
-        fechaInicio: ahora,
-      },
-    });
-
-    return orden;
+  // Cierra el período correspondiente al estado Pendiente.
+  await db.historialEstadoOrdenProduccion.updateMany({
+    where: {
+      ordenId: idOrden,
+      estadoId: estadoPendienteId,
+      fechaFin: null,
+    },
+    data: {
+      fechaFin: ahora,
+    },
   });
+
+  // Actualiza la orden al estado En Producción.
+  const orden = await db.ordenProduccion.update({
+    where: {
+      idOrden,
+    },
+    data: {
+      estadoId: estadoEnProduccionId,
+    },
+    include: {
+      producto: true,
+      estado: true,
+      pedido: true,
+    },
+  });
+
+  // Registra el inicio del nuevo estado.
+  await db.historialEstadoOrdenProduccion.create({
+    data: {
+      ordenId: idOrden,
+      estadoId: estadoEnProduccionId,
+      usuarioId,
+      fechaInicio: ahora,
+    },
+  });
+
+  return orden;
 }
 
 export async function finalizarOrden(
-  tx: Prisma.TransactionClient,
   ordenId: number,
-  estadoFinalizadaId: number
+  estadoFinalizadaId: number,
+  tx?: Prisma.TransactionClient
 ) {
-  return tx.ordenProduccion.update({
+  const db = getDbClient(tx);
+
+  return db.ordenProduccion.update({
     where: {
       idOrden: ordenId,
     },

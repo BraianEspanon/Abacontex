@@ -373,6 +373,7 @@ export default function VentasPage() {
         cargando={cargandoDetalle}
         error={errorDetalle}
         onCerrar={handleCerrarDetalle}
+        onGenerarFactura={(idVenta) => navigate(`/alumno/facturacion/nueva?ventaId=${idVenta}`)}
       />
     </>
   );

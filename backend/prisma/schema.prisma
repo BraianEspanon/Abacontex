@@ -44,8 +44,9 @@ model Usuario {
   historialOrdenes       HistorialEstadoOrdenProduccion[]
   ventas                 Venta[]
 
-  alumno    Alumno?
-  auditLogs AuditLog[]
+  alumno            Alumno?
+  auditLogs         AuditLog[]
+  ejerciciosCreados Ejercicio[]
 
   @@map("usuarios")
 }
@@ -65,6 +66,7 @@ model Alumno {
   empresa   Empresa? @relation(fields: [idEmpresa], references: [id], onDelete: SetNull)
 
   auditLogs                 AuditLog[]
+  asientosContables         AsientoContable[]
   conciliacionesFinancieras ConciliacionFinanciera[]
 
   @@index([idCurso])
@@ -82,6 +84,7 @@ model Curso {
   alumnos    Alumno[]
   profesores ProfesorCursos[]
   empresas   Empresa[]
+  ejercicios Ejercicio[]
 
   @@index([año])
   @@map("cursos")
@@ -134,6 +137,8 @@ model Empresa {
   alumnos                   Alumno[]
   movimientosFinancieros    MovimientoFinanciero[]
   conciliacionesFinancieras ConciliacionFinanciera[]
+  asientosContables         AsientoContable[]
+  foliosContables           FolioCuentaEmpresa[]
   auditLogs                 AuditLog[]
   productos                 Producto[]
   invitaciones              InvitacionEmpresa[]
@@ -259,6 +264,8 @@ model MovimientoFinanciero {
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  asientoContable AsientoContable?
 
   @@index([idEmpresa])
   @@index([idUsuario])
@@ -590,6 +597,7 @@ model Venta {
   detalles             DetalleVenta[]
   factura              Factura?
   movimientoFinanciero MovimientoFinanciero?
+  asientoContable      AsientoContable?
 
   @@index([empresaId])
   @@index([pedidoId])
@@ -700,6 +708,8 @@ model ConciliacionFinanciera {
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
 
+  asientoContable AsientoContable?
+
   @@index([empresaId])
   @@index([alumnoId])
   @@index([fecha])
@@ -710,33 +720,296 @@ model ConciliacionFinanciera {
 model TipoCuentaContable {
   idTipoCuenta Int @id @default(autoincrement())
 
-  nombre      String  @unique
+  nombre      String  @unique @db.VarChar(50)
+  abreviatura String  @unique @db.VarChar(3)
   descripcion String?
 
-  cuentas CuentaContable[]
+  rubros RubroCuentaContable[]
 
   @@map("tipos_cuenta_contable")
 }
 
-model CuentaContable {
-  idCuenta Int @id @default(autoincrement())
+model RubroCuentaContable {
+  idRubro Int @id @default(autoincrement())
 
-  codigo String @unique @db.VarChar(20)
-
-  nombre String @db.VarChar(50)
+  nombre      String  @db.VarChar(100)
+  descripcion String?
 
   idTipoCuenta Int
   tipoCuenta   TipoCuentaContable @relation(fields: [idTipoCuenta], references: [idTipoCuenta])
-
-  descripcion String @db.VarChar(100)
 
   activo Boolean @default(true)
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
+  cuentas CuentaContable[]
+
+  @@unique([idTipoCuenta, nombre])
   @@index([idTipoCuenta])
+  @@index([activo])
+  @@map("rubros_cuenta_contable")
+}
+
+model CuentaContable {
+  idCuenta Int @id @default(autoincrement())
+
+  codigo String @unique @db.VarChar(20)
+  nombre String @db.VarChar(100)
+
+  idRubro Int
+  rubro   RubroCuentaContable @relation(fields: [idRubro], references: [idRubro])
+
+  descripcion String @db.VarChar(255)
+
+  activo Boolean @default(true)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  detallesAsiento DetalleAsientoContable[]
+  foliosEmpresa   FolioCuentaEmpresa[]
+
+  @@index([idRubro])
   @@index([activo])
   @@index([nombre])
   @@map("cuentas_contables")
+}
+
+enum TipoOrigenAsiento {
+  VENTA
+  MOVIMIENTO_FINANCIERO
+  CONCILIACION_FINANCIERA
+  AJUSTE
+}
+
+model AsientoContable {
+  idAsiento Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+
+  alumnoId String
+  alumno   Alumno @relation(fields: [alumnoId], references: [id])
+
+  numeroAsiento Int
+
+  fecha DateTime @db.Date
+
+  conceptoGeneral String @db.VarChar(255)
+
+  origen TipoOrigenAsiento
+
+  ventaId Int?   @unique
+  venta   Venta? @relation(fields: [ventaId], references: [idVenta], onDelete: SetNull)
+
+  movimientoFinancieroId Int?                  @unique
+  movimientoFinanciero   MovimientoFinanciero? @relation(fields: [movimientoFinancieroId], references: [idMovimiento], onDelete: SetNull)
+
+  conciliacionId Int?                    @unique
+  conciliacion   ConciliacionFinanciera? @relation(fields: [conciliacionId], references: [idConciliacion], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  detalles DetalleAsientoContable[]
+
+  @@unique([empresaId, numeroAsiento])
+  @@index([empresaId])
+  @@index([alumnoId])
+  @@index([fecha])
+  @@index([origen])
+  @@index([empresaId, fecha])
+  @@map("asientos_contables")
+}
+
+enum MovimientoCuentaContable {
+  A_MAS
+  A_MENOS
+  P_MAS
+  P_MENOS
+  PN
+  R_MAS
+  R_MENOS
+}
+
+model DetalleAsientoContable {
+  idDetalleAsiento Int @id @default(autoincrement())
+
+  asientoId Int
+  asiento   AsientoContable @relation(fields: [asientoId], references: [idAsiento], onDelete: Cascade)
+
+  cuentaId Int
+  cuenta   CuentaContable @relation(fields: [cuentaId], references: [idCuenta])
+
+  orden Int
+
+  movimiento MovimientoCuentaContable
+
+  debe  Decimal @default(0) @db.Decimal(14, 2)
+  haber Decimal @default(0) @db.Decimal(14, 2)
+
+  @@unique([asientoId, orden])
+  @@index([asientoId])
+  @@index([cuentaId])
+  @@map("detalles_asiento_contable")
+}
+
+model FolioCuentaEmpresa {
+  idFolioCuenta Int @id @default(autoincrement())
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  cuentaId Int
+  cuenta   CuentaContable @relation(fields: [cuentaId], references: [idCuenta])
+
+  numeroFolio Int
+
+  @@unique([empresaId, cuentaId])
+  @@unique([empresaId, numeroFolio])
+  @@index([empresaId])
+  @@index([cuentaId])
+  @@map("folios_cuenta_empresa")
+}
+
+enum EstadoEjercicio {
+  BORRADOR
+  PUBLICADO
+  FINALIZADO
+}
+
+enum TipoPlantillaEjercicio {
+  LIBRO_DIARIO
+  LIBRO_MAYOR
+  LIBRO_IVA
+  HOJA_TRABAJO
+}
+
+enum TipoEjercicioIA {
+  COMPRAS_VENTAS_BASICAS
+  OPERACIONES_COMERCIALES_INTEGRADAS
+  AJUSTES_HOJA_TRABAJO
+  COSTOS_PROCESO_PRODUCTIVO
+}
+
+enum DificultadEjercicio {
+  BASICO
+  INTERMEDIO
+  AVANZADO
+}
+
+enum ContenidoAdicionalIA {
+  IVA
+  DESCUENTOS
+  INTERESES
+}
+
+enum EstadoResolucionEjercicio {
+  PENDIENTE
+  EN_EDICION
+  COMPLETADA
+}
+
+model Ejercicio {
+  idEjercicio Int @id @default(autoincrement())
+
+  docenteId String
+  docente   Usuario @relation(fields: [docenteId], references: [id])
+
+  cursoId Int
+  curso   Curso @relation(fields: [cursoId], references: [idCurso])
+
+  titulo       String          @db.VarChar(100)
+  enunciado    String
+  estado       EstadoEjercicio @default(BORRADOR)
+  indicaciones String?         @db.VarChar(200)
+  fechaLimite  DateTime        @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  plantillas   EjercicioPlantilla[]
+  generacionIA GeneracionEjercicioIA?
+  resolucion   ResolucionDocente?
+
+  @@index([docenteId])
+  @@index([cursoId])
+  @@index([estado])
+  @@index([fechaLimite])
+  @@map("ejercicios")
+}
+
+model EjercicioPlantilla {
+  idEjercicioPlantilla Int @id @default(autoincrement())
+
+  ejercicioId Int
+  ejercicio   Ejercicio @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: Cascade)
+
+  tipo TipoPlantillaEjercicio
+
+  resolucionesDocente ResolucionDocentePlantilla[]
+
+  @@unique([ejercicioId, tipo])
+  @@index([ejercicioId])
+  @@map("ejercicios_plantillas")
+}
+
+model GeneracionEjercicioIA {
+  idGeneracion Int @id @default(autoincrement())
+
+  ejercicioId Int       @unique
+  ejercicio   Ejercicio @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: Cascade)
+
+  tipoEjercicio     TipoEjercicioIA
+  dificultad        DificultadEjercicio
+  contextoAdicional String?             @db.VarChar(200)
+
+  contenidos GeneracionIAContenido[]
+
+  @@map("generaciones_ejercicios_ia")
+}
+
+model GeneracionIAContenido {
+  idGeneracionContenido Int @id @default(autoincrement())
+
+  generacionId Int
+  generacion   GeneracionEjercicioIA @relation(fields: [generacionId], references: [idGeneracion], onDelete: Cascade)
+
+  contenido ContenidoAdicionalIA
+
+  @@unique([generacionId, contenido])
+  @@index([generacionId])
+  @@map("generaciones_ia_contenidos")
+}
+
+model ResolucionDocente {
+  idResolucion Int @id @default(autoincrement())
+
+  ejercicioId Int       @unique
+  ejercicio   Ejercicio @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: Cascade)
+
+  estado EstadoResolucionEjercicio @default(PENDIENTE)
+
+  plantillas ResolucionDocentePlantilla[]
+
+  @@map("resoluciones_docente")
+}
+
+model ResolucionDocentePlantilla {
+  idResolucionPlantilla Int @id @default(autoincrement())
+
+  resolucionId Int
+  resolucion   ResolucionDocente @relation(fields: [resolucionId], references: [idResolucion], onDelete: Cascade)
+
+  ejercicioPlantillaId Int
+  ejercicioPlantilla   EjercicioPlantilla @relation(fields: [ejercicioPlantillaId], references: [idEjercicioPlantilla], onDelete: Cascade)
+
+  estado    EstadoResolucionEjercicio @default(PENDIENTE)
+  contenido Json?
+
+  @@unique([resolucionId, ejercicioPlantillaId])
+  @@index([resolucionId])
+  @@index([ejercicioPlantillaId])
+  @@map("resoluciones_docente_plantillas")
 }

@@ -39,6 +39,11 @@ services:
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
 
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_OCR_MODELS: ${GEMINI_OCR_MODELS}
+      OCR_MAX_FILE_SIZE_MB: ${OCR_MAX_FILE_SIZE_MB}
+      OCR_MOCK_ENABLED: ${OCR_MOCK_ENABLED}
+      
     depends_on:
       postgres:
         condition: service_healthy

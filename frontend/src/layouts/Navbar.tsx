@@ -47,7 +47,7 @@ export default function Navbar() {
               href="#simulacion"
               className="hover:text-abacontex-primary transition-colors duration-300"
             >
-              Simulación Alumnos
+              Simulación alumnos
             </a>
           </li>
           <li>
@@ -55,7 +55,7 @@ export default function Navbar() {
               href="#docentes"
               className="hover:text-abacontex-primary transition-colors duration-300"
             >
-              Panel Docente
+              Panel docente
             </a>
           </li>
         </ul>
@@ -72,7 +72,7 @@ export default function Navbar() {
             <>
               <div className="hidden sm:block">
                 <Button
-                  label="Iniciar Sesión"
+                  label="Iniciar sesión"
                   variant="outline"
                   onClick={() =>
                     keycloak.login({ redirectUri: window.location.origin + '/inicio' })
@@ -80,7 +80,7 @@ export default function Navbar() {
                 />
               </div>
               <Button
-                label="Crear Cuenta"
+                label="Crear cuenta"
                 variant="solid"
                 onClick={() =>
                   keycloak.register({ redirectUri: window.location.origin + '/inicio' })

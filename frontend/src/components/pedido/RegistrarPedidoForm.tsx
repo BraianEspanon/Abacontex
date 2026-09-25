@@ -50,6 +50,11 @@ export default function RegistrarPedidoForm({
     [productos]
   );
 
+  const cantidadTotalUnidades = useMemo(
+    () => productos.reduce((total, producto) => total + producto.cantidad, 0),
+    [productos]
+  );
+
   const agregarProducto = (producto: ProductoListado) => {
     if (productos.some((item) => item.id === producto.id)) {
       return;
@@ -88,6 +93,17 @@ export default function RegistrarPedidoForm({
 
   const eliminarProducto = (productoId: number) => {
     setProductos((actuales) => actuales.filter((producto) => producto.id !== productoId));
+  };
+
+  const cargarDatosDemo = () => {
+    setClienteNombre('Lionel Andrés Messi Cuccittini');
+    setClienteMail('leomessi10@gmail.com');
+
+    setErrores((actuales) => ({
+      ...actuales,
+      clienteNombre: undefined,
+      clienteMail: undefined,
+    }));
   };
 
   const validar = () => {
@@ -228,6 +244,18 @@ export default function RegistrarPedidoForm({
             )}
           </div>
         </div>
+
+        {/* Botón auxiliar para la demo */}
+        <div className="mt-1 flex justify-end">
+          <button
+            type="button"
+            onClick={cargarDatosDemo}
+            title="Cargar datos para la demostración"
+            className="rounded-md px-2.5 py-1 text-[11px] font-medium text-[#496647]/60 transition-all hover:bg-[#6f9468]/10 hover:text-[#496647]"
+          >
+            Demo
+          </button>
+        </div>
       </section>
 
       {/* =====================================================
@@ -259,9 +287,9 @@ export default function RegistrarPedidoForm({
         <div className="mt-4 flex justify-end">
           <div className="w-full max-w-[280px] rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Total de productos</span>
+              <span>Total de unidades</span>
 
-              <span className="font-medium text-gray-800">{productos.length}</span>
+              <span className="font-medium text-gray-800">{cantidadTotalUnidades}</span>
             </div>
 
             <div className="mt-2 flex items-center justify-between text-sm">

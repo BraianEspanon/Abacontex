@@ -1,15 +1,19 @@
 import { AuthUser } from '../types/express';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../constants/audit.constants';
 
 import { CompletarRegistroDTO } from '../validators/alumno.validator';
 import { UsuarioActualResponseDTO } from '../dto/alumno/alu-actual.dto';
 import { RegistroResponseDTO } from '../dto/alumno/alu-registro.dto';
 import { toAlumnoActualResponse } from '../dto/alumno/alu.mapper';
 
+import * as auditLogService from './audit-log.service';
+
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as usuarioRepository from '../repositories/usuario.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as rolEmpresaRepository from '../repositories/rol-empresa.repository';
 import * as invitacionRepository from '../repositories/invitacion.repository';
+import * as transactionRepository from '../repositories/transaction.repository';
 
 import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
@@ -78,13 +82,41 @@ export async function aceptarInvitacion(user: AuthUser, idInvitacion: number) {
     throw new ConflictError('No puedes aceptar una invitación porque ya completaste tu registro.');
   }
 
-  await invitacionRepository.aceptar(invitacion.id);
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const invitacionAceptada = await invitacionRepository.aceptar(invitacion.id, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.ACEPTAR_INVITACION,
+      entity: AUDIT_ENTITIES.INVITACION,
+      entityId: invitacion.id,
+      empresaId: invitacion.empresaId,
+      oldValues: invitacion,
+      newValues: invitacionAceptada,
+      description: 'El usuario aceptó la invitación a la empresa.',
+    });
+  });
 }
 
 export async function rechazarInvitacion(user: AuthUser, idInvitacion: number) {
-  const { invitacion } = await getInvitacionPendienteDelUsuarioOrThrow(user, idInvitacion);
+  const { usuario, invitacion } = await getInvitacionPendienteDelUsuarioOrThrow(user, idInvitacion);
 
-  await invitacionRepository.rechazar(invitacion.id);
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    const invitacionRechazada = await invitacionRepository.rechazar(invitacion.id, tx);
+
+    await auditLogService.registrarAccion({
+      tx,
+      usuarioId: usuario.id,
+      action: AUDIT_ACTIONS.RECHAZAR_INVITACION,
+      entity: AUDIT_ENTITIES.INVITACION,
+      entityId: invitacion.id,
+      empresaId: invitacion.empresaId,
+      oldValues: invitacion,
+      newValues: invitacionRechazada,
+      description: 'El usuario rechazó la invitación a la empresa.',
+    });
+  });
 }
 
 export async function getRegistro(user: AuthUser): Promise<RegistroResponseDTO> {
@@ -156,24 +188,71 @@ export async function completarRegistro(
       throw new ConflictError('No puedes registrarte como CEO mediante una invitación.');
     }
 
-    await alumnoRepository.create(usuario.id, {
-      idCurso: invitacion.empresa.idCurso,
-      idEmpresa: invitacion.empresa.id,
-      idRolEmpresa: data.idRolEmpresa,
-    });
+    await transactionRepository.ejecutarTransaccion(async (tx) => {
+      const nuevoAlumno = await alumnoRepository.create(
+        usuario.id,
+        {
+          idCurso: invitacion.empresa.idCurso,
+          idEmpresa: invitacion.empresa.id,
+          idRolEmpresa: data.idRolEmpresa,
+        },
+        tx
+      );
 
-    await invitacionRepository.finalizar(invitacion.id);
+      const invitacionFinalizada = await invitacionRepository.finalizar(invitacion.id, tx);
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.CREATE,
+        entity: AUDIT_ENTITIES.ALUMNO,
+        entityId: usuario.id,
+        empresaId: invitacion.empresaId,
+        newValues: nuevoAlumno,
+        description: 'Se creó el perfil de alumno mediante invitación.',
+      });
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.FINALIZAR_INVITACION,
+        entity: AUDIT_ENTITIES.INVITACION,
+        entityId: invitacion.id,
+        empresaId: invitacion.empresaId,
+        oldValues: invitacion,
+        newValues: invitacionFinalizada,
+        description: 'Invitación finalizada automáticamente al completar registro.',
+      });
+    });
   } else {
-    if (!data.idCurso) {
+    const idCurso = data.idCurso;
+
+    if (!idCurso) {
       throw new BadRequestError('Debe seleccionar un curso.');
     }
 
-    await cursoRepository.findByIdOrThrow(data.idCurso);
+    await cursoRepository.findByIdOrThrow(idCurso);
 
-    await alumnoRepository.create(usuario.id, {
-      idCurso: data.idCurso,
-      idEmpresa: null,
-      idRolEmpresa: data.idRolEmpresa,
+    await transactionRepository.ejecutarTransaccion(async (tx) => {
+      const nuevoAlumno = await alumnoRepository.create(
+        usuario.id,
+        {
+          idCurso,
+          idEmpresa: null,
+          idRolEmpresa: data.idRolEmpresa,
+        },
+        tx
+      );
+
+      await auditLogService.registrarAccion({
+        tx,
+        usuarioId: usuario.id,
+        action: AUDIT_ACTIONS.CREATE,
+        entity: AUDIT_ENTITIES.ALUMNO,
+        entityId: usuario.id,
+        newValues: nuevoAlumno,
+        description: 'Se creó el perfil de alumno sin invitación.',
+      });
     });
   }
 

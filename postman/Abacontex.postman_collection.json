@@ -102,7 +102,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"currentPassword\": \"alumnos\",\r\n  \"newPassword\": \"Asdasd12\"\r\n}",
+              "raw": "{\r\n  \"currentPassword\": \"Asdasd12\",\r\n  \"newPassword\": \"Alumno12\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -278,7 +278,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Franco\",\r\n  \"apellido\": \"Prado\",\r\n  \"email\": \"f.prado@profe.com\",\r\n  \"password\": \"Abacontex1\",\r\n  \"cursoIds\": [\r\n    1,2\r\n  ]\r\n}",
+              "raw": "{\r\n  \"nombre\": \"Franco\",\r\n  \"apellido\": \"Prado\",\r\n  \"email\": \"f.prado@ipgsanmartin.edu.ar\",\r\n  \"password\": \"Abacontex1\",\r\n  \"cursoIds\": [\r\n    1,2\r\n  ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -292,6 +292,42 @@
               ],
               "path": [
                 "docentes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validar mail",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Url}}/docentes/validar-email?email=f.prado@ipgsanmartin.edu.ar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "docentes",
+                "validar-email"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "f.prado@ipgsanmartin.edu.ar"
+                }
               ]
             }
           },
@@ -460,7 +496,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n  \"emails\": [\r\n    \"ccc@ipgsanmartin.edu.ar\",\r\n    \"ddd@ipgsanmartin.edu.ar\"\r\n  ]\r\n}",
+                  "raw": "{\r\n  \"emails\": [\r\n    \"zzz@ipgsanmartin.edu.ar\",\r\n    \"yyy@ipgsanmartin.edu.ar\"\r\n  ]\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -700,7 +736,7 @@
               "variable": [
                 {
                   "key": "idAlumno",
-                  "value": "ac3347c3-c8c4-46ea-9709-92d81cc0e9ed"
+                  "value": "1b069f17-dbd5-4555-9bdf-3f4a96890604"
                 }
               ]
             }
@@ -714,7 +750,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"roles\":[\r\n        {\r\n            \"idAlumno\":\"ff15a554-ffe1-4dc9-ad93-805ecd5f7423\",\r\n            \"idRolEmpresa\":2\r\n        },\r\n        {\r\n            \"idAlumno\":\"6c720679-0533-4908-a41f-f2bb64bfe018\",\r\n            \"idRolEmpresa\":1\r\n        },\r\n        {\r\n            \"idAlumno\":\"ac3347c3-c8c4-46ea-9709-92d81cc0e9ed\",\r\n            \"idRolEmpresa\":5\r\n        }\r\n    ]\r\n}",
+              "raw": "{\r\n    \"roles\":[\r\n        {\r\n            \"idAlumno\":\"47a632b1-273e-4bef-928f-3bb5f3030497\",\r\n            \"idRolEmpresa\":2\r\n        },\r\n        {\r\n            \"idAlumno\":\"1b069f17-dbd5-4555-9bdf-3f4a96890604\",\r\n            \"idRolEmpresa\":1\r\n        }\r\n    ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -734,7 +770,7 @@
               "variable": [
                 {
                   "key": "idEmpresa",
-                  "value": "3"
+                  "value": "13"
                 }
               ]
             }
@@ -828,39 +864,36 @@
               "formdata": [
                 {
                   "key": "nombre",
-                  "type": "text",
-                  "uuid": "3b2e782a-e865-464d-a10a-ad0220418531",
-                  "value": "Mancuerna 10kg x2"
+                  "value": "Mancuerna 10kg x2",
+                  "type": "text"
                 },
                 {
                   "key": "descripcion",
                   "value": "Dos (2) mancuernas de 10kg cada una",
-                  "type": "text",
-                  "uuid": "6a351646-c1f5-4c3e-9adc-c4a0e67bb78b"
+                  "type": "text"
                 },
                 {
                   "key": "stockInicial",
                   "value": "10",
-                  "type": "text",
-                  "uuid": "5dd8c1be-63d1-40f1-84e4-87627ccee7b1"
+                  "type": "text"
                 },
                 {
                   "key": "precioUnitario",
                   "value": "10000",
-                  "type": "text",
-                  "uuid": "71e88f67-4fb3-4835-888b-b3961f837350"
+                  "type": "text"
                 },
                 {
                   "key": "margenGanancia",
                   "value": "50",
-                  "type": "text",
-                  "uuid": "30c9e672-81f7-4a85-8655-1f0052b0d486"
+                  "type": "text"
                 },
                 {
                   "key": "foto",
                   "type": "file",
-                  "uuid": "cb156f3d-fa55-4d56-a4f4-713d1bf2d40a",
-                  "value": null
+                  "src": [
+                    ""
+                  ],
+                  "disabled": true
                 }
               ]
             },
@@ -886,7 +919,7 @@
               "formdata": [
                 {
                   "key": "nombre",
-                  "value": "Licencia ERP2",
+                  "value": "Licencia ERP23",
                   "type": "text",
                   "uuid": "bb943a82-5ea4-4d09-b065-60a06d0e8453"
                 },
@@ -959,7 +992,7 @@
               "variable": [
                 {
                   "key": "idProducto",
-                  "value": "6"
+                  "value": "8"
                 }
               ]
             }
@@ -995,7 +1028,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n      \"clienteNombre\":\"braian\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":4,\r\n            \"cantidad\":2\r\n        },\r\n        {\r\n            \"productoId\":5,\r\n            \"cantidad\":2\r\n        }\r\n      ]\r\n}\r\n    \r\n",
+              "raw": "{\r\n      \"clienteNombre\":\"braian\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":4,\r\n            \"cantidad\":2\r\n        },{\r\n            \"productoId\":5,\r\n            \"cantidad\":2\r\n        }\r\n      ]\r\n}\r\n    \r\n",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1332,7 +1365,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"aplicaIva\":true,\n    \"pedidoId\":1,\n    \"metodoPagoId\":3,\n    \"tipoAjuste\":\"RECARGO\",\n    \"porcentajeAjuste\": 5, \n    \"cantidadCuotas\": null,\n    \"porcentajeInteres\": 0\n}",
+              "raw": "{\n    \"aplicaIva\":true,\n    \"pedidoId\":1,\n    \"metodoPagoId\":2,\n    \"tipoAjuste\":\"RECARGO\",\n    \"porcentajeAjuste\": 5, \n    \"cantidadCuotas\": null,\n    \"porcentajeInteres\": 0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1607,7 +1640,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"saldoEsperado\": 81500,\r\n    \"saldoContado\": 81500,\r\n    \"observacion\": \"Faltaba registrar un alfajor\"\r\n}",
+                  "raw": "{\r\n    \"saldoEsperado\": 122355,\r\n    \"saldoContado\": 130000,\r\n    \"observacion\": \"No sé que pasó, contamos mal\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1690,7 +1723,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"fecha\": \"2026-07-10T02:56:59.459Z\",\n    \"idCategoria\": 6,\n    \"concepto\": \"Insumos muy importantes\",\n    \"importe\": 8010,\n    \"idMetodoPago\": 2\n}",
+              "raw": "{\n    \"fecha\": \"2026-07-10T02:56:59.459Z\",\n    \"idCategoria\": 2,\n    \"concepto\": \"Insumos muy importantes\",\n    \"importe\": 8010,\n    \"idMetodoPago\": 2\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1812,7 +1845,7 @@
               }
             },
             "url": {
-              "raw": "{{base_Url}}/finanzas/grafico?periodo=mes",
+              "raw": "{{base_Url}}/finanzas/grafico?periodo=6meses",
               "host": [
                 "{{base_Url}}"
               ],
@@ -1823,8 +1856,513 @@
               "query": [
                 {
                   "key": "periodo",
-                  "value": "mes"
+                  "value": "6meses"
                 }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contabilidad",
+      "item": [
+        {
+          "name": "Cuentas",
+          "item": [
+            {
+              "name": "Ver cuentas",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"codigo\": \"2.1.\",\n    \"nombre\": \"Cuenta de prueba\",\n    \"idRubro\": 2,\n    \"descripcion\": \"Se crea una prueba para probar jeje\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/cuentas",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "cuentas"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "cue",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "4",
+                      "disabled": true
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "2",
+                      "disabled": true
+                    },
+                    {
+                      "key": "idRubro",
+                      "value": "12",
+                      "disabled": true
+                    },
+                    {
+                      "key": "idTipoCuenta",
+                      "value": "333",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver tipos cuenta",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"codigo\": \"2.1.\",\n    \"nombre\": \"Cuenta de prueba\",\n    \"idRubro\": 2,\n    \"descripcion\": \"Se crea una prueba para probar jeje\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/cuentas/tipos",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "cuentas",
+                    "tipos"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Crear cuenta",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"codigo\": \"3.1.2.1.\",\n    \"nombre\": \"nega res\",\n    \"idRubro\": 23,\n    \"descripcion\": \"Se crea una prueba jeje\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/cuentas",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "cuentas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Editar cuenta",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nombre\": \"Cuenta de pruebarda2\",\n    \"descripcion\": \"Se edita una prueba para probar jeje\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/cuentas/:idCuenta",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "cuentas",
+                    ":idCuenta"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idCuenta",
+                      "value": "6"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Asientos",
+          "item": [
+            {
+              "name": "Ver tipos movimiento asientos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/tipos-movimiento",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    "tipos-movimiento"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Pendientes de asiento",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/pendientes",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    "pendientes"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "2",
+                      "disabled": true
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "2",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver pendiente por tipo e id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/pendientes/:tipo/:id",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    "pendientes",
+                    ":tipo",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "tipo",
+                      "value": "MOVIMIENTO_FINANCIERO"
+                    },
+                    {
+                      "key": "id",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver cuentas con folio",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/cuentas",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    "cuentas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Crear asiento",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"tipo\": \"MOVIMIENTO_FINANCIERO\",\r\n    \"operacionId\": 7,\r\n    \"conceptoGeneral\": \"Prueba de crear un asiento para desbalancear\",\r\n    \"detalles\": [\r\n    {\r\n      \"cuentaId\": 22,\r\n      \"movimiento\": \"R_MENOS\",\r\n      \"debe\": 50000,\r\n      \"haber\": 0\r\n    },\r\n    {\r\n      \"cuentaId\": 2,\r\n      \"movimiento\": \"A_MENOS\",\r\n      \"debe\": 0,\r\n      \"haber\": 50000\r\n    }\r\n  ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver detalle asiento",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/:idAsiento",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    ":idAsiento"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idAsiento",
+                      "value": "9"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Editar asiento",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"detalles\": [\r\n    {\r\n      \"idDetalle\": 27,\r\n      \"cuentaId\": 15,\r\n      \"movimiento\": \"PN\",\r\n      \"debe\": 0,\r\n      \"haber\": 786020\r\n    },\r\n    {\r\n      \"idDetalle\": 28,\r\n      \"cuentaId\": 1,\r\n      \"movimiento\": \"A_MAS\",\r\n      \"debe\": 53990,\r\n      \"haber\": 0\r\n    },\r\n    {\r\n      \"idDetalle\": 46,\r\n      \"cuentaId\": 2,\r\n      \"movimiento\": \"A_MAS\",\r\n      \"debe\": 51990,\r\n      \"haber\": 0\r\n    },\r\n    {\r\n      \"idDetalle\": 51,\r\n      \"cuentaId\": 4,\r\n      \"movimiento\": \"A_MAS\",\r\n      \"debe\": 0,\r\n      \"haber\": 5990\r\n    },\r\n    {\r\n      \"cuentaId\": 9,\r\n      \"movimiento\": \"A_MAS\",\r\n      \"debe\": 1990,\r\n      \"haber\": 0\r\n    },\r\n    {\r\n      \"cuentaId\": 21,\r\n      \"movimiento\": \"R_MAS\",\r\n      \"debe\": 5990,\r\n      \"haber\": 0\r\n    },\r\n    {\r\n      \"cuentaId\": 22,\r\n      \"movimiento\": \"R_MENOS\",\r\n      \"debe\": 678050,\r\n      \"haber\": 0\r\n    }\r\n  ]\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/:idAsiento",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    ":idAsiento"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idAsiento",
+                      "value": "9"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver ultimos asientos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/ultimos",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    "ultimos"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver resumen asientos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/resumen",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    "resumen"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Ver libro diario",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_Url}}/contabilidad/asientos/libro-diario",
+                  "host": [
+                    "{{base_Url}}"
+                  ],
+                  "path": [
+                    "contabilidad",
+                    "asientos",
+                    "libro-diario"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Ver libro mayor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/contabilidad/libro-mayor",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "contabilidad",
+                "libro-mayor"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver estado resultado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/contabilidad/estado-resultados",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "contabilidad",
+                "estado-resultados"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver balance general",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/contabilidad/balance-general",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "contabilidad",
+                "balance-general"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ejercicios",
+      "item": [
+        {
+          "name": "digitalizar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": [
+                    "/home/braian/github/Abacontex/docs/muestras/1.jpeg"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/digitalizar",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                "digitalizar"
               ]
             }
           },

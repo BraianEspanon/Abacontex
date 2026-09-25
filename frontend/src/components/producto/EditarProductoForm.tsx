@@ -1,9 +1,12 @@
 import { ImageOff, LockKeyhole, Save, Trash2, Upload, X } from 'lucide-react';
-
 import { useEffect, useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 
+import type { ClipboardEvent, KeyboardEvent } from 'react';
+
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
+
+import { IVA } from '../../constants/iva';
 
 export interface EditarProductoFormData {
   nombre: string;
@@ -37,6 +40,8 @@ const TIPOS_IMAGEN_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
 
 const TAMANIO_MAXIMO_IMAGEN = 5 * 1024 * 1024;
 
+const TECLAS_NO_PERMITIDAS_NUMERO = ['e', 'E', '+', '-'];
+
 function formatearPrecio(precio: number) {
   if (!Number.isFinite(precio)) {
     return '$ 0,00';
@@ -50,12 +55,38 @@ function formatearPrecio(precio: number) {
   }).format(precio);
 }
 
-function calcularPrecioVenta(precioUnitario: number, margenGanancia: number) {
+function calcularPrecios(precioUnitario: number, margenGanancia: number) {
   if (!Number.isFinite(precioUnitario) || !Number.isFinite(margenGanancia)) {
-    return 0;
+    return {
+      precioVenta: 0,
+      precioConsumidorFinal: 0,
+    };
   }
 
-  return precioUnitario * (1 + margenGanancia / 100);
+  const precioVenta = precioUnitario * (1 + margenGanancia / 100);
+
+  const precioConsumidorFinal = precioVenta * (1 + IVA);
+
+  return {
+    precioVenta,
+    precioConsumidorFinal,
+  };
+}
+
+function bloquearCaracteresNoPermitidos(event: KeyboardEvent<HTMLInputElement>) {
+  if (TECLAS_NO_PERMITIDAS_NUMERO.includes(event.key)) {
+    event.preventDefault();
+  }
+}
+
+function bloquearPegadoInvalido(event: ClipboardEvent<HTMLInputElement>) {
+  const textoPegado = event.clipboardData.getData('text').trim();
+
+  const formatoValido = /^\d+(\.\d{0,2})?$/.test(textoPegado);
+
+  if (!formatoValido) {
+    event.preventDefault();
+  }
 }
 
 export default function EditarProductoForm({
@@ -74,7 +105,6 @@ export default function EditarProductoForm({
   onCancelar,
 }: EditarProductoFormProps) {
   const [errorImagen, setErrorImagen] = useState<string | null>(null);
-
   const [isDragging, setIsDragging] = useState(false);
 
   const nombre =
@@ -149,8 +179,6 @@ export default function EditarProductoForm({
     }
 
     onImagenSeleccionada(archivo);
-
-    // Una nueva imagen reemplaza la actual.
     onEliminarImagen(false);
   };
 
@@ -166,52 +194,51 @@ export default function EditarProductoForm({
 
     onImagenSeleccionada(null);
     setErrorImagen(null);
-
     onEliminarImagen(!eliminarImagen);
   };
 
-  const precioVenta = calcularPrecioVenta(precioUnitario, margenGanancia);
+  const { precioVenta, precioConsumidorFinal } = calcularPrecios(precioUnitario, margenGanancia);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="rounded-2xl bg-white p-5 shadow-sm">
         <div className="space-y-6">
           <div>
-            <label htmlFor="nombre" className="block text-sm font-semibold text-gray-900">
-              Nombre
-              <span className="ml-1 text-red-500">*</span>
+            <label htmlFor="nombre" className="mb-1 block text-sm font-semibold text-gray-800">
+              Nombre <span className="text-red-500">*</span>
             </label>
 
-            <p className="mt-1 text-xs text-gray-500">Ingresá un nombre claro y descriptivo.</p>
+            <p className="mb-2 text-xs text-gray-500">Ingresá un nombre claro y descriptivo.</p>
 
             <input
               id="nombre"
               type="text"
+              maxLength={50}
               disabled={isPending}
               {...register('nombre')}
-              className={`mt-2 w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+              className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
                 errors.nombre
-                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                  : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+                  ? 'border-red-500 focus:border-red-500'
+                  : 'border-gray-300 focus:border-[#4f6f52]'
               }`}
             />
 
-            {errors.nombre && (
-              <p className="mt-1.5 text-xs text-red-600">{errors.nombre.message}</p>
-            )}
+            {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre.message}</p>}
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="max-w-xs">
-              <label htmlFor="precioUnitario" className="block text-sm font-semibold text-gray-900">
-                Precio unitario
-                <span className="ml-1 text-red-500">*</span>
+            <div>
+              <label
+                htmlFor="precioUnitario"
+                className="mb-1 block text-sm font-semibold text-gray-800"
+              >
+                Precio unitario <span className="text-red-500">*</span>
               </label>
 
-              <p className="mt-1 text-xs text-gray-500">Debe ser mayor que cero.</p>
+              <p className="mb-2 text-xs text-gray-500">Debe ser mayor a cero.</p>
 
-              <div className="relative mt-2">
-                <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm font-semibold text-gray-700">
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-medium text-gray-700">
                   $
                 </span>
 
@@ -221,67 +248,102 @@ export default function EditarProductoForm({
                   min="0"
                   step="0.01"
                   disabled={isPending}
+                  onKeyDown={bloquearCaracteresNoPermitidos}
+                  onPaste={bloquearPegadoInvalido}
                   {...register('precioUnitario', {
                     valueAsNumber: true,
                   })}
-                  className={`w-full rounded-lg border bg-white py-2.5 pr-3 pl-8 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+                  className={`w-full rounded-lg border py-2.5 pr-3 pl-7 text-sm outline-none transition ${
                     errors.precioUnitario
-                      ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                      : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-[#4f6f52]'
                   }`}
                 />
               </div>
 
               {errors.precioUnitario && (
-                <p className="mt-1.5 text-xs text-red-600">{errors.precioUnitario.message}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.precioUnitario.message}</p>
               )}
             </div>
 
-            <div className="max-w-xs">
-              <label htmlFor="margenGanancia" className="block text-sm font-semibold text-gray-900">
-                Margen de ganancia
-                <span className="ml-1 text-red-500">*</span>
+            <div>
+              <label
+                htmlFor="margenGanancia"
+                className="mb-1 block text-sm font-semibold text-gray-800"
+              >
+                Margen de ganancia <span className="text-red-500">*</span>
               </label>
 
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mb-2 text-xs text-gray-500">
                 Porcentaje de ganancia aplicado al precio unitario.
               </p>
 
-              <div className="relative mt-2">
+              <div className="relative">
                 <input
                   id="margenGanancia"
                   type="number"
                   min="0"
                   step="0.01"
                   disabled={isPending}
+                  onKeyDown={bloquearCaracteresNoPermitidos}
+                  onPaste={bloquearPegadoInvalido}
                   {...register('margenGanancia', {
                     valueAsNumber: true,
                   })}
-                  className={`w-full rounded-lg border bg-white py-2.5 pr-8 pl-3 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+                  className={`w-full rounded-lg border py-2.5 pr-9 pl-3 text-sm outline-none transition ${
                     errors.margenGanancia
-                      ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                      : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-[#4f6f52]'
                   }`}
                 />
 
-                <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm font-medium text-gray-600">
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-600">
                   %
                 </span>
               </div>
 
               {errors.margenGanancia && (
-                <p className="mt-1.5 text-xs text-red-600">{errors.margenGanancia.message}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.margenGanancia.message}</p>
               )}
             </div>
           </div>
 
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-800">
+                Precio de venta
+              </label>
+
+              <p className="mb-2 text-xs text-gray-500">
+                Se calcula automáticamente según el margen ingresado.
+              </p>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700">
+                {formatearPrecio(precioVenta)}
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-800">
+                Precio para consumidor final
+              </label>
+
+              <p className="mb-2 text-xs text-gray-500">
+                Incluye el IVA aplicado al precio de venta.
+              </p>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700">
+                {formatearPrecio(precioConsumidorFinal)}
+              </div>
+            </div>
+          </div>
+
           <div>
-            <label htmlFor="descripcion" className="block text-sm font-semibold text-gray-900">
-              Descripción
-              <span className="ml-1 text-red-500">*</span>
+            <label htmlFor="descripcion" className="mb-1 block text-sm font-semibold text-gray-800">
+              Descripción <span className="text-red-500">*</span>
             </label>
 
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mb-2 text-xs text-gray-500">
               Contá las características principales del producto.
             </p>
 
@@ -291,17 +353,17 @@ export default function EditarProductoForm({
               maxLength={250}
               disabled={isPending}
               {...register('descripcion')}
-              className={`mt-2 w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm leading-6 text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-50 ${
+              className={`w-full resize-none rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
                 errors.descripcion
-                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-                  : 'border-gray-300 focus:border-[#769a75] focus:ring-2 focus:ring-[#769a75]/15'
+                  ? 'border-red-500 focus:border-red-500'
+                  : 'border-gray-300 focus:border-[#4f6f52]'
               }`}
             />
 
             <div className="mt-1 flex items-start justify-between gap-4">
               <div>
                 {errors.descripcion && (
-                  <p className="text-xs text-red-600">{errors.descripcion.message}</p>
+                  <p className="text-sm text-red-600">{errors.descripcion.message}</p>
                 )}
               </div>
 
@@ -438,16 +500,16 @@ export default function EditarProductoForm({
             {errorImagen && <p className="mt-2 text-xs text-red-600">{errorImagen}</p>}
           </div>
 
-          <div className="max-w-xs">
-            <label htmlFor="stock" className="block text-sm font-semibold text-gray-900">
+          <div>
+            <label htmlFor="stock" className="mb-1 block text-sm font-semibold text-gray-800">
               Stock disponible
             </label>
 
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mb-2 text-xs text-gray-500">
               El stock se modifica mediante los movimientos de inventario.
             </p>
 
-            <div className="relative mt-2">
+            <div className="relative">
               <input
                 id="stock"
                 type="text"
@@ -536,6 +598,14 @@ export default function EditarProductoForm({
           <p className="text-xs font-semibold text-gray-900">Precio de venta</p>
 
           <p className="mt-2 text-sm font-medium text-gray-700">{formatearPrecio(precioVenta)}</p>
+        </div>
+
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <p className="text-xs font-semibold text-gray-900">Precio para consumidor final</p>
+
+          <p className="mt-2 text-sm font-medium text-gray-700">
+            {formatearPrecio(precioConsumidorFinal)}
+          </p>
         </div>
 
         <div className="mt-4 border-t border-gray-200 pt-4">

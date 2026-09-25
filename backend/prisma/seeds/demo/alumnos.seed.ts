@@ -9,6 +9,7 @@ export const alumnosSeed: Seed = {
     const [
       usuarioAlumno,
       alumno2,
+      usuarioDemo,
       usuarioMartina,
       usuarioLucas,
       usuarioSofia,
@@ -18,6 +19,7 @@ export const alumnosSeed: Seed = {
       curso6to,
       innovaSoft,
       techNova,
+      luzDeLuna,
       rolCEO,
       rolCFO,
       rolCOO,
@@ -31,6 +33,12 @@ export const alumnosSeed: Seed = {
       prisma.usuario.findUnique({
         where: {
           email: 'alumno2@ipgsanmartin.edu.ar',
+        },
+      }),
+
+      prisma.usuario.findUnique({
+        where: {
+          email: 'demo@ipgsanmartin.edu.ar',
         },
       }),
 
@@ -88,6 +96,12 @@ export const alumnosSeed: Seed = {
         },
       }),
 
+      prisma.empresa.findUnique({
+        where: {
+          nombre: 'Luz de luna',
+        },
+      }),
+
       prisma.rolesEmpresa.findUnique({
         where: {
           nombreRol: 'CEO',
@@ -110,6 +124,7 @@ export const alumnosSeed: Seed = {
     if (
       !usuarioAlumno ||
       !alumno2 ||
+      !usuarioDemo ||
       !usuarioMartina ||
       !usuarioLucas ||
       !usuarioSofia ||
@@ -119,6 +134,7 @@ export const alumnosSeed: Seed = {
       !curso6to ||
       !innovaSoft ||
       !techNova ||
+      !luzDeLuna ||
       !rolCEO ||
       !rolCFO ||
       !rolCOO
@@ -258,6 +274,24 @@ export const alumnosSeed: Seed = {
         idCurso: curso6to.idCurso,
         idEmpresa: innovaSoft.id,
         idRolEmpresa: rolCOO.idRol,
+      },
+    });
+
+    // Usuario demo (Braian Españon): alumno de 6to con rol CEO en Luz de luna.
+    await prisma.alumno.upsert({
+      where: {
+        id: usuarioDemo.id,
+      },
+      update: {
+        idCurso: curso6to.idCurso,
+        idEmpresa: luzDeLuna.id,
+        idRolEmpresa: rolCEO.idRol,
+      },
+      create: {
+        id: usuarioDemo.id,
+        idCurso: curso6to.idCurso,
+        idEmpresa: luzDeLuna.id,
+        idRolEmpresa: rolCEO.idRol,
       },
     });
 

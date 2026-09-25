@@ -1,0 +1,46 @@
+import { Prisma } from '@prisma/client';
+import { createLog } from '../repositories/audit-log.repository';
+import { AuditAction, AuditEntity } from '../constants/audit.constants';
+
+export interface RegistrarAuditoriaParams {
+  tx: Prisma.TransactionClient;
+  usuarioId: string;
+  action: AuditAction | string;
+  entity: AuditEntity | string;
+  entityId: string | number;
+  empresaId?: number;
+  alumnoId?: string;
+  oldValues?: Prisma.InputJsonValue;
+  newValues?: Prisma.InputJsonValue;
+  description?: string;
+}
+
+/**
+ * Registra una acción en el sistema para la trazabilidad (Audit Log).
+ * ESTE MÉTODO DEBE SER LLAMADO SIEMPRE DENTRO DEL CALLBACK DE UNA TRANSACCIÓN.
+ */
+export async function registrarAccion(params: RegistrarAuditoriaParams) {
+  // Aseguramos que los valores sean JSON válidos para Prisma o DbNull si no vienen
+  const oldValuesParsed = params.oldValues
+    ? (params.oldValues as Prisma.InputJsonValue)
+    : Prisma.DbNull;
+
+  const newValuesParsed = params.newValues
+    ? (params.newValues as Prisma.InputJsonValue)
+    : Prisma.DbNull;
+
+  return createLog(
+    {
+      performedById: params.usuarioId,
+      action: params.action,
+      entity: params.entity,
+      entityId: String(params.entityId),
+      empresaId: params.empresaId ?? null,
+      alumnoId: params.alumnoId ?? null,
+      oldValues: oldValuesParsed,
+      newValues: newValuesParsed,
+      description: params.description ?? null,
+    },
+    params.tx
+  );
+}

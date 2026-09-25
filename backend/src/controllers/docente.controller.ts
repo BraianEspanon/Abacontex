@@ -7,7 +7,7 @@ import {
 } from '../validators/docente.validator';
 
 export const crearDocente = async (req: Request, res: Response) => {
-  const docente = await docenteService.crearDocente(req.body);
+  const docente = await docenteService.crearDocente(req.user!, req.body);
 
   res.status(201).json(docente);
 };
@@ -64,4 +64,12 @@ export async function obtenerAlumnos(req: Request, res: Response) {
   const alumnos = await docenteService.obtenerAlumnos(req.user!, filtros);
 
   res.json(alumnos);
+}
+
+export async function validarEmailDocente(req: Request, res: Response) {
+  const email = req.query.email as string;
+
+  const resultado = await docenteService.validarEmailDocente(email);
+
+  res.status(200).json(resultado);
 }

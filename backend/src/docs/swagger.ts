@@ -42,6 +42,14 @@ export const swaggerSpec = swaggerJsdoc({
         description: 'Operaciones de creación y consulta para docentes.',
       },
       {
+        name: 'Ejercicios',
+        description: 'Gestión y digitalización asistida por IA de ejercicios contables.',
+      },
+      {
+        name: 'Manual de cuentas',
+        description: 'Gestión y consulta del Manual de Cuentas globales.',
+      },
+      {
         name: 'Productos',
         description: 'Gestión de productos propios de cada empresa.',
       },
@@ -68,6 +76,15 @@ export const swaggerSpec = swaggerJsdoc({
       {
         name: 'Finanzas',
         description: 'Gestión de caja, ingresos, egresos y conciliación financiera.',
+      },
+      {
+        name: 'Asientos Contables',
+        description:
+          'Gestión y registraciones del Libro Diario, asientos y operaciones pendientes.',
+      },
+      {
+        name: 'Contabilidad',
+        description: 'Reportes de Libro Mayor, Estado de Resultados y Balance General.',
       },
       {
         name: 'Cursos',

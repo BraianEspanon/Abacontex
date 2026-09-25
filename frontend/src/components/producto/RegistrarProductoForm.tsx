@@ -2,8 +2,9 @@ import { ImagePlus, Trash2, UploadCloud } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react';
-
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+
+import { IVA } from '../../constants/iva';
 
 export interface RegistrarProductoFormData {
   nombre: string;
@@ -35,6 +36,8 @@ const TIPOS_IMAGEN_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
 
 const TAMANIO_MAXIMO_IMAGEN = 5 * 1024 * 1024;
 
+const TECLAS_NO_PERMITIDAS_NUMERO = ['e', 'E', '+', '-'];
+
 function formatearPrecio(precio: number) {
   if (!Number.isFinite(precio)) {
     return '$ 0,00';
@@ -43,15 +46,42 @@ function formatearPrecio(precio: number) {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(precio);
 }
 
-function calcularPrecioVenta(precioUnitario: number, margenGanancia: number) {
+function calcularPrecios(precioUnitario: number, margenGanancia: number) {
   if (!Number.isFinite(precioUnitario) || !Number.isFinite(margenGanancia)) {
-    return 0;
+    return {
+      precioVenta: 0,
+      precioConsumidorFinal: 0,
+    };
   }
 
-  return precioUnitario * (1 + margenGanancia / 100);
+  const precioVenta = precioUnitario * (1 + margenGanancia / 100);
+  const precioConsumidorFinal = precioVenta * (1 + IVA);
+
+  return {
+    precioVenta,
+    precioConsumidorFinal,
+  };
+}
+
+function bloquearCaracteresNoPermitidos(event: KeyboardEvent<HTMLInputElement>) {
+  if (TECLAS_NO_PERMITIDAS_NUMERO.includes(event.key)) {
+    event.preventDefault();
+  }
+}
+
+function bloquearPegadoInvalido(event: React.ClipboardEvent<HTMLInputElement>) {
+  const textoPegado = event.clipboardData.getData('text').trim();
+
+  const formatoValido = /^\d+(\.\d{0,2})?$/.test(textoPegado);
+
+  if (!formatoValido) {
+    event.preventDefault();
+  }
 }
 
 export default function RegistrarProductoForm({
@@ -133,9 +163,7 @@ export default function RegistrarProductoForm({
     event.preventDefault();
     setIsDragging(false);
 
-    const archivo = event.dataTransfer.files?.[0];
-
-    validarYSeleccionarImagen(archivo);
+    validarYSeleccionarImagen(event.dataTransfer.files?.[0]);
   };
 
   const handleAbrirSelector = () => {
@@ -159,7 +187,7 @@ export default function RegistrarProductoForm({
   const cantidadCaracteresNombre = nombreProducto?.length ?? 0;
   const cantidadCaracteresDescripcion = descripcionProducto?.length ?? 0;
 
-  const precioVenta = calcularPrecioVenta(precioProducto, margenProducto);
+  const { precioVenta, precioConsumidorFinal } = calcularPrecios(precioProducto, margenProducto);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -215,6 +243,8 @@ export default function RegistrarProductoForm({
                 step="1"
                 placeholder="0"
                 disabled={isPending}
+                onKeyDown={bloquearCaracteresNoPermitidos}
+                onPaste={bloquearPegadoInvalido}
                 {...register('stockInicial', {
                   valueAsNumber: true,
                 })}
@@ -252,6 +282,8 @@ export default function RegistrarProductoForm({
                   step="0.01"
                   placeholder="0,00"
                   disabled={isPending}
+                  onKeyDown={bloquearCaracteresNoPermitidos}
+                  onPaste={bloquearPegadoInvalido}
                   {...register('precioUnitario', {
                     valueAsNumber: true,
                   })}
@@ -290,6 +322,8 @@ export default function RegistrarProductoForm({
                   step="0.01"
                   placeholder="0"
                   disabled={isPending}
+                  onKeyDown={bloquearCaracteresNoPermitidos}
+                  onPaste={bloquearPegadoInvalido}
                   {...register('margenGanancia', {
                     valueAsNumber: true,
                   })}
@@ -502,6 +536,14 @@ export default function RegistrarProductoForm({
             <p className="text-sm font-semibold text-gray-800">Precio de venta</p>
 
             <p className="mt-2 text-sm font-medium text-gray-700">{formatearPrecio(precioVenta)}</p>
+
+            <div className="my-4 border-t border-gray-200" />
+
+            <p className="text-sm font-semibold text-gray-800">Precio para consumidor final</p>
+
+            <p className="mt-2 text-sm font-medium text-gray-700">
+              {formatearPrecio(precioConsumidorFinal)}
+            </p>
 
             <div className="my-4 border-t border-gray-200" />
 

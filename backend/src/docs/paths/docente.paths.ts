@@ -37,6 +37,50 @@
  *       403:
  *         description: El usuario no posee permisos de administrador.
  *
+ * /docentes/validar-email:
+ *   get:
+ *     summary: Validar disponibilidad de correo para docente
+ *     description: |
+ *       Verifica si un correo electrónico ya se encuentra registrado en la base de datos o en Keycloak.
+ *       Requiere permisos de administrador.
+ *
+ *     tags:
+ *       - Docentes
+ *
+ *     security:
+ *       - oauth2: []
+ *
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: email
+ *         description: Correo electrónico a validar.
+ *
+ *     responses:
+ *       200:
+ *         description: Resultado de la validación de disponibilidad del correo.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 disponible:
+ *                   type: boolean
+ *                 mensaje:
+ *                   type: string
+ *
+ *       400:
+ *         description: El correo electrónico proporcionado no es válido.
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ *       403:
+ *         description: El usuario no posee permisos de administrador.
+ *
  * /docentes/me:
  *   get:
  *     summary: Obtener información del docente autenticado

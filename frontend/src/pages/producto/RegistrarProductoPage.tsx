@@ -135,58 +135,48 @@ export default function RegistrarProductoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f6f4]">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <nav className="mb-5 flex items-center gap-2 text-sm">
-          <Link
-            to="/alumno"
-            className="inline-flex items-center gap-1 text-gray-500 transition hover:text-[#4f6f52]"
-          >
-            <Home size={15} />
-            Inicio
-          </Link>
+    <div className="space-y-5">
+      <nav className="flex items-center gap-2 text-sm text-gray-500">
+        <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
+          <Home className="h-4 w-4" />
+          Inicio
+        </Link>
 
-          <ChevronRight size={15} className="text-gray-400" />
+        <ChevronRight className="h-4 w-4" />
 
-          <Link
-            to="/alumno/productos"
-            className="font-medium text-gray-500 transition hover:text-[#4f6f52]"
-          >
-            Productos
-          </Link>
+        <Link to="/alumno/productos" className="transition hover:text-gray-700">
+          Productos
+        </Link>
 
-          <ChevronRight size={15} className="text-gray-400" />
+        <ChevronRight className="h-4 w-4" />
 
-          <span aria-current="page" className="font-semibold text-gray-900">
-            Registrar producto
-          </span>
-        </nav>
+        <span className="font-medium text-gray-700">Registrar producto</span>
+      </nav>
 
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-abacontex-black-text">Registrar producto</h1>
+      <header>
+        <h1 className="text-2xl font-bold text-gray-900">Registrar producto</h1>
 
-          <p className="mt-3 text-base text-gray-500">
-            Completá la información del nuevo producto que formará parte del catálogo de tu empresa.
-          </p>
-        </div>
+        <p className="mt-2 text-base text-gray-500">
+          Completá la información del nuevo producto que formará parte del catálogo de tu empresa.
+        </p>
+      </header>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <RegistrarProductoForm
-            register={register}
-            errors={errors}
-            isPending={crearProductoMutation.isPending}
-            isError={crearProductoMutation.isError}
-            imagenSeleccionada={imagenSeleccionada}
-            nombreProducto={nombreProducto}
-            descripcionProducto={descripcionProducto}
-            precioProducto={precioProducto}
-            margenProducto={margenProducto}
-            stockProducto={stockProducto}
-            onImagenChange={setImagenSeleccionada}
-            onCancelar={handleCancelar}
-          />
-        </form>
-      </div>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <RegistrarProductoForm
+          register={register}
+          errors={errors}
+          isPending={crearProductoMutation.isPending}
+          isError={crearProductoMutation.isError}
+          imagenSeleccionada={imagenSeleccionada}
+          nombreProducto={nombreProducto}
+          descripcionProducto={descripcionProducto}
+          precioProducto={precioProducto}
+          margenProducto={margenProducto}
+          stockProducto={stockProducto}
+          onImagenChange={setImagenSeleccionada}
+          onCancelar={handleCancelar}
+        />
+      </form>
     </div>
   );
 }

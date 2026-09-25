@@ -120,6 +120,29 @@ export const usuariosSeed: Seed = {
       },
     });
 
+    // ==========================
+    // USUARIO DEMO PRESENTACION
+    // ==========================
+
+    await prisma.usuario.upsert({
+      where: {
+        email: 'demo@ipgsanmartin.edu.ar',
+      },
+      update: {
+        keycloakId: 'fea8655a-412a-4c8a-94b3-799a1cfea599',
+        nombre: 'Braian',
+        apellido: 'Españon',
+        rolSistemaId: rolAlumno.idRol,
+      },
+      create: {
+        keycloakId: 'fea8655a-412a-4c8a-94b3-799a1cfea599',
+        email: 'demo@ipgsanmartin.edu.ar',
+        nombre: 'Braian',
+        apellido: 'Españon',
+        rolSistemaId: rolAlumno.idRol,
+      },
+    });
+
     // =========================
     // ALUMNOS DEMO
     // =========================
