@@ -78,4 +78,58 @@
  *           type: string
  *           example: "**Distribuidora del Centro S.R.L.**\n\n1. 02/05 – **Factura Original N.° 001** por compra de 200 cuadernos..."
  *           description: Enunciado contable completo generado por IA, estructurado en Markdown (GFM) listo para el aula.
+ *
+ *     OpcionesGeneracionResponse:
+ *       type: object
+ *       required:
+ *         - tiposEjercicio
+ *         - dificultades
+ *         - contenidosAdicionales
+ *       properties:
+ *         tiposEjercicio:
+ *           type: array
+ *           items:
+ *             type: object
+ *             required:
+ *               - id
+ *               - label
+ *               - permiteContenidosAdicionales
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 example: COMPRAS_VENTAS_BASICAS
+ *               label:
+ *                 type: string
+ *                 example: Compras y ventas básicas
+ *               permiteContenidosAdicionales:
+ *                 type: boolean
+ *                 example: true
+ *         dificultades:
+ *           type: array
+ *           items:
+ *             type: object
+ *             required:
+ *               - id
+ *               - label
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 example: INTERMEDIO
+ *               label:
+ *                 type: string
+ *                 example: Intermedio (~6 operaciones)
+ *         contenidosAdicionales:
+ *           type: array
+ *           items:
+ *             type: object
+ *             required:
+ *               - id
+ *               - label
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 example: IVA
+ *               label:
+ *                 type: string
+ *                 example: Incluir IVA (21%)
  */

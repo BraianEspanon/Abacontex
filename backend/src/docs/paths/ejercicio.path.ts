@@ -61,4 +61,24 @@
  *         description: Curso no encontrado en base de datos.
  *       500:
  *         description: Error interno del servidor al procesar la solicitud.
+ *
+ * /ejercicios/generar/opciones:
+ *   get:
+ *     summary: Obtener catálogo de opciones y parámetros disponibles para la generación de ejercicios
+ *     description: Retorna los tipos de ejercicio, dificultades y contenidos adicionales disponibles con sus etiquetas legibles para poblar los controles del frontend.
+ *     tags:
+ *       - Ejercicios
+ *     security:
+ *       - oauth2: []
+ *     responses:
+ *       200:
+ *         description: Catálogo de opciones obtenido exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/OpcionesGeneracionResponse'
+ *       401:
+ *         description: No autenticado o token inválido/expirado.
+ *       403:
+ *         description: Acceso denegado. Se requiere rol DOCENTE.
  */

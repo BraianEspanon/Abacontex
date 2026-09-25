@@ -8,9 +8,20 @@ import { validate } from '../middleware/validate.middleware';
 
 import { generarEjercicioSchema } from '../validators/ejercicio.validator';
 
-import { digitalizarEjercicio, generarEjercicio } from '../controllers/ejercicio.controller';
+import {
+  digitalizarEjercicio,
+  generarEjercicio,
+  obtenerOpcionesGeneracion,
+} from '../controllers/ejercicio.controller';
 
 const router = Router();
+
+router.get(
+  '/generar/opciones',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  obtenerOpcionesGeneracion
+);
 
 router.post(
   '/digitalizar',

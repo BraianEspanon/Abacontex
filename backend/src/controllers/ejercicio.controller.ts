@@ -12,3 +12,9 @@ export async function generarEjercicio(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export function obtenerOpcionesGeneracion(req: Request, res: Response) {
+  const resultado = ejercicioService.obtenerOpcionesGeneracion();
+
+  res.status(200).json(resultado);
+}

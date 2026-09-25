@@ -1,5 +1,11 @@
 import { AuthUser } from '../types/express';
 
+import {
+  OPCIONES_TIPOS_EJERCICIO,
+  OPCIONES_DIFICULTADES,
+  OPCIONES_CONTENIDOS_ADICIONALES,
+} from '../constants/ejercicio.constants';
+
 import { ocrService } from '../integrations/ocr/ocr.service';
 import { generacionService } from '../integrations/generacion/generacion.service';
 
@@ -12,9 +18,18 @@ import { ForbiddenError } from '../errors/forbidden.error';
 import {
   DigitalizarEjercicioResponseDTO,
   GenerarEjercicioResponseDTO,
+  OpcionesGeneracionResponseDTO,
 } from '../dto/ejercicio/ejercicio.dto';
 
 import { GenerarEjercicioDTO } from '../validators/ejercicio.validator';
+
+export function obtenerOpcionesGeneracion(): OpcionesGeneracionResponseDTO {
+  return {
+    tiposEjercicio: OPCIONES_TIPOS_EJERCICIO,
+    dificultades: OPCIONES_DIFICULTADES,
+    contenidosAdicionales: OPCIONES_CONTENIDOS_ADICIONALES,
+  };
+}
 
 export async function digitalizarEjercicio(
   file?: Express.Multer.File
