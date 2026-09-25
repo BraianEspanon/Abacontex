@@ -1,62 +1,66 @@
 === INICIANDO PoC DE GENERACIÓN CON GROQ (SDK OpenAI) ===
 
 📋 Modelos disponibles en tu cuenta de Groq:
-  - openai/gpt-oss-120b
-  - canopylabs/orpheus-arabic-saudi
-  - meta-llama/llama-prompt-guard-2-22m
-  - meta-llama/llama-prompt-guard-2-86m
-  - whisper-large-v3
-  - whisper-large-v3-turbo
-  - openai/gpt-oss-20b
-  - openai/gpt-oss-safeguard-20b
-  - qwen/qwen3.8-27b
-  - allam-2-7b
-  - canopylabs/orpheus-v1-english
+
+- openai/gpt-oss-120b
+- canopylabs/orpheus-arabic-saudi
+- meta-llama/llama-prompt-guard-2-22m
+- meta-llama/llama-prompt-guard-2-86m
+- whisper-large-v3
+- whisper-large-v3-turbo
+- openai/gpt-oss-20b
+- openai/gpt-oss-safeguard-20b
+- qwen/qwen3.8-27b
+- allam-2-7b
+- canopylabs/orpheus-v1-english
 
 🚀 Modelo seleccionado para la prueba: [openai/gpt-oss-120b]
 
-------------------------------------------------------------
-PROBANDO: Caso 1: Compras y Ventas Básicas (5.° Año S.R.L. - Intermedio - IVA + Intereses)
-------------------------------------------------------------
+---
+
+## PROBANDO: Caso 1: Compras y Ventas Básicas (5.° Año S.R.L. - Intermedio - IVA + Intereses)
+
 ✅ Generado con éxito
-⏱️  Tiempo de respuesta: 3601 ms
+⏱️ Tiempo de respuesta: 3601 ms
 📏 Longitud generada: 1715 caracteres
 
 --- VISTA PREVIA DEL ENUNCIADO GENERADO ---
 
 **Distribuidora del Centro S.R.L.**  
 Rubro: venta de artículos de librería y papelería comercial.  
-Condición frente al IVA: Responsable Inscripto.  
+Condición frente al IVA: Responsable Inscripto.
 
-1. 02/05 – Aporte de los socios: suscripción de capital social por $ 500.000,00 en efectivo. **Recibo Original**.  
+1. 02/05 – Aporte de los socios: suscripción de capital social por $ 500.000,00 en efectivo. **Recibo Original**.
 
-2. 05/05 – Compra de mercaderías: 200 cuadernos a $ 350,00 c/u y 150 bolígrafos a $ 120,00 c/u. Condiciones: IVA 21 %. Se paga 40 % al contado en efectivo y el 60 % restante a 30 días en cuenta corriente. **Factura Original N.° 001**.  
+2. 05/05 – Compra de mercaderías: 200 cuadernos a $ 350,00 c/u y 150 bolígrafos a $ 120,00 c/u. Condiciones: IVA 21 %. Se paga 40 % al contado en efectivo y el 60 % restante a 30 días en cuenta corriente. **Factura Original N.° 001**.
 
-3. 12/05 – Venta a cliente “Librería del Norte”: 120 cuadernos a $ 500,00 c/u y 80 marcadores a $ 250,00 c/u. Condiciones: IVA 21 %. Se abona 30 % al contado mediante transferencia y el 70 % restante a 45 días en cuenta corriente. **Factura Duplicado N.° 045**.  
+3. 12/05 – Venta a cliente “Librería del Norte”: 120 cuadernos a $ 500,00 c/u y 80 marcadores a $ 250,00 c/u. Condiciones: IVA 21 %. Se abona 30 % al contado mediante transferencia y el 70 % restante a 45 días en cuenta corriente. **Factura Duplicado N.° 045**.
 
-4. 18/05 – Compra de material de oficina a crédito con pagaré: 50 carpetas a $ 800,00 c/u. Condiciones: IVA 21 %, plazo 60 días, interés simple 5 % anual calculado sobre el saldo pendiente al vencimiento. **Factura Original N.° 002**.  
+4. 18/05 – Compra de material de oficina a crédito con pagaré: 50 carpetas a $ 800,00 c/u. Condiciones: IVA 21 %, plazo 60 días, interés simple 5 % anual calculado sobre el saldo pendiente al vencimiento. **Factura Original N.° 002**.
 
-5. 25/05 – Cobro parcial de la venta del 12/05: se recibe mediante cheque el 30 % del subtotal de la operación, más el IVA correspondiente. **Recibo Duplicado**.  
+5. 25/05 – Cobro parcial de la venta del 12/05: se recibe mediante cheque el 30 % del subtotal de la operación, más el IVA correspondiente. **Recibo Duplicado**.
 
-6. 31/05 – Cierre mensual: se solicita elaborar el asiento de liquidación del IVA (IVA Débito Fiscal vs. IVA Crédito Fiscal) y el asiento de ajuste por intereses devengados de la operación 4. **Recibo Original**.  
+6. 31/05 – Cierre mensual: se solicita elaborar el asiento de liquidación del IVA (IVA Débito Fiscal vs. IVA Crédito Fiscal) y el asiento de ajuste por intereses devengados de la operación 4. **Recibo Original**.
 
 ---
 
 ### Se pide:
+
 Registrar cada una de las operaciones descritas en el Libro Diario General, indicando las cuentas correspondientes (incluyendo Capital Social, Cuentas por Pagar, Cuentas por Cobrar, IVA Débito Fiscal, IVA Crédito Fiscal, etc.) y elaborar el asiento de liquidación mensual del IVA y el ajuste por intereses.
 
-------------------------------------------------------------
+---
 
-------------------------------------------------------------
-PROBANDO: Caso 2: Operaciones Comerciales Integradas (6.° Año S.A. - Avanzado)
-------------------------------------------------------------
+---
+
+## PROBANDO: Caso 2: Operaciones Comerciales Integradas (6.° Año S.A. - Avanzado)
+
 ✅ Generado con éxito
-⏱️  Tiempo de respuesta: 3581 ms
+⏱️ Tiempo de respuesta: 3581 ms
 📏 Longitud generada: 3205 caracteres
 
 --- VISTA PREVIA DEL ENUNCIADO GENERADO ---
 
-**Distribuidora del Plata S.A.** – Sociedad Anónima dedicada a la comercialización mayorista de electrodomésticos y tecnología. Condición frente al IVA: Responsable Inscripto.  
+**Distribuidora del Plata S.A.** – Sociedad Anónima dedicada a la comercialización mayorista de electrodomésticos y tecnología. Condición frente al IVA: Responsable Inscripto.
 
 ---
 
@@ -110,88 +114,90 @@ PROBANDO: Caso 2: Operaciones Comerciales Integradas (6.° Año S.A. - Avanzado)
 
 4. Determinar el interés generado por el **Pagaré** emitido a favor de ElectroImport S.R.L. (operación 15/04) y el interés correspondiente al préstamo bancario recibido (operación 25/04).
 
-------------------------------------------------------------
+---
 
-------------------------------------------------------------
-PROBANDO: Caso 3: Ajustes y Hoja de Trabajo (5.° Año S.R.L. - Intermedio)
-------------------------------------------------------------
+---
+
+## PROBANDO: Caso 3: Ajustes y Hoja de Trabajo (5.° Año S.R.L. - Intermedio)
+
 ✅ Generado con éxito
-⏱️  Tiempo de respuesta: 6243 ms
+⏱️ Tiempo de respuesta: 6243 ms
 📏 Longitud generada: 3438 caracteres
 
 --- VISTA PREVIA DEL ENUNCIADO GENERADO ---
 
 **Distribuidora del Centro S.R.L.**  
-Ejercicio económico cerrado al **31 de diciembre**  
+Ejercicio económico cerrado al **31 de diciembre**
 
 ---
 
 ### Balance de Sumas y Saldos al 31/12
 
-| N.° | Cuentas                         | Sumas Debe | Sumas Haber | Saldos Deudor | Saldos Acreedor |
-|----|--------------------------------|-----------:|------------:|--------------:|----------------:|
-| 1  | Caja                           | $ 120.000,00 | $ 0,00      | $ 120.000,00 | $ 0,00 |
-| 2  | Banco Nación c/c               | $ 250.000,00 | $ 0,00      | $ 250.000,00 | $ 0,00 |
-| 3  | Mercaderías                    | $ 300.000,00 | $ 0,00      | $ 300.000,00 | $ 0,00 |
-| 4  | Deudores por Ventas            | $ 180.000,00 | $ 0,00      | $ 180.000,00 | $ 0,00 |
-| 5  | Proveedores                    | $ 0,00      | $ 200.000,00 | $ 0,00      | $ 200.000,00 |
-| 6  | Capital Social                 | $ 0,00      | $ 400.000,00 | $ 0,00      | $ 400.000,00 |
-| 7  | Ventas                         | $ 0,00      | $ 720.000,00 | $ 0,00      | $ 720.000,00 |
-| 8  | Costo de Mercaderías Vendidas  | $ 420.000,00 | $ 0,00      | $ 420.000,00 | $ 0,00 |
-| 9  | Gastos Generales               | $ 80.000,00  | $ 0,00      | $ 80.000,00  | $ 0,00 |
-| 10 | Amortización Acumulada         | $ 0,00      | $ 30.000,00  | $ 0,00      | $ 30.000,00 |
-|    | **Totales**                    | **$ 1.350.000,00** | **$ 1.350.000,00** | **$ 1.350.000,00** | **$ 1.350.000,00** |
+| N.° | Cuentas                       |         Sumas Debe |        Sumas Haber |      Saldos Deudor |    Saldos Acreedor |
+| --- | ----------------------------- | -----------------: | -----------------: | -----------------: | -----------------: |
+| 1   | Caja                          |       $ 120.000,00 |             $ 0,00 |       $ 120.000,00 |             $ 0,00 |
+| 2   | Banco Nación c/c              |       $ 250.000,00 |             $ 0,00 |       $ 250.000,00 |             $ 0,00 |
+| 3   | Mercaderías                   |       $ 300.000,00 |             $ 0,00 |       $ 300.000,00 |             $ 0,00 |
+| 4   | Deudores por Ventas           |       $ 180.000,00 |             $ 0,00 |       $ 180.000,00 |             $ 0,00 |
+| 5   | Proveedores                   |             $ 0,00 |       $ 200.000,00 |             $ 0,00 |       $ 200.000,00 |
+| 6   | Capital Social                |             $ 0,00 |       $ 400.000,00 |             $ 0,00 |       $ 400.000,00 |
+| 7   | Ventas                        |             $ 0,00 |       $ 720.000,00 |             $ 0,00 |       $ 720.000,00 |
+| 8   | Costo de Mercaderías Vendidas |       $ 420.000,00 |             $ 0,00 |       $ 420.000,00 |             $ 0,00 |
+| 9   | Gastos Generales              |        $ 80.000,00 |             $ 0,00 |        $ 80.000,00 |             $ 0,00 |
+| 10  | Amortización Acumulada        |             $ 0,00 |        $ 30.000,00 |             $ 0,00 |        $ 30.000,00 |
+|     | **Totales**                   | **$ 1.350.000,00** | **$ 1.350.000,00** | **$ 1.350.000,00** | **$ 1.350.000,00** |
 
 ---
 
 ### Operaciones realizadas durante el período (orden cronológico)
 
-02/05 – Factura N.º 001 por compra de **500 unidades de mercaderías** a $ 400,00 c/u. Condiciones: IVA 21 %. Se paga el **30 % al contado en efectivo** y el **70 % restante a 60 días** a Proveedores.  
+02/05 – Factura N.º 001 por compra de **500 unidades de mercaderías** a $ 400,00 c/u. Condiciones: IVA 21 %. Se paga el **30 % al contado en efectivo** y el **70 % restante a 60 días** a Proveedores.
 
-05/05 – Factura N.º 002 por venta de **300 unidades de mercaderías** a $ 800,00 c/u. Condiciones: IVA 21 %. Se cobra el **40 % al contado en efectivo** y el **60 % restante a crédito** (Deudores por Ventas).  
+05/05 – Factura N.º 002 por venta de **300 unidades de mercaderías** a $ 800,00 c/u. Condiciones: IVA 21 %. Se cobra el **40 % al contado en efectivo** y el **60 % restante a crédito** (Deudores por Ventas).
 
-12/05 – Pago parcial a Proveedores mediante transferencia bancaria por $ 120.000,00, correspondiente a la compra del 02/05 (descontando el 30 % ya abonado).  
+12/05 – Pago parcial a Proveedores mediante transferencia bancaria por $ 120.000,00, correspondiente a la compra del 02/05 (descontando el 30 % ya abonado).
 
-15/05 – Pago de gastos generales: factura N.º 003 por servicios de publicidad por $ 70.000,00 + IVA 21 %, pagada íntegramente en efectivo.  
+15/05 – Pago de gastos generales: factura N.º 003 por servicios de publicidad por $ 70.000,00 + IVA 21 %, pagada íntegramente en efectivo.
 
-20/05 – Registro de amortización del activo **Instalaciones** (costo $ 300.000,00) con vida útil 10 años y sin valor residual. Se calcula la amortización del período (1/12 del anual).  
+20/05 – Registro de amortización del activo **Instalaciones** (costo $ 300.000,00) con vida útil 10 años y sin valor residual. Se calcula la amortización del período (1/12 del anual).
 
-25/05 – Identificación de deudores incobrables: $ 45.000,00 de la cuenta Deudores por Ventas se consideran incobrables y se provisionan.  
+25/05 – Identificación de deudores incobrables: $ 45.000,00 de la cuenta Deudores por Ventas se consideran incobrables y se provisionan.
 
 ---
 
 ### Información complementaria para realizar los ajustes al 31/12
 
-- **Arqueo de caja:** al efectuar el cierre se detecta un **faltante de $ 5.000,00** respecto al saldo registrado en Caja.  
+- **Arqueo de caja:** al efectuar el cierre se detecta un **faltante de $ 5.000,00** respecto al saldo registrado en Caja.
 
-- **Recuento físico de mercaderías:** el inventario físico al 31/12 resulta ser **$ 280.000,00**, inferior al saldo contable de Mercaderías.  
+- **Recuento físico de mercaderías:** el inventario físico al 31/12 resulta ser **$ 280.000,00**, inferior al saldo contable de Mercaderías.
 
-- **Amortizaciones de bienes de uso:** el activo **Instalaciones** (costo $ 300.000,00) tiene una tasa de amortización anual del **10 %**. Calcular la amortización correspondiente al ejercicio completo.  
+- **Amortizaciones de bienes de uso:** el activo **Instalaciones** (costo $ 300.000,00) tiene una tasa de amortización anual del **10 %**. Calcular la amortización correspondiente al ejercicio completo.
 
-- **Depuración de deudores:** se determina que **$ 12.000,00** de la cuenta Deudores por Ventas están vencidos y se consideran incobrables.  
+- **Depuración de deudores:** se determina que **$ 12.000,00** de la cuenta Deudores por Ventas están vencidos y se consideran incobrables.
 
 ---
 
 ### Se pide
 
-1. Registrar los asientos de ajuste correspondientes al 31/12 en el Libro Diario.  
+1. Registrar los asientos de ajuste correspondientes al 31/12 en el Libro Diario.
 
 2. Confeccionar la Hoja de Trabajo de 10 columnas a partir del Balance de Sumas y Saldos y los ajustes realizados.
 
-------------------------------------------------------------
+---
 
-------------------------------------------------------------
-PROBANDO: Caso 4: Costos y Proceso Productivo (6.° Año S.A. - Avanzado)
-------------------------------------------------------------
+---
+
+## PROBANDO: Caso 4: Costos y Proceso Productivo (6.° Año S.A. - Avanzado)
+
 ✅ Generado con éxito
-⏱️  Tiempo de respuesta: 26626 ms
+⏱️ Tiempo de respuesta: 26626 ms
 📏 Longitud generada: 2616 caracteres
 
 --- VISTA PREVIA DEL ENUNCIADO GENERADO ---
 
-**Industrial del Plata S.A.** – Fábrica de indumentaria deportiva y calzado  
+**Industrial del Plata S.A.** – Fábrica de indumentaria deportiva y calzado
 
-Producto terminado: zapatillas deportivas  
+Producto terminado: zapatillas deportivas
 
 ---
 
@@ -233,12 +239,12 @@ Producto terminado: zapatillas deportivas
 
 ### Se pide:
 
-1. Determinar el **Costo de Producción total** del período y el **Costo Unitario de fabricación** de cada par de zapatillas deportivas.  
+1. Determinar el **Costo de Producción total** del período y el **Costo Unitario de fabricación** de cada par de zapatillas deportivas.
 
-2. Registrar en el **Libro Diario** los asientos contables correspondientes a la incorporación de los elementos al proceso productivo (compras de materia prima, insumos menores, mano de obra directa, gastos indirectos de fabricación y amortización) y la obtención de los productos terminados.  
+2. Registrar en el **Libro Diario** los asientos contables correspondientes a la incorporación de los elementos al proceso productivo (compras de materia prima, insumos menores, mano de obra directa, gastos indirectos de fabricación y amortización) y la obtención de los productos terminados.
 
 3. Registrar la **venta** de las 3.200 unidades producidas y el devengamiento del **Costo de Ventas** correspondiente, considerando las condiciones de cobro y los descuentos pactados.
 
-------------------------------------------------------------
+---
 
 === PoC FINALIZADA ===
