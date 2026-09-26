@@ -52,3 +52,35 @@ export interface EjercicioCreadoResponseDTO {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface EjercicioItemDTO {
+  idEjercicio: number;
+  titulo: string;
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+    año: number;
+  };
+  estado: string;
+  estadoVisual: string;
+  fechaLimite: string;
+  totalEntregas: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResumenEjerciciosDTO {
+  total: number;
+  enviados: number;
+  sinResolver: number;
+  resueltos: number;
+}
+
+export interface ListadoEjerciciosResponseDTO {
+  items: EjercicioItemDTO[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  resumen: ResumenEjerciciosDTO;
+}

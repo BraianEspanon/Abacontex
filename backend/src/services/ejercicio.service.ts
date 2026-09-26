@@ -20,12 +20,20 @@ import {
   DigitalizarEjercicioResponseDTO,
   EjercicioCreadoResponseDTO,
   GenerarEjercicioResponseDTO,
+  ListadoEjerciciosResponseDTO,
   OpcionesGeneracionResponseDTO,
 } from '../dto/ejercicio/ejercicio.dto';
 
-import { CrearEjercicioDTO, GenerarEjercicioDTO } from '../validators/ejercicio.validator';
+import {
+  CrearEjercicioDTO,
+  GenerarEjercicioDTO,
+  ObtenerEjerciciosQueryDTO,
+} from '../validators/ejercicio.validator';
 
-import { toEjercicioCreadoResponse } from '../dto/ejercicio/ejercicio.mapper';
+import {
+  toEjercicioCreadoResponse,
+  toListadoEjerciciosResponse,
+} from '../dto/ejercicio/ejercicio.mapper';
 
 export function obtenerOpcionesGeneracion(): OpcionesGeneracionResponseDTO {
   return {
@@ -117,4 +125,32 @@ export async function crearEjercicio(
 
   // 6. Retornar el DTO desacoplado
   return toEjercicioCreadoResponse(ejercicio);
+}
+
+export async function obtenerEjercicios(
+  user: AuthUser,
+  query: ObtenerEjerciciosQueryDTO
+): Promise<ListadoEjerciciosResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Si se solicitó filtrar por curso, validar que el docente tenga acceso a dicho curso
+  if (query.cursoId) {
+    const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+    if (!cursosDocente.includes(query.cursoId)) {
+      throw new ForbiddenError('No tienes permisos sobre el curso especificado.');
+    }
+  }
+
+  // 3. Consultar los ejercicios paginados y las métricas de resumen
+  const resultado = await ejercicioRepository.findEjerciciosByDocente(docente.id, query);
+
+  // 4. Mapear y retornar la respuesta plana con resumen
+  return toListadoEjerciciosResponse(
+    resultado.items,
+    resultado.totalItems,
+    query.page ?? 1,
+    query.pageSize ?? 6,
+    resultado.resumen
+  );
 }

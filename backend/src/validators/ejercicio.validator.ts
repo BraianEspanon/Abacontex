@@ -4,6 +4,7 @@ import {
   DIFICULTADES_EJERCICIO,
   CONTENIDOS_ADICIONALES,
   TIPOS_PLANTILLA,
+  FILTROS_ESTADO_EJERCICIO,
 } from '../constants/ejercicio.constants';
 
 export const generarEjercicioSchema = z.object({
@@ -81,3 +82,25 @@ export const crearEjercicioSchema = z.object({
 });
 
 export type CrearEjercicioDTO = z.infer<typeof crearEjercicioSchema>['body'];
+
+export const obtenerEjerciciosQuerySchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().positive('La página debe ser mayor a 0.').optional().default(1),
+    pageSize: z.coerce
+      .number()
+      .int()
+      .positive('El tamaño de página debe ser mayor a 0.')
+      .max(50, 'El tamaño de página no puede exceder 50.')
+      .optional()
+      .default(6),
+    cursoId: z.coerce.number().int().positive('ID de curso inválido.').optional(),
+    titulo: z.string().trim().optional(),
+    estado: z
+      .enum(FILTROS_ESTADO_EJERCICIO, {
+        message: 'Estado de filtro no válido.',
+      })
+      .optional(),
+  }),
+});
+
+export type ObtenerEjerciciosQueryDTO = z.infer<typeof obtenerEjerciciosQuerySchema>['query'];

@@ -19,6 +19,25 @@ export const ESTADOS_EJERCICIO = ['BORRADOR', 'PUBLICADO', 'FINALIZADO'] as cons
 
 export type EstadoEjercicio = (typeof ESTADOS_EJERCICIO)[number];
 
+export const ESTADOS_VISUALES_EJERCICIO = [
+  'BORRADOR',
+  'PUBLICADO',
+  'SIN_RESOLVER',
+  'RESUELTO',
+] as const;
+
+export type EstadoVisualEjercicio = (typeof ESTADOS_VISUALES_EJERCICIO)[number];
+
+export const FILTROS_ESTADO_EJERCICIO = [
+  'BORRADOR',
+  'PUBLICADO',
+  'FINALIZADO',
+  'SIN_RESOLVER',
+  'RESUELTO',
+] as const;
+
+export type FiltroEstadoEjercicio = (typeof FILTROS_ESTADO_EJERCICIO)[number];
+
 export const TIPOS_PLANTILLA = [
   'LIBRO_DIARIO',
   'LIBRO_MAYOR',

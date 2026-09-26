@@ -1,5 +1,13 @@
-import { EjercicioCreadoResponseDTO } from './ejercicio.dto';
-import { EjercicioCreadoEntity } from '../../repositories/ejercicio.repository';
+import {
+  EjercicioCreadoResponseDTO,
+  EjercicioItemDTO,
+  ListadoEjerciciosResponseDTO,
+  ResumenEjerciciosDTO,
+} from './ejercicio.dto';
+import {
+  EjercicioCreadoEntity,
+  EjercicioListItemEntity,
+} from '../../repositories/ejercicio.repository';
 
 export function toEjercicioCreadoResponse(
   ejercicio: EjercicioCreadoEntity
@@ -37,5 +45,58 @@ export function toEjercicioCreadoResponse(
       : null,
     createdAt: ejercicio.createdAt.toISOString(),
     updatedAt: ejercicio.updatedAt.toISOString(),
+  };
+}
+
+export function calcularEstadoVisual(estado: string, estadoResolucion?: string | null): string {
+  if (estado === 'BORRADOR') {
+    return 'Borrador';
+  }
+  if (estado === 'FINALIZADO') {
+    return 'Finalizado';
+  }
+  if (estado === 'PUBLICADO') {
+    if (estadoResolucion === 'COMPLETADA') {
+      return 'Resuelto';
+    }
+    return 'Sin resolver';
+  }
+  return estado;
+}
+
+export function toEjercicioItemResponse(ejercicio: EjercicioListItemEntity): EjercicioItemDTO {
+  return {
+    idEjercicio: ejercicio.idEjercicio,
+    titulo: ejercicio.titulo,
+    curso: {
+      idCurso: ejercicio.curso.idCurso,
+      nombreCurso: ejercicio.curso.nombreCurso,
+      año: ejercicio.curso.año,
+    },
+    estado: ejercicio.estado,
+    estadoVisual: calcularEstadoVisual(ejercicio.estado, ejercicio.resolucion?.estado),
+    fechaLimite: ejercicio.fechaLimite.toISOString(),
+    totalEntregas: 0,
+    createdAt: ejercicio.createdAt.toISOString(),
+    updatedAt: ejercicio.updatedAt.toISOString(),
+  };
+}
+
+export function toListadoEjerciciosResponse(
+  items: EjercicioListItemEntity[],
+  totalItems: number,
+  page: number,
+  pageSize: number,
+  resumen: ResumenEjerciciosDTO
+): ListadoEjerciciosResponseDTO {
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+
+  return {
+    items: items.map(toEjercicioItemResponse),
+    page,
+    pageSize,
+    totalItems,
+    totalPages,
+    resumen,
   };
 }
