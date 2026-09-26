@@ -11,17 +11,21 @@ import { generacionService } from '../integrations/generacion/generacion.service
 
 import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
+import * as ejercicioRepository from '../repositories/ejercicio.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
 import { ForbiddenError } from '../errors/forbidden.error';
 
 import {
   DigitalizarEjercicioResponseDTO,
+  EjercicioCreadoResponseDTO,
   GenerarEjercicioResponseDTO,
   OpcionesGeneracionResponseDTO,
 } from '../dto/ejercicio/ejercicio.dto';
 
-import { GenerarEjercicioDTO } from '../validators/ejercicio.validator';
+import { CrearEjercicioDTO, GenerarEjercicioDTO } from '../validators/ejercicio.validator';
+
+import { toEjercicioCreadoResponse } from '../dto/ejercicio/ejercicio.mapper';
 
 export function obtenerOpcionesGeneracion(): OpcionesGeneracionResponseDTO {
   return {
@@ -79,4 +83,38 @@ export async function generarEjercicio(
   return {
     enunciadoTexto: resultado.enunciadoTexto,
   };
+}
+
+export async function crearEjercicio(
+  user: AuthUser,
+  dto: CrearEjercicioDTO
+): Promise<EjercicioCreadoResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Validar existencia del curso en DB
+  await cursoRepository.findByIdOrThrow(dto.cursoId);
+
+  // 3. Validar que el docente autenticado tenga acceso al curso especificado
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(dto.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso especificado.');
+  }
+
+  // 4. Validar que la fecha límite sea una fecha válida y posterior a la actual
+  const fechaLimite = new Date(dto.fechaLimite);
+  if (isNaN(fechaLimite.getTime())) {
+    throw new BadRequestError('La fecha límite no es una fecha válida.');
+  }
+
+  const ahora = new Date();
+  if (fechaLimite <= ahora) {
+    throw new BadRequestError('La fecha límite debe ser posterior a la fecha y hora actual.');
+  }
+
+  // 5. Persistir el ejercicio con sus relaciones asociadas en el repositorio
+  const ejercicio = await ejercicioRepository.crearEjercicio(docente.id, dto, fechaLimite);
+
+  // 6. Retornar el DTO desacoplado
+  return toEjercicioCreadoResponse(ejercicio);
 }

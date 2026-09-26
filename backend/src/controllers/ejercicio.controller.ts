@@ -18,3 +18,9 @@ export function obtenerOpcionesGeneracion(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function crearEjercicio(req: Request, res: Response) {
+  const resultado = await ejercicioService.crearEjercicio(req.user!, req.body);
+
+  res.status(201).json(resultado);
+}

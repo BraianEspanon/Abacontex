@@ -6,15 +6,24 @@ import { requireRole } from '../middleware/role.middleware';
 import { uploadDocumento } from '../middleware/upload.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { generarEjercicioSchema } from '../validators/ejercicio.validator';
+import { crearEjercicioSchema, generarEjercicioSchema } from '../validators/ejercicio.validator';
 
 import {
+  crearEjercicio,
   digitalizarEjercicio,
   generarEjercicio,
   obtenerOpcionesGeneracion,
 } from '../controllers/ejercicio.controller';
 
 const router = Router();
+
+router.post(
+  '/',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(crearEjercicioSchema),
+  crearEjercicio
+);
 
 router.get(
   '/generar/opciones',
