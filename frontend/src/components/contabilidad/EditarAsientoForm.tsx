@@ -62,9 +62,7 @@ const crearLineaVacia = (): LineaAsientoEdicionForm => ({
   haber: '',
 });
 
-const convertirDetalleInicial = (
-  detalle: RenglonAsientoEdicion
-): LineaAsientoEdicionForm => ({
+const convertirDetalleInicial = (detalle: RenglonAsientoEdicion): LineaAsientoEdicionForm => ({
   idLocal: `detalle-${detalle.idDetalle}`,
   idDetalle: detalle.idDetalle,
   cuentaId: detalle.cuentaId,
@@ -88,37 +86,21 @@ export default function EditarAsientoForm({
     detallesIniciales.map(convertirDetalleInicial)
   );
 
-  const [errorFormulario, setErrorFormulario] = useState<string | null>(
-    null
-  );
+  const [errorFormulario, setErrorFormulario] = useState<string | null>(null);
 
   const totalDebe = useMemo(
-    () =>
-      lineas.reduce(
-        (total, linea) => total + convertirImporte(linea.debe),
-        0
-      ),
+    () => lineas.reduce((total, linea) => total + convertirImporte(linea.debe), 0),
     [lineas]
   );
 
   const totalHaber = useMemo(
-    () =>
-      lineas.reduce(
-        (total, linea) => total + convertirImporte(linea.haber),
-        0
-      ),
+    () => lineas.reduce((total, linea) => total + convertirImporte(linea.haber), 0),
     [lineas]
   );
 
-  const balanceado =
-    totalDebe > 0 &&
-    totalHaber > 0 &&
-    Math.abs(totalDebe - totalHaber) < 0.001;
+  const balanceado = totalDebe > 0 && totalHaber > 0 && Math.abs(totalDebe - totalHaber) < 0.001;
 
-  const actualizarLinea = (
-    idLocal: string,
-    cambios: Partial<LineaAsientoEdicionForm>
-  ) => {
+  const actualizarLinea = (idLocal: string, cambios: Partial<LineaAsientoEdicionForm>) => {
     setLineas((actuales) =>
       actuales.map((linea) =>
         linea.idLocal === idLocal
@@ -133,28 +115,19 @@ export default function EditarAsientoForm({
     setErrorFormulario(null);
   };
 
-  const handleCambiarCuenta = (
-    idLocal: string,
-    valor: string
-  ) => {
+  const handleCambiarCuenta = (idLocal: string, valor: string) => {
     actualizarLinea(idLocal, {
       cuentaId: valor === '' ? null : Number(valor),
     });
   };
 
-  const handleCambiarMovimiento = (
-    idLocal: string,
-    valor: string
-  ) => {
+  const handleCambiarMovimiento = (idLocal: string, valor: string) => {
     actualizarLinea(idLocal, {
       movimiento: valor as MovimientoCuentaContable | '',
     });
   };
 
-  const handleCambiarDebe = (
-    idLocal: string,
-    valor: string
-  ) => {
+  const handleCambiarDebe = (idLocal: string, valor: string) => {
     if (valor !== '' && Number(valor) < 0) {
       return;
     }
@@ -170,10 +143,7 @@ export default function EditarAsientoForm({
     actualizarLinea(idLocal, cambios);
   };
 
-  const handleCambiarHaber = (
-    idLocal: string,
-    valor: string
-  ) => {
+  const handleCambiarHaber = (idLocal: string, valor: string) => {
     if (valor !== '' && Number(valor) < 0) {
       return;
     }
@@ -190,35 +160,24 @@ export default function EditarAsientoForm({
   };
 
   const handleAgregarLinea = () => {
-    setLineas((actuales) => [
-      ...actuales,
-      crearLineaVacia(),
-    ]);
+    setLineas((actuales) => [...actuales, crearLineaVacia()]);
 
     setErrorFormulario(null);
   };
 
   const handleEliminarLinea = (idLocal: string) => {
     if (lineas.length <= 2) {
-      setErrorFormulario(
-        'El asiento debe contener al menos dos renglones.'
-      );
+      setErrorFormulario('El asiento debe contener al menos dos renglones.');
       return;
     }
 
-    setLineas((actuales) =>
-      actuales.filter(
-        (linea) => linea.idLocal !== idLocal
-      )
-    );
+    setLineas((actuales) => actuales.filter((linea) => linea.idLocal !== idLocal));
 
     setErrorFormulario(null);
   };
 
   const obtenerCuenta = (cuentaId: number | null) =>
-    cuentas.find(
-      (cuenta) => cuenta.idCuenta === cuentaId
-    );
+    cuentas.find((cuenta) => cuenta.idCuenta === cuentaId);
 
   const validarFormulario = () => {
     if (lineas.length < 2) {
@@ -261,26 +220,24 @@ export default function EditarAsientoForm({
       return;
     }
 
-    const detalles: EditarAsientoDetalleRequest[] =
-      lineas.map((linea) => {
-        const detalle: EditarAsientoDetalleRequest = {
-          cuentaId: linea.cuentaId!,
-          movimiento:
-            linea.movimiento as MovimientoCuentaContable,
-          debe: convertirImporte(linea.debe),
-          haber: convertirImporte(linea.haber),
-        };
+    const detalles: EditarAsientoDetalleRequest[] = lineas.map((linea) => {
+      const detalle: EditarAsientoDetalleRequest = {
+        cuentaId: linea.cuentaId!,
+        movimiento: linea.movimiento as MovimientoCuentaContable,
+        debe: convertirImporte(linea.debe),
+        haber: convertirImporte(linea.haber),
+      };
 
-        /*
-         * Los renglones existentes conservan idDetalle.
-         * Los nuevos no lo envían.
-         */
-        if (linea.idDetalle !== undefined) {
-          detalle.idDetalle = linea.idDetalle;
-        }
+      /*
+       * Los renglones existentes conservan idDetalle.
+       * Los nuevos no lo envían.
+       */
+      if (linea.idDetalle !== undefined) {
+        detalle.idDetalle = linea.idDetalle;
+      }
 
-        return detalle;
-      });
+      return detalle;
+    });
 
     onGuardar(detalles);
   };
@@ -288,9 +245,7 @@ export default function EditarAsientoForm({
   return (
     <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="border-b border-gray-200 px-5 py-4">
-        <h2 className="text-base font-semibold text-gray-900">
-          Datos del asiento
-        </h2>
+        <h2 className="text-base font-semibold text-gray-900">Datos del asiento</h2>
 
         <p className="mt-1 text-sm text-gray-500">
           Modificá los renglones contables del asiento seleccionado.
@@ -301,9 +256,7 @@ export default function EditarAsientoForm({
         {/* Datos generales */}
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              N° de asiento
-            </label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">N° de asiento</label>
 
             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
               {numeroAsiento}
@@ -311,9 +264,7 @@ export default function EditarAsientoForm({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Fecha
-            </label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Fecha</label>
 
             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
               {formatearFecha(fecha)}
@@ -340,64 +291,40 @@ export default function EditarAsientoForm({
           <table className="w-full min-w-[1050px] text-sm">
             <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               <tr>
-                <th className="px-3 py-3">
-                  Cuenta
-                </th>
+                <th className="px-3 py-3">Cuenta</th>
 
-                <th className="px-3 py-3">
-                  Movimiento
-                </th>
+                <th className="px-3 py-3">Movimiento</th>
 
-                <th className="px-3 py-3 text-center">
-                  N° Folio
-                </th>
+                <th className="px-3 py-3 text-center">N° Folio</th>
 
-                <th className="px-3 py-3 text-right">
-                  Debe
-                </th>
+                <th className="px-3 py-3 text-right">Debe</th>
 
-                <th className="px-3 py-3 text-right">
-                  Haber
-                </th>
+                <th className="px-3 py-3 text-right">Haber</th>
 
                 <th className="w-14 px-3 py-3">
-                  <span className="sr-only">
-                    Acciones
-                  </span>
+                  <span className="sr-only">Acciones</span>
                 </th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-100">
               {lineas.map((linea) => {
-                const cuentaSeleccionada =
-                  obtenerCuenta(linea.cuentaId);
+                const cuentaSeleccionada = obtenerCuenta(linea.cuentaId);
 
                 return (
                   <tr key={linea.idLocal}>
                     <td className="min-w-[260px] px-3 py-3">
                       <select
                         value={linea.cuentaId ?? ''}
-                        onChange={(event) =>
-                          handleCambiarCuenta(
-                            linea.idLocal,
-                            event.target.value
-                          )
-                        }
+                        onChange={(event) => handleCambiarCuenta(linea.idLocal, event.target.value)}
                         disabled={enviando}
                         className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
                       >
-                        <option value="">
-                          Seleccionar cuenta
-                        </option>
+                        <option value="">Seleccionar cuenta</option>
 
                         {cuentas.map((cuenta) => (
-                          <option
-                            key={cuenta.idCuenta}
-                            value={cuenta.idCuenta}
-                          >
-                            {cuenta.codigo} -{' '}
-                            {cuenta.nombre}
+                          <option key={cuenta.idCuenta} value={cuenta.idCuenta}>
+                            {cuenta.codigo} - {cuenta.nombre}
                           </option>
                         ))}
                       </select>
@@ -407,37 +334,25 @@ export default function EditarAsientoForm({
                       <select
                         value={linea.movimiento}
                         onChange={(event) =>
-                          handleCambiarMovimiento(
-                            linea.idLocal,
-                            event.target.value
-                          )
+                          handleCambiarMovimiento(linea.idLocal, event.target.value)
                         }
                         disabled={enviando}
                         className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
                       >
-                        <option value="">
-                          Seleccionar movimiento
-                        </option>
+                        <option value="">Seleccionar movimiento</option>
 
-                        {tiposMovimiento.map(
-                          (tipo) => (
-                            <option
-                              key={tipo.codigo}
-                              value={tipo.codigo}
-                            >
-                              {tipo.simbolo} -{' '}
-                              {tipo.nombre}
-                            </option>
-                          )
-                        )}
+                        {tiposMovimiento.map((tipo) => (
+                          <option key={tipo.codigo} value={tipo.codigo}>
+                            {tipo.simbolo} - {tipo.nombre}
+                          </option>
+                        ))}
                       </select>
                     </td>
 
                     <td className="px-3 py-3 text-center">
                       <span className="inline-flex min-w-14 justify-center rounded-md bg-gray-100 px-2 py-2 text-sm font-medium text-gray-700">
                         {cuentaSeleccionada
-                          ? cuentaSeleccionada.numeroFolio ??
-                            'Se asignará'
+                          ? (cuentaSeleccionada.numeroFolio ?? 'Se asignará')
                           : '—'}
                       </span>
                     </td>
@@ -448,12 +363,7 @@ export default function EditarAsientoForm({
                         min="0"
                         step="0.01"
                         value={linea.debe}
-                        onChange={(event) =>
-                          handleCambiarDebe(
-                            linea.idLocal,
-                            event.target.value
-                          )
-                        }
+                        onChange={(event) => handleCambiarDebe(linea.idLocal, event.target.value)}
                         disabled={enviando}
                         placeholder="0,00"
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 text-right text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
@@ -466,12 +376,7 @@ export default function EditarAsientoForm({
                         min="0"
                         step="0.01"
                         value={linea.haber}
-                        onChange={(event) =>
-                          handleCambiarHaber(
-                            linea.idLocal,
-                            event.target.value
-                          )
-                        }
+                        onChange={(event) => handleCambiarHaber(linea.idLocal, event.target.value)}
                         disabled={enviando}
                         placeholder="0,00"
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 text-right text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
@@ -481,11 +386,7 @@ export default function EditarAsientoForm({
                     <td className="px-3 py-3 text-center">
                       <button
                         type="button"
-                        onClick={() =>
-                          handleEliminarLinea(
-                            linea.idLocal
-                          )
-                        }
+                        onClick={() => handleEliminarLinea(linea.idLocal)}
                         disabled={enviando}
                         title="Eliminar renglón"
                         aria-label="Eliminar renglón"
@@ -516,9 +417,7 @@ export default function EditarAsientoForm({
         <div className="ml-auto max-w-md rounded-lg bg-gray-50 p-4">
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <p className="text-xs font-medium text-gray-500">
-                Total Debe
-              </p>
+              <p className="text-xs font-medium text-gray-500">Total Debe</p>
 
               <p className="mt-1 text-lg font-semibold text-gray-900">
                 {formatearMoneda(totalDebe)}
@@ -526,9 +425,7 @@ export default function EditarAsientoForm({
             </div>
 
             <div>
-              <p className="text-xs font-medium text-gray-500">
-                Total Haber
-              </p>
+              <p className="text-xs font-medium text-gray-500">Total Haber</p>
 
               <p className="mt-1 text-lg font-semibold text-gray-900">
                 {formatearMoneda(totalHaber)}
@@ -540,14 +437,10 @@ export default function EditarAsientoForm({
             <span
               className={[
                 'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                balanceado
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-amber-100 text-amber-700',
+                balanceado ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700',
               ].join(' ')}
             >
-              {balanceado
-                ? 'Asiento balanceado'
-                : 'Asiento desbalanceado'}
+              {balanceado ? 'Asiento balanceado' : 'Asiento desbalanceado'}
             </span>
           </div>
         </div>
@@ -579,9 +472,7 @@ export default function EditarAsientoForm({
             disabled={enviando}
             className="rounded-lg bg-[#6f9468] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5f8059] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {enviando
-              ? 'Guardando...'
-              : 'Guardar cambios'}
+            {enviando ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>
       </div>

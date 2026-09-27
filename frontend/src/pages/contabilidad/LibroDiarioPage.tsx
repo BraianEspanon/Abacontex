@@ -27,9 +27,7 @@ export default function LibroDiarioPage() {
   } = useLibroDiario(tieneEmpresa);
 
   if (cargandoAlumno) {
-    return (
-      <EstadoCarga mensaje="Cargando información contable..." />
-    );
+    return <EstadoCarga mensaje="Cargando información contable..." />;
   }
 
   if (errorAlumno || !alumno) {
@@ -53,9 +51,7 @@ export default function LibroDiarioPage() {
   }
 
   if (cargandoLibroDiario) {
-    return (
-      <EstadoCarga mensaje="Cargando Libro Diario..." />
-    );
+    return <EstadoCarga mensaje="Cargando Libro Diario..." />;
   }
 
   if (errorLibroDiario || !libroDiario) {
@@ -72,35 +68,25 @@ export default function LibroDiarioPage() {
     <div className="space-y-5">
       {/* Breadcrumb */}
       <nav className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-        <Link
-          to="/alumno"
-          className="flex items-center gap-1 transition hover:text-gray-700"
-        >
+        <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
           <Home className="h-4 w-4" />
           Inicio
         </Link>
 
         <ChevronRight className="h-4 w-4" />
 
-        <Link
-          to="/alumno/contabilidad"
-          className="transition hover:text-gray-700"
-        >
+        <Link to="/alumno/contabilidad" className="transition hover:text-gray-700">
           Gestión contable
         </Link>
 
         <ChevronRight className="h-4 w-4" />
 
-        <span className="font-medium text-gray-700">
-          Libro diario
-        </span>
+        <span className="font-medium text-gray-700">Libro diario</span>
       </nav>
 
       {/* Encabezado */}
       <header>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Libro Diario
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Libro Diario</h1>
 
         <p className="mt-1 text-sm text-gray-500">
           Consultá los asientos contables registrados por tu empresa.
@@ -115,26 +101,16 @@ export default function LibroDiarioPage() {
         asientos={libroDiario.asientos}
         totalDebe={libroDiario.totalDebeGeneral}
         totalHaber={libroDiario.totalHaberGeneral}
-        onEditar={(idAsiento) =>
-          navigate(
-            `/alumno/contabilidad/asientos/${idAsiento}/editar`
-          )
-        }
+        onEditar={(idAsiento) => navigate(`/alumno/contabilidad/asientos/${idAsiento}/editar`)}
       />
     </div>
   );
 }
 
-function EstadoCarga({
-  mensaje,
-}: {
-  mensaje: string;
-}) {
+function EstadoCarga({ mensaje }: { mensaje: string }) {
   return (
     <div className="flex min-h-[300px] items-center justify-center">
-      <p className="text-sm text-gray-500">
-        {mensaje}
-      </p>
+      <p className="text-sm text-gray-500">{mensaje}</p>
     </div>
   );
 }
@@ -154,13 +130,9 @@ function EstadoError({
 }: EstadoErrorProps) {
   return (
     <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-      <h2 className="font-semibold text-red-800">
-        {titulo}
-      </h2>
+      <h2 className="font-semibold text-red-800">{titulo}</h2>
 
-      <p className="mt-1 text-sm text-red-700">
-        {descripcion}
-      </p>
+      <p className="mt-1 text-sm text-red-700">{descripcion}</p>
 
       {mostrarReintentar && onReintentar && (
         <button

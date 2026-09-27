@@ -88,13 +88,10 @@ export default function TablaOperacionesPendientes({
       <div className="border-b border-gray-200 px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="font-semibold text-gray-900">
-              Operaciones pendientes de registrar
-            </h2>
+            <h2 className="font-semibold text-gray-900">Operaciones pendientes de registrar</h2>
 
             <p className="mt-1 text-sm text-gray-500">
-              Operaciones que todavía no poseen un asiento contable
-              asociado.
+              Operaciones que todavía no poseen un asiento contable asociado.
             </p>
           </div>
 
@@ -107,9 +104,7 @@ export default function TablaOperacionesPendientes({
       <div className="relative overflow-x-auto">
         {cargando && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
-            <span className="text-sm text-gray-500">
-              Actualizando...
-            </span>
+            <span className="text-sm text-gray-500">Actualizando...</span>
           </div>
         )}
 
@@ -128,10 +123,7 @@ export default function TablaOperacionesPendientes({
           <tbody className="divide-y divide-gray-100">
             {operaciones.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-5 py-10 text-center text-sm text-gray-500"
-                >
+                <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500">
                   No hay operaciones pendientes de registrar.
                 </td>
               </tr>
@@ -160,10 +152,7 @@ export default function TablaOperacionesPendientes({
                   </td>
 
                   <td className="max-w-[300px] px-5 py-4 text-gray-600">
-                    <p
-                      className="truncate"
-                      title={operacion.concepto}
-                    >
+                    <p className="truncate" title={operacion.concepto}>
                       {operacion.concepto}
                     </p>
                   </td>
