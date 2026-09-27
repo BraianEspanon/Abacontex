@@ -48,6 +48,10 @@ import EquipoEmpresaPage from '../pages/empresa/EquipoEmpresaPage';
 import FinanzasPage from '../pages/finanzas/FinanzasPage';
 import ManualCuentasPage from '../pages/cuenta/ManualCuentasPage';
 import ManualCuentasDocentePage from '../pages/cuenta/ManualCuentasDocentePage';
+import RegistrarAsientoPage from '../pages/contabilidad/RegistrarAsientoPage';
+import ContabilidadPage from '../pages/contabilidad/ContabilidadPage';
+import LibroDiarioPage from '../pages/contabilidad/LibroDiarioPage';
+import EditarAsientoPage from '../pages/contabilidad/EditarAsientoPage';
 
 export default function AppRouter() {
   return (
@@ -178,6 +182,18 @@ export default function AppRouter() {
 
         {/* Manual de cuentas */}
         <Route path="manual-cuentas" element={<ManualCuentasPage />} />
+
+        {/* Contabilidad */}
+        <Route path="contabilidad" element={<ContabilidadPage />} />
+
+        <Route path="contabilidad/libro-diario" element={<LibroDiarioPage />} />
+
+        <Route
+          path="contabilidad/asientos/registrar/:tipo/:id"
+          element={<RegistrarAsientoPage />}
+        />
+
+        <Route path="contabilidad/asientos/:id/editar" element={<EditarAsientoPage />} />
       </Route>
     </Routes>
   );
