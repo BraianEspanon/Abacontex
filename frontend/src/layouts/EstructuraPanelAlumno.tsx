@@ -20,7 +20,10 @@ const titulosPorRuta: Record<string, string> = {
   '/alumno/facturacion/nueva': 'Generar factura',
 
   '/alumno/finanzas': 'Finanzas',
+
   '/alumno/contabilidad': 'Contabilidad',
+  '/alumno/contabilidad/libro-diario': 'Libro diario',
+
   '/alumno/ejercicios': 'Mis ejercicios',
   '/alumno/simulacion': 'Simulación empresarial',
   '/alumno/logros': 'Logros',
@@ -29,10 +32,22 @@ const titulosPorRuta: Record<string, string> = {
   '/alumno/perfil/editar': 'Perfil',
 };
 
+function obtenerTituloPorRuta(pathname: string) {
+  if (pathname.startsWith('/alumno/contabilidad/asientos/registrar/')) {
+    return 'Registrar asiento';
+  }
+
+  if (pathname.startsWith('/alumno/contabilidad/asientos/') && pathname.endsWith('/editar')) {
+    return 'Editar asiento';
+  }
+
+  return titulosPorRuta[pathname] ?? 'Panel del alumno';
+}
+
 export default function EstructuraPanelAlumno() {
   const location = useLocation();
 
-  const titulo = titulosPorRuta[location.pathname] ?? 'Panel del alumno';
+  const titulo = obtenerTituloPorRuta(location.pathname);
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#f7f5f1]">
