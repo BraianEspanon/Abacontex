@@ -9,6 +9,7 @@ import {
 import { ocrService } from '../integrations/ocr/ocr.service';
 import { generacionService } from '../integrations/generacion/generacion.service';
 
+import * as alumnoRepository from '../repositories/alumno.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
 import * as ejercicioRepository from '../repositories/ejercicio.repository';
@@ -17,6 +18,7 @@ import { BadRequestError } from '../errors/bad-request-error';
 import { ForbiddenError } from '../errors/forbidden.error';
 
 import {
+  DetalleEjercicioResponseDTO,
   DigitalizarEjercicioResponseDTO,
   EjercicioCreadoResponseDTO,
   GenerarEjercicioResponseDTO,
@@ -31,6 +33,7 @@ import {
 } from '../validators/ejercicio.validator';
 
 import {
+  toDetalleEjercicioResponse,
   toEjercicioCreadoResponse,
   toListadoEjerciciosResponse,
 } from '../dto/ejercicio/ejercicio.mapper';
@@ -153,4 +156,32 @@ export async function obtenerEjercicios(
     query.pageSize ?? 6,
     resultado.resumen
   );
+}
+
+export async function obtenerEjercicioPorId(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<DetalleEjercicioResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar ejercicio por ID
+  const ejercicio = await ejercicioRepository.findEjercicioByIdOrThrow(idEjercicio);
+
+  // 3. Validar que el ejercicio pertenezca al docente autenticado
+  if (ejercicio.docenteId !== docente.id) {
+    throw new ForbiddenError('No tienes permisos para acceder a este ejercicio.');
+  }
+
+  // 4. Validar que el docente tenga acceso al curso del ejercicio
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(ejercicio.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
+  }
+
+  // 5. Consultar cantidad de alumnos del curso
+  const totalAlumnos = await alumnoRepository.countByCursoId(ejercicio.cursoId);
+
+  // 6. Mapear y retornar la respuesta
+  return toDetalleEjercicioResponse(ejercicio, totalAlumnos);
 }

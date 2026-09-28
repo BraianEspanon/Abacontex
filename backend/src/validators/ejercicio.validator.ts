@@ -104,3 +104,14 @@ export const obtenerEjerciciosQuerySchema = z.object({
 });
 
 export type ObtenerEjerciciosQueryDTO = z.infer<typeof obtenerEjerciciosQuerySchema>['query'];
+
+export const obtenerEjercicioPorIdSchema = z.object({
+  params: z.object({
+    id: z.coerce
+      .number({ message: 'El ID del ejercicio debe ser numérico.' })
+      .int('El ID del ejercicio debe ser un número entero.')
+      .positive('El ID del ejercicio debe ser mayor a cero.'),
+  }),
+});
+
+export type ObtenerEjercicioPorIdParamsDTO = z.infer<typeof obtenerEjercicioPorIdSchema>['params'];

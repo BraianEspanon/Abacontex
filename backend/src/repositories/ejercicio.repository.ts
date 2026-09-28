@@ -17,6 +17,8 @@ export type EjercicioCreadoEntity = Prisma.EjercicioGetPayload<{
   include: typeof ejercicioCreadoInclude;
 }>;
 
+export type EjercicioDetalleEntity = EjercicioCreadoEntity;
+
 export async function crearEjercicio(
   docenteId: string,
   data: CrearEjercicioDTO,
@@ -172,3 +174,28 @@ export async function findEjerciciosByDocente(
 export type EjercicioListItemEntity = Awaited<
   ReturnType<typeof findEjerciciosByDocente>
 >['items'][number];
+
+export async function findEjercicioById(
+  idEjercicio: number,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioDetalleEntity | null> {
+  const db = getDbClient(tx);
+
+  return db.ejercicio.findUnique({
+    where: { idEjercicio },
+    include: ejercicioCreadoInclude,
+  });
+}
+
+export async function findEjercicioByIdOrThrow(
+  idEjercicio: number,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioDetalleEntity> {
+  const ejercicio = await findEjercicioById(idEjercicio, tx);
+
+  if (!ejercicio) {
+    throw new Error('Ejercicio no encontrado.');
+  }
+
+  return ejercicio;
+}

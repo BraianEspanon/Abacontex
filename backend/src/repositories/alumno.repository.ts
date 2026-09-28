@@ -339,3 +339,16 @@ export async function asignarEmpresa(idAlumno: string, empresaId: number) {
     },
   });
 }
+
+export async function countByCursoId(
+  idCurso: number,
+  tx?: Prisma.TransactionClient
+): Promise<number> {
+  const db = getDbClient(tx);
+
+  return db.alumno.count({
+    where: {
+      idCurso,
+    },
+  });
+}

@@ -1,4 +1,5 @@
 import {
+  DetalleEjercicioResponseDTO,
   EjercicioCreadoResponseDTO,
   EjercicioItemDTO,
   ListadoEjerciciosResponseDTO,
@@ -98,5 +99,56 @@ export function toListadoEjerciciosResponse(
     totalItems,
     totalPages,
     resumen,
+  };
+}
+
+export function toDetalleEjercicioResponse(
+  ejercicio: EjercicioCreadoEntity,
+  totalAlumnos: number
+): DetalleEjercicioResponseDTO {
+  const origen = ejercicio.generacionIA !== null ? 'IA' : 'DIGITALIZADO';
+
+  return {
+    idEjercicio: ejercicio.idEjercicio,
+    titulo: ejercicio.titulo,
+    enunciado: ejercicio.enunciado,
+    estado: ejercicio.estado,
+    estadoVisual: calcularEstadoVisual(ejercicio.estado, ejercicio.resolucion?.estado),
+    indicaciones: ejercicio.indicaciones,
+    fechaLimite: ejercicio.fechaLimite.toISOString(),
+    origen,
+    curso: {
+      idCurso: ejercicio.curso.idCurso,
+      nombreCurso: ejercicio.curso.nombreCurso,
+      año: ejercicio.curso.año,
+    },
+    plantillas: ejercicio.plantillas.map((p) => ({
+      idEjercicioPlantilla: p.idEjercicioPlantilla,
+      tipo: p.tipo,
+    })),
+    generacionIA: ejercicio.generacionIA
+      ? {
+          idGeneracion: ejercicio.generacionIA.idGeneracion,
+          tipoEjercicio: ejercicio.generacionIA.tipoEjercicio,
+          dificultad: ejercicio.generacionIA.dificultad,
+          contextoAdicional: ejercicio.generacionIA.contextoAdicional,
+          contenidos: ejercicio.generacionIA.contenidos.map((c) => c.contenido),
+        }
+      : null,
+    resolucionDocente: ejercicio.resolucion
+      ? {
+          idResolucion: ejercicio.resolucion.idResolucion,
+          estado: ejercicio.resolucion.estado,
+        }
+      : null,
+    progresoEntregas: {
+      totalAlumnos,
+      entregasCorregidas: 0,
+      entregasPendientes: 0,
+      sinEntregar: totalAlumnos,
+      porcentajeEntrega: 0,
+    },
+    createdAt: ejercicio.createdAt.toISOString(),
+    updatedAt: ejercicio.updatedAt.toISOString(),
   };
 }

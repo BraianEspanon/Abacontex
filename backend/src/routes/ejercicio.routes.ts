@@ -9,6 +9,7 @@ import { validate } from '../middleware/validate.middleware';
 import {
   crearEjercicioSchema,
   generarEjercicioSchema,
+  obtenerEjercicioPorIdSchema,
   obtenerEjerciciosQuerySchema,
 } from '../validators/ejercicio.validator';
 
@@ -16,6 +17,7 @@ import {
   crearEjercicio,
   digitalizarEjercicio,
   generarEjercicio,
+  obtenerEjercicioPorId,
   obtenerEjercicios,
   obtenerOpcionesGeneracion,
 } from '../controllers/ejercicio.controller';
@@ -59,6 +61,14 @@ router.post(
   requireRole(ROLES.DOCENTE),
   validate(generarEjercicioSchema),
   generarEjercicio
+);
+
+router.get(
+  '/:id',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(obtenerEjercicioPorIdSchema),
+  obtenerEjercicioPorId
 );
 
 export default router;

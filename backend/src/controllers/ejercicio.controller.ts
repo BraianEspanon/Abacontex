@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import * as ejercicioService from '../services/ejercicio.service';
-import { obtenerEjerciciosQuerySchema } from '../validators/ejercicio.validator';
+import {
+  obtenerEjercicioPorIdSchema,
+  obtenerEjerciciosQuerySchema,
+} from '../validators/ejercicio.validator';
 
 export async function digitalizarEjercicio(req: Request, res: Response) {
   const resultado = await ejercicioService.digitalizarEjercicio(req.file);
@@ -32,6 +35,16 @@ export async function obtenerEjercicios(req: Request, res: Response) {
   });
 
   const resultado = await ejercicioService.obtenerEjercicios(req.user!, query);
+
+  res.status(200).json(resultado);
+}
+
+export async function obtenerEjercicioPorId(req: Request, res: Response) {
+  const { params } = obtenerEjercicioPorIdSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await ejercicioService.obtenerEjercicioPorId(req.user!, params.id);
 
   res.status(200).json(resultado);
 }

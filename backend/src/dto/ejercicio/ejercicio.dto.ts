@@ -84,3 +84,38 @@ export interface ListadoEjerciciosResponseDTO {
   totalPages: number;
   resumen: ResumenEjerciciosDTO;
 }
+
+export interface ProgresoEntregasDTO {
+  totalAlumnos: number;
+  entregasCorregidas: number;
+  entregasPendientes: number;
+  sinEntregar: number;
+  porcentajeEntrega: number;
+}
+
+export interface ResolucionDocenteResumenDTO {
+  idResolucion: number;
+  estado: string;
+}
+
+export interface DetalleEjercicioResponseDTO {
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  estado: string;
+  estadoVisual: string;
+  indicaciones: string | null;
+  fechaLimite: string;
+  origen: 'IA' | 'DIGITALIZADO';
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+    año: number;
+  };
+  plantillas: PlantillaEjercicioDTO[];
+  generacionIA: GeneracionIADTO | null;
+  resolucionDocente: ResolucionDocenteResumenDTO | null;
+  progresoEntregas: ProgresoEntregasDTO;
+  createdAt: string;
+  updatedAt: string;
+}
