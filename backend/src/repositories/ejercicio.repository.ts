@@ -1,5 +1,6 @@
-import { Prisma } from '@prisma/client';
-import { getDbClient } from '../lib/prisma';
+import { EstadoEjercicio, Prisma } from '@prisma/client';
+import { getDbClient, prisma } from '../lib/prisma';
+import { TipoPlantilla } from '../constants/ejercicio.constants';
 import { CrearEjercicioDTO, ObtenerEjerciciosQueryDTO } from '../validators/ejercicio.validator';
 
 const ejercicioCreadoInclude = {
@@ -198,4 +199,53 @@ export async function findEjercicioByIdOrThrow(
   }
 
   return ejercicio;
+}
+
+export interface ActualizarEjercicioData {
+  titulo?: string | undefined;
+  enunciado?: string | undefined;
+  cursoId?: number | undefined;
+  fechaLimite?: Date | undefined;
+  indicaciones?: string | null | undefined;
+  estado?: EstadoEjercicio | undefined;
+  plantillas?: TipoPlantilla[] | undefined;
+}
+
+export async function actualizarEjercicio(
+  idEjercicio: number,
+  data: ActualizarEjercicioData,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioDetalleEntity> {
+  const ejecutar = async (client: Prisma.TransactionClient) => {
+    if (data.plantillas) {
+      await client.ejercicioPlantilla.deleteMany({
+        where: { ejercicioId: idEjercicio },
+      });
+      await client.ejercicioPlantilla.createMany({
+        data: data.plantillas.map((tipo) => ({
+          ejercicioId: idEjercicio,
+          tipo,
+        })),
+      });
+    }
+
+    const updateData: Prisma.EjercicioUpdateInput = {};
+
+    if (data.titulo !== undefined) updateData.titulo = data.titulo;
+    if (data.enunciado !== undefined) updateData.enunciado = data.enunciado;
+    if (data.indicaciones !== undefined) updateData.indicaciones = data.indicaciones;
+    if (data.fechaLimite !== undefined) updateData.fechaLimite = data.fechaLimite;
+    if (data.estado !== undefined) updateData.estado = data.estado;
+    if (data.cursoId !== undefined) {
+      updateData.curso = { connect: { idCurso: data.cursoId } };
+    }
+
+    return client.ejercicio.update({
+      where: { idEjercicio },
+      data: updateData,
+      include: ejercicioCreadoInclude,
+    });
+  };
+
+  return tx ? ejecutar(tx) : prisma.$transaction(ejecutar);
 }

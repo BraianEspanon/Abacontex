@@ -8,6 +8,7 @@ import { validate } from '../middleware/validate.middleware';
 
 import {
   crearEjercicioSchema,
+  editarEjercicioSchema,
   generarEjercicioSchema,
   obtenerEjercicioPorIdSchema,
   obtenerEjerciciosQuerySchema,
@@ -16,6 +17,7 @@ import {
 import {
   crearEjercicio,
   digitalizarEjercicio,
+  editarEjercicio,
   generarEjercicio,
   obtenerEjercicioPorId,
   obtenerEjercicios,
@@ -69,6 +71,14 @@ router.get(
   requireRole(ROLES.DOCENTE),
   validate(obtenerEjercicioPorIdSchema),
   obtenerEjercicioPorId
+);
+
+router.patch(
+  '/:id',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(editarEjercicioSchema),
+  editarEjercicio
 );
 
 export default router;

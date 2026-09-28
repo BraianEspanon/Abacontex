@@ -28,6 +28,7 @@ import {
 
 import {
   CrearEjercicioDTO,
+  EditarEjercicioBodyDTO,
   GenerarEjercicioDTO,
   ObtenerEjerciciosQueryDTO,
 } from '../validators/ejercicio.validator';
@@ -184,4 +185,89 @@ export async function obtenerEjercicioPorId(
 
   // 6. Mapear y retornar la respuesta
   return toDetalleEjercicioResponse(ejercicio, totalAlumnos);
+}
+
+export async function editarEjercicio(
+  user: AuthUser,
+  idEjercicio: number,
+  dto: EditarEjercicioBodyDTO
+): Promise<DetalleEjercicioResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar ejercicio por ID
+  const ejercicio = await ejercicioRepository.findEjercicioByIdOrThrow(idEjercicio);
+
+  // 3. Validar autoría
+  if (ejercicio.docenteId !== docente.id) {
+    throw new ForbiddenError('No tienes permisos para modificar este ejercicio.');
+  }
+
+  // 4. Validar pertenencia al curso actual
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(ejercicio.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
+  }
+
+  // 5. Validar reglas según estado
+  if (ejercicio.estado === 'FINALIZADO') {
+    throw new BadRequestError('No se puede editar un ejercicio finalizado.');
+  }
+
+  if (ejercicio.estado === 'PUBLICADO') {
+    if (
+      dto.titulo !== undefined ||
+      dto.enunciado !== undefined ||
+      dto.cursoId !== undefined ||
+      dto.plantillas !== undefined ||
+      (dto.estado !== undefined && dto.estado !== 'PUBLICADO')
+    ) {
+      throw new BadRequestError(
+        'En estado PUBLICADO sólo se permite modificar la fecha límite y las indicaciones.'
+      );
+    }
+  }
+
+  // 6. Si es BORRADOR y cambia el curso, validar que el nuevo curso exista y el docente tenga permisos
+  if (dto.cursoId !== undefined && dto.cursoId !== ejercicio.cursoId) {
+    await cursoRepository.findByIdOrThrow(dto.cursoId);
+    if (!cursosDocente.includes(dto.cursoId)) {
+      throw new ForbiddenError('No tienes permisos sobre el nuevo curso especificado.');
+    }
+  }
+
+  // 7. Si se actualiza fecha límite, validar que sea futura
+  let fechaLimiteParsed: Date | undefined;
+  if (dto.fechaLimite !== undefined) {
+    fechaLimiteParsed = new Date(dto.fechaLimite);
+    if (isNaN(fechaLimiteParsed.getTime())) {
+      throw new BadRequestError('La fecha límite no es una fecha válida.');
+    }
+    if (fechaLimiteParsed <= new Date()) {
+      throw new BadRequestError('La fecha límite debe ser posterior a la fecha y hora actual.');
+    }
+  }
+
+  // 8. Construir payload de actualización
+  const dataActualizar: ejercicioRepository.ActualizarEjercicioData = {
+    titulo: dto.titulo,
+    enunciado: dto.enunciado,
+    cursoId: dto.cursoId,
+    fechaLimite: fechaLimiteParsed,
+    indicaciones: dto.indicaciones,
+    estado: dto.estado,
+    plantillas: dto.plantillas,
+  };
+
+  // 9. Persistir actualización
+  const ejercicioActualizado = await ejercicioRepository.actualizarEjercicio(
+    idEjercicio,
+    dataActualizar
+  );
+
+  // 10. Consultar cantidad de alumnos del curso resultante
+  const totalAlumnos = await alumnoRepository.countByCursoId(ejercicioActualizado.cursoId);
+
+  // 11. Mapear y retornar la respuesta
+  return toDetalleEjercicioResponse(ejercicioActualizado, totalAlumnos);
 }

@@ -115,3 +115,47 @@ export const obtenerEjercicioPorIdSchema = z.object({
 });
 
 export type ObtenerEjercicioPorIdParamsDTO = z.infer<typeof obtenerEjercicioPorIdSchema>['params'];
+
+export const editarEjercicioSchema = z.object({
+  params: z.object({
+    id: z.coerce
+      .number({ message: 'El ID del ejercicio debe ser numérico.' })
+      .int('El ID del ejercicio debe ser un número entero.')
+      .positive('El ID del ejercicio debe ser mayor a cero.'),
+  }),
+  body: z
+    .object({
+      titulo: z
+        .string()
+        .trim()
+        .min(1, 'El título no puede estar vacío.')
+        .max(100, 'El título no puede superar los 100 caracteres.')
+        .optional(),
+      cursoId: z.coerce.number().int().positive('El ID del curso debe ser válido.').optional(),
+      enunciado: z.string().trim().min(1, 'El enunciado no puede estar vacío.').optional(),
+      fechaLimite: z
+        .string()
+        .datetime({ message: 'La fecha límite debe ser una fecha y hora ISO válida.' })
+        .optional(),
+      indicaciones: z
+        .string()
+        .trim()
+        .max(200, 'Las indicaciones no pueden superar los 200 caracteres.')
+        .optional()
+        .nullable(),
+      estado: z.enum(['BORRADOR', 'PUBLICADO']).optional(),
+      plantillas: z
+        .array(z.enum(TIPOS_PLANTILLA))
+        .min(1, 'Debe seleccionar al menos una plantilla.')
+        .refine((items) => new Set(items).size === items.length, {
+          message: 'No puede incluir plantillas duplicadas.',
+        })
+        .optional(),
+    })
+    .refine((data) => Object.keys(data).length > 0, {
+      message: 'Debe enviar al menos un campo para actualizar.',
+    }),
+});
+
+export type EditarEjercicioParamsDTO = z.infer<typeof editarEjercicioSchema>['params'];
+export type EditarEjercicioBodyDTO = z.infer<typeof editarEjercicioSchema>['body'];

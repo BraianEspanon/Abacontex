@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as ejercicioService from '../services/ejercicio.service';
 import {
+  editarEjercicioSchema,
   obtenerEjercicioPorIdSchema,
   obtenerEjerciciosQuerySchema,
 } from '../validators/ejercicio.validator';
@@ -45,6 +46,17 @@ export async function obtenerEjercicioPorId(req: Request, res: Response) {
   });
 
   const resultado = await ejercicioService.obtenerEjercicioPorId(req.user!, params.id);
+
+  res.status(200).json(resultado);
+}
+
+export async function editarEjercicio(req: Request, res: Response) {
+  const { params, body } = editarEjercicioSchema.parse({
+    params: req.params,
+    body: req.body,
+  });
+
+  const resultado = await ejercicioService.editarEjercicio(req.user!, params.id, body);
 
   res.status(200).json(resultado);
 }
