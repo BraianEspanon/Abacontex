@@ -1,5 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import Button from '../ui/Button';
+
 import type { OperacionPendiente } from '../../types/contabilidad.types';
 
 interface TablaOperacionesPendientesProps {
@@ -9,7 +11,7 @@ interface TablaOperacionesPendientesProps {
   totalItems: number;
   cargando?: boolean;
   onRegistrar: (operacion: OperacionPendiente) => void;
-  onCambiarPagina: (pagina: number) => void;
+  onCambiarPagina: (page: number) => void;
 }
 
 const formatearFecha = (fecha: string) =>
@@ -24,21 +26,19 @@ const formatearMoneda = (valor: number) =>
   new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
+    maximumFractionDigits: 0,
   }).format(valor);
 
-function obtenerNombreOrigen(tipo: OperacionPendiente['tipo']) {
-  switch (tipo) {
+function obtenerOrigen(operacion: OperacionPendiente) {
+  switch (operacion.tipo) {
     case 'VENTA':
       return 'Venta';
 
     case 'MOVIMIENTO_FINANCIERO':
-      return 'Movimiento financiero';
+      return 'Movimientos financieros';
 
     case 'CONCILIACION_FINANCIERA':
       return 'Conciliación';
-
-    default:
-      return tipo;
   }
 }
 
@@ -52,26 +52,36 @@ function obtenerReferencia(operacion: OperacionPendiente) {
 
     case 'CONCILIACION_FINANCIERA':
       return `Conciliación #${operacion.id}`;
-
-    default:
-      return `#${operacion.id}`;
   }
 }
 
-function obtenerClaseOrigen(tipo: OperacionPendiente['tipo']) {
-  switch (tipo) {
+function obtenerClaseOrigen(operacion: OperacionPendiente) {
+  switch (operacion.tipo) {
     case 'VENTA':
-      return 'bg-blue-50 text-blue-700';
+      return 'text-[#6A8F65]';
 
     case 'MOVIMIENTO_FINANCIERO':
-      return 'bg-emerald-50 text-emerald-700';
+      return 'text-[#6A8F65]';
 
     case 'CONCILIACION_FINANCIERA':
-      return 'bg-amber-50 text-amber-700';
-
-    default:
-      return 'bg-gray-100 text-gray-700';
+      return 'text-[#6A8F65]';
   }
+}
+
+function obtenerPaginasVisibles(page: number, totalPages: number) {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (page <= 3) {
+    return [1, 2, 3, '...', totalPages] as const;
+  }
+
+  if (page >= totalPages - 2) {
+    return [1, '...', totalPages - 2, totalPages - 1, totalPages] as const;
+  }
+
+  return [1, '...', page, '...', totalPages] as const;
 }
 
 export default function TablaOperacionesPendientes({
@@ -83,92 +93,84 @@ export default function TablaOperacionesPendientes({
   onRegistrar,
   onCambiarPagina,
 }: TablaOperacionesPendientesProps) {
+  const inicio = totalItems === 0 ? 0 : (page - 1) * 10 + 1;
+  const fin = Math.min(page * 10, totalItems);
+
+  const paginasVisibles = obtenerPaginasVisibles(page, totalPages);
+
   return (
-    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="font-semibold text-gray-900">Operaciones pendientes de registrar</h2>
+    <section
+      className={['rounded-xl bg-white p-3 shadow-md', cargando ? 'opacity-70' : ''].join(' ')}
+    >
+      <h2 className="mb-3 text-sm font-medium text-gray-900">
+        Operaciones pendientes de registrar
+      </h2>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Operaciones que todavía no poseen un asiento contable asociado.
-            </p>
-          </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[850px] border-separate border-spacing-0 text-xs">
+          <thead>
+            <tr className="bg-gray-100 text-gray-800">
+              <th className="rounded-l-xl px-4 py-2.5 text-left font-medium">Fecha</th>
 
-          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
-            {totalItems} {totalItems === 1 ? 'pendiente' : 'pendientes'}
-          </span>
-        </div>
-      </div>
+              <th className="px-4 py-2.5 text-left font-medium">Origen</th>
 
-      <div className="relative overflow-x-auto">
-        {cargando && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
-            <span className="text-sm text-gray-500">Actualizando...</span>
-          </div>
-        )}
+              <th className="px-4 py-2.5 text-left font-medium">Referencia</th>
 
-        <table className="w-full min-w-[950px] text-sm">
-          <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-            <tr>
-              <th className="px-5 py-3">Fecha</th>
-              <th className="px-5 py-3">Origen</th>
-              <th className="px-5 py-3">Referencia</th>
-              <th className="px-5 py-3">Concepto</th>
-              <th className="px-5 py-3 text-right">Importe</th>
-              <th className="px-5 py-3 text-right">Acción</th>
+              <th className="px-4 py-2.5 text-left font-medium">Concepto</th>
+
+              <th className="px-4 py-2.5 text-left font-medium">Importe</th>
+
+              <th className="rounded-r-xl px-4 py-2.5 text-right font-medium">Acción</th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-100">
+          <tbody>
             {operaciones.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-xs text-gray-500">
                   No hay operaciones pendientes de registrar.
                 </td>
               </tr>
             ) : (
               operaciones.map((operacion) => (
-                <tr
-                  key={`${operacion.tipo}-${operacion.id}`}
-                  className="transition hover:bg-gray-50/70"
-                >
-                  <td className="whitespace-nowrap px-5 py-4 text-gray-700">
+                <tr key={`${operacion.tipo}-${operacion.id}`} className="border-b border-gray-200">
+                  <td className="border-b border-gray-200 px-4 py-2 text-gray-700">
                     {formatearFecha(operacion.fecha)}
                   </td>
 
-                  <td className="px-5 py-4">
+                  <td className="border-b border-gray-200 px-4 py-2">
                     <span
-                      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${obtenerClaseOrigen(
-                        operacion.tipo
-                      )}`}
+                      className={[
+                        'whitespace-nowrap text-[11px] font-medium',
+                        obtenerClaseOrigen(operacion),
+                      ].join(' ')}
                     >
-                      {obtenerNombreOrigen(operacion.tipo)}
+                      {obtenerOrigen(operacion)}
                     </span>
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 font-medium text-gray-700">
+                  <td className="border-b border-gray-200 px-4 py-2 text-gray-700">
                     {obtenerReferencia(operacion)}
                   </td>
 
-                  <td className="max-w-[300px] px-5 py-4 text-gray-600">
-                    <p className="truncate" title={operacion.concepto}>
+                  <td className="max-w-[250px] border-b border-gray-200 px-4 py-2 text-gray-700">
+                    <span className="block truncate" title={operacion.concepto}>
                       {operacion.concepto}
-                    </p>
+                    </span>
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-right font-medium text-gray-800">
+                  <td className="whitespace-nowrap border-b border-gray-200 px-4 py-2 text-gray-800">
                     {formatearMoneda(operacion.montoTotal)}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-right">
-                    <button
+                  <td className="whitespace-nowrap border-b border-gray-200 px-4 py-1.5 text-right">
+                    <Button
                       type="button"
+                      label="Registrar asiento"
+                      variant="solid"
                       onClick={() => onRegistrar(operacion)}
-                      className="rounded-lg border border-[#6A8F65] px-3 py-2 text-xs font-semibold text-[#4E6B4A] transition hover:bg-[#eef4ec]"
-                    >
-                      Registrar asiento
-                    </button>
+                      className="!rounded-md !px-3 !py-1 text-[10px] !font-medium shadow-none hover:shadow-sm"
+                    />
                   </td>
                 </tr>
               ))
@@ -177,37 +179,64 @@ export default function TablaOperacionesPendientes({
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-5 py-4">
-          <p className="text-sm text-gray-500">
-            Página {page} de {totalPages}
+      {totalItems > 0 && (
+        <div className="flex min-h-8 items-center justify-between px-4 pt-1">
+          <p className="text-[10px] text-gray-400">
+            Mostrando {inicio} a {fin} productos de {totalItems}
           </p>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onCambiarPagina(page - 1)}
-              disabled={page <= 1 || cargando}
-              aria-label="Página anterior"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onCambiarPagina(page - 1)}
+                disabled={page <= 1}
+                aria-label="Página anterior"
+                className="flex h-6 w-6 items-center justify-center text-gray-500 transition hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
 
-            <span className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#4E6B4A] px-3 text-sm font-semibold text-white">
-              {page}
-            </span>
+              {paginasVisibles.map((pagina, index) => {
+                if (pagina === '...') {
+                  return (
+                    <span
+                      key={`ellipsis-${index}`}
+                      className="flex h-6 min-w-6 items-center justify-center text-[10px] text-gray-600"
+                    >
+                      ...
+                    </span>
+                  );
+                }
 
-            <button
-              type="button"
-              onClick={() => onCambiarPagina(page + 1)}
-              disabled={page >= totalPages || cargando}
-              aria-label="Página siguiente"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+                return (
+                  <button
+                    key={pagina}
+                    type="button"
+                    onClick={() => onCambiarPagina(pagina)}
+                    className={[
+                      'flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-[10px] font-medium transition',
+                      pagina === page
+                        ? 'bg-abacontex-primary text-white'
+                        : 'text-gray-700 hover:bg-gray-100',
+                    ].join(' ')}
+                  >
+                    {pagina}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => onCambiarPagina(page + 1)}
+                disabled={page >= totalPages}
+                aria-label="Página siguiente"
+                className="flex h-6 w-6 items-center justify-center text-gray-500 transition hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>

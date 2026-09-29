@@ -64,6 +64,7 @@ export default function EstadoResultadosPage() {
 
   return (
     <div className="space-y-5 font-sans text-abacontex-black-text">
+      {/* Breadcrumb */}
       <nav className="flex flex-wrap items-center gap-2 text-sm">
         <Link
           to="/alumno"
@@ -87,16 +88,10 @@ export default function EstadoResultadosPage() {
         <span className="font-semibold text-abacontex-black-text">Estado de resultado</span>
       </nav>
 
-      <header>
-        <h1 className="text-2xl font-semibold text-abacontex-black-text">Contabilidad</h1>
-
-        <p className="mt-1 text-sm text-abacontex-gray-text">
-          Consultá los ingresos, egresos y el resultado del período.
-        </p>
-      </header>
-
+      {/* Navegación */}
       <NavegacionContabilidad activa="ESTADO_RESULTADO" />
 
+      {/* Contenido */}
       <div className="pt-4">
         <EstadoResultadosCard reporte={reporte} />
       </div>

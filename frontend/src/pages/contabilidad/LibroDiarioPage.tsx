@@ -65,7 +65,7 @@ export default function LibroDiarioPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Breadcrumb */}
       <nav className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
         <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
@@ -81,22 +81,19 @@ export default function LibroDiarioPage() {
 
         <ChevronRight className="h-4 w-4" />
 
-        <span className="font-medium text-gray-700">Libro diario</span>
+        <Link to="/alumno/contabilidad" className="transition hover:text-gray-700">
+          Libro diario
+        </Link>
+
+        <ChevronRight className="h-4 w-4" />
+
+        <span className="font-semibold text-gray-800">Ver libro diario</span>
       </nav>
-
-      {/* Encabezado */}
-      <header>
-        <h1 className="text-2xl font-bold text-gray-900">Libro Diario</h1>
-
-        <p className="mt-1 text-sm text-gray-500">
-          Consultá los asientos contables registrados por tu empresa.
-        </p>
-      </header>
 
       {/* Navegación contable */}
       <NavegacionContabilidad activa="LIBRO_DIARIO" />
 
-      {/* Tabla */}
+      {/* Libro Diario */}
       <TablaLibroDiario
         asientos={libroDiario.asientos}
         totalDebe={libroDiario.totalDebeGeneral}
