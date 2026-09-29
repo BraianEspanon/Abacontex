@@ -15,6 +15,38 @@ export const CONTENIDOS_ADICIONALES = ['IVA', 'INTERESES', 'DESCUENTOS'] as cons
 
 export type ContenidoAdicional = (typeof CONTENIDOS_ADICIONALES)[number];
 
+export const ESTADOS_EJERCICIO = ['BORRADOR', 'PUBLICADO', 'FINALIZADO'] as const;
+
+export type EstadoEjercicio = (typeof ESTADOS_EJERCICIO)[number];
+
+export const ESTADOS_VISUALES_EJERCICIO = [
+  'BORRADOR',
+  'PUBLICADO',
+  'SIN_RESOLVER',
+  'RESUELTO',
+] as const;
+
+export type EstadoVisualEjercicio = (typeof ESTADOS_VISUALES_EJERCICIO)[number];
+
+export const FILTROS_ESTADO_EJERCICIO = [
+  'BORRADOR',
+  'PUBLICADO',
+  'FINALIZADO',
+  'SIN_RESOLVER',
+  'RESUELTO',
+] as const;
+
+export type FiltroEstadoEjercicio = (typeof FILTROS_ESTADO_EJERCICIO)[number];
+
+export const TIPOS_PLANTILLA = [
+  'LIBRO_DIARIO',
+  'LIBRO_MAYOR',
+  'LIBRO_IVA',
+  'HOJA_TRABAJO',
+] as const;
+
+export type TipoPlantilla = (typeof TIPOS_PLANTILLA)[number];
+
 export interface OpcionTipoEjercicio {
   id: TipoEjercicio;
   label: string;

@@ -9,19 +9,37 @@ import {
 import { ocrService } from '../integrations/ocr/ocr.service';
 import { generacionService } from '../integrations/generacion/generacion.service';
 
+import * as alumnoRepository from '../repositories/alumno.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
+import * as ejercicioRepository from '../repositories/ejercicio.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
 import { ForbiddenError } from '../errors/forbidden.error';
 
 import {
+  DetalleEjercicioResponseDTO,
   DigitalizarEjercicioResponseDTO,
+  EjercicioCreadoResponseDTO,
   GenerarEjercicioResponseDTO,
+  ListadoEjerciciosResponseDTO,
   OpcionesGeneracionResponseDTO,
+  ResolucionDocenteResponseDTO,
 } from '../dto/ejercicio/ejercicio.dto';
 
-import { GenerarEjercicioDTO } from '../validators/ejercicio.validator';
+import {
+  CrearEjercicioDTO,
+  EditarEjercicioBodyDTO,
+  GenerarEjercicioDTO,
+  ObtenerEjerciciosQueryDTO,
+} from '../validators/ejercicio.validator';
+
+import {
+  toDetalleEjercicioResponse,
+  toEjercicioCreadoResponse,
+  toListadoEjerciciosResponse,
+  toResolucionDocenteResponse,
+} from '../dto/ejercicio/ejercicio.mapper';
 
 export function obtenerOpcionesGeneracion(): OpcionesGeneracionResponseDTO {
   return {
@@ -79,4 +97,259 @@ export async function generarEjercicio(
   return {
     enunciadoTexto: resultado.enunciadoTexto,
   };
+}
+
+export async function crearEjercicio(
+  user: AuthUser,
+  dto: CrearEjercicioDTO
+): Promise<EjercicioCreadoResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Validar existencia del curso en DB
+  await cursoRepository.findByIdOrThrow(dto.cursoId);
+
+  // 3. Validar que el docente autenticado tenga acceso al curso especificado
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(dto.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso especificado.');
+  }
+
+  // 4. Validar que la fecha límite sea una fecha válida y posterior a la actual
+  const fechaLimite = new Date(dto.fechaLimite);
+  if (isNaN(fechaLimite.getTime())) {
+    throw new BadRequestError('La fecha límite no es una fecha válida.');
+  }
+
+  const ahora = new Date();
+  if (fechaLimite <= ahora) {
+    throw new BadRequestError('La fecha límite debe ser posterior a la fecha y hora actual.');
+  }
+
+  // 5. Persistir el ejercicio con sus relaciones asociadas en el repositorio
+  const ejercicio = await ejercicioRepository.crearEjercicio(docente.id, dto, fechaLimite);
+
+  // 6. Retornar el DTO desacoplado
+  return toEjercicioCreadoResponse(ejercicio);
+}
+
+export async function obtenerEjercicios(
+  user: AuthUser,
+  query: ObtenerEjerciciosQueryDTO
+): Promise<ListadoEjerciciosResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Si se solicitó filtrar por curso, validar que el docente tenga acceso a dicho curso
+  if (query.cursoId) {
+    const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+    if (!cursosDocente.includes(query.cursoId)) {
+      throw new ForbiddenError('No tienes permisos sobre el curso especificado.');
+    }
+  }
+
+  // 3. Consultar los ejercicios paginados y las métricas de resumen
+  const resultado = await ejercicioRepository.findEjerciciosByDocente(docente.id, query);
+
+  // 4. Mapear y retornar la respuesta plana con resumen
+  return toListadoEjerciciosResponse(
+    resultado.items,
+    resultado.totalItems,
+    query.page ?? 1,
+    query.pageSize ?? 6,
+    resultado.resumen
+  );
+}
+
+export async function obtenerEjercicioPorId(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<DetalleEjercicioResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar ejercicio por ID
+  const ejercicio = await ejercicioRepository.findEjercicioByIdOrThrow(idEjercicio);
+
+  // 3. Validar que el ejercicio pertenezca al docente autenticado
+  if (ejercicio.docenteId !== docente.id) {
+    throw new ForbiddenError('No tienes permisos para acceder a este ejercicio.');
+  }
+
+  // 4. Validar que el docente tenga acceso al curso del ejercicio
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(ejercicio.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
+  }
+
+  // 5. Consultar cantidad de alumnos del curso
+  const totalAlumnos = await alumnoRepository.countByCursoId(ejercicio.cursoId);
+
+  // 6. Mapear y retornar la respuesta
+  return toDetalleEjercicioResponse(ejercicio, totalAlumnos);
+}
+
+export async function editarEjercicio(
+  user: AuthUser,
+  idEjercicio: number,
+  dto: EditarEjercicioBodyDTO
+): Promise<DetalleEjercicioResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar ejercicio por ID
+  const ejercicio = await ejercicioRepository.findEjercicioByIdOrThrow(idEjercicio);
+
+  // 3. Validar autoría
+  if (ejercicio.docenteId !== docente.id) {
+    throw new ForbiddenError('No tienes permisos para modificar este ejercicio.');
+  }
+
+  // 4. Validar pertenencia al curso actual
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(ejercicio.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
+  }
+
+  // 5. Validar reglas según estado
+  if (ejercicio.estado === 'FINALIZADO') {
+    throw new BadRequestError('No se puede editar un ejercicio finalizado.');
+  }
+
+  if (ejercicio.estado === 'PUBLICADO') {
+    if (
+      dto.titulo !== undefined ||
+      dto.enunciado !== undefined ||
+      dto.cursoId !== undefined ||
+      dto.plantillas !== undefined ||
+      (dto.estado !== undefined && dto.estado !== 'PUBLICADO')
+    ) {
+      throw new BadRequestError(
+        'En estado PUBLICADO sólo se permite modificar la fecha límite y las indicaciones.'
+      );
+    }
+  }
+
+  // 6. Si es BORRADOR y cambia el curso, validar que el nuevo curso exista y el docente tenga permisos
+  if (dto.cursoId !== undefined && dto.cursoId !== ejercicio.cursoId) {
+    await cursoRepository.findByIdOrThrow(dto.cursoId);
+    if (!cursosDocente.includes(dto.cursoId)) {
+      throw new ForbiddenError('No tienes permisos sobre el nuevo curso especificado.');
+    }
+  }
+
+  // 7. Si se actualiza fecha límite, validar que sea futura
+  let fechaLimiteParsed: Date | undefined;
+  if (dto.fechaLimite !== undefined) {
+    fechaLimiteParsed = new Date(dto.fechaLimite);
+    if (isNaN(fechaLimiteParsed.getTime())) {
+      throw new BadRequestError('La fecha límite no es una fecha válida.');
+    }
+    if (fechaLimiteParsed <= new Date()) {
+      throw new BadRequestError('La fecha límite debe ser posterior a la fecha y hora actual.');
+    }
+  }
+
+  // 8. Construir payload de actualización
+  const dataActualizar: ejercicioRepository.ActualizarEjercicioData = {
+    titulo: dto.titulo,
+    enunciado: dto.enunciado,
+    cursoId: dto.cursoId,
+    fechaLimite: fechaLimiteParsed,
+    indicaciones: dto.indicaciones,
+    estado: dto.estado,
+    plantillas: dto.plantillas,
+  };
+
+  // 9. Persistir actualización
+  const ejercicioActualizado = await ejercicioRepository.actualizarEjercicio(
+    idEjercicio,
+    dataActualizar
+  );
+
+  // 10. Consultar cantidad de alumnos del curso resultante
+  const totalAlumnos = await alumnoRepository.countByCursoId(ejercicioActualizado.cursoId);
+
+  // 11. Mapear y retornar la respuesta
+  return toDetalleEjercicioResponse(ejercicioActualizado, totalAlumnos);
+}
+
+export async function duplicarEjercicio(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<EjercicioCreadoResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar ejercicio original por ID
+  const ejercicio = await ejercicioRepository.findEjercicioByIdOrThrow(idEjercicio);
+
+  // 3. Validar autoría
+  if (ejercicio.docenteId !== docente.id) {
+    throw new ForbiddenError('No tienes permisos para duplicar este ejercicio.');
+  }
+
+  // 4. Validar pertenencia al curso
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(ejercicio.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
+  }
+
+  // 5. Preparar datos clonados
+  const nuevoTitulo = `${ejercicio.titulo} (Copia)`.slice(0, 100);
+
+  const ahora = new Date();
+  const finDeAñoActual = new Date(ahora.getFullYear(), 11, 31, 23, 59, 59, 999);
+  const fechaLimite = ejercicio.fechaLimite > ahora ? ejercicio.fechaLimite : finDeAñoActual;
+
+  // 6. Persistir clon en estado BORRADOR reutilizando crearEjercicio
+  const ejercicioClonado = await ejercicioRepository.crearEjercicio(
+    docente.id,
+    {
+      titulo: nuevoTitulo,
+      enunciado: ejercicio.enunciado,
+      cursoId: ejercicio.cursoId,
+      fechaLimite: fechaLimite.toISOString(),
+      indicaciones: ejercicio.indicaciones,
+      estado: 'BORRADOR',
+      plantillas: ejercicio.plantillas.map((p) => p.tipo),
+      generacionIA: ejercicio.generacionIA
+        ? {
+            tipoEjercicio: ejercicio.generacionIA.tipoEjercicio,
+            dificultad: ejercicio.generacionIA.dificultad,
+            contextoAdicional: ejercicio.generacionIA.contextoAdicional,
+            contenidos: ejercicio.generacionIA.contenidos.map((c) => c.contenido),
+          }
+        : null,
+    },
+    fechaLimite
+  );
+
+  // 7. Mapear y retornar la respuesta
+  return toEjercicioCreadoResponse(ejercicioClonado);
+}
+
+export async function consultarResolucionDocente(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<ResolucionDocenteResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar ejercicio con su resolución por ID
+  const ejercicio = await ejercicioRepository.findEjercicioConResolucionByIdOrThrow(idEjercicio);
+
+  // 3. Validar que el ejercicio pertenezca al docente autenticado
+  if (ejercicio.docenteId !== docente.id) {
+    throw new ForbiddenError('No tienes permisos para acceder a este ejercicio.');
+  }
+
+  // 4. Validar que el docente tenga asignado el curso del ejercicio
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(ejercicio.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
+  }
+
+  // 5. Mapear y retornar la respuesta
+  return toResolucionDocenteResponse(ejercicio);
 }
