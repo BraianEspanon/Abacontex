@@ -52,6 +52,9 @@ import RegistrarAsientoPage from '../pages/contabilidad/RegistrarAsientoPage';
 import ContabilidadPage from '../pages/contabilidad/ContabilidadPage';
 import LibroDiarioPage from '../pages/contabilidad/LibroDiarioPage';
 import EditarAsientoPage from '../pages/contabilidad/EditarAsientoPage';
+import LibroMayorPage from '../pages/contabilidad/LibroMayorPage';
+import EstadoResultadosPage from '../pages/contabilidad/EstadoResultadosPage';
+import BalanceGeneralPage from '../pages/contabilidad/BalanceGeneralPage';
 
 export default function AppRouter() {
   return (
@@ -194,6 +197,12 @@ export default function AppRouter() {
         />
 
         <Route path="contabilidad/asientos/:id/editar" element={<EditarAsientoPage />} />
+
+        <Route path="contabilidad/libro-mayor" element={<LibroMayorPage />} />
+
+        <Route path="contabilidad/estado-resultados" element={<EstadoResultadosPage />} />
+
+        <Route path="contabilidad/balance-general" element={<BalanceGeneralPage />} />
       </Route>
     </Routes>
   );

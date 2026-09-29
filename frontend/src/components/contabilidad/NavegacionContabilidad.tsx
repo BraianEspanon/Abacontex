@@ -10,21 +10,25 @@ const opciones = [
     id: 'LIBRO_DIARIO',
     label: 'Libro diario',
     icono: BookOpen,
+    ruta: '/alumno/contabilidad',
   },
   {
     id: 'LIBRO_MAYOR',
     label: 'Libro mayor',
     icono: ScrollText,
+    ruta: '/alumno/contabilidad/libro-mayor',
   },
   {
     id: 'ESTADO_RESULTADO',
     label: 'Estado de resultado',
     icono: ChartNoAxesColumnIncreasing,
+    ruta: '/alumno/contabilidad/estado-resultados',
   },
   {
     id: 'BALANCE_GENERAL',
     label: 'Balance general',
     icono: Scale,
+    ruta: '/alumno/contabilidad/balance-general',
   },
 ] as const;
 
@@ -34,22 +38,12 @@ export default function NavegacionContabilidad({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const estaEnPaginaPrincipal = location.pathname === '/alumno/contabilidad';
-
-  const handleSeleccionar = (id: (typeof opciones)[number]['id']) => {
-    /*
-     * "Libro diario" representa la sección principal
-     * de Contabilidad.
-     *
-     * Si ya estamos en /alumno/contabilidad,
-     * no hacemos nada.
-     *
-     * Desde Libro Diario, Registrar asiento o
-     * Editar asiento vuelve a la página principal.
-     */
-    if (id === 'LIBRO_DIARIO' && !estaEnPaginaPrincipal) {
-      navigate('/alumno/contabilidad');
+  const handleSeleccionar = (opcion: (typeof opciones)[number]) => {
+    if (location.pathname === opcion.ruta) {
+      return;
     }
+
+    navigate(opcion.ruta);
   };
 
   return (
@@ -59,29 +53,29 @@ export default function NavegacionContabilidad({
           const Icono = opcion.icono;
           const seleccionada = activa === opcion.id;
 
-          const esLibroDiario = opcion.id === 'LIBRO_DIARIO';
-
-          const puedeNavegar = esLibroDiario && !estaEnPaginaPrincipal;
-
           return (
             <button
               key={opcion.id}
               type="button"
-              onClick={() => handleSeleccionar(opcion.id)}
-              disabled={!puedeNavegar}
+              onClick={() => handleSeleccionar(opcion)}
               className={[
-                'relative flex shrink-0 items-center gap-2 px-1 pb-3 text-sm font-medium',
-                seleccionada ? 'text-[#496647]' : 'text-gray-400',
-
-                puedeNavegar ? 'cursor-pointer transition hover:text-[#3f5b3d]' : 'cursor-default',
+                'group relative flex shrink-0 cursor-pointer items-center gap-2 px-1 pb-3 text-sm transition',
+                seleccionada
+                  ? 'font-semibold text-abacontex-primary'
+                  : 'font-medium text-abacontex-gray-text hover:text-abacontex-primary',
               ].join(' ')}
             >
-              <Icono className="h-4 w-4" />
+              <Icono
+                className={[
+                  'size-4 transition-transform',
+                  seleccionada ? 'scale-105' : 'group-hover:scale-105',
+                ].join(' ')}
+              />
 
-              {opcion.label}
+              <span className={seleccionada ? 'font-semibold' : 'font-medium'}>{opcion.label}</span>
 
               {seleccionada && (
-                <span className="absolute right-0 bottom-0 left-0 h-0.5 rounded-full bg-[#496647]" />
+                <span className="absolute right-0 bottom-0 left-0 h-0.5 rounded-full bg-abacontex-primary" />
               )}
             </button>
           );

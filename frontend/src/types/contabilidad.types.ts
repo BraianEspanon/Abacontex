@@ -291,3 +291,63 @@ export interface EditarAsientoDetalleRequest {
 export interface EditarAsientoRequest {
   detalles: EditarAsientoDetalleRequest[];
 }
+
+/* =========================================================
+   LIBRO MAYOR
+   ========================================================= */
+
+export type TipoSaldoLibroMayor = 'DEUDOR' | 'ACREEDOR' | 'SALDADA';
+
+export interface CuentaLibroMayor {
+  cuentaId: number;
+  codigo: string;
+  nombre: string;
+  tipoCuenta: string;
+  numeroFolio: number | null;
+  totalDebito: number;
+  totalCredito: number;
+  saldo: number;
+  tipoSaldo: TipoSaldoLibroMayor;
+  esSaldoCorrecto: boolean;
+  mensajeError: string | null;
+}
+
+/* =========================================================
+   ESTADO DE RESULTADOS
+   ========================================================= */
+
+export type TipoResultadoEjercicio = 'GANANCIA' | 'PERDIDA' | 'NEUTRO';
+
+export interface CuentaReporte {
+  cuentaId: number;
+  codigo: string;
+  nombre: string;
+  saldo: number;
+}
+
+export interface EstadoResultadosResponse {
+  ingresos: CuentaReporte[];
+  egresos: CuentaReporte[];
+  totalIngresos: number;
+  totalEgresos: number;
+  resultadoEjercicio: number;
+  tipoResultado: TipoResultadoEjercicio;
+}
+
+/* =========================================================
+   BALANCE GENERAL
+   ========================================================= */
+
+export interface BalanceGeneralResponse {
+  activos: CuentaReporte[];
+  pasivos: CuentaReporte[];
+  patrimonioNeto: CuentaReporte[];
+  resultadoEjercicio: number;
+  tipoResultadoEjercicio: TipoResultadoEjercicio;
+  totalActivo: number;
+  totalPasivo: number;
+  totalPatrimonioNeto: number;
+  totalPasivoMasPatrimonioNeto: number;
+  esBalanceEquilibrado: boolean;
+  mensajeError: string | null;
+}
