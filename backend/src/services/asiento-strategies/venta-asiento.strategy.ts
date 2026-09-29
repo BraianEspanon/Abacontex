@@ -74,6 +74,7 @@ export class VentaAsientoStrategy implements OperacionPendienteStrategy {
       idVenta: venta.idVenta,
       pedidoId: venta.pedidoId,
       fecha: venta.fecha,
+      concepto: `Venta a ${venta.pedido.clienteNombre}`,
       estado: venta.estado,
       clienteNombre: venta.pedido.clienteNombre,
       clienteMail: venta.pedido.clienteMail,
