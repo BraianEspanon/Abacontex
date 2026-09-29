@@ -3,11 +3,13 @@ import {
   EjercicioCreadoResponseDTO,
   EjercicioItemDTO,
   ListadoEjerciciosResponseDTO,
+  ResolucionDocenteResponseDTO,
   ResumenEjerciciosDTO,
 } from './ejercicio.dto';
 import {
   EjercicioCreadoEntity,
   EjercicioListItemEntity,
+  EjercicioResolucionEntity,
 } from '../../repositories/ejercicio.repository';
 
 export function toEjercicioCreadoResponse(
@@ -150,5 +152,32 @@ export function toDetalleEjercicioResponse(
     },
     createdAt: ejercicio.createdAt.toISOString(),
     updatedAt: ejercicio.updatedAt.toISOString(),
+  };
+}
+
+export function toResolucionDocenteResponse(
+  ejercicio: EjercicioResolucionEntity
+): ResolucionDocenteResponseDTO {
+  const plantillasResolucion = ejercicio.resolucion?.plantillas ?? [];
+
+  return {
+    idResolucion: ejercicio.resolucion?.idResolucion ?? 0,
+    idEjercicio: ejercicio.idEjercicio,
+    titulo: ejercicio.titulo,
+    enunciado: ejercicio.enunciado,
+    fechaLimite: ejercicio.fechaLimite.toISOString(),
+    estado: ejercicio.resolucion?.estado ?? 'PENDIENTE',
+    plantillas: ejercicio.plantillas.map((plantilla) => {
+      const resolucionPlantilla = plantillasResolucion.find(
+        (rp) => rp.ejercicioPlantillaId === plantilla.idEjercicioPlantilla
+      );
+
+      return {
+        idEjercicioPlantilla: plantilla.idEjercicioPlantilla,
+        tipo: plantilla.tipo,
+        estado: resolucionPlantilla?.estado ?? 'PENDIENTE',
+        contenido: resolucionPlantilla?.contenido ?? null,
+      };
+    }),
   };
 }

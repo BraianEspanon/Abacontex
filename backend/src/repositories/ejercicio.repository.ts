@@ -22,6 +22,19 @@ export type EjercicioCreadoEntity = Prisma.EjercicioGetPayload<{
 
 export type EjercicioDetalleEntity = EjercicioCreadoEntity;
 
+const ejercicioResolucionInclude = {
+  plantillas: true,
+  resolucion: {
+    include: {
+      plantillas: true,
+    },
+  },
+} as const;
+
+export type EjercicioResolucionEntity = Prisma.EjercicioGetPayload<{
+  include: typeof ejercicioResolucionInclude;
+}>;
+
 export async function crearEjercicio(
   docenteId: string,
   data: CrearEjercicioDTO,
@@ -195,6 +208,31 @@ export async function findEjercicioByIdOrThrow(
   tx?: Prisma.TransactionClient
 ): Promise<EjercicioDetalleEntity> {
   const ejercicio = await findEjercicioById(idEjercicio, tx);
+
+  if (!ejercicio) {
+    throw new NotFoundError('Ejercicio no encontrado.');
+  }
+
+  return ejercicio;
+}
+
+export async function findEjercicioConResolucionById(
+  idEjercicio: number,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioResolucionEntity | null> {
+  const db = getDbClient(tx);
+
+  return db.ejercicio.findUnique({
+    where: { idEjercicio },
+    include: ejercicioResolucionInclude,
+  });
+}
+
+export async function findEjercicioConResolucionByIdOrThrow(
+  idEjercicio: number,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioResolucionEntity> {
+  const ejercicio = await findEjercicioConResolucionById(idEjercicio, tx);
 
   if (!ejercicio) {
     throw new NotFoundError('Ejercicio no encontrado.');

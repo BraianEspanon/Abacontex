@@ -24,6 +24,7 @@ import {
   GenerarEjercicioResponseDTO,
   ListadoEjerciciosResponseDTO,
   OpcionesGeneracionResponseDTO,
+  ResolucionDocenteResponseDTO,
 } from '../dto/ejercicio/ejercicio.dto';
 
 import {
@@ -37,6 +38,7 @@ import {
   toDetalleEjercicioResponse,
   toEjercicioCreadoResponse,
   toListadoEjerciciosResponse,
+  toResolucionDocenteResponse,
 } from '../dto/ejercicio/ejercicio.mapper';
 
 export function obtenerOpcionesGeneracion(): OpcionesGeneracionResponseDTO {
@@ -325,4 +327,29 @@ export async function duplicarEjercicio(
 
   // 7. Mapear y retornar la respuesta
   return toEjercicioCreadoResponse(ejercicioClonado);
+}
+
+export async function consultarResolucionDocente(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<ResolucionDocenteResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar ejercicio con su resolución por ID
+  const ejercicio = await ejercicioRepository.findEjercicioConResolucionByIdOrThrow(idEjercicio);
+
+  // 3. Validar que el ejercicio pertenezca al docente autenticado
+  if (ejercicio.docenteId !== docente.id) {
+    throw new ForbiddenError('No tienes permisos para acceder a este ejercicio.');
+  }
+
+  // 4. Validar que el docente tenga asignado el curso del ejercicio
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(ejercicio.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
+  }
+
+  // 5. Mapear y retornar la respuesta
+  return toResolucionDocenteResponse(ejercicio);
 }

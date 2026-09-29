@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as ejercicioService from '../services/ejercicio.service';
 import {
+  consultarResolucionDocenteSchema,
   duplicarEjercicioSchema,
   editarEjercicioSchema,
   obtenerEjercicioPorIdSchema,
@@ -70,4 +71,14 @@ export async function duplicarEjercicio(req: Request, res: Response) {
   const resultado = await ejercicioService.duplicarEjercicio(req.user!, params.id);
 
   res.status(201).json(resultado);
+}
+
+export async function consultarResolucionDocente(req: Request, res: Response) {
+  const { params } = consultarResolucionDocenteSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await ejercicioService.consultarResolucionDocente(req.user!, params.id);
+
+  res.status(200).json(resultado);
 }

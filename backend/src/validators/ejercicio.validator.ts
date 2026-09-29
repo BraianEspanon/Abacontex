@@ -170,3 +170,16 @@ export const duplicarEjercicioSchema = z.object({
 });
 
 export type DuplicarEjercicioParamsDTO = z.infer<typeof duplicarEjercicioSchema>['params'];
+
+export const consultarResolucionDocenteSchema = z.object({
+  params: z.object({
+    id: z.coerce
+      .number({ message: 'El ID del ejercicio debe ser numérico.' })
+      .int('El ID del ejercicio debe ser un número entero.')
+      .positive('El ID del ejercicio debe ser mayor a cero.'),
+  }),
+});
+
+export type ConsultarResolucionDocenteParamsDTO = z.infer<
+  typeof consultarResolucionDocenteSchema
+>['params'];
