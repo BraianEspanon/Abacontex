@@ -30,28 +30,24 @@ export default function TablaLibroDiario({
   onEditar,
 }: TablaLibroDiarioProps) {
   return (
-    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-5 py-4">
-        <h2 className="font-semibold text-gray-900">Libro Diario</h2>
-
-        <p className="mt-1 text-sm text-gray-500">Asientos contables registrados por la empresa.</p>
-      </div>
-
-      <div className="max-h-[600px] overflow-auto">
-        <table className="w-full min-w-[900px] text-sm">
-          <thead className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+    <section className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
+      <div className="max-h-[570px] min-h-[570px] overflow-auto">
+        <table className="w-full min-w-[900px] border-collapse text-sm">
+          {/* Encabezado */}
+          <thead className="sticky top-0 z-10 bg-gray-200 font-semibold text-gray-900">
             <tr>
-              <th className="w-[130px] px-5 py-3">Fecha</th>
+              <th className="w-[130px] border-r border-gray-300 px-4 py-3 text-center">Fecha</th>
 
-              <th className="px-5 py-3">Concepto</th>
+              <th className="border-r border-gray-300 px-4 py-3 text-center">Concepto</th>
 
-              <th className="w-[120px] px-5 py-3 text-center">N° Folio</th>
+              <th className="w-[110px] border-r border-gray-300 px-4 py-3 text-center">N° Folio</th>
 
-              <th className="w-[150px] px-5 py-3 text-right">Debe</th>
+              <th className="w-[150px] border-r border-gray-300 px-4 py-3 text-center">Debe</th>
 
-              <th className="w-[150px] px-5 py-3 text-right">Haber</th>
+              <th className="w-[150px] px-4 py-3 text-center">Haber</th>
 
-              <th className="w-[70px] px-5 py-3 text-center">Acción</th>
+              {/* Columna de edición */}
+              <th className="w-[70px] bg-white" />
             </tr>
           </thead>
 
@@ -69,19 +65,26 @@ export default function TablaLibroDiario({
             )}
           </tbody>
 
+          {/* Totales generales */}
           {asientos.length > 0 && (
-            <tfoot className="sticky bottom-0 border-t-2 border-gray-300 bg-white">
+            <tfoot>
               <tr>
-                <td colSpan={3} className="px-5 py-4 text-right font-semibold text-gray-800">
-                  Totales
+                <td className="border-r border-gray-300" />
+
+                <td className="border-r border-gray-300" />
+
+                <td className="border-r border-gray-300" />
+
+                <td className="border-r border-gray-300 px-3 pb-3 pt-5">
+                  <div className="border-t border-gray-300 pt-3 text-center font-bold text-gray-900">
+                    {formatearMoneda(totalDebe)}
+                  </div>
                 </td>
 
-                <td className="px-5 py-4 text-right font-bold text-gray-900">
-                  {formatearMoneda(totalDebe)}
-                </td>
-
-                <td className="px-5 py-4 text-right font-bold text-gray-900">
-                  {formatearMoneda(totalHaber)}
+                <td className="px-3 pb-3 pt-5">
+                  <div className="border-t border-gray-300 pt-3 text-center font-bold text-gray-900">
+                    {formatearMoneda(totalHaber)}
+                  </div>
                 </td>
 
                 <td />
@@ -102,64 +105,124 @@ interface AsientoDiarioProps {
 function AsientoDiario({ asiento, onEditar }: AsientoDiarioProps) {
   return (
     <>
-      {/* Encabezado del asiento */}
-      <tr className="border-t border-gray-200 bg-gray-50/60">
-        <td className="whitespace-nowrap px-5 py-3 font-medium text-gray-700">
+      {/* Separador + número del asiento */}
+      <tr>
+        {/* Fecha */}
+        <td
+          rowSpan={asiento.detalles.length + 2}
+          className="border-r border-gray-300 px-4 pt-3 text-center align-top font-medium text-gray-900"
+        >
           {formatearFecha(asiento.fechaHecho)}
         </td>
 
-        <td colSpan={4} className="px-5 py-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="font-semibold text-gray-900">Asiento N° {asiento.numeroAsiento}</span>
+        {/* Línea horizontal con número de asiento */}
+        <td className="border-r border-gray-300 px-3 pt-3">
+          <div className="flex items-center">
+            <div className="h-px flex-1 bg-gray-300" />
 
-            <span className="text-gray-600">{asiento.conceptoGeneral}</span>
+            <span className="shrink-0 px-4 font-semibold text-gray-900">
+              {asiento.numeroAsiento}
+            </span>
+
+            <div className="h-px flex-1 bg-gray-300" />
           </div>
         </td>
 
-        <td className="px-5 py-3 text-center">
+        {/* Folio */}
+        <td rowSpan={asiento.detalles.length + 2} className="border-r border-gray-300 align-top">
+          <div className="pt-[52px]">
+            {asiento.detalles.map((detalle) => (
+              <div
+                key={detalle.idDetalle}
+                className="flex h-7 items-center justify-center text-gray-900"
+              >
+                {detalle.numeroFolio ?? '—'}
+              </div>
+            ))}
+          </div>
+        </td>
+
+        {/* Debe */}
+        <td rowSpan={asiento.detalles.length + 2} className="border-r border-gray-300 align-top">
+          <div className="pt-[52px]">
+            {asiento.detalles.map((detalle) => (
+              <div
+                key={detalle.idDetalle}
+                className="flex h-7 items-center justify-center text-gray-900"
+              >
+                {detalle.debe > 0 ? formatearMoneda(detalle.debe) : ''}
+              </div>
+            ))}
+          </div>
+        </td>
+
+        {/* Haber */}
+        <td rowSpan={asiento.detalles.length + 2} className="align-top">
+          <div className="pt-[52px]">
+            {asiento.detalles.map((detalle) => (
+              <div
+                key={detalle.idDetalle}
+                className="flex h-7 items-center justify-center text-gray-900"
+              >
+                {detalle.haber > 0 ? formatearMoneda(detalle.haber) : ''}
+              </div>
+            ))}
+          </div>
+        </td>
+
+        {/* Acción editar */}
+        <td rowSpan={asiento.detalles.length + 2} className="px-3 pt-3 text-center align-top">
           <button
             type="button"
             onClick={() => onEditar(asiento.idAsiento)}
             title={`Editar asiento N° ${asiento.numeroAsiento}`}
             aria-label={`Editar asiento N° ${asiento.numeroAsiento}`}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-[#eef4ec] hover:text-[#4E6B4A]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-700 transition hover:bg-[#eef4ec] hover:text-[#4E6B4A]"
           >
             <Pencil className="h-4 w-4" />
           </button>
         </td>
       </tr>
 
-      {/* Renglones del asiento */}
-      {asiento.detalles.map((detalle, index) => (
-        <tr
-          key={detalle.idDetalle}
-          className={index === asiento.detalles.length - 1 ? 'border-b border-gray-200' : ''}
-        >
-          <td className="px-5 py-3" />
+      {/* Concepto general */}
+      <tr>
+        <td className="border-r border-gray-300 px-3 pb-0.5">
+          <span
+            className="block truncate font-semibold text-gray-900"
+            title={asiento.conceptoGeneral}
+          >
+            {asiento.conceptoGeneral}
+          </span>
+        </td>
+      </tr>
 
-          <td className="px-5 py-3 text-gray-700">
-            <div className="flex items-center gap-2">
-              <span>{detalle.nombreCuenta}</span>
+      {/* Renglones contables */}
+      {asiento.detalles.map((detalle) => {
+        const vaEnHaber = detalle.haber > 0;
 
-              <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-                {detalle.movimientoAbreviatura}
-              </span>
-            </div>
-          </td>
+        return (
+          <tr key={detalle.idDetalle}>
+            <td className="border-r border-gray-300 px-3 py-0.5">
+              <div
+                className={[
+                  'flex h-7 items-center',
+                  vaEnHaber ? 'justify-end pr-[8%]' : 'justify-start',
+                ].join(' ')}
+              >
+                <div className="flex w-[42%] min-w-0 items-center justify-between gap-3">
+                  <span className="min-w-0 truncate text-gray-900" title={detalle.nombreCuenta}>
+                    {detalle.nombreCuenta}
+                  </span>
 
-          <td className="px-5 py-3 text-center text-gray-600">{detalle.numeroFolio ?? '—'}</td>
-
-          <td className="px-5 py-3 text-right text-gray-800">
-            {detalle.debe > 0 ? formatearMoneda(detalle.debe) : '—'}
-          </td>
-
-          <td className="px-5 py-3 text-right text-gray-800">
-            {detalle.haber > 0 ? formatearMoneda(detalle.haber) : '—'}
-          </td>
-
-          <td />
-        </tr>
-      ))}
+                  <span className="shrink-0 font-medium text-gray-900">
+                    {detalle.movimientoAbreviatura}
+                  </span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        );
+      })}
     </>
   );
 }

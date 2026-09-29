@@ -1,3 +1,12 @@
+import {
+  BadgeDollarSign,
+  CircleUserRound,
+  PackageSearch,
+  ReceiptText,
+  Scale,
+  WalletCards,
+} from 'lucide-react';
+
 import type {
   DetalleOperacionPendiente,
   DetallePendienteConciliacion,
@@ -13,6 +22,7 @@ const formatearMoneda = (valor: number) =>
   new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
+    maximumFractionDigits: 2,
   }).format(valor);
 
 const formatearFecha = (fecha: string) =>
@@ -35,226 +45,306 @@ export default function ResumenOperacionContable({ operacion }: ResumenOperacion
   return <ResumenConciliacion conciliacion={operacion} />;
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   VENTA                                    */
+/* -------------------------------------------------------------------------- */
+
 function ResumenVenta({ venta }: { venta: DetallePendienteVenta }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">Resumen de la operación</h2>
+    <section className="rounded-xl bg-white p-3 shadow-md">
+      {/* Encabezado */}
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2 px-1">
+        <h2 className="text-xs font-semibold text-gray-900">Resumen de la operación</h2>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Información correspondiente a la venta que se va a contabilizar.
-            </p>
-          </div>
+        <EtiquetaOrigen texto="Origen: Venta" />
 
-          <span className="rounded-full bg-[#eef4ec] px-3 py-1 text-xs font-semibold text-[#496647]">
-            Venta
-          </span>
+        <div className="flex items-center gap-1.5 text-xs text-gray-700">
+          <CircleUserRound className="h-4 w-4 text-[#668663]" />
+
+          <span className="font-medium">Cliente</span>
+
+          <span className="mx-1 h-5 w-px bg-gray-300" />
+
+          <span className="font-medium text-gray-900">{venta.clienteNombre}</span>
+
+          {venta.clienteMail && (
+            <span className="hidden text-[10px] text-gray-400 md:inline">
+              • {venta.clienteMail}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="space-y-6 p-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Dato label="Cliente" valor={venta.clienteNombre} />
-          <Dato label="Venta N°" valor={venta.idVenta} />
-          <Dato label="Pedido asociado" valor={`#${venta.pedidoId}`} />
-          <Dato label="Fecha" valor={formatearFecha(venta.fecha)} />
-        </div>
+      {/* Grilla principal */}
+      <div className="grid gap-2 lg:grid-cols-2">
+        {/* Datos principales */}
+        <BloqueResumen>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+            <Dato
+              label="N° de venta"
+              valor={`VEN-${String(venta.idVenta).padStart(4, '0')}`}
+              destacadoVerde
+            />
 
-        {venta.productos && venta.productos.length > 0 && (
-          <div>
-            <h3 className="mb-3 text-sm font-semibold text-gray-800">Productos</h3>
+            <Dato
+              label="Pedido asociado"
+              valor={`PED-${String(venta.pedidoId).padStart(4, '0')}`}
+              destacadoVerde
+            />
 
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="w-full min-w-[620px] text-sm">
-                <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  <tr>
-                    <th className="px-4 py-3">Producto</th>
-                    <th className="px-4 py-3 text-center">Cantidad</th>
-                    <th className="px-4 py-3 text-right">Precio unitario</th>
-                    <th className="px-4 py-3 text-right">Subtotal</th>
-                  </tr>
-                </thead>
+            <Dato label="Fecha" valor={formatearFecha(venta.fecha)} />
 
-                <tbody className="divide-y divide-gray-100">
-                  {venta.productos.map((producto) => (
-                    <tr key={producto.productoId}>
-                      <td className="px-4 py-3 font-medium text-gray-800">{producto.nombre}</td>
-
-                      <td className="px-4 py-3 text-center text-gray-600">{producto.cantidad}</td>
-
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {formatearMoneda(producto.precioUnitarioCosto)}
-                      </td>
-
-                      <td className="px-4 py-3 text-right font-medium text-gray-800">
-                        {formatearMoneda(producto.cantidad * producto.precioUnitarioCosto)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Dato label="Estado" valor={venta.estado} tipo="estado" />
           </div>
-        )}
+        </BloqueResumen>
 
-        <div>
-          <h3 className="mb-3 text-sm font-semibold text-gray-800">Condiciones comerciales</h3>
+        {/* Productos */}
+        <BloqueResumen titulo="Productos" icono={<PackageSearch className="h-4 w-4" />}>
+          {venta.productos && venta.productos.length > 0 ? (
+            <div className="space-y-0.5">
+              <div className="grid grid-cols-[1fr_60px_100px] gap-2 text-[10px] font-medium text-gray-700">
+                <span />
+                <span className="text-center">Cant.</span>
+                <span className="text-right">Precio unitario</span>
+              </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {venta.productos.map((producto) => (
+                <div
+                  key={producto.productoId}
+                  className="grid grid-cols-[1fr_60px_100px] gap-2 text-[10px] text-gray-800"
+                >
+                  <span className="truncate">{producto.nombre}</span>
+
+                  <span className="text-center">{producto.cantidad}u.</span>
+
+                  <span className="text-right">
+                    {formatearMoneda(producto.precioUnitarioCosto)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="py-2 text-[10px] text-gray-500">
+              El detalle de productos no corresponde para esta operación.
+            </p>
+          )}
+        </BloqueResumen>
+
+        {/* Condiciones comerciales */}
+        <BloqueResumen titulo="Condiciones comerciales" icono={<WalletCards className="h-4 w-4" />}>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-5">
             <Dato label="Forma de pago" valor={venta.formaPago} />
 
             <Dato
-              label="Ajuste"
-              valor={
-                venta.aplicaAjuste
-                  ? `${venta.tipoAjuste} (${venta.porcentajeAjuste}%)`
-                  : 'Sin ajuste'
-              }
+              label="Descuento / Recargo"
+              valor={venta.aplicaAjuste ? `${venta.tipoAjuste} ${venta.porcentajeAjuste}%` : '-'}
             />
 
             <Dato
               label="IVA"
-              valor={venta.aplicaIva ? formatearMoneda(venta.importeIva) : 'No aplica'}
+              valor={venta.aplicaIva ? 'Aplicado' : 'No aplica'}
+              destacadoVerde={venta.aplicaIva}
             />
 
             <Dato
               label="Cuotas"
-              valor={venta.cantidadCuotas !== null ? `${venta.cantidadCuotas}` : 'No aplica'}
+              valor={venta.cantidadCuotas !== null ? String(venta.cantidadCuotas) : 'No aplica'}
+            />
+
+            <Dato
+              label="Interés cuota"
+              valor={venta.porcentajeInteres > 0 ? `${venta.porcentajeInteres}%` : '-'}
             />
           </div>
-        </div>
+        </BloqueResumen>
 
-        <div className="ml-auto w-full max-w-sm space-y-2 border-t border-gray-200 pt-4">
-          <FilaTotal label="Subtotal" valor={venta.subtotal} />
+        {/* Totales */}
+        <BloqueResumen titulo="Totales" icono={<ReceiptText className="h-4 w-4" />}>
+          <div className="grid grid-cols-3 gap-4">
+            <Dato label="Subtotal" valor={formatearMoneda(venta.subtotal)} destacadoVerde />
 
-          {venta.aplicaAjuste && (
-            <FilaTotal label={venta.tipoAjuste || 'Ajuste'} valor={venta.importeAjuste} />
-          )}
+            <Dato
+              label="IVA"
+              valor={venta.aplicaIva ? formatearMoneda(venta.importeIva) : formatearMoneda(0)}
+              destacadoVerde
+            />
 
-          {venta.aplicaIva && <FilaTotal label="IVA" valor={venta.importeIva} />}
-
-          {venta.importeInteres > 0 && <FilaTotal label="Interés" valor={venta.importeInteres} />}
-
-          <div className="flex items-center justify-between border-t border-gray-200 pt-3">
-            <span className="font-semibold text-gray-900">Total</span>
-
-            <span className="text-lg font-bold text-gray-900">
-              {formatearMoneda(venta.totalFinal)}
-            </span>
+            <Dato label="Total final" valor={formatearMoneda(venta.totalFinal)} destacadoVerde />
           </div>
-        </div>
+        </BloqueResumen>
       </div>
     </section>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/*                          MOVIMIENTO FINANCIERO                              */
+/* -------------------------------------------------------------------------- */
 
 function ResumenMovimiento({ movimiento }: { movimiento: DetallePendienteMovimiento }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">Resumen de la operación</h2>
+    <section className="rounded-xl bg-white p-3 shadow-md">
+      {/* Encabezado */}
+      <div className="mb-2 flex flex-wrap items-center gap-3 px-1">
+        <h2 className="text-xs font-semibold text-gray-900">Resumen de la operación</h2>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Información del movimiento financiero que se va a contabilizar.
-            </p>
-          </div>
-
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-            Movimiento financiero
-          </span>
-        </div>
+        <EtiquetaOrigen texto="Origen: Movimiento financiero" />
       </div>
 
-      <div className="p-5">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <Dato label="Movimiento N°" valor={movimiento.idMovimiento} />
-          <Dato label="Fecha" valor={formatearFecha(movimiento.fecha)} />
-          <Dato label="Tipo" valor={movimiento.tipoMovimiento} />
-          <Dato label="Categoría" valor={movimiento.categoria} />
-          <Dato label="Medio de pago" valor={movimiento.medioPago} />
-          <Dato label="Importe" valor={formatearMoneda(movimiento.importe)} destacado />
-        </div>
+      <div className="grid gap-2 lg:grid-cols-2">
+        {/* Datos principales */}
+        <BloqueResumen titulo="Movimiento" icono={<BadgeDollarSign className="h-4 w-4" />}>
+          <div className="grid grid-cols-2 gap-x-5 gap-y-2 sm:grid-cols-4">
+            <Dato label="Movimiento N°" valor={movimiento.idMovimiento} destacadoVerde />
 
-        <div className="mt-5 border-t border-gray-100 pt-4">
-          <Dato label="Concepto" valor={movimiento.concepto} />
+            <Dato label="Fecha" valor={formatearFecha(movimiento.fecha)} />
+
+            <Dato label="Tipo" valor={movimiento.tipoMovimiento} />
+
+            <Dato label="Categoría" valor={movimiento.categoria} />
+          </div>
+        </BloqueResumen>
+
+        {/* Datos financieros */}
+        <BloqueResumen titulo="Datos financieros" icono={<WalletCards className="h-4 w-4" />}>
+          <div className="grid grid-cols-2 gap-x-5 gap-y-2">
+            <Dato label="Medio de pago" valor={movimiento.medioPago} />
+
+            <Dato label="Importe" valor={formatearMoneda(movimiento.importe)} destacadoVerde />
+          </div>
+        </BloqueResumen>
+
+        {/* Concepto */}
+        <div className="lg:col-span-2">
+          <BloqueResumen>
+            <Dato label="Concepto" valor={movimiento.concepto} />
+          </BloqueResumen>
         </div>
       </div>
     </section>
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              CONCILIACIÓN                                  */
+/* -------------------------------------------------------------------------- */
+
 function ResumenConciliacion({ conciliacion }: { conciliacion: DetallePendienteConciliacion }) {
+  const hayFaltante = conciliacion.diferencia < 0;
+
   return (
-    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">Resumen de la operación</h2>
+    <section className="rounded-xl bg-white p-3 shadow-md">
+      {/* Encabezado */}
+      <div className="mb-2 flex flex-wrap items-center gap-3 px-1">
+        <h2 className="text-xs font-semibold text-gray-900">Resumen de la operación</h2>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Información de la conciliación financiera que se va a contabilizar.
-            </p>
-          </div>
-
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-            Conciliación
-          </span>
-        </div>
+        <EtiquetaOrigen texto="Origen: Conciliación" />
       </div>
 
-      <div className="p-5">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <Dato label="Conciliación N°" valor={conciliacion.idConciliacion} />
+      <div className="grid gap-2 lg:grid-cols-2">
+        {/* Información general */}
+        <BloqueResumen titulo="Conciliación" icono={<Scale className="h-4 w-4" />}>
+          <div className="grid grid-cols-2 gap-x-5 gap-y-2">
+            <Dato label="Conciliación N°" valor={conciliacion.idConciliacion} destacadoVerde />
 
-          <Dato label="Fecha" valor={formatearFecha(conciliacion.fecha)} />
+            <Dato label="Fecha" valor={formatearFecha(conciliacion.fecha)} />
+          </div>
+        </BloqueResumen>
 
-          <Dato label="Saldo esperado" valor={formatearMoneda(conciliacion.saldoEsperado)} />
+        {/* Saldos */}
+        <BloqueResumen titulo="Saldos" icono={<WalletCards className="h-4 w-4" />}>
+          <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+            <Dato label="Saldo esperado" valor={formatearMoneda(conciliacion.saldoEsperado)} />
 
-          <Dato label="Saldo contado" valor={formatearMoneda(conciliacion.saldoContado)} />
-        </div>
+            <Dato label="Saldo contado" valor={formatearMoneda(conciliacion.saldoContado)} />
 
-        <div className="mt-5 grid gap-5 border-t border-gray-100 pt-4 sm:grid-cols-2">
-          <Dato label="Diferencia" valor={formatearMoneda(conciliacion.diferencia)} destacado />
+            <Dato
+              label="Diferencia"
+              valor={formatearMoneda(Math.abs(conciliacion.diferencia))}
+              destacadoVerde
+            />
+          </div>
+        </BloqueResumen>
 
+        {/* Resultado */}
+        <BloqueResumen>
+          <Dato
+            label="Resultado"
+            valor={hayFaltante ? 'Faltante de caja' : 'Sobrante de caja'}
+            destacadoVerde
+          />
+        </BloqueResumen>
+
+        {/* Observación */}
+        <BloqueResumen>
           <Dato label="Observación" valor={conciliacion.observacion || 'Sin observaciones'} />
-        </div>
+        </BloqueResumen>
       </div>
     </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              COMPONENTES UI                                */
+/* -------------------------------------------------------------------------- */
+
+interface BloqueResumenProps {
+  titulo?: string;
+  icono?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+function BloqueResumen({ titulo, icono, children }: BloqueResumenProps) {
+  return (
+    <div className="rounded-xl border border-gray-300 bg-white px-3 py-2 shadow-sm">
+      {titulo && (
+        <div className="mb-2 flex items-center gap-1.5 border-b border-gray-200 pb-1.5 text-[10px] font-medium text-gray-700">
+          {icono && <span className="text-[#668663]">{icono}</span>}
+
+          <span>{titulo}</span>
+        </div>
+      )}
+
+      {children}
+    </div>
+  );
+}
+
+function EtiquetaOrigen({ texto }: { texto: string }) {
+  return (
+    <span className="rounded-full bg-[#71966d] px-3 py-1 text-[10px] font-medium text-white shadow-sm">
+      {texto}
+    </span>
   );
 }
 
 interface DatoProps {
   label: string;
   valor: string | number;
-  destacado?: boolean;
+  destacadoVerde?: boolean;
+  tipo?: 'normal' | 'estado';
 }
 
-function Dato({ label, valor, destacado = false }: DatoProps) {
+function Dato({ label, valor, destacadoVerde = false, tipo = 'normal' }: DatoProps) {
   return (
-    <div>
-      <p className="text-xs font-medium text-gray-500">{label}</p>
+    <div className="min-w-0">
+      <p className="mb-1 whitespace-nowrap text-[10px] font-medium text-gray-800">{label}</p>
 
-      <p
-        className={[
-          'mt-1 text-sm',
-          destacado ? 'font-semibold text-gray-900' : 'font-medium text-gray-800',
-        ].join(' ')}
-      >
-        {valor}
-      </p>
-    </div>
-  );
-}
-
-function FilaTotal({ label, valor }: { label: string; valor: number }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-gray-800">{formatearMoneda(valor)}</span>
+      {tipo === 'estado' ? (
+        <span className="inline-flex rounded-full bg-[#dcebd9] px-2 py-0.5 text-[9px] font-medium text-[#4d7049]">
+          {valor}
+        </span>
+      ) : (
+        <p
+          className={[
+            'truncate text-[10px] font-medium',
+            destacadoVerde ? 'text-[#4d7049]' : 'text-gray-700',
+          ].join(' ')}
+          title={String(valor)}
+        >
+          {valor}
+        </p>
+      )}
     </div>
   );
 }

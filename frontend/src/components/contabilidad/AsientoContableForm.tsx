@@ -1,5 +1,7 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { CheckCircle2, Plus, Trash2, TriangleAlert } from 'lucide-react';
 import { useMemo, useState } from 'react';
+
+import Button from '../ui/Button';
 
 import type {
   CuentaContableConFolio,
@@ -146,7 +148,6 @@ export default function AsientoContableForm({
 
   const handleAgregarLinea = () => {
     setLineas((actuales) => [...actuales, crearLineaVacia()]);
-
     setErrorFormulario(null);
   };
 
@@ -157,7 +158,6 @@ export default function AsientoContableForm({
     }
 
     setLineas((actuales) => actuales.filter((linea) => linea.id !== id));
-
     setErrorFormulario(null);
   };
 
@@ -224,46 +224,37 @@ export default function AsientoContableForm({
   };
 
   return (
-    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-5 py-4">
-        <h2 className="text-base font-semibold text-gray-900">Asiento contable</h2>
+    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <h2 className="mb-4 text-sm font-semibold text-gray-900">Asiento contable</h2>
 
-        <p className="mt-1 text-sm text-gray-500">
-          Seleccioná las cuentas y registrá manualmente los movimientos correspondientes.
-        </p>
-      </div>
-
-      <div className="space-y-5 p-5">
+      <div className="mx-auto max-w-[1160px] overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
         {/* Datos generales */}
-        <div className="grid gap-4 md:grid-cols-[190px_180px_1fr]">
-          {/* Número de asiento */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">N.º de asiento</label>
+        <div className="flex flex-col gap-3 border-b border-gray-200 px-4 py-3 md:flex-row md:items-end">
+          <div className="shrink-0 border-gray-300 md:border-r md:pr-4">
+            <p className="text-[11px] font-medium text-gray-700">Asiento N°</p>
 
-            <div
-              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
-              title="El número de asiento será asignado automáticamente por el sistema al guardar."
+            <p
+              className="mt-1 text-xs font-medium text-gray-800"
+              title="El número de asiento será asignado automáticamente al guardar."
             >
               Se asignará al guardar
-            </div>
+            </p>
           </div>
 
-          {/* Fecha */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Fecha</label>
+          <div className="shrink-0 border-gray-300 md:border-r md:px-4">
+            <p className="text-[11px] font-medium text-gray-700">Fecha</p>
 
-            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+            <div className="mt-1 flex h-8 min-w-[110px] items-center rounded-md border border-gray-300 bg-gray-50 px-2.5 text-xs text-gray-700">
               {formatearFecha(fecha)}
             </div>
           </div>
 
-          {/* Concepto general */}
-          <div>
+          <div className="min-w-0 flex-1 md:pl-1">
             <label
               htmlFor="conceptoGeneral"
-              className="mb-1.5 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-[11px] font-medium text-gray-700"
             >
-              Concepto general
+              Concepto
               <span className="ml-1 text-red-500">*</span>
             </label>
 
@@ -276,96 +267,107 @@ export default function AsientoContableForm({
                 onConceptoGeneralChange(event.target.value);
                 setErrorFormulario(null);
               }}
-              placeholder="Ingresá el concepto del asiento"
+              placeholder="Descripción del asiento"
               disabled={enviando}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:cursor-not-allowed disabled:bg-gray-100"
+              className="h-8 w-full max-w-[430px] rounded-md border border-gray-300 bg-white px-2.5 text-xs outline-none transition focus:border-abacontex-primary-three focus:ring-2 focus:ring-abacontex-primary-three/20 disabled:cursor-not-allowed disabled:bg-gray-100"
             />
-
-            <div className="mt-1 text-right text-xs text-gray-400">
-              {conceptoGeneral.length}/255
-            </div>
           </div>
         </div>
 
-        {/* Renglones contables */}
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="w-full min-w-[1050px] text-sm">
-            <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+        {/* Tabla */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px] table-fixed text-xs">
+            <colgroup>
+              <col className="w-[105px]" />
+              <col />
+              <col className="w-[90px]" />
+              <col className="w-[155px]" />
+              <col className="w-[155px]" />
+              <col className="w-[48px]" />
+            </colgroup>
+
+            <thead className="bg-[#9fba9a] text-gray-900">
               <tr>
-                <th className="px-3 py-3">Cuenta</th>
+                <th className="px-3 py-2 text-center font-medium">Fecha</th>
 
-                <th className="px-3 py-3">Movimiento</th>
+                <th className="px-3 py-2 text-center font-medium">Concepto</th>
 
-                <th className="px-3 py-3 text-center">N° Folio</th>
+                <th className="px-3 py-2 text-center font-medium">N° Folio</th>
 
-                <th className="px-3 py-3 text-right">Debe</th>
+                <th className="px-3 py-2 text-center font-medium">Debe</th>
 
-                <th className="px-3 py-3 text-right">Haber</th>
+                <th className="px-3 py-2 text-center font-medium">Haber</th>
 
-                <th className="w-14 px-3 py-3">
+                <th>
                   <span className="sr-only">Acciones</span>
                 </th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {lineas.map((linea) => {
                 const cuentaSeleccionada = obtenerCuenta(linea.cuentaId);
 
                 return (
-                  <tr key={linea.id}>
-                    {/* Cuenta */}
-                    <td className="min-w-[260px] px-3 py-3">
-                      <select
-                        value={linea.cuentaId ?? ''}
-                        onChange={(event) => handleCambiarCuenta(linea.id, event.target.value)}
-                        disabled={enviando}
-                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
-                      >
-                        <option value="">Seleccionar cuenta</option>
-
-                        {cuentas.map((cuenta) => (
-                          <option key={cuenta.idCuenta} value={cuenta.idCuenta}>
-                            {cuenta.codigo} - {cuenta.nombre}
-                          </option>
-                        ))}
-                      </select>
+                  <tr key={linea.id} className="border-b border-gray-200 last:border-b-0">
+                    {/* Fecha */}
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-center text-xs text-gray-700">
+                      {formatearFecha(fecha)}
                     </td>
 
-                    {/* Movimiento */}
-                    <td className="min-w-[230px] px-3 py-3">
-                      <select
-                        value={linea.movimiento}
-                        onChange={(event) => handleCambiarMovimiento(linea.id, event.target.value)}
-                        disabled={enviando}
-                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
-                      >
-                        <option value="">Seleccionar movimiento</option>
+                    {/* Cuenta + movimiento */}
+                    <td className="border-r border-gray-200 px-2 py-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <select
+                          value={linea.cuentaId ?? ''}
+                          onChange={(event) => handleCambiarCuenta(linea.id, event.target.value)}
+                          disabled={enviando}
+                          className="h-8 min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none transition focus:border-abacontex-primary-three focus:ring-2 focus:ring-abacontex-primary-three/20 disabled:bg-gray-100"
+                        >
+                          <option value="">Seleccionar cuenta</option>
 
-                        {tiposMovimiento.map((tipo) => (
-                          <option key={tipo.codigo} value={tipo.codigo}>
-                            {tipo.simbolo} - {tipo.nombre}
-                          </option>
-                        ))}
-                      </select>
+                          {cuentas.map((cuenta) => (
+                            <option key={cuenta.idCuenta} value={cuenta.idCuenta}>
+                              {cuenta.codigo} - {cuenta.nombre}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={linea.movimiento}
+                          onChange={(event) =>
+                            handleCambiarMovimiento(linea.id, event.target.value)
+                          }
+                          disabled={enviando}
+                          className="h-8 w-[82px] shrink-0 rounded-md border border-gray-300 bg-white px-2 text-xs outline-none transition focus:border-abacontex-primary-three focus:ring-2 focus:ring-abacontex-primary-three/20 disabled:bg-gray-100"
+                        >
+                          <option value="">...</option>
+
+                          {tiposMovimiento.map((tipo) => (
+                            <option key={tipo.codigo} value={tipo.codigo}>
+                              {tipo.simbolo}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </td>
 
                     {/* Folio */}
-                    <td className="px-3 py-3 text-center">
+                    <td className="border-r border-gray-200 px-2 py-1.5 text-center">
                       <span
                         title={
                           cuentaSeleccionada?.numeroFolio == null
                             ? 'El folio será asignado automáticamente al guardar el asiento.'
                             : undefined
                         }
-                        className="inline-flex min-w-14 justify-center rounded-md bg-gray-100 px-2 py-2 text-sm font-medium text-gray-700"
+                        className="text-xs font-medium text-gray-700"
                       >
                         {cuentaSeleccionada ? (cuentaSeleccionada.numeroFolio ?? 'Nuevo') : '—'}
                       </span>
                     </td>
 
                     {/* Debe */}
-                    <td className="min-w-[150px] px-3 py-3">
+                    <td className="border-r border-gray-200 px-2 py-1.5">
                       <input
                         type="number"
                         min="0"
@@ -374,12 +376,12 @@ export default function AsientoContableForm({
                         onChange={(event) => handleCambiarDebe(linea.id, event.target.value)}
                         disabled={enviando}
                         placeholder="0,00"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-right text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
+                        className="h-8 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-xs outline-none transition hover:border-gray-300 focus:border-abacontex-primary-three focus:bg-white focus:ring-2 focus:ring-abacontex-primary-three/20 disabled:bg-gray-100"
                       />
                     </td>
 
                     {/* Haber */}
-                    <td className="min-w-[150px] px-3 py-3">
+                    <td className="border-r border-gray-200 px-2 py-1.5">
                       <input
                         type="number"
                         min="0"
@@ -388,19 +390,19 @@ export default function AsientoContableForm({
                         onChange={(event) => handleCambiarHaber(linea.id, event.target.value)}
                         disabled={enviando}
                         placeholder="0,00"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-right text-sm outline-none transition focus:border-[#6f9468] focus:ring-2 focus:ring-[#6f9468]/20 disabled:bg-gray-100"
+                        className="h-8 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-xs outline-none transition hover:border-gray-300 focus:border-abacontex-primary-three focus:bg-white focus:ring-2 focus:ring-abacontex-primary-three/20 disabled:bg-gray-100"
                       />
                     </td>
 
                     {/* Eliminar */}
-                    <td className="px-3 py-3 text-center">
+                    <td className="px-1 py-1.5 text-center">
                       <button
                         type="button"
                         onClick={() => handleEliminarLinea(linea.id)}
                         disabled={enviando}
                         title="Eliminar renglón"
                         aria-label="Eliminar renglón"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -409,82 +411,90 @@ export default function AsientoContableForm({
                 );
               })}
             </tbody>
+
+            {/* Totales */}
+            <tfoot>
+              <tr className="border-t border-gray-300 bg-white">
+                <td colSpan={3} className="px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={handleAgregarLinea}
+                    disabled={enviando}
+                    className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-[#496647] transition hover:text-[#365033] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Agregar línea
+                  </button>
+                </td>
+
+                <td className="px-3 py-2 text-right">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-gray-800">Total</span>
+
+                    <span className="font-semibold text-gray-900">
+                      {formatearMoneda(totalDebe)}
+                    </span>
+                  </div>
+                </td>
+
+                <td className="px-3 py-2 text-right font-semibold text-gray-900">
+                  {formatearMoneda(totalHaber)}
+                </td>
+
+                <td className="px-1 py-2" />
+              </tr>
+            </tfoot>
           </table>
         </div>
 
-        {/* Agregar renglón */}
-        <button
-          type="button"
-          onClick={handleAgregarLinea}
-          disabled={enviando}
-          className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#496647] transition hover:bg-[#f1f5ef] disabled:cursor-not-allowed disabled:opacity-50"
+        {/* Estado del balance */}
+        <div className="flex justify-end border-t border-gray-200 px-3 py-2">
+          <span
+            className={[
+              'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium',
+              balanceado ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700',
+            ].join(' ')}
+          >
+            {balanceado ? (
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            ) : (
+              <TriangleAlert className="h-3.5 w-3.5" />
+            )}
+
+            {balanceado ? 'Balanceado' : 'Desbalanceado'}
+          </span>
+        </div>
+      </div>
+
+      {/* Error */}
+      {errorFormulario && (
+        <div
+          role="alert"
+          className="mx-auto mt-3 max-w-[1160px] rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
         >
-          <Plus className="h-4 w-4" />
-          Agregar línea
-        </button>
-
-        {/* Totales */}
-        <div className="ml-auto max-w-md rounded-lg bg-gray-50 p-4">
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <p className="text-xs font-medium text-gray-500">Total Debe</p>
-
-              <p className="mt-1 text-lg font-semibold text-gray-900">
-                {formatearMoneda(totalDebe)}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-medium text-gray-500">Total Haber</p>
-
-              <p className="mt-1 text-lg font-semibold text-gray-900">
-                {formatearMoneda(totalHaber)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 border-t border-gray-200 pt-3">
-            <span
-              className={[
-                'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                balanceado ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700',
-              ].join(' ')}
-            >
-              {balanceado ? 'Asiento balanceado' : 'Asiento desbalanceado'}
-            </span>
-          </div>
+          {errorFormulario}
         </div>
+      )}
 
-        {/* Validaciones */}
-        {errorFormulario && (
-          <div
-            role="alert"
-            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-          >
-            {errorFormulario}
-          </div>
-        )}
+      {/* Acciones */}
+      <div className="mx-auto mt-3 flex max-w-[1160px] justify-end gap-2">
+        <Button
+          type="button"
+          label="Cancelar"
+          variant="outline"
+          onClick={onCancelar}
+          disabled={enviando}
+          className="rounded-md px-4 py-2 text-xs"
+        />
 
-        {/* Acciones */}
-        <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onCancelar}
-            disabled={enviando}
-            className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGuardar}
-            disabled={enviando}
-            className="rounded-lg bg-[#6f9468] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5f8059] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {enviando ? 'Guardando...' : 'Guardar asiento'}
-          </button>
-        </div>
+        <Button
+          type="button"
+          label={enviando ? 'Guardando...' : 'Guardar asiento'}
+          variant="solid"
+          onClick={handleGuardar}
+          disabled={enviando}
+          className="rounded-md px-4 py-2 text-xs"
+        />
       </div>
     </section>
   );

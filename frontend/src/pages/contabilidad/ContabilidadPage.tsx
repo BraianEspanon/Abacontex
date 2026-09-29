@@ -123,31 +123,21 @@ export default function ContabilidadPage() {
   return (
     <div className="space-y-5">
       {/* Breadcrumb */}
-      <nav className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-        <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
+      <nav className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+        <Link to="/alumno" aria-label="Inicio" className="transition hover:text-gray-700">
           <Home className="h-4 w-4" />
-          Inicio
         </Link>
 
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-3.5 w-3.5" />
 
-        <span className="font-medium text-gray-700">Gestión contable</span>
+        <span>Gestión contable</span>
 
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-3.5 w-3.5" />
 
-        <span className="font-medium text-gray-700">Libro diario</span>
+        <span className="font-semibold text-gray-800">Libro diario</span>
       </nav>
 
-      {/* Encabezado */}
-      <header>
-        <h1 className="text-2xl font-bold text-gray-900">Contabilidad</h1>
-
-        <p className="mt-1 text-sm text-gray-500">
-          Gestioná los asientos contables de las operaciones de tu empresa.
-        </p>
-      </header>
-
-      {/* Tabs */}
+      {/* Navegación del módulo */}
       <NavegacionContabilidad activa="LIBRO_DIARIO" />
 
       {/* Métricas */}

@@ -88,15 +88,6 @@ export default function LibroMayorPage() {
         <span className="font-semibold text-abacontex-black-text">Libro mayor</span>
       </nav>
 
-      {/* Encabezado */}
-      <header>
-        <h1 className="text-2xl font-semibold text-abacontex-black-text">Contabilidad</h1>
-
-        <p className="mt-1 text-sm text-abacontex-gray-text">
-          Consultá los movimientos acumulados por cuenta contable.
-        </p>
-      </header>
-
       {/* Navegación */}
       <NavegacionContabilidad activa="LIBRO_MAYOR" />
 
@@ -112,13 +103,11 @@ export default function LibroMayorPage() {
           </p>
         </div>
       ) : (
-        <>
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {cuentas.map((cuenta) => (
-              <CardLibroMayor key={cuenta.cuentaId} cuenta={cuenta} />
-            ))}
-          </div>
-        </>
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {cuentas.map((cuenta) => (
+            <CardLibroMayor key={cuenta.cuentaId} cuenta={cuenta} />
+          ))}
+        </div>
       )}
     </div>
   );

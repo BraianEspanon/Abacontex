@@ -1,5 +1,3 @@
-import { ArrowRight } from 'lucide-react';
-
 import type { AsientoResumen } from '../../types/contabilidad.types';
 
 interface UltimosAsientosProps {
@@ -19,6 +17,7 @@ const formatearMoneda = (valor: number) =>
   new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
+    maximumFractionDigits: 0,
   }).format(valor);
 
 function obtenerNombreOrigen(origen: AsientoResumen['origen']) {
@@ -34,80 +33,75 @@ function obtenerNombreOrigen(origen: AsientoResumen['origen']) {
 
     case 'AJUSTE':
       return 'Ajuste';
-
-    default:
-      return origen;
   }
 }
 
 export default function UltimosAsientos({ asientos, onVerLibroDiario }: UltimosAsientosProps) {
   return (
-    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
-        <div>
-          <h2 className="font-semibold text-gray-900">Últimos asientos registrados</h2>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Últimos movimientos incorporados al Libro Diario.
-          </p>
-        </div>
+    <section className="min-h-[220px] rounded-xl bg-white p-3 shadow-md">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-medium text-gray-900">Últimos asientos registrados</h2>
 
         <button
           type="button"
           onClick={onVerLibroDiario}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#4E6B4A] transition hover:text-[#3A5137]"
+          className="cursor-pointer text-[11px] font-medium text-[#4E6B4A] transition hover:text-[#3A5137] hover:underline"
         >
           Ver Libro Diario
-          <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] text-sm">
-          <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-            <tr>
-              <th className="px-5 py-3">N° Asiento</th>
-              <th className="px-5 py-3">Fecha</th>
-              <th className="px-5 py-3">Origen</th>
-              <th className="px-5 py-3">Concepto</th>
-              <th className="px-5 py-3 text-right">Debe</th>
-              <th className="px-5 py-3 text-right">Haber</th>
+        <table className="w-full min-w-[800px] border-separate border-spacing-0 text-xs">
+          <thead>
+            <tr className="bg-gray-100 text-gray-800">
+              <th className="rounded-l-xl px-4 py-2.5 text-left font-medium">N° Asiento</th>
+
+              <th className="px-4 py-2.5 text-left font-medium">Fecha</th>
+
+              <th className="px-4 py-2.5 text-left font-medium">Origen</th>
+
+              <th className="px-4 py-2.5 text-left font-medium">Concepto</th>
+
+              <th className="px-4 py-2.5 text-right font-medium">Debe</th>
+
+              <th className="rounded-r-xl px-4 py-2.5 text-right font-medium">Haber</th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-100">
+          <tbody>
             {asientos.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-4 py-10 text-center text-xs text-gray-500">
                   Todavía no hay asientos contables registrados.
                 </td>
               </tr>
             ) : (
               asientos.map((asiento) => (
-                <tr key={asiento.idAsiento} className="transition hover:bg-gray-50/70">
-                  <td className="whitespace-nowrap px-5 py-4 font-semibold text-gray-800">
+                <tr key={asiento.idAsiento}>
+                  <td className="border-b border-gray-200 px-4 py-2 text-center text-gray-700">
                     {asiento.numeroAsiento}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-gray-600">
+                  <td className="whitespace-nowrap border-b border-gray-200 px-4 py-2 text-gray-700">
                     {formatearFecha(asiento.fechaHecho)}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-gray-600">
+                  <td className="whitespace-nowrap border-b border-gray-200 px-4 py-2 text-[#6A8F65]">
                     {obtenerNombreOrigen(asiento.origen)}
                   </td>
 
-                  <td className="max-w-[320px] px-5 py-4 text-gray-600">
-                    <p className="truncate" title={asiento.conceptoGeneral}>
+                  <td className="max-w-[280px] border-b border-gray-200 px-4 py-2 text-gray-700">
+                    <span className="block truncate" title={asiento.conceptoGeneral}>
                       {asiento.conceptoGeneral}
-                    </p>
+                    </span>
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-right font-medium text-gray-800">
+                  <td className="whitespace-nowrap border-b border-gray-200 px-4 py-2 text-right text-gray-800">
                     {formatearMoneda(asiento.totalDebe)}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-right font-medium text-gray-800">
+                  <td className="whitespace-nowrap border-b border-gray-200 px-4 py-2 text-right text-gray-800">
                     {formatearMoneda(asiento.totalHaber)}
                   </td>
                 </tr>

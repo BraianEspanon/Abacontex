@@ -10,32 +10,44 @@ export default function ResumenContabilidad({
   pendientesRegistrar,
 }: ResumenContabilidadProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Asientos registrados</p>
+    <div className="flex flex-wrap gap-8">
+      {/* Asientos registrados */}
+      <article className="flex h-[82px] w-[215px] items-center gap-3 rounded-xl bg-white px-4 shadow-md">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[#4E6B4A]">
+          <BookOpenCheck className="h-5 w-5" />
+        </div>
 
-            <p className="mt-2 text-3xl font-bold text-gray-900">{asientosRegistrados}</p>
-          </div>
+        <div className="flex min-w-0 flex-1 flex-col items-center text-center">
+          <p className="whitespace-nowrap text-xs font-medium text-gray-800">
+            Asientos registrados
+          </p>
 
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eef4ec] text-[#4E6B4A]">
-            <BookOpenCheck className="h-5 w-5" />
-          </div>
+          <p className="mt-0.5 text-xl font-semibold leading-none text-[#4E6B4A]">
+            {asientosRegistrados}
+          </p>
+
+          <p className="mt-1 text-[11px] text-gray-500">En total</p>
         </div>
       </article>
 
-      <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Pendientes de registrar</p>
+      {/* Pendientes */}
+      <article className="flex h-[82px] w-[235px] items-center gap-3 rounded-xl bg-white px-4 shadow-md">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-500">
+          <Clock3 className="h-5 w-5" />
+        </div>
 
-            <p className="mt-2 text-3xl font-bold text-gray-900">{pendientesRegistrar}</p>
-          </div>
+        <div className="flex min-w-0 flex-1 flex-col items-center text-center">
+          <p className="whitespace-nowrap text-xs font-medium text-gray-800">
+            Pendientes de registrar
+          </p>
 
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-            <Clock3 className="h-5 w-5" />
-          </div>
+          <p className="mt-0.5 text-xl font-semibold leading-none text-orange-500">
+            {pendientesRegistrar}
+          </p>
+
+          <p className="mt-1 whitespace-nowrap text-[11px] text-gray-500">
+            Requieren asiento contable
+          </p>
         </div>
       </article>
     </div>

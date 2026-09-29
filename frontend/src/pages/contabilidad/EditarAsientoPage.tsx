@@ -24,10 +24,6 @@ export default function EditarAsientoPage() {
 
   const idValido = idNumerico !== undefined && Number.isInteger(idNumerico) && idNumerico > 0;
 
-  /*
-   * Primero comprobamos que el alumno actual
-   * pertenezca a una empresa.
-   */
   const {
     data: alumno,
     isLoading: cargandoAlumno,
@@ -37,14 +33,6 @@ export default function EditarAsientoPage() {
 
   const tieneEmpresa = Boolean(alumno?.empresa);
 
-  /*
-   * Obtenemos el asiento completo.
-   *
-   * El backend ya devuelve:
-   * - datos generales
-   * - renglones
-   * - operación que originó el asiento
-   */
   const {
     data: asiento,
     isLoading: cargandoAsiento,
@@ -52,10 +40,6 @@ export default function EditarAsientoPage() {
     refetch: refetchAsiento,
   } = useAsientoPorId(idValido ? idNumerico : undefined, tieneEmpresa);
 
-  /*
-   * Catálogo de cuentas contables y folios
-   * correspondientes a la empresa.
-   */
   const {
     data: cuentasData,
     isLoading: cargandoCuentas,
@@ -63,10 +47,6 @@ export default function EditarAsientoPage() {
     refetch: refetchCuentas,
   } = useCuentasContablesConFolio(tieneEmpresa);
 
-  /*
-   * Tipos de movimiento:
-   * A+, A-, P+, P-, PN, R+ y R-.
-   */
   const {
     data: tiposMovimiento = [],
     isLoading: cargandoTiposMovimiento,
@@ -96,9 +76,6 @@ export default function EditarAsientoPage() {
     );
   };
 
-  /*
-   * Estado inicial.
-   */
   if (cargandoAlumno) {
     return <EstadoCarga mensaje="Cargando información contable..." />;
   }
@@ -113,10 +90,6 @@ export default function EditarAsientoPage() {
     );
   }
 
-  /*
-   * Contabilidad requiere que el alumno
-   * pertenezca a una empresa.
-   */
   if (!tieneEmpresa) {
     return (
       <EstadoError
@@ -127,9 +100,6 @@ export default function EditarAsientoPage() {
     );
   }
 
-  /*
-   * Validación del parámetro recibido por URL.
-   */
   if (!idValido) {
     return (
       <EstadoError
@@ -140,9 +110,6 @@ export default function EditarAsientoPage() {
     );
   }
 
-  /*
-   * Carga del asiento.
-   */
   if (cargandoAsiento) {
     return <EstadoCarga mensaje="Cargando asiento contable..." />;
   }
@@ -157,10 +124,6 @@ export default function EditarAsientoPage() {
     );
   }
 
-  /*
-   * Información auxiliar necesaria
-   * para editar los renglones.
-   */
   if (cargandoCuentas || cargandoTiposMovimiento) {
     return <EstadoCarga mensaje="Cargando información contable..." />;
   }
@@ -179,12 +142,11 @@ export default function EditarAsientoPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Breadcrumb */}
       <nav className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
         <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
           <Home className="h-4 w-4" />
-          Inicio
         </Link>
 
         <ChevronRight className="h-4 w-4" />
@@ -201,29 +163,16 @@ export default function EditarAsientoPage() {
 
         <ChevronRight className="h-4 w-4" />
 
-        <span className="font-medium text-gray-700">Editar asiento</span>
+        <span className="font-semibold text-gray-900">Editar asiento</span>
       </nav>
-
-      {/* Encabezado */}
-      <header>
-        <h1 className="text-2xl font-bold text-gray-900">Editar asiento</h1>
-
-        <p className="mt-1 text-sm text-gray-500">
-          Modificá los renglones del asiento contable N° {asiento.numeroAsiento}.
-        </p>
-      </header>
 
       {/* Navegación interna */}
       <NavegacionContabilidad activa="LIBRO_DIARIO" />
 
-      {/*
-       * El backend devuelve la operación de origen junto
-       * con el asiento. No necesitamos volver a consultar
-       * Venta, Movimiento financiero o Conciliación.
-       */}
+      {/* Resumen de la operación de origen */}
       {asiento.operacionOrigen && <ResumenOperacionContable operacion={asiento.operacionOrigen} />}
 
-      {/* Formulario */}
+      {/* Edición del asiento */}
       <EditarAsientoForm
         numeroAsiento={asiento.numeroAsiento}
         fecha={asiento.fechaHecho}
@@ -236,7 +185,6 @@ export default function EditarAsientoPage() {
         onGuardar={handleGuardar}
       />
 
-      {/* Error PATCH */}
       {editarAsientoMutation.isError && (
         <div
           role="alert"
