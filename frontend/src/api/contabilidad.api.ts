@@ -3,9 +3,12 @@ import clienteApi from './clienteApi';
 import type {
   AsientoDetalleEdicion,
   AsientoResumen,
+  CuentaLibroMayor,
   CuentasConFolioResponse,
   DetalleOperacionPendiente,
   EditarAsientoRequest,
+  EstadoResultadosResponse,
+  BalanceGeneralResponse,
   LibroDiarioResponse,
   OperacionesPendientesParams,
   OperacionesPendientesResponse,
@@ -113,6 +116,38 @@ export async function editarAsiento(idAsiento: number, payload: EditarAsientoReq
     `/contabilidad/asientos/${idAsiento}`,
     payload
   );
+
+  return data;
+}
+
+/* =========================================================
+   LIBRO MAYOR
+   ========================================================= */
+
+export async function obtenerLibroMayor() {
+  const { data } = await clienteApi.get<CuentaLibroMayor[]>('/contabilidad/libro-mayor');
+
+  return data;
+}
+
+/* =========================================================
+   ESTADO DE RESULTADOS
+   ========================================================= */
+
+export async function obtenerEstadoResultados() {
+  const { data } = await clienteApi.get<EstadoResultadosResponse>(
+    '/contabilidad/estado-resultados'
+  );
+
+  return data;
+}
+
+/* =========================================================
+   BALANCE GENERAL
+   ========================================================= */
+
+export async function obtenerBalanceGeneral() {
+  const { data } = await clienteApi.get<BalanceGeneralResponse>('/contabilidad/balance-general');
 
   return data;
 }
