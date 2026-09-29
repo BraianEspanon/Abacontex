@@ -3,6 +3,8 @@ import { getDbClient, prisma } from '../lib/prisma';
 import { TipoPlantilla } from '../constants/ejercicio.constants';
 import { CrearEjercicioDTO, ObtenerEjerciciosQueryDTO } from '../validators/ejercicio.validator';
 
+import { NotFoundError } from '../errors/not-found.error';
+
 const ejercicioCreadoInclude = {
   curso: true,
   plantillas: true,
@@ -195,7 +197,7 @@ export async function findEjercicioByIdOrThrow(
   const ejercicio = await findEjercicioById(idEjercicio, tx);
 
   if (!ejercicio) {
-    throw new Error('Ejercicio no encontrado.');
+    throw new NotFoundError('Ejercicio no encontrado.');
   }
 
   return ejercicio;
