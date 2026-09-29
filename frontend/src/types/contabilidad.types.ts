@@ -68,6 +68,7 @@ export interface DetallePendienteVenta {
   idVenta: number;
   pedidoId: number;
   fecha: string;
+  concepto: string;
   estado: string;
   clienteNombre: string;
   clienteMail: string;
@@ -101,6 +102,7 @@ export interface DetallePendienteConciliacion {
   tipo: 'CONCILIACION_FINANCIERA';
   idConciliacion: number;
   fecha: string;
+  concepto: string;
   saldoEsperado: number;
   saldoContado: number;
   diferencia: number;
@@ -215,44 +217,6 @@ export interface LibroDiarioResponse {
    EDITAR ASIENTO
    ========================================================= */
 
-export interface RenglonAsientoDetalle {
-  idDetalle: number;
-  orden: number;
-  cuentaId: number;
-  codigoCuenta: string;
-  nombreCuenta: string;
-  movimiento: MovimientoCuentaContable;
-  movimientoAbreviatura: string;
-  debe: number;
-  haber: number;
-}
-
-export interface AsientoDetalleEdicion {
-  idAsiento: number;
-  numeroAsiento: number;
-  fechaHecho: string;
-  fechaAsiento: string;
-  conceptoGeneral: string;
-  origen: TipoOrigenAsiento;
-  ventaId: number | null;
-  movimientoFinancieroId: number | null;
-  conciliacionId: number | null;
-  operacionId: number | null;
-  operacionOrigen: DetalleOperacionPendiente | null;
-  detalles: RenglonAsientoDetalle[];
-}
-
-export interface EditarAsientoDetalleRequest {
-  idDetalle?: number;
-  cuentaId: number;
-  movimiento: MovimientoCuentaContable;
-  debe: number;
-  haber: number;
-}
-
-export interface EditarAsientoRequest {
-  detalles: EditarAsientoDetalleRequest[];
-}
 export interface RenglonAsientoEdicion {
   idDetalle: number;
   orden: number;

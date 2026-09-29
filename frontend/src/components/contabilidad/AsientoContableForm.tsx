@@ -21,7 +21,6 @@ export interface LineaAsientoForm {
 interface AsientoContableFormProps {
   fecha: string;
   conceptoGeneral: string;
-  onConceptoGeneralChange: (valor: string) => void;
   cuentas: CuentaContableConFolio[];
   tiposMovimiento: TipoMovimientoAsiento[];
   enviando?: boolean;
@@ -64,7 +63,6 @@ function convertirImporte(valor: string) {
 export default function AsientoContableForm({
   fecha,
   conceptoGeneral,
-  onConceptoGeneralChange,
   cuentas,
   tiposMovimiento,
   enviando = false,
@@ -165,14 +163,6 @@ export default function AsientoContableForm({
     cuentas.find((cuenta) => cuenta.idCuenta === cuentaId);
 
   const validarFormulario = () => {
-    if (!conceptoGeneral.trim()) {
-      return 'Ingresá el concepto general del asiento.';
-    }
-
-    if (conceptoGeneral.trim().length > 255) {
-      return 'El concepto general no puede superar los 255 caracteres.';
-    }
-
     if (lineas.length < 2) {
       return 'El asiento debe contener al menos dos renglones.';
     }
@@ -250,27 +240,14 @@ export default function AsientoContableForm({
           </div>
 
           <div className="min-w-0 flex-1 md:pl-1">
-            <label
-              htmlFor="conceptoGeneral"
-              className="mb-1 block text-[11px] font-medium text-gray-700"
-            >
-              Concepto
-              <span className="ml-1 text-red-500">*</span>
-            </label>
+            <p className="mb-1 text-[11px] font-medium text-gray-700">Concepto</p>
 
-            <input
-              id="conceptoGeneral"
-              type="text"
-              maxLength={255}
-              value={conceptoGeneral}
-              onChange={(event) => {
-                onConceptoGeneralChange(event.target.value);
-                setErrorFormulario(null);
-              }}
-              placeholder="Descripción del asiento"
-              disabled={enviando}
-              className="h-8 w-full max-w-[430px] rounded-md border border-gray-300 bg-white px-2.5 text-xs outline-none transition focus:border-abacontex-primary-three focus:ring-2 focus:ring-abacontex-primary-three/20 disabled:cursor-not-allowed disabled:bg-gray-100"
-            />
+            <div
+              className="flex h-8 w-full max-w-[430px] items-center truncate rounded-md border border-gray-300 bg-gray-100 px-2.5 text-xs text-gray-600"
+              title={conceptoGeneral}
+            >
+              {conceptoGeneral}
+            </div>
           </div>
         </div>
 
@@ -289,15 +266,10 @@ export default function AsientoContableForm({
             <thead className="bg-[#9fba9a] text-gray-900">
               <tr>
                 <th className="px-3 py-2 text-center font-medium">Fecha</th>
-
                 <th className="px-3 py-2 text-center font-medium">Concepto</th>
-
                 <th className="px-3 py-2 text-center font-medium">N° Folio</th>
-
                 <th className="px-3 py-2 text-center font-medium">Debe</th>
-
                 <th className="px-3 py-2 text-center font-medium">Haber</th>
-
                 <th>
                   <span className="sr-only">Acciones</span>
                 </th>

@@ -1,5 +1,4 @@
 import { ChevronRight, Home } from 'lucide-react';
-import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import AsientoContableForm from '../../components/contabilidad/AsientoContableForm';
@@ -34,8 +33,6 @@ export default function RegistrarAsientoPage() {
     tipo: string;
     id: string;
   }>();
-
-  const [conceptoGeneral, setConceptoGeneral] = useState('');
 
   const tipoValido = esTipoOrigenValido(tipo) ? tipo : undefined;
 
@@ -76,7 +73,7 @@ export default function RegistrarAsientoPage() {
   const registrarAsientoMutation = useRegistrarAsiento();
 
   const handleGuardarAsiento = (detalles: RegistrarAsientoDetalleRequest[]) => {
-    if (!tipoValido || !idValido || idNumerico === undefined) {
+    if (!tipoValido || !idValido || idNumerico === undefined || !operacion) {
       return;
     }
 
@@ -84,7 +81,7 @@ export default function RegistrarAsientoPage() {
       {
         tipo: tipoValido,
         operacionId: idNumerico,
-        conceptoGeneral: conceptoGeneral.trim(),
+        conceptoGeneral: operacion.concepto,
         detalles,
       },
       {
@@ -201,8 +198,7 @@ export default function RegistrarAsientoPage() {
 
       <AsientoContableForm
         fecha={operacion.fecha}
-        conceptoGeneral={conceptoGeneral}
-        onConceptoGeneralChange={setConceptoGeneral}
+        conceptoGeneral={operacion.concepto}
         cuentas={cuentasData.cuentas}
         tiposMovimiento={tiposMovimiento}
         enviando={registrarAsientoMutation.isPending}
