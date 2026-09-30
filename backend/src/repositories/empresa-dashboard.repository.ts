@@ -105,7 +105,7 @@ export async function findIndicadoresNegocioCounts(
     ventasAggregate,
     ordenesTotales,
     ordenesCompletadas,
-    productosStockCritico,
+    pedidosConFaltante,
   ] = await Promise.all([
     db.pedido.count({
       where: { empresaId },
@@ -131,12 +131,15 @@ export async function findIndicadoresNegocioCounts(
         estado: { nombre: ESTADOS_PRODUCCION.FINALIZADA },
       },
     }),
-    db.producto.count({
+    db.pedido.count({
       where: {
         empresaId,
-        activo: true,
-        stock: {
-          lte: 5,
+        detalles: {
+          some: {
+            cantidadPendiente: {
+              gt: 0,
+            },
+          },
         },
       },
     }),
@@ -148,7 +151,7 @@ export async function findIndicadoresNegocioCounts(
     ventasRegistradas: Number(ventasAggregate._sum.totalFinal ?? 0),
     ordenesTotales,
     ordenesCompletadas,
-    productosStockCritico,
+    pedidosConFaltante,
   };
 }
 

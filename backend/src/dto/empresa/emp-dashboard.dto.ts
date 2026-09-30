@@ -38,17 +38,18 @@ export interface GraficoEvolucionFinancieraDTO {
 export interface ActividadPendienteDashboardDTO {
   pedidosPendientes: number;
   pedidosListosParaEntregar: number;
-  ordenesProduccionPendientes: number;
   facturasPendientes: number;
   asientosContablesPendientes: number;
   ejerciciosSinResolver: number;
+  simulacionesPendientes: number | null;
+  ordenesProduccionPendientes: number;
 }
 
 export interface IndicadoresNegocioDashboardDTO {
   ventasRealizadas: number;
   pedidosCompletados: number;
   pedidosRecibidos: number;
-  productosStockCritico: number;
+  pedidosConFaltante: number;
   precisionContable: number | null;
   ordenesCompletadas: number;
   ordenesTotales: number;

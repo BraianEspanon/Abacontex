@@ -36,12 +36,14 @@ export async function obtenerDashboardEmpresa(
     indicadoresCounts,
     invitacionesPendientes,
     asientosContablesPendientes,
+    simulacionesPendientes,
   ] = await Promise.all([
     empresaDashboardRepository.findMovimientosFinancierosEmpresa(idEmpresa),
     empresaDashboardRepository.findActividadPendienteCounts(idEmpresa, empresa.idCurso),
     empresaDashboardRepository.findIndicadoresNegocioCounts(idEmpresa),
     empresaDashboardRepository.findInvitacionesPendientesVigentes(idEmpresa),
     obtenerAsientosPendientesCount(idEmpresa, esSextoAño),
+    obtenerSimulacionesPendientesCount(idEmpresa),
   ]);
 
   const metricasFinancieras = calcularMetricasFinancieras(movimientos, añoAcademico);
@@ -61,12 +63,13 @@ export async function obtenerDashboardEmpresa(
     actividadPendiente: {
       ...actividadCounts,
       asientosContablesPendientes,
+      simulacionesPendientes,
     },
     indicadoresNegocio: {
       ventasRealizadas: indicadoresCounts.ventasRegistradas,
       pedidosCompletados: indicadoresCounts.pedidosEntregados,
       pedidosRecibidos: indicadoresCounts.pedidosRecibidos,
-      productosStockCritico: indicadoresCounts.productosStockCritico,
+      pedidosConFaltante: indicadoresCounts.pedidosConFaltante,
       precisionContable: null,
       ordenesCompletadas: indicadoresCounts.ordenesCompletadas,
       ordenesTotales: indicadoresCounts.ordenesTotales,
@@ -93,4 +96,9 @@ async function obtenerAsientosPendientesCount(
   const listados = await Promise.all(estrategias.map((e) => e.getPendientes(ctx)));
 
   return listados.flat().length;
+}
+
+async function obtenerSimulacionesPendientesCount(_empresaId: number): Promise<number | null> {
+  // Conexión preparada para cuando se implemente el módulo de Simulaciones
+  return 0;
 }

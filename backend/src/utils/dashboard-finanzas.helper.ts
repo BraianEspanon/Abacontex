@@ -6,7 +6,7 @@ import {
 
 export interface MovimientoFinancieroDashboardItem {
   fecha: Date;
-  importe: any;
+  importe: unknown;
   categoria: {
     tipoMovimiento: {
       nombre: string;
