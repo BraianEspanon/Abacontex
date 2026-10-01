@@ -20,10 +20,7 @@ export function toEjercicioCreadoResponse(
     idEjercicio: ejercicio.idEjercicio,
     titulo: ejercicio.titulo,
     enunciado: ejercicio.enunciado,
-    estado: calcularEstadoEjercicio(
-      ejercicio.estado,
-      ejercicio.resolucion?.estado
-    ),
+    estado: calcularEstadoEjercicio(ejercicio.estado, ejercicio.resolucion?.estado),
     indicaciones: ejercicio.indicaciones,
     fechaLimite: ejercicio.fechaLimite.toISOString(),
     curso: {
@@ -90,10 +87,7 @@ export function toEjercicioItemResponse(ejercicio: EjercicioListItemEntity): Eje
       nombreCurso: ejercicio.curso.nombreCurso,
       año: ejercicio.curso.año,
     },
-    estado: calcularEstadoEjercicio(
-      ejercicio.estado,
-      ejercicio.resolucion?.estado
-    ),
+    estado: calcularEstadoEjercicio(ejercicio.estado, ejercicio.resolucion?.estado),
     fechaLimite: ejercicio.fechaLimite.toISOString(),
     totalEntregas: 0,
     createdAt: ejercicio.createdAt.toISOString(),
@@ -130,10 +124,7 @@ export function toDetalleEjercicioResponse(
     idEjercicio: ejercicio.idEjercicio,
     titulo: ejercicio.titulo,
     enunciado: ejercicio.enunciado,
-    estado: calcularEstadoEjercicio(
-      ejercicio.estado,
-      ejercicio.resolucion?.estado
-    ),
+    estado: calcularEstadoEjercicio(ejercicio.estado, ejercicio.resolucion?.estado),
     indicaciones: ejercicio.indicaciones,
     fechaLimite: ejercicio.fechaLimite.toISOString(),
     origen,
