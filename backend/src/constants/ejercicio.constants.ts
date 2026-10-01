@@ -19,21 +19,23 @@ export const ESTADOS_EJERCICIO = ['BORRADOR', 'PUBLICADO', 'FINALIZADO'] as cons
 
 export type EstadoEjercicio = (typeof ESTADOS_EJERCICIO)[number];
 
-export const ESTADOS_VISUALES_EJERCICIO = [
+export const ESTADOS_EJERCICIO_RESPUESTA = [
   'BORRADOR',
-  'PUBLICADO',
+  'ENVIADO',
   'SIN_RESOLVER',
-  'RESUELTO',
+  'EN_CORRECCION',
+  'COMPLETADO',
 ] as const;
 
-export type EstadoVisualEjercicio = (typeof ESTADOS_VISUALES_EJERCICIO)[number];
+export type EstadoEjercicioRespuesta = (typeof ESTADOS_EJERCICIO_RESPUESTA)[number];
+export type EstadoVisualEjercicio = EstadoEjercicioRespuesta;
 
 export const FILTROS_ESTADO_EJERCICIO = [
   'BORRADOR',
-  'PUBLICADO',
-  'FINALIZADO',
+  'ENVIADO',
   'SIN_RESOLVER',
-  'RESUELTO',
+  'EN_CORRECCION',
+  'COMPLETADO',
 ] as const;
 
 export type FiltroEstadoEjercicio = (typeof FILTROS_ESTADO_EJERCICIO)[number];

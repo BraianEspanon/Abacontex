@@ -6,6 +6,7 @@ import {
   ResolucionDocenteResponseDTO,
   ResumenEjerciciosDTO,
 } from './ejercicio.dto';
+import { EstadoEjercicioRespuesta } from '../../constants/ejercicio.constants';
 import {
   EjercicioCreadoEntity,
   EjercicioListItemEntity,
@@ -19,7 +20,7 @@ export function toEjercicioCreadoResponse(
     idEjercicio: ejercicio.idEjercicio,
     titulo: ejercicio.titulo,
     enunciado: ejercicio.enunciado,
-    estado: ejercicio.estado,
+    estado: calcularEstadoEjercicio(ejercicio.estado, ejercicio.resolucion?.estado),
     indicaciones: ejercicio.indicaciones,
     fechaLimite: ejercicio.fechaLimite.toISOString(),
     curso: {
@@ -51,20 +52,30 @@ export function toEjercicioCreadoResponse(
   };
 }
 
-export function calcularEstadoVisual(estado: string, estadoResolucion?: string | null): string {
+export function calcularEstadoEjercicio(
+  estado: string,
+  estadoResolucion?: string | null
+): EstadoEjercicioRespuesta {
   if (estado === 'BORRADOR') {
-    return 'Borrador';
+    return 'BORRADOR';
   }
   if (estado === 'FINALIZADO') {
-    return 'Finalizado';
+    return 'COMPLETADO';
   }
   if (estado === 'PUBLICADO') {
     if (estadoResolucion === 'COMPLETADA') {
-      return 'Resuelto';
+      return 'ENVIADO';
     }
-    return 'Sin resolver';
+    return 'SIN_RESOLVER';
   }
-  return estado;
+  return 'BORRADOR';
+}
+
+export function calcularEstadoVisual(
+  estado: string,
+  estadoResolucion?: string | null
+): EstadoEjercicioRespuesta {
+  return calcularEstadoEjercicio(estado, estadoResolucion);
 }
 
 export function toEjercicioItemResponse(ejercicio: EjercicioListItemEntity): EjercicioItemDTO {
@@ -76,8 +87,7 @@ export function toEjercicioItemResponse(ejercicio: EjercicioListItemEntity): Eje
       nombreCurso: ejercicio.curso.nombreCurso,
       año: ejercicio.curso.año,
     },
-    estado: ejercicio.estado,
-    estadoVisual: calcularEstadoVisual(ejercicio.estado, ejercicio.resolucion?.estado),
+    estado: calcularEstadoEjercicio(ejercicio.estado, ejercicio.resolucion?.estado),
     fechaLimite: ejercicio.fechaLimite.toISOString(),
     totalEntregas: 0,
     createdAt: ejercicio.createdAt.toISOString(),
@@ -114,8 +124,7 @@ export function toDetalleEjercicioResponse(
     idEjercicio: ejercicio.idEjercicio,
     titulo: ejercicio.titulo,
     enunciado: ejercicio.enunciado,
-    estado: ejercicio.estado,
-    estadoVisual: calcularEstadoVisual(ejercicio.estado, ejercicio.resolucion?.estado),
+    estado: calcularEstadoEjercicio(ejercicio.estado, ejercicio.resolucion?.estado),
     indicaciones: ejercicio.indicaciones,
     fechaLimite: ejercicio.fechaLimite.toISOString(),
     origen,
