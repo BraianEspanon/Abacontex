@@ -1,4 +1,5 @@
 import {
+  EstadoEjercicioRespuesta,
   OpcionTipoEjercicio,
   OpcionDificultad,
   OpcionContenidoAdicional,
@@ -61,8 +62,7 @@ export interface EjercicioItemDTO {
     nombreCurso: string;
     año: number;
   };
-  estado: string;
-  estadoVisual: string;
+  estado: EstadoEjercicioRespuesta;
   fechaLimite: string;
   totalEntregas: number;
   createdAt: string;
@@ -102,8 +102,7 @@ export interface DetalleEjercicioResponseDTO {
   idEjercicio: number;
   titulo: string;
   enunciado: string;
-  estado: string;
-  estadoVisual: string;
+  estado: EstadoEjercicioRespuesta;
   indicaciones: string | null;
   fechaLimite: string;
   origen: 'IA' | 'DIGITALIZADO';
