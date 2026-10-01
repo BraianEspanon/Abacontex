@@ -6,6 +6,7 @@ import AgregarIntegranteModal from '../../components/empresa/AgregarIntegranteMo
 import CambiarRolModal from '../../components/empresa/CambiarRolModal';
 import InvitacionesPendientes from '../../components/empresa/InvitacionesPendientes';
 import TablaIntegrantesEmpresa from '../../components/empresa/TablaIntegrantesEmpresa';
+import Button from '../../components/ui/Button';
 
 import { useAlumnoActual } from '../../hooks/useAlumnoActual';
 import { useEmpresaActual } from '../../hooks/useEmpresaActual';
@@ -49,37 +50,27 @@ export default function EquipoEmpresaPage() {
   }
 
   const encabezado = (
-    <>
-      <nav className="flex items-center gap-2 text-sm text-gray-500">
-        <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
-          <Home className="h-4 w-4" />
-          Inicio
-        </Link>
+    <nav className="flex items-center gap-2 text-sm text-gray-500">
+      <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
+        <Home className="h-4 w-4" />
+        Inicio
+      </Link>
 
-        <ChevronRight className="h-4 w-4" />
+      <ChevronRight className="h-4 w-4" />
 
-        <Link to="/alumno/empresa" className="transition hover:text-gray-700">
-          Mi empresa
-        </Link>
+      <Link to="/alumno/empresa" className="transition hover:text-gray-700">
+        Mi empresa
+      </Link>
 
-        <ChevronRight className="h-4 w-4" />
+      <ChevronRight className="h-4 w-4" />
 
-        <span className="font-medium text-gray-700">Equipo</span>
-      </nav>
-
-      <header>
-        <h1 className="text-2xl font-bold text-gray-900">Equipo</h1>
-
-        <p className="mt-2 text-base text-gray-500">
-          Consultá los integrantes y roles de tu empresa.
-        </p>
-      </header>
-    </>
+      <span className="font-semibold text-gray-900">Equipo</span>
+    </nav>
   );
 
   if (hayError || !alumnoActual) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         {encabezado}
 
         <section className="rounded-2xl border border-red-100 bg-white p-8 shadow-sm">
@@ -105,7 +96,7 @@ export default function EquipoEmpresaPage() {
 
   if (!empresa) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         {encabezado}
 
         <section className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl bg-white p-8 text-center shadow-md">
@@ -127,14 +118,16 @@ export default function EquipoEmpresaPage() {
 
   return (
     <>
-      <div className="space-y-5">
+      <div className="space-y-6">
+        {/* Breadcrumb */}
         {encabezado}
 
         {/* Resumen de la empresa */}
-        <section className="rounded-2xl bg-white p-6 shadow-md">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-200">
+        <section className="rounded-xl bg-white px-6 py-6 shadow-md">
+          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+            <div className="flex min-w-0 flex-1 items-center">
+              {/* Logo */}
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200">
                 {empresa.logoUrl ? (
                   <img
                     src={empresa.logoUrl}
@@ -148,81 +141,82 @@ export default function EquipoEmpresaPage() {
                 )}
               </div>
 
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="truncate font-heading text-xl font-semibold text-abacontex-black-text">
-                    {empresa.nombre}
-                  </h2>
-
-                  <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
-                    Activa
-                  </span>
-                </div>
+              {/* Información de la empresa */}
+              <div className="ml-5 min-w-0">
+                <h2 className="truncate font-heading text-2xl font-semibold text-abacontex-black-text">
+                  {empresa.nombre}
+                </h2>
 
                 <p className="mt-1 text-sm text-abacontex-gray-text">{empresa.actividad}</p>
 
-                <div className="mt-2 flex items-center gap-2 text-sm text-abacontex-gray-text">
-                  <Users className="h-4 w-4" />
+                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                  Empresa activa
+                </span>
+              </div>
+            </div>
 
-                  <span>
-                    {empresa.integrantes.length}{' '}
-                    {empresa.integrantes.length === 1 ? 'integrante' : 'integrantes'}
-                  </span>
+            {/* Cantidad de integrantes */}
+            <div className="flex items-center gap-5 lg:border-l lg:border-gray-300 lg:pl-6">
+              <div className="flex items-center gap-3">
+                <Users className="h-8 w-8 text-gray-500" />
+
+                <div>
+                  <p className="text-2xl font-bold leading-none text-gray-900">
+                    {empresa.integrantes.length}
+                  </p>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    {empresa.integrantes.length === 1 ? 'Integrante' : 'Integrantes'}
+                  </p>
                 </div>
               </div>
             </div>
 
+            {/* Agregar integrante - solo CEO */}
             {esCEO && (
-              <button
+              <Button
                 type="button"
+                label="Agregar integrante"
+                variant="solid"
+                icon={<Plus className="h-4 w-4" />}
                 onClick={() => setModalAgregarAbierto(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-abacontex-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two"
-              >
-                <Plus className="h-4 w-4" />
-                Agregar integrante
-              </button>
+                className="shrink-0 px-5 py-2.5 text-sm"
+              />
             )}
           </div>
         </section>
 
         {/* Integrantes */}
-        <section>
-          <div className="mb-4">
-            <h2 className="font-heading text-xl font-semibold text-abacontex-black-text">
-              Integrantes de la empresa
-            </h2>
+        <section className="rounded-xl bg-white p-6 shadow-md">
+          <h2 className="font-heading text-lg font-semibold text-abacontex-black-text">
+            Integrantes de la empresa
+          </h2>
 
-            <p className="mt-1 text-sm text-abacontex-gray-text">
-              Consultá los integrantes y los roles asignados dentro de la empresa.
-            </p>
+          <div className="mt-5">
+            <TablaIntegrantesEmpresa
+              integrantes={empresa.integrantes}
+              esCEO={esCEO}
+              usuarioActualId={alumnoActual.id}
+              onCambiarRol={setIntegranteSeleccionado}
+            />
           </div>
-
-          <TablaIntegrantesEmpresa
-            integrantes={empresa.integrantes}
-            esCEO={esCEO}
-            usuarioActualId={alumnoActual.id}
-            onCambiarRol={setIntegranteSeleccionado}
-          />
         </section>
 
-        {/* Invitaciones pendientes */}
+        {/* Invitaciones pendientes - solo CEO */}
         {esCEO && (
-          <section>
-            <div className="mb-4">
-              <h2 className="font-heading text-xl font-semibold text-abacontex-black-text">
-                Invitaciones pendientes
-              </h2>
+          <section className="rounded-xl bg-white p-6 shadow-md">
+            <h2 className="font-heading text-lg font-semibold text-abacontex-black-text">
+              Invitaciones pendientes
+            </h2>
 
-              <p className="mt-1 text-sm text-abacontex-gray-text">
-                Invitaciones enviadas que todavía no fueron aceptadas.
-              </p>
+            <div className="mt-5">
+              <InvitacionesPendientes
+                invitaciones={invitacionesEnviadas}
+                cargando={cargandoInvitaciones}
+                error={errorInvitaciones}
+              />
             </div>
-
-            <InvitacionesPendientes
-              invitaciones={invitacionesEnviadas}
-              cargando={cargandoInvitaciones}
-              error={errorInvitaciones}
-            />
           </section>
         )}
       </div>

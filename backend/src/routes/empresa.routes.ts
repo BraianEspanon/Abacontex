@@ -14,6 +14,7 @@ import {
   crearEmpresa,
   getCandidatos,
   getEmpresaActual,
+  getEmpresaDashboard,
   modificarRolesEmpresa,
   crearInvitaciones,
   getInvitacionesEnviadas,
@@ -41,6 +42,7 @@ router.post(
 );
 
 router.get('/me', authenticate, requireRole(ROLES.ALUMNO), getEmpresaActual);
+router.get('/me/dashboard', authenticate, requireRole(ROLES.ALUMNO), getEmpresaDashboard);
 
 router.patch(
   '/me',

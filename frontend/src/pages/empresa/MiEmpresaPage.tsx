@@ -1,13 +1,49 @@
-import { ArrowRight, Building2, ChevronRight, CircleHelp, Home } from 'lucide-react';
+import { ArrowRight, Building2, ChevronRight, CircleHelp, Home, Plus, Users } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import AgregarIntegranteModal from '../../components/empresa/AgregarIntegranteModal';
 import Button from '../../components/ui/Button';
 
 import { useAlumnoActual } from '../../hooks/useAlumnoActual';
 import { useEmpresaActual } from '../../hooks/useEmpresaActual';
 
+function obtenerIniciales(nombre: string, apellido: string) {
+  return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+}
+
+function obtenerClasesRol(nombreRol?: string) {
+  switch (nombreRol?.toUpperCase()) {
+    case 'CEO':
+      return 'bg-emerald-50 text-emerald-700';
+
+    case 'COO':
+      return 'bg-blue-50 text-blue-700';
+
+    case 'CFO':
+      return 'bg-violet-50 text-violet-700';
+
+    case 'CTO':
+      return 'bg-cyan-50 text-cyan-700';
+
+    case 'CCO':
+      return 'bg-orange-50 text-orange-700';
+
+    case 'CIO':
+      return 'bg-indigo-50 text-indigo-700';
+
+    case 'CMO':
+      return 'bg-pink-50 text-pink-700';
+
+    default:
+      return 'bg-gray-100 text-gray-700';
+  }
+}
+
 export default function MiEmpresaPage() {
   const navigate = useNavigate();
+
+  const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
 
   const { data: empresa, isLoading: cargandoEmpresa, isError: errorEmpresa } = useEmpresaActual();
 
@@ -76,13 +112,6 @@ export default function MiEmpresaPage() {
     );
   }
 
-  /*
-   * El alumno no pertenece a una empresa.
-   *
-   * Si es CEO, no corresponde mostrarle el mismo mensaje
-   * que a un integrante común, porque tiene la responsabilidad
-   * de crear la empresa.
-   */
   if (!empresa) {
     const esCEO = alumno.rolEmpresa?.nombre.toUpperCase() === 'CEO';
 
@@ -125,10 +154,6 @@ export default function MiEmpresaPage() {
       );
     }
 
-    /*
-     * Alumno con un rol distinto de CEO.
-     * Debe esperar a ser incorporado a una empresa.
-     */
     return (
       <div className="space-y-5">
         {encabezado}
@@ -166,47 +191,155 @@ export default function MiEmpresaPage() {
     );
   }
 
-  return (
-    <div className="space-y-5">
-      {encabezado}
+  const esCEO = alumno.rolEmpresa?.nombre.toUpperCase() === 'CEO';
 
-      <section className="max-w-3xl rounded-2xl bg-white p-6 shadow-md">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-200">
-            {empresa.logoUrl ? (
-              <img
-                src={empresa.logoUrl}
-                alt={`Logo de ${empresa.nombre}`}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="text-2xl font-semibold text-gray-500">
-                {empresa.nombre.charAt(0).toUpperCase()}
+  return (
+    <>
+      <div className="space-y-5">
+        {encabezado}
+
+        {/* Información principal de la empresa */}
+        <section className="max-w-3xl rounded-2xl bg-white p-6 shadow-md">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-200">
+              {empresa.logoUrl ? (
+                <img
+                  src={empresa.logoUrl}
+                  alt={`Logo de ${empresa.nombre}`}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl font-semibold text-gray-500">
+                  {empresa.nombre.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+
+            <div className="flex-1">
+              <h2 className="font-heading text-2xl font-semibold text-abacontex-black-text">
+                {empresa.nombre}
+              </h2>
+
+              <p className="mt-2 text-sm text-abacontex-gray-text">{empresa.actividad}</p>
+
+              <p className="mt-3 text-sm text-abacontex-gray-text">
+                {empresa.integrantes.length}{' '}
+                {empresa.integrantes.length === 1 ? 'integrante' : 'integrantes'}
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              label="Editar empresa"
+              variant="solid"
+              onClick={() => navigate('/alumno/empresa/editar')}
+            />
+          </div>
+        </section>
+
+        {/* Mi equipo */}
+        <section className="max-w-3xl rounded-2xl bg-white p-6 shadow-md">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-heading text-xl font-semibold text-abacontex-black-text">
+                Mi equipo
+              </h2>
+
+              <p className="mt-1 text-sm text-abacontex-gray-text">
+                Integrantes que forman parte de tu empresa.
+              </p>
+            </div>
+
+            <Link
+              to="/alumno/empresa/equipo"
+              className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-abacontex-primary transition hover:text-abacontex-primary-two"
+            >
+              Ver equipo completo
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="my-5 border-t border-gray-200" />
+
+          {/* Resumen de integrantes */}
+          <div className="space-y-1">
+            {empresa.integrantes.map((integrante) => {
+              const esUsuarioActual = integrante.id === alumno.id;
+
+              return (
+                <div
+                  key={integrante.id}
+                  className="flex items-center justify-between gap-4 rounded-xl px-2 py-3 transition hover:bg-gray-50"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white">
+                      {obtenerIniciales(integrante.nombre, integrante.apellido)}
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                          {integrante.nombre} {integrante.apellido}
+                        </p>
+
+                        {esUsuarioActual && (
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                            Vos
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="mt-0.5 truncate text-xs text-gray-500">{integrante.email}</p>
+                    </div>
+                  </div>
+
+                  {integrante.rolEmpresa ? (
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${obtenerClasesRol(
+                        integrante.rolEmpresa.nombre
+                      )}`}
+                    >
+                      {integrante.rolEmpresa.nombre}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 text-xs text-gray-400">Sin rol</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 flex flex-col gap-4 border-t border-gray-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm text-abacontex-gray-text">
+              <Users className="h-4 w-4" />
+
+              <span>
+                <strong className="font-semibold text-abacontex-black-text">
+                  {empresa.integrantes.length}
+                </strong>{' '}
+                {empresa.integrantes.length === 1 ? 'integrante' : 'integrantes'}
               </span>
+            </div>
+
+            {esCEO && (
+              <Button
+                type="button"
+                label="Agregar integrante"
+                variant="solid"
+                icon={<Plus className="h-4 w-4" />}
+                onClick={() => setModalAgregarAbierto(true)}
+                className="px-4 py-2 text-sm"
+              />
             )}
           </div>
+        </section>
+      </div>
 
-          <div className="flex-1">
-            <h2 className="font-heading text-2xl font-semibold text-abacontex-black-text">
-              {empresa.nombre}
-            </h2>
-
-            <p className="mt-2 text-sm text-abacontex-gray-text">{empresa.actividad}</p>
-
-            <p className="mt-3 text-sm text-abacontex-gray-text">
-              {empresa.integrantes.length}{' '}
-              {empresa.integrantes.length === 1 ? 'integrante' : 'integrantes'}
-            </p>
-          </div>
-
-          <Button
-            type="button"
-            label="Editar empresa"
-            variant="solid"
-            onClick={() => navigate('/alumno/empresa/editar')}
-          />
-        </div>
-      </section>
-    </div>
+      {/* Mismo modal utilizado en la pantalla Equipo */}
+      <AgregarIntegranteModal
+        abierto={modalAgregarAbierto}
+        onCerrar={() => setModalAgregarAbierto(false)}
+      />
+    </>
   );
 }

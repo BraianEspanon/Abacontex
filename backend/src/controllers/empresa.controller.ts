@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 
 import * as empresaService from '../services/empresa.service';
+import * as empresaDashboardService from '../services/empresa-dashboard.service';
 import {
   cambiarRolParticipanteSchema,
   modificarRolesEmpresaSchema,
@@ -16,6 +17,12 @@ export async function getEmpresaActual(req: Request, res: Response) {
   const empresa = await empresaService.getEmpresaActual(req.user!);
 
   res.status(200).json(empresa);
+}
+
+export async function getEmpresaDashboard(req: Request, res: Response) {
+  const dashboard = await empresaDashboardService.obtenerDashboardEmpresa(req.user!);
+
+  res.status(200).json(dashboard);
 }
 
 export async function actualizarEmpresa(req: Request, res: Response) {
