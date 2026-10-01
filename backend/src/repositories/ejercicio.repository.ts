@@ -51,7 +51,7 @@ export async function crearEjercicio(
       enunciado: data.enunciado,
       fechaLimite,
       indicaciones: data.indicaciones ?? null,
-      estado: data.estado,
+      estado: data.estado === 'ENVIADO' ? 'PUBLICADO' : data.estado,
       plantillas: {
         create: data.plantillas.map((tipo) => ({ tipo })),
       },
@@ -109,15 +109,17 @@ export async function findEjerciciosByDocente(
     if (filtros.estado === 'SIN_RESOLVER') {
       where.estado = 'PUBLICADO';
       where.resolucion = {
-        estado: 'PENDIENTE',
+        estado: { not: 'COMPLETADA' },
       };
-    } else if (filtros.estado === 'RESUELTO') {
+    } else if (filtros.estado === 'ENVIADO') {
       where.estado = 'PUBLICADO';
       where.resolucion = {
         estado: 'COMPLETADA',
       };
-    } else {
-      where.estado = filtros.estado;
+    } else if (filtros.estado === 'COMPLETADO') {
+      where.estado = 'FINALIZADO';
+    } else if (filtros.estado === 'BORRADOR') {
+      where.estado = 'BORRADOR';
     }
   }
 
@@ -163,7 +165,7 @@ export async function findEjerciciosByDocente(
         where: {
           docenteId,
           estado: 'PUBLICADO',
-          resolucion: { estado: 'PENDIENTE' },
+          resolucion: { estado: { not: 'COMPLETADA' } },
         },
       }),
       db.ejercicio.count({

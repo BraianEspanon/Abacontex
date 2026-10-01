@@ -53,7 +53,7 @@ export const crearEjercicioSchema = z.object({
       .max(200, 'Las indicaciones no pueden superar los 200 caracteres.')
       .optional()
       .nullable(),
-    estado: z.enum(['BORRADOR', 'PUBLICADO']).optional().default('BORRADOR'),
+    estado: z.enum(['BORRADOR', 'ENVIADO']).optional().default('BORRADOR'),
     plantillas: z
       .array(z.enum(TIPOS_PLANTILLA))
       .min(1, 'Debe seleccionar al menos una plantilla.')
@@ -143,7 +143,7 @@ export const editarEjercicioSchema = z.object({
         .max(200, 'Las indicaciones no pueden superar los 200 caracteres.')
         .optional()
         .nullable(),
-      estado: z.enum(['BORRADOR', 'PUBLICADO']).optional(),
+      estado: z.enum(['BORRADOR', 'ENVIADO']).optional(),
       plantillas: z
         .array(z.enum(TIPOS_PLANTILLA))
         .min(1, 'Debe seleccionar al menos una plantilla.')

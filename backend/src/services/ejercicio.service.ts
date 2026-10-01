@@ -222,10 +222,10 @@ export async function editarEjercicio(
       dto.enunciado !== undefined ||
       dto.cursoId !== undefined ||
       dto.plantillas !== undefined ||
-      (dto.estado !== undefined && dto.estado !== 'PUBLICADO')
+      (dto.estado !== undefined && dto.estado !== 'ENVIADO')
     ) {
       throw new BadRequestError(
-        'En estado PUBLICADO sólo se permite modificar la fecha límite y las indicaciones.'
+        'En estado ENVIADO sólo se permite modificar la fecha límite y las indicaciones.'
       );
     }
   }
@@ -250,18 +250,28 @@ export async function editarEjercicio(
     }
   }
 
-  // 8. Construir payload de actualización
+  // 8. Si se pasa a ENVIADO desde BORRADOR, validar que la fecha límite resultante sea futura
+  if (dto.estado === 'ENVIADO' && ejercicio.estado === 'BORRADOR') {
+    const fechaVerificar = fechaLimiteParsed ?? ejercicio.fechaLimite;
+    if (fechaVerificar <= new Date()) {
+      throw new BadRequestError(
+        'Para enviar el ejercicio, la fecha límite debe ser posterior a la fecha y hora actual.'
+      );
+    }
+  }
+
+  // 9. Construir payload de actualización
   const dataActualizar: ejercicioRepository.ActualizarEjercicioData = {
     titulo: dto.titulo,
     enunciado: dto.enunciado,
     cursoId: dto.cursoId,
     fechaLimite: fechaLimiteParsed,
     indicaciones: dto.indicaciones,
-    estado: dto.estado,
+    estado: dto.estado === 'ENVIADO' ? 'PUBLICADO' : dto.estado,
     plantillas: dto.plantillas,
   };
 
-  // 9. Persistir actualización
+  // 10. Persistir actualización
   const ejercicioActualizado = await ejercicioRepository.actualizarEjercicio(
     idEjercicio,
     dataActualizar
