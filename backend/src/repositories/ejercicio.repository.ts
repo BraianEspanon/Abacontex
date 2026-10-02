@@ -117,7 +117,11 @@ export async function findEjerciciosByDocente(
         estado: 'RESUELTO',
       };
     } else if (filtros.estado === 'COMPLETADO') {
-      where.estado = 'FINALIZADO';
+      // Fase 2: se activará cuando todos los alumnos hayan entregado
+      where.idEjercicio = -1;
+    } else if (filtros.estado === 'EN_CORRECCION') {
+      // Fase 2: se activará cuando haya entregas en corrección
+      where.idEjercicio = -1;
     } else if (filtros.estado === 'BORRADOR') {
       where.estado = 'BORRADOR';
     }
@@ -126,7 +130,7 @@ export async function findEjerciciosByDocente(
   const page = filtros.page ?? 1;
   const pageSize = filtros.pageSize ?? 6;
 
-  const [items, totalItems, totalDocente, enviadosDocente, sinResolverDocente, resueltosDocente] =
+  const [items, totalItems, totalDocente, enviadosDocente, sinResolverDocente] =
     await Promise.all([
       db.ejercicio.findMany({
         where,
@@ -160,19 +164,18 @@ export async function findEjerciciosByDocente(
 
       db.ejercicio.count({ where }),
       db.ejercicio.count({ where: { docenteId } }),
-      db.ejercicio.count({ where: { docenteId, estado: 'PUBLICADO' } }),
       db.ejercicio.count({
         where: {
           docenteId,
           estado: 'PUBLICADO',
-          resolucion: { estado: { not: 'RESUELTO' } },
+          resolucion: { estado: 'RESUELTO' },
         },
       }),
       db.ejercicio.count({
         where: {
           docenteId,
           estado: 'PUBLICADO',
-          resolucion: { estado: 'RESUELTO' },
+          resolucion: { estado: { not: 'RESUELTO' } },
         },
       }),
     ]);
@@ -184,7 +187,7 @@ export async function findEjerciciosByDocente(
       total: totalDocente,
       enviados: enviadosDocente,
       sinResolver: sinResolverDocente,
-      resueltos: resueltosDocente,
+      enCorreccion: 0,
     },
   };
 }
