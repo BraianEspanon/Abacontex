@@ -1,3 +1,4 @@
+import { EstadoResolucionEjercicio } from '@prisma/client';
 import { AuthUser } from '../types/express';
 
 import {
@@ -28,11 +29,20 @@ import {
 } from '../dto/ejercicio/ejercicio.dto';
 
 import {
+  ActualizarResolucionDocenteBodyDTO,
   CrearEjercicioDTO,
   EditarEjercicioBodyDTO,
   GenerarEjercicioDTO,
   ObtenerEjerciciosQueryDTO,
 } from '../validators/ejercicio.validator';
+
+import {
+  validarBalanceLibroDiario,
+  validarBalanceLibroMayor,
+  validarBalanceLibroIva,
+  validarBalanceHojaTrabajo,
+} from '../validators/resolucion-plantillas.validator';
+
 
 import {
   toDetalleEjercicioResponse,
@@ -363,3 +373,94 @@ export async function consultarResolucionDocente(
   // 5. Mapear y retornar la respuesta
   return toResolucionDocenteResponse(ejercicio);
 }
+
+export async function guardarResolucionDocente(
+  user: AuthUser,
+  idEjercicio: number,
+  dto: ActualizarResolucionDocenteBodyDTO
+): Promise<ResolucionDocenteResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar ejercicio con su resolución por ID
+  const ejercicio = await ejercicioRepository.findEjercicioConResolucionByIdOrThrow(idEjercicio);
+
+  // 3. Validar que el ejercicio pertenezca al docente autenticado
+  if (ejercicio.docenteId !== docente.id) {
+    throw new ForbiddenError('No tienes permisos para modificar la resolución de este ejercicio.');
+  }
+
+  // 4. Validar que el docente tenga asignado el curso del ejercicio
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(ejercicio.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
+  }
+
+  // 5. Validar que la plantilla esté habilitada en este ejercicio
+  const plantillaHabilitada = ejercicio.plantillas.find((p) => p.tipo === dto.tipo);
+  if (!plantillaHabilitada) {
+    throw new BadRequestError(
+      `La plantilla ${dto.tipo} no se encuentra habilitada en este ejercicio.`
+    );
+  }
+
+  const estadoPlantilla = dto.estado ?? 'EN_EDICION';
+
+  if (estadoPlantilla === 'RESUELTO') {
+    switch (dto.tipo) {
+      case 'LIBRO_DIARIO':
+        validarBalanceLibroDiario(dto.contenido);
+        break;
+      case 'LIBRO_MAYOR':
+        validarBalanceLibroMayor(dto.contenido);
+        break;
+      case 'LIBRO_IVA':
+        validarBalanceLibroIva(dto.contenido);
+        break;
+      case 'HOJA_TRABAJO':
+        validarBalanceHojaTrabajo(dto.contenido);
+        break;
+    }
+  }
+
+  const plantillaActualizar = {
+    idEjercicioPlantilla: plantillaHabilitada.idEjercicioPlantilla,
+    estado: estadoPlantilla as EstadoResolucionEjercicio,
+    contenido: dto.contenido,
+  };
+
+
+  // 6. Determinar estado de la cabecera ResolucionDocente
+  const estadosFinalesPorPlantilla = new Map<number, string>();
+  for (const rp of ejercicio.resolucion?.plantillas ?? []) {
+    estadosFinalesPorPlantilla.set(rp.ejercicioPlantillaId, rp.estado);
+  }
+  estadosFinalesPorPlantilla.set(
+    plantillaActualizar.idEjercicioPlantilla,
+    plantillaActualizar.estado
+  );
+
+  const todasCompletadas = ejercicio.plantillas.every(
+    (p) => estadosFinalesPorPlantilla.get(p.idEjercicioPlantilla) === 'RESUELTO'
+  );
+
+  let estadoResolucionGlobal: EstadoResolucionEjercicio | undefined;
+
+  if (todasCompletadas) {
+    estadoResolucionGlobal = 'RESUELTO';
+  } else if (ejercicio.resolucion?.estado === 'PENDIENTE' || dto.estado === 'EN_EDICION') {
+    estadoResolucionGlobal = 'EN_EDICION';
+  }
+
+
+  // 7. Persistir en la base de datos a través del repositorio
+  const ejercicioActualizado = await ejercicioRepository.actualizarResolucionDocente(idEjercicio, {
+    estado: estadoResolucionGlobal,
+    plantilla: plantillaActualizar,
+  });
+
+  // 8. Mapear y retornar la respuesta consolidada
+  return toResolucionDocenteResponse(ejercicioActualizado);
+}
+
+

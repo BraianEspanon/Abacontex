@@ -1,4 +1,4 @@
-import { EstadoEjercicio, Prisma } from '@prisma/client';
+import { EstadoEjercicio, EstadoResolucionEjercicio, Prisma } from '@prisma/client';
 import { getDbClient, prisma } from '../lib/prisma';
 import { TipoPlantilla } from '../constants/ejercicio.constants';
 import { CrearEjercicioDTO, ObtenerEjerciciosQueryDTO } from '../validators/ejercicio.validator';
@@ -109,12 +109,12 @@ export async function findEjerciciosByDocente(
     if (filtros.estado === 'SIN_RESOLVER') {
       where.estado = 'PUBLICADO';
       where.resolucion = {
-        estado: { not: 'COMPLETADA' },
+        estado: { not: 'RESUELTO' },
       };
     } else if (filtros.estado === 'ENVIADO') {
       where.estado = 'PUBLICADO';
       where.resolucion = {
-        estado: 'COMPLETADA',
+        estado: 'RESUELTO',
       };
     } else if (filtros.estado === 'COMPLETADO') {
       where.estado = 'FINALIZADO';
@@ -165,14 +165,14 @@ export async function findEjerciciosByDocente(
         where: {
           docenteId,
           estado: 'PUBLICADO',
-          resolucion: { estado: { not: 'COMPLETADA' } },
+          resolucion: { estado: { not: 'RESUELTO' } },
         },
       }),
       db.ejercicio.count({
         where: {
           docenteId,
           estado: 'PUBLICADO',
-          resolucion: { estado: 'COMPLETADA' },
+          resolucion: { estado: 'RESUELTO' },
         },
       }),
     ]);
@@ -287,6 +287,76 @@ export async function actualizarEjercicio(
       data: updateData,
       include: ejercicioCreadoInclude,
     });
+  };
+
+  return tx ? ejecutar(tx) : prisma.$transaction(ejecutar);
+}
+
+export interface ActualizarResolucionDocenteData {
+  estado?: EstadoResolucionEjercicio | undefined;
+  plantilla?: {
+    idEjercicioPlantilla: number;
+    estado?: EstadoResolucionEjercicio | undefined;
+    contenido?: unknown;
+  } | undefined;
+}
+
+export async function actualizarResolucionDocente(
+  idEjercicio: number,
+  data: ActualizarResolucionDocenteData,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioResolucionEntity> {
+  const ejecutar = async (client: Prisma.TransactionClient) => {
+    let resolucion = await client.resolucionDocente.findUnique({
+      where: { ejercicioId: idEjercicio },
+    });
+
+    if (!resolucion) {
+      resolucion = await client.resolucionDocente.create({
+        data: {
+          ejercicioId: idEjercicio,
+          estado: data.estado ?? 'EN_EDICION',
+        },
+      });
+    } else if (data.estado !== undefined) {
+      resolucion = await client.resolucionDocente.update({
+        where: { idResolucion: resolucion.idResolucion },
+        data: { estado: data.estado },
+      });
+    }
+
+    if (data.plantilla) {
+      const p = data.plantilla;
+      await client.resolucionDocentePlantilla.upsert({
+        where: {
+          resolucionId_ejercicioPlantillaId: {
+            resolucionId: resolucion.idResolucion,
+            ejercicioPlantillaId: p.idEjercicioPlantilla,
+          },
+        },
+        update: {
+          ...(p.estado !== undefined ? { estado: p.estado } : {}),
+          ...(p.contenido !== undefined ? { contenido: p.contenido as Prisma.InputJsonValue } : {}),
+        },
+        create: {
+          resolucionId: resolucion.idResolucion,
+          ejercicioPlantillaId: p.idEjercicioPlantilla,
+          estado: p.estado ?? 'EN_EDICION',
+          contenido: (p.contenido ?? null) as Prisma.InputJsonValue,
+        },
+      });
+    }
+
+    const ejercicioActualizado = await client.ejercicio.findUnique({
+      where: { idEjercicio },
+      include: ejercicioResolucionInclude,
+    });
+
+    if (!ejercicioActualizado) {
+      throw new NotFoundError('Ejercicio no encontrado.');
+    }
+
+    return ejercicioActualizado;
   };
 
   return tx ? ejecutar(tx) : prisma.$transaction(ejecutar);
