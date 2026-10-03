@@ -15,7 +15,7 @@ export const crearProductoSchema = z.object({
 
     precioUnitario: z.coerce.number().positive('El precio unitario debe ser mayor a cero'),
 
-    margenGanancia: z.coerce.number().min(0, 'El margen de ganancia no puede ser negativo'),
+    margenGanancia: z.coerce.number().min(1, 'El margen de ganancia no puede ser menor a 1'),
 
     descripcion: z
       .string()
@@ -39,7 +39,7 @@ export const actualizarProductoSchema = z.object({
       .number('El precio unitario debe ser un número')
       .positive('El precio unitario debe ser mayor a cero'),
 
-    margenGanancia: z.coerce.number().min(0, 'El margen de ganancia no puede ser negativo'),
+    margenGanancia: z.coerce.number().min(1, 'El margen de ganancia no puede ser menor a 1'),
 
     descripcion: z
       .string()
