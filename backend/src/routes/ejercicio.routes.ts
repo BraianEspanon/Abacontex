@@ -10,7 +10,6 @@ import {
   actualizarResolucionDocenteSchema,
   consultarResolucionDocenteSchema,
   crearEjercicioSchema,
-  duplicarEjercicioSchema,
   editarEjercicioSchema,
   generarEjercicioSchema,
   obtenerEjercicioPorIdSchema,
@@ -21,7 +20,6 @@ import {
   consultarResolucionDocente,
   crearEjercicio,
   digitalizarEjercicio,
-  duplicarEjercicio,
   editarEjercicio,
   generarEjercicio,
   guardarResolucionDocente,
@@ -85,14 +83,6 @@ router.patch(
   requireRole(ROLES.DOCENTE),
   validate(editarEjercicioSchema),
   editarEjercicio
-);
-
-router.post(
-  '/:id/duplicar',
-  authenticate,
-  requireRole(ROLES.DOCENTE),
-  validate(duplicarEjercicioSchema),
-  duplicarEjercicio
 );
 
 router.get(

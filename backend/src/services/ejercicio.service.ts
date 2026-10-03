@@ -293,61 +293,6 @@ export async function editarEjercicio(
   return toDetalleEjercicioResponse(ejercicioActualizado, totalAlumnos);
 }
 
-export async function duplicarEjercicio(
-  user: AuthUser,
-  idEjercicio: number
-): Promise<EjercicioCreadoResponseDTO> {
-  // 1. Obtener docente autenticado
-  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
-
-  // 2. Consultar ejercicio original por ID
-  const ejercicio = await ejercicioRepository.findEjercicioByIdOrThrow(idEjercicio);
-
-  // 3. Validar autoría
-  if (ejercicio.docenteId !== docente.id) {
-    throw new ForbiddenError('No tienes permisos para duplicar este ejercicio.');
-  }
-
-  // 4. Validar pertenencia al curso
-  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
-  if (!cursosDocente.includes(ejercicio.cursoId)) {
-    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
-  }
-
-  // 5. Preparar datos clonados
-  const nuevoTitulo = `${ejercicio.titulo} (Copia)`.slice(0, 100);
-
-  const ahora = new Date();
-  const finDeAñoActual = new Date(ahora.getFullYear(), 11, 31, 23, 59, 59, 999);
-  const fechaLimite = ejercicio.fechaLimite > ahora ? ejercicio.fechaLimite : finDeAñoActual;
-
-  // 6. Persistir clon en estado BORRADOR reutilizando crearEjercicio
-  const ejercicioClonado = await ejercicioRepository.crearEjercicio(
-    docente.id,
-    {
-      titulo: nuevoTitulo,
-      enunciado: ejercicio.enunciado,
-      cursoId: ejercicio.cursoId,
-      fechaLimite: fechaLimite.toISOString(),
-      indicaciones: ejercicio.indicaciones,
-      estado: 'BORRADOR',
-      plantillas: ejercicio.plantillas.map((p) => p.tipo),
-      generacionIA: ejercicio.generacionIA
-        ? {
-            tipoEjercicio: ejercicio.generacionIA.tipoEjercicio,
-            dificultad: ejercicio.generacionIA.dificultad,
-            contextoAdicional: ejercicio.generacionIA.contextoAdicional,
-            contenidos: ejercicio.generacionIA.contenidos.map((c) => c.contenido),
-          }
-        : null,
-    },
-    fechaLimite
-  );
-
-  // 7. Mapear y retornar la respuesta
-  return toEjercicioCreadoResponse(ejercicioClonado);
-}
-
 export async function consultarResolucionDocente(
   user: AuthUser,
   idEjercicio: number
