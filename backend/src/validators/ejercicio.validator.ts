@@ -101,11 +101,7 @@ export const obtenerEjerciciosQuerySchema = z.object({
       .default(6),
     cursoId: z.coerce.number().int().positive('ID de curso inválido.').optional(),
     titulo: z.string().trim().optional(),
-    estado: z
-      .enum(FILTROS_ESTADO_EJERCICIO, {
-        message: 'Estado de filtro no válido.',
-      })
-      .optional(),
+    estado: z.enum(FILTROS_ESTADO_EJERCICIO).optional(),
   }),
 });
 

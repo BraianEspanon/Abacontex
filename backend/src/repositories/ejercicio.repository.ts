@@ -130,55 +130,54 @@ export async function findEjerciciosByDocente(
   const page = filtros.page ?? 1;
   const pageSize = filtros.pageSize ?? 6;
 
-  const [items, totalItems, totalDocente, enviadosDocente, sinResolverDocente] =
-    await Promise.all([
-      db.ejercicio.findMany({
-        where,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          idEjercicio: true,
-          titulo: true,
-          estado: true,
-          fechaLimite: true,
-          createdAt: true,
-          updatedAt: true,
-          curso: {
-            select: {
-              idCurso: true,
-              nombreCurso: true,
-              año: true,
-            },
-          },
-          resolucion: {
-            select: {
-              idResolucion: true,
-              estado: true,
-            },
+  const [items, totalItems, totalDocente, enviadosDocente, sinResolverDocente] = await Promise.all([
+    db.ejercicio.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        idEjercicio: true,
+        titulo: true,
+        estado: true,
+        fechaLimite: true,
+        createdAt: true,
+        updatedAt: true,
+        curso: {
+          select: {
+            idCurso: true,
+            nombreCurso: true,
+            año: true,
           },
         },
-      }),
+        resolucion: {
+          select: {
+            idResolucion: true,
+            estado: true,
+          },
+        },
+      },
+    }),
 
-      db.ejercicio.count({ where }),
-      db.ejercicio.count({ where: { docenteId } }),
-      db.ejercicio.count({
-        where: {
-          docenteId,
-          estado: 'PUBLICADO',
-          resolucion: { estado: 'RESUELTO' },
-        },
-      }),
-      db.ejercicio.count({
-        where: {
-          docenteId,
-          estado: 'PUBLICADO',
-          resolucion: { estado: { not: 'RESUELTO' } },
-        },
-      }),
-    ]);
+    db.ejercicio.count({ where }),
+    db.ejercicio.count({ where: { docenteId } }),
+    db.ejercicio.count({
+      where: {
+        docenteId,
+        estado: 'PUBLICADO',
+        resolucion: { estado: 'RESUELTO' },
+      },
+    }),
+    db.ejercicio.count({
+      where: {
+        docenteId,
+        estado: 'PUBLICADO',
+        resolucion: { estado: { not: 'RESUELTO' } },
+      },
+    }),
+  ]);
 
   return {
     items,
@@ -297,11 +296,13 @@ export async function actualizarEjercicio(
 
 export interface ActualizarResolucionDocenteData {
   estado?: EstadoResolucionEjercicio | undefined;
-  plantilla?: {
-    idEjercicioPlantilla: number;
-    estado?: EstadoResolucionEjercicio | undefined;
-    contenido?: unknown;
-  } | undefined;
+  plantilla?:
+    | {
+        idEjercicioPlantilla: number;
+        estado?: EstadoResolucionEjercicio | undefined;
+        contenido?: unknown;
+      }
+    | undefined;
 }
 
 export async function actualizarResolucionDocente(

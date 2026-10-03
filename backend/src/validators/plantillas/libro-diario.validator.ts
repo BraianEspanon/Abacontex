@@ -72,12 +72,6 @@ export function validarBalanceLibroDiario(contenido: unknown): void {
     }
     numerosAsiento.add(asiento.numero);
 
-    if (asiento.lineas.length < 2) {
-      throw new BadRequestError(
-        `El asiento N° ${asiento.numero} debe tener al menos dos líneas contables para estar completo.`
-      );
-    }
-
     for (const linea of asiento.lineas) {
       if (linea.debe === 0 && linea.haber === 0) {
         throw new BadRequestError(

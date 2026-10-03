@@ -90,12 +90,7 @@ export async function guardarResolucionDocente(req: Request, res: Response) {
     body: req.body,
   });
 
-  const resultado = await ejercicioService.guardarResolucionDocente(
-    req.user!,
-    params.id,
-    body
-  );
+  const resultado = await ejercicioService.guardarResolucionDocente(req.user!, params.id, body);
 
   res.status(200).json(resultado);
 }
-

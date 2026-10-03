@@ -43,7 +43,6 @@ import {
   validarBalanceHojaTrabajo,
 } from '../validators/resolucion-plantillas.validator';
 
-
 import {
   toDetalleEjercicioResponse,
   toEjercicioCreadoResponse,
@@ -429,7 +428,6 @@ export async function guardarResolucionDocente(
     contenido: dto.contenido,
   };
 
-
   // 6. Determinar estado de la cabecera ResolucionDocente
   const estadosFinalesPorPlantilla = new Map<number, string>();
   for (const rp of ejercicio.resolucion?.plantillas ?? []) {
@@ -452,7 +450,6 @@ export async function guardarResolucionDocente(
     estadoResolucionGlobal = 'EN_EDICION';
   }
 
-
   // 7. Persistir en la base de datos a través del repositorio
   const ejercicioActualizado = await ejercicioRepository.actualizarResolucionDocente(idEjercicio, {
     estado: estadoResolucionGlobal,
@@ -462,5 +459,3 @@ export async function guardarResolucionDocente(
   // 8. Mapear y retornar la respuesta consolidada
   return toResolucionDocenteResponse(ejercicioActualizado);
 }
-
-

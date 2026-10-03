@@ -15,11 +15,7 @@ export function esFechaValidaDDMMAAAA(fechaStr: string): boolean {
   const anio = parseInt(anioStr, 10);
 
   const date = new Date(anio, mes - 1, dia);
-  return (
-    date.getFullYear() === anio &&
-    date.getMonth() === mes - 1 &&
-    date.getDate() === dia
-  );
+  return date.getFullYear() === anio && date.getMonth() === mes - 1 && date.getDate() === dia;
 }
 
 export const fechaContableOpcionalSchema = z
