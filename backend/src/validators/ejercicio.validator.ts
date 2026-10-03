@@ -5,6 +5,8 @@ import {
   CONTENIDOS_ADICIONALES,
   TIPOS_PLANTILLA,
   FILTROS_ESTADO_EJERCICIO,
+  ESTADOS_GUARDAR_EJERCICIO,
+  ESTADOS_GUARDAR_RESOLUCION,
 } from '../constants/ejercicio.constants';
 import {
   hojaTrabajoContenidoSchema,
@@ -59,7 +61,7 @@ export const crearEjercicioSchema = z.object({
       .max(200, 'Las indicaciones no pueden superar los 200 caracteres.')
       .optional()
       .nullable(),
-    estado: z.enum(['BORRADOR', 'ENVIADO']).optional().default('BORRADOR'),
+    estado: z.enum(ESTADOS_GUARDAR_EJERCICIO).optional().default('BORRADOR'),
     plantillas: z
       .array(z.enum(TIPOS_PLANTILLA))
       .min(1, 'Debe seleccionar al menos una plantilla.')
@@ -145,7 +147,7 @@ export const editarEjercicioSchema = z.object({
         .max(200, 'Las indicaciones no pueden superar los 200 caracteres.')
         .optional()
         .nullable(),
-      estado: z.enum(['BORRADOR', 'ENVIADO']).optional(),
+      estado: z.enum(ESTADOS_GUARDAR_EJERCICIO).optional(),
       plantillas: z
         .array(z.enum(TIPOS_PLANTILLA))
         .min(1, 'Debe seleccionar al menos una plantilla.')
@@ -190,28 +192,28 @@ export const actualizarResolucionDocenteBodySchema = z.discriminatedUnion('tipo'
   z
     .object({
       tipo: z.literal('LIBRO_DIARIO'),
-      estado: z.enum(['EN_EDICION', 'RESUELTO']).optional().default('EN_EDICION'),
+      estado: z.enum(ESTADOS_GUARDAR_RESOLUCION).optional().default('EN_EDICION'),
       contenido: libroDiarioContenidoSchema,
     })
     .strict(),
   z
     .object({
       tipo: z.literal('LIBRO_MAYOR'),
-      estado: z.enum(['EN_EDICION', 'RESUELTO']).optional().default('EN_EDICION'),
+      estado: z.enum(ESTADOS_GUARDAR_RESOLUCION).optional().default('EN_EDICION'),
       contenido: libroMayorContenidoSchema,
     })
     .strict(),
   z
     .object({
       tipo: z.literal('LIBRO_IVA'),
-      estado: z.enum(['EN_EDICION', 'RESUELTO']).optional().default('EN_EDICION'),
+      estado: z.enum(ESTADOS_GUARDAR_RESOLUCION).optional().default('EN_EDICION'),
       contenido: libroIvaContenidoSchema,
     })
     .strict(),
   z
     .object({
       tipo: z.literal('HOJA_TRABAJO'),
-      estado: z.enum(['EN_EDICION', 'RESUELTO']).optional().default('EN_EDICION'),
+      estado: z.enum(ESTADOS_GUARDAR_RESOLUCION).optional().default('EN_EDICION'),
       contenido: hojaTrabajoContenidoSchema,
     })
     .strict(),
