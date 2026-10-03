@@ -908,7 +908,7 @@ enum ContenidoAdicionalIA {
 enum EstadoResolucionEjercicio {
   PENDIENTE
   EN_EDICION
-  COMPLETADA
+  RESUELTO
 }
 
 model Ejercicio {
