@@ -896,11 +896,11 @@
  *     FilaHojaTrabajoRequest:
  *       type: object
  *       required:
+ *         - idCuenta
  *         - cuenta
  *       properties:
  *         idCuenta:
  *           type: integer
- *           nullable: true
  *           example: 1
  *         cuenta:
  *           type: string
@@ -950,7 +950,6 @@
  *             positivo:
  *               type: number
  *               example: 0
- *
  *     HojaTrabajoContenidoRequest:
  *       type: object
  *       properties:
@@ -958,10 +957,6 @@
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/FilaHojaTrabajoRequest'
- *         resultadoEjercicio:
- *           type: number
- *           nullable: true
- *           example: 45000
  *
  *     ActualizarResolucionDocenteRequest:
  *       type: object
