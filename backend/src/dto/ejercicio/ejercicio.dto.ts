@@ -73,7 +73,7 @@ export interface ResumenEjerciciosDTO {
   total: number;
   enviados: number;
   sinResolver: number;
-  resueltos: number;
+  enCorreccion: number;
 }
 
 export interface ListadoEjerciciosResponseDTO {

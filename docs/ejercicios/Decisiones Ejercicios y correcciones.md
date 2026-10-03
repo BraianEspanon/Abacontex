@@ -224,12 +224,14 @@ Los ejercicios pueden tener los siguientes estados:
 | Estado | Significado | Acción principal |
 | ----- | ----- | ----- |
 | Borrador | El ejercicio fue creado pero todavía no se envió. | Continuar edición |
-| Enviado | El ejercicio ya fue enviado a los alumnos | Ver detalle |
+| Enviado | El ejercicio ya fue enviado a los alumnos y tiene su resolución | Ver detalle |
 | Sin resolver | El ejercicio fue creado/enviado, pero el docente todavía no cargó su resolución modelo | Continuar resolución |
-| Resuelto&nbsp; | El docente ya cargó la resolución modelo | Ver detalle |
-| En corrección&nbsp; | Ya hay entregas para corregir o se inició el proceso de corrección | Ver detalle |
+| Completado | Todos los alumnos entregaron el ejercicio | Ver detalle |
+| En corrección&nbsp; | Se inicia el proceso de corrección | Ver detalle |
 
 La acción principal de cada card cambia según el estado del ejercicio. No todos los ejercicios tienen que mostrar siempre “Ver detalle”, porque en algunos casos conviene llevar al docente directo a la acción pendiente.&nbsp;
+
+![][image9]
 
 1. **Pantalla ‘Mis ejercicios’**
 
@@ -476,16 +478,15 @@ Esta pantalla conviene manejarla con **scroll vertical**, porque se pueden agreg
 
 4. ### **Pantalla ver detalle del ejercicio** {#pantalla-ver-detalle-del-ejercicio}
 
-La pantalla **Ver detalle del ejercicio** será la vista central para consultar la información de un ejercicio ya creado. Debe ser una pantalla única para todos los estados, por lo que no se crearán pantallas distintas para ejercicios enviados, resueltos o en corrección.
+La pantalla Ver detalle del ejercicio será la vista central para consultar la información de un ejercicio ya creado. Debe ser una pantalla única para todos los estados, por lo que no se crearán pantallas distintas para ejercicios enviados, resueltos o en corrección.
 
-Desde **Mis ejercicios**, cuando el docente seleccione un ejercicio, accederá al detalle del mismo. Esta pantalla permitirá ver la consigna, el resumen general del ejercicio, las plantillas habilitadas, el avance de entregas, el estado de la resolución docente y las acciones disponibles según corresponda.
+Desde Mis ejercicios, cuando el docente seleccione un ejercicio, accederá al detalle del mismo. Esta pantalla permitirá ver la consigna, el resumen general del ejercicio, las plantillas habilitadas, el avance de entregas, el estado de la resolución docente y las acciones disponibles según corresponda.
 
 La pantalla debe mostrar:
 
 * título del ejercicio;  
 * enunciado;  
 * curso;  
-* origen del ejercicio;  
 * fecha de creación;  
 * fecha límite;  
 * estado;  
@@ -505,11 +506,11 @@ Desde esta pantalla se puede acceder a distintas acciones según corresponda:
 * editar resolución  
 * ir a correcciones
 
-El detalle debe incluir una sección de **Resumen del ejercicio** para que el docente pueda entender rápidamente cómo fue configurada la actividad sin tener que volver a la pantalla de creación.
+El detalle debe incluir una sección de **Información general** para que el docente pueda entender rápidamente cómo fue configurada la actividad sin tener que volver a la pantalla de creación.
 
 Esta sección cambia levemente según el origen del ejercicio.
 
-#### *Caso 1: Ejercicio creado con IA*
+#### *Caso 1: Ejercicio creado con IA* {#caso-1:-ejercicio-creado-con-ia}
 
 Cuando el ejercicio fue generado con IA, el resumen debe mostrar los parámetros que el docente seleccionó al momento de generarlo.
 
@@ -527,9 +528,7 @@ Datos a mostrar:
 
 El contexto adicional se muestra solo si el docente lo completó. Este campo sirve para indicar preferencias o aclaraciones, como el rubro de la empresa, una situación particular o alguna condición específica.
 
-#### *Caso 2: Ejercicio digitalizado*
-
-Cuando el ejercicio fue digitalizado, el resumen debe mostrar que el origen corresponde a una imagen o archivo cargado por el docente.
+#### *Caso 2: Ejercicio digitalizado* {#caso-2:-ejercicio-digitalizado}
 
 Datos a mostrar:
 
@@ -544,7 +543,17 @@ En este caso no corresponde mostrar dificultad ni contenidos adicionales de IA, 
 
 La pantalla debe permitir ver el enunciado que quedó cargado luego de la digitalización. Si el texto fue obtenido mediante OCR, el docente debe poder revisarlo antes de enviarlo y corregirlo si fuera necesario.
 
-#### *Resolución docente*
+#### *Flujo de botones en ver detalle según estado del ejercicio* {#flujo-de-botones-en-ver-detalle-según-estado-del-ejercicio}
+
+* **Borrador:** el ejercicio todavía no fue enviado a los alumnos. Desde el detalle se puede **continuar la edición** o **enviarlo a los alumnos.** Si ponemos continuar la edición lleva a la pantalla de creación del ejercicio con los datos pre-cargados.  
+* **Enviado:** el ejercicio ya fue publicado para los alumnos. Desde el detalle se puede **ir a correcciones**, aunque todavía no hayan entregado todos.  
+* **Sin resolver:** el docente todavía no cargó o completó su resolución modelo. Desde el detalle se puede **continuar la resolución** y te lleva a la parte de plantillas.  
+* **Completado:** todos los alumnos ya entregaron, pero todavía no se corrigió. Desde el ver detalle se puede **ir a correcciones**.  
+* **En corrección:** ya comenzó el proceso de corrección de las entregas. Desde el ver detalle se puede **ir a correcciones**.
+
+La acción principal que se muestra en la pantalla cambia según el estado, para evitar opciones que no correspondan en cada momento del flujo.
+
+#### *Resolución docente* {#resolución-docente}
 
 El detalle debe incluir una sección de **Resolución docente**, ya que esta resolución funciona como solución modelo del ejercicio.
 
@@ -589,7 +598,7 @@ El docente podrá modificar la solución modelo en las plantillas habilitadas, p
 
 Cuando se guarden cambios en la resolución docente, esa nueva versión será la referencia que utilizará el sistema para las próximas correcciones o comparaciones.
 
-#### *Progreso de entregas*
+#### *Progreso de entregas* {#progreso-de-entregas}
 
 La pantalla debe mostrar el avance de las entregas de los alumnos.
 
@@ -603,7 +612,7 @@ Datos a mostrar:
 
 Esta información permite que el docente vea rápidamente el estado general del ejercicio sin entrar todavía al módulo Correcciones.
 
-#### *Acciones disponibles*
+#### *Acciones disponibles* {#acciones-disponibles-1}
 
 Desde la pantalla de detalle se muestran las acciones según el estado del ejercicio.
 
@@ -613,17 +622,15 @@ Acciones posibles:
 * **Continuar resolución / Cargar resolución:** aparece si la resolución docente todavía está pendiente.  
 * **Ver resolución:** aparece si ya existe resolución docente cargada.  
 * **Editar resolución:** aparece si ya existe resolución docente cargada y el docente necesita ajustarla.  
-* **Ir a correcciones:** permite revisar las entregas de los alumnos.  
-* **Duplicar ejercicio:** permite crear una copia del ejercicio, útil cuando se necesita cambiar el contenido principal sin modificar el original.
+* **Ir a correcciones:** permite revisar las entregas de los alumnos.
 
-#### *Edición del ejercicio*
+#### *Edición del ejercicio* {#edición-del-ejercicio}
 
 La edición del ejercicio depende de su estado:
 
 - **Antes de enviar:** Si el ejercicio está en estado borrador, el docente puede editar toda la información del mismo, ya que todavía no fue enviado a los alumnos.&nbsp;  
 - **Después de enviar:** Una vez enviado, no se debería permitir editar el contenido principal del ejercicio, porque los alumnos podrían haber empezado a resolverlo. Sólo se permitirán cambios menores como:  
   - fecha límite  
-  - indicaciones o aclaraciones adicionales  
   - resolución docente
 
   No se debería editar:
@@ -633,7 +640,7 @@ La edición del ejercicio depende de su estado:
 - tipo de ejercicio  
 - curso, salvo que no haya entregas todavía.
 
-Si el ejercicio fue generado con IA, tampoco se deberían modificar los parámetros principales usados para generarlo, como tipo de ejercicio, dificultad o contenidos adicionales. En caso de necesitar cambiar eso, corresponde crear un nuevo ejercicio o duplicar el existente.&nbsp;&nbsp;
+Si el ejercicio fue generado con IA, tampoco se deberían modificar los parámetros principales usados para generarlo, como tipo de ejercicio, dificultad o contenidos adicionales. En caso de necesitar cambiar eso, corresponde crear un nuevo ejercicio directamente.&nbsp;&nbsp;
 
 15. # **Corrección automática de ejercicios** {#corrección-automática-de-ejercicios}
 
@@ -653,7 +660,7 @@ En lugar de enviar ambas resoluciones completas a la IA para que las compare, el
    9. Fechas  
    10. Totales
 
-	![][image9]
+	![][image10]
 
 	El sistema puede detectar directamente:
 
@@ -669,11 +676,11 @@ Cada uno deberá tener una estructura de datos que permita comparar la resoluci�
 
 2. **Uso de la IA para interpretar los errores:** Una vez que el sistema identificó las diferencias, la IA puede recibir solamente un resumen de errores. Por ejemplo:&nbsp;
 
-   ![][image10]
+   ![][image11]
 
    La IA podría devolver algo como:
 
-   ![][image11]
+   ![][image12]
 
    El docente podrá revisar rápidamente esta sugerencia, realizar una observación adicional y finalmente enviar la corrección al alumno. La IA no reemplaza la decisión docente, sino que funciona como una ayuda para reducir el tiempo de revisión.&nbsp;
 
@@ -705,8 +712,8 @@ Por ejemplo, para un curso de 30 alumnos podemos tener:&nbsp;
 
 Estos datos pueden mostrarse directamente como métricas al docente. Luego, si se desea generar una interpretación pedagógica general, se puede realizar una única llamada a la IA con ese resumen:
 
-![][image12]
+![][image13]
 
 ### **Flujo general de corrección** {#flujo-general-de-corrección}
 
-![][image13]
+![][image14]

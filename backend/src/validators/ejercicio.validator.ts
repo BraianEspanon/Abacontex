@@ -5,7 +5,15 @@ import {
   CONTENIDOS_ADICIONALES,
   TIPOS_PLANTILLA,
   FILTROS_ESTADO_EJERCICIO,
+  ESTADOS_GUARDAR_EJERCICIO,
+  ESTADOS_GUARDAR_RESOLUCION,
 } from '../constants/ejercicio.constants';
+import {
+  hojaTrabajoContenidoSchema,
+  libroDiarioContenidoSchema,
+  libroIvaContenidoSchema,
+  libroMayorContenidoSchema,
+} from './resolucion-plantillas.validator';
 
 export const generarEjercicioSchema = z.object({
   body: z.object({
@@ -53,7 +61,7 @@ export const crearEjercicioSchema = z.object({
       .max(200, 'Las indicaciones no pueden superar los 200 caracteres.')
       .optional()
       .nullable(),
-    estado: z.enum(['BORRADOR', 'ENVIADO']).optional().default('BORRADOR'),
+    estado: z.enum(ESTADOS_GUARDAR_EJERCICIO).optional().default('BORRADOR'),
     plantillas: z
       .array(z.enum(TIPOS_PLANTILLA))
       .min(1, 'Debe seleccionar al menos una plantilla.')
@@ -95,11 +103,7 @@ export const obtenerEjerciciosQuerySchema = z.object({
       .default(6),
     cursoId: z.coerce.number().int().positive('ID de curso inválido.').optional(),
     titulo: z.string().trim().optional(),
-    estado: z
-      .enum(FILTROS_ESTADO_EJERCICIO, {
-        message: 'Estado de filtro no válido.',
-      })
-      .optional(),
+    estado: z.enum(FILTROS_ESTADO_EJERCICIO).optional(),
   }),
 });
 
@@ -143,7 +147,7 @@ export const editarEjercicioSchema = z.object({
         .max(200, 'Las indicaciones no pueden superar los 200 caracteres.')
         .optional()
         .nullable(),
-      estado: z.enum(['BORRADOR', 'ENVIADO']).optional(),
+      estado: z.enum(ESTADOS_GUARDAR_EJERCICIO).optional(),
       plantillas: z
         .array(z.enum(TIPOS_PLANTILLA))
         .min(1, 'Debe seleccionar al menos una plantilla.')
@@ -183,3 +187,51 @@ export const consultarResolucionDocenteSchema = z.object({
 export type ConsultarResolucionDocenteParamsDTO = z.infer<
   typeof consultarResolucionDocenteSchema
 >['params'];
+
+export const actualizarResolucionDocenteBodySchema = z.discriminatedUnion('tipo', [
+  z
+    .object({
+      tipo: z.literal('LIBRO_DIARIO'),
+      estado: z.enum(ESTADOS_GUARDAR_RESOLUCION).optional().default('EN_EDICION'),
+      contenido: libroDiarioContenidoSchema,
+    })
+    .strict(),
+  z
+    .object({
+      tipo: z.literal('LIBRO_MAYOR'),
+      estado: z.enum(ESTADOS_GUARDAR_RESOLUCION).optional().default('EN_EDICION'),
+      contenido: libroMayorContenidoSchema,
+    })
+    .strict(),
+  z
+    .object({
+      tipo: z.literal('LIBRO_IVA'),
+      estado: z.enum(ESTADOS_GUARDAR_RESOLUCION).optional().default('EN_EDICION'),
+      contenido: libroIvaContenidoSchema,
+    })
+    .strict(),
+  z
+    .object({
+      tipo: z.literal('HOJA_TRABAJO'),
+      estado: z.enum(ESTADOS_GUARDAR_RESOLUCION).optional().default('EN_EDICION'),
+      contenido: hojaTrabajoContenidoSchema,
+    })
+    .strict(),
+]);
+
+export const actualizarResolucionDocenteSchema = z.object({
+  params: z.object({
+    id: z.coerce
+      .number({ message: 'El ID del ejercicio debe ser numérico.' })
+      .int('El ID del ejercicio debe ser un número entero.')
+      .positive('El ID del ejercicio debe ser mayor a cero.'),
+  }),
+  body: actualizarResolucionDocenteBodySchema,
+});
+
+export type ActualizarResolucionDocenteParamsDTO = z.infer<
+  typeof actualizarResolucionDocenteSchema
+>['params'];
+export type ActualizarResolucionDocenteBodyDTO = z.infer<
+  typeof actualizarResolucionDocenteSchema
+>['body'];

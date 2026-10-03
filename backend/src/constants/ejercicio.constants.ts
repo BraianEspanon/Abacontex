@@ -40,6 +40,12 @@ export const FILTROS_ESTADO_EJERCICIO = [
 
 export type FiltroEstadoEjercicio = (typeof FILTROS_ESTADO_EJERCICIO)[number];
 
+export const ESTADOS_GUARDAR_EJERCICIO = ['BORRADOR', 'ENVIADO'] as const;
+export type EstadoGuardarEjercicio = (typeof ESTADOS_GUARDAR_EJERCICIO)[number];
+
+export const ESTADOS_GUARDAR_RESOLUCION = ['EN_EDICION', 'RESUELTO'] as const;
+export type EstadoGuardarResolucion = (typeof ESTADOS_GUARDAR_RESOLUCION)[number];
+
 export const TIPOS_PLANTILLA = [
   'LIBRO_DIARIO',
   'LIBRO_MAYOR',

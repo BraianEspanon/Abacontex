@@ -1,4 +1,4 @@
-import { EstadoEjercicio, Prisma } from '@prisma/client';
+import { EstadoEjercicio, EstadoResolucionEjercicio, Prisma } from '@prisma/client';
 import { getDbClient, prisma } from '../lib/prisma';
 import { TipoPlantilla } from '../constants/ejercicio.constants';
 import { CrearEjercicioDTO, ObtenerEjerciciosQueryDTO } from '../validators/ejercicio.validator';
@@ -109,15 +109,19 @@ export async function findEjerciciosByDocente(
     if (filtros.estado === 'SIN_RESOLVER') {
       where.estado = 'PUBLICADO';
       where.resolucion = {
-        estado: { not: 'COMPLETADA' },
+        estado: { not: 'RESUELTO' },
       };
     } else if (filtros.estado === 'ENVIADO') {
       where.estado = 'PUBLICADO';
       where.resolucion = {
-        estado: 'COMPLETADA',
+        estado: 'RESUELTO',
       };
     } else if (filtros.estado === 'COMPLETADO') {
-      where.estado = 'FINALIZADO';
+      // Fase 2: se activará cuando todos los alumnos hayan entregado
+      where.idEjercicio = -1;
+    } else if (filtros.estado === 'EN_CORRECCION') {
+      // Fase 2: se activará cuando haya entregas en corrección
+      where.idEjercicio = -1;
     } else if (filtros.estado === 'BORRADOR') {
       where.estado = 'BORRADOR';
     }
@@ -126,56 +130,54 @@ export async function findEjerciciosByDocente(
   const page = filtros.page ?? 1;
   const pageSize = filtros.pageSize ?? 6;
 
-  const [items, totalItems, totalDocente, enviadosDocente, sinResolverDocente, resueltosDocente] =
-    await Promise.all([
-      db.ejercicio.findMany({
-        where,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          idEjercicio: true,
-          titulo: true,
-          estado: true,
-          fechaLimite: true,
-          createdAt: true,
-          updatedAt: true,
-          curso: {
-            select: {
-              idCurso: true,
-              nombreCurso: true,
-              año: true,
-            },
-          },
-          resolucion: {
-            select: {
-              idResolucion: true,
-              estado: true,
-            },
+  const [items, totalItems, totalDocente, enviadosDocente, sinResolverDocente] = await Promise.all([
+    db.ejercicio.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        idEjercicio: true,
+        titulo: true,
+        estado: true,
+        fechaLimite: true,
+        createdAt: true,
+        updatedAt: true,
+        curso: {
+          select: {
+            idCurso: true,
+            nombreCurso: true,
+            año: true,
           },
         },
-      }),
+        resolucion: {
+          select: {
+            idResolucion: true,
+            estado: true,
+          },
+        },
+      },
+    }),
 
-      db.ejercicio.count({ where }),
-      db.ejercicio.count({ where: { docenteId } }),
-      db.ejercicio.count({ where: { docenteId, estado: 'PUBLICADO' } }),
-      db.ejercicio.count({
-        where: {
-          docenteId,
-          estado: 'PUBLICADO',
-          resolucion: { estado: { not: 'COMPLETADA' } },
-        },
-      }),
-      db.ejercicio.count({
-        where: {
-          docenteId,
-          estado: 'PUBLICADO',
-          resolucion: { estado: 'COMPLETADA' },
-        },
-      }),
-    ]);
+    db.ejercicio.count({ where }),
+    db.ejercicio.count({ where: { docenteId } }),
+    db.ejercicio.count({
+      where: {
+        docenteId,
+        estado: 'PUBLICADO',
+        resolucion: { estado: 'RESUELTO' },
+      },
+    }),
+    db.ejercicio.count({
+      where: {
+        docenteId,
+        estado: 'PUBLICADO',
+        resolucion: { estado: { not: 'RESUELTO' } },
+      },
+    }),
+  ]);
 
   return {
     items,
@@ -184,7 +186,7 @@ export async function findEjerciciosByDocente(
       total: totalDocente,
       enviados: enviadosDocente,
       sinResolver: sinResolverDocente,
-      resueltos: resueltosDocente,
+      enCorreccion: 0,
     },
   };
 }
@@ -287,6 +289,78 @@ export async function actualizarEjercicio(
       data: updateData,
       include: ejercicioCreadoInclude,
     });
+  };
+
+  return tx ? ejecutar(tx) : prisma.$transaction(ejecutar);
+}
+
+export interface ActualizarResolucionDocenteData {
+  estado?: EstadoResolucionEjercicio | undefined;
+  plantilla?:
+    | {
+        idEjercicioPlantilla: number;
+        estado?: EstadoResolucionEjercicio | undefined;
+        contenido?: unknown;
+      }
+    | undefined;
+}
+
+export async function actualizarResolucionDocente(
+  idEjercicio: number,
+  data: ActualizarResolucionDocenteData,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioResolucionEntity> {
+  const ejecutar = async (client: Prisma.TransactionClient) => {
+    let resolucion = await client.resolucionDocente.findUnique({
+      where: { ejercicioId: idEjercicio },
+    });
+
+    if (!resolucion) {
+      resolucion = await client.resolucionDocente.create({
+        data: {
+          ejercicioId: idEjercicio,
+          estado: data.estado ?? 'EN_EDICION',
+        },
+      });
+    } else if (data.estado !== undefined) {
+      resolucion = await client.resolucionDocente.update({
+        where: { idResolucion: resolucion.idResolucion },
+        data: { estado: data.estado },
+      });
+    }
+
+    if (data.plantilla) {
+      const p = data.plantilla;
+      await client.resolucionDocentePlantilla.upsert({
+        where: {
+          resolucionId_ejercicioPlantillaId: {
+            resolucionId: resolucion.idResolucion,
+            ejercicioPlantillaId: p.idEjercicioPlantilla,
+          },
+        },
+        update: {
+          ...(p.estado !== undefined ? { estado: p.estado } : {}),
+          ...(p.contenido !== undefined ? { contenido: p.contenido as Prisma.InputJsonValue } : {}),
+        },
+        create: {
+          resolucionId: resolucion.idResolucion,
+          ejercicioPlantillaId: p.idEjercicioPlantilla,
+          estado: p.estado ?? 'EN_EDICION',
+          contenido: (p.contenido ?? null) as Prisma.InputJsonValue,
+        },
+      });
+    }
+
+    const ejercicioActualizado = await client.ejercicio.findUnique({
+      where: { idEjercicio },
+      include: ejercicioResolucionInclude,
+    });
+
+    if (!ejercicioActualizado) {
+      throw new NotFoundError('Ejercicio no encontrado.');
+    }
+
+    return ejercicioActualizado;
   };
 
   return tx ? ejecutar(tx) : prisma.$transaction(ejecutar);
