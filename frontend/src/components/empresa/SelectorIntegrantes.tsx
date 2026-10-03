@@ -1,7 +1,7 @@
-// src/components/empresa/SelectorIntegrantes.tsx
-
 import { Mail, Search, UserRoundPlus, X } from 'lucide-react';
 import { useState } from 'react';
+
+import Button from '../ui/Button';
 
 import type { AlumnoDisponible, InvitacionPendiente } from '../../types/empresa.types';
 
@@ -96,6 +96,7 @@ export default function SelectorIntegrantes({
         </p>
       </div>
 
+      {/* Selector de modo */}
       <div className="mb-4 grid grid-cols-2 rounded-xl bg-abacontext-light-bg p-1">
         <button
           type="button"
@@ -228,14 +229,13 @@ export default function SelectorIntegrantes({
               />
             </div>
 
-            <button
+            <Button
               type="button"
+              label="Agregar"
+              variant="solid"
               onClick={handleAgregarInvitacion}
               disabled={invitaciones.length >= MAXIMO_INVITACIONES}
-              className="rounded-xl bg-abacontex-primary px-5 py-3 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Agregar
-            </button>
+            />
           </div>
 
           <div className="mt-2 flex items-center justify-between gap-3">
