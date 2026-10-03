@@ -1,4 +1,5 @@
 import { UsersRound } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import type { IntegranteEmpresa } from '../../api/empresa.api';
 
@@ -7,6 +8,8 @@ interface ResumenIntegrantesProps {
 }
 
 export default function ResumenIntegrantes({ integrantes }: ResumenIntegrantesProps) {
+  const navigate = useNavigate();
+
   const integrantesVisibles = integrantes.slice(0, 4);
 
   const rolesPrincipales = Array.from(
@@ -26,6 +29,7 @@ export default function ResumenIntegrantes({ integrantes }: ResumenIntegrantesPr
 
         <button
           type="button"
+          onClick={() => navigate('/alumno/empresa/equipo')}
           className="whitespace-nowrap rounded-lg border border-green-200 px-3 py-1.5 text-xs font-medium text-green-700 transition hover:bg-green-50"
         >
           Ver equipo completo
