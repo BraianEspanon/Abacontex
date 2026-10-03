@@ -163,19 +163,12 @@ export default function EditarEmpresaPage() {
 
   const actividadActual = valoresFormulario.actividad ?? empresa.actividad;
 
-  /*
-   * Si el usuario eligió eliminar el logo, la vista previa debe
-   * mostrar el estado sin logo.
-   *
-   * Si eligió una imagen nueva, se la pasamos al formulario para
-   * mostrar su preview.
-   */
   const logoActual = eliminarLogo ? null : empresa.logoUrl;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6">
+    <div className="w-full max-w-[1600px] space-y-4">
       {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-2 text-sm text-abacontex-gray-text">
+      <nav className="flex items-center gap-2 text-sm text-abacontex-gray-text">
         <Link to="/alumno/empresa" className="transition hover:text-abacontex-primary">
           Mi empresa
         </Link>
@@ -185,7 +178,8 @@ export default function EditarEmpresaPage() {
         <span className="font-medium text-abacontex-black-text">Editar empresa</span>
       </nav>
 
-      <div className="mb-6">
+      {/* Título */}
+      <div>
         <h1 className="font-heading text-3xl font-semibold text-abacontex-black-text">
           Editar empresa
         </h1>
@@ -195,7 +189,8 @@ export default function EditarEmpresaPage() {
         </p>
       </div>
 
-      <section className="max-w-6xl rounded-2xl bg-white p-6 shadow-md">
+      {/* Contenido */}
+      <section className="w-full max-w-6xl rounded-2xl bg-white p-6 shadow-md">
         <h2 className="border-b border-gray-200 pb-3 text-sm font-semibold text-gray-800">
           Información
         </h2>
@@ -227,7 +222,8 @@ export default function EditarEmpresaPage() {
         </div>
       </section>
 
-      <div className="mt-4 flex max-w-6xl justify-end gap-3">
+      {/* Acciones */}
+      <div className="flex w-full max-w-6xl justify-end gap-3">
         <Button
           type="button"
           label="Cancelar"
@@ -246,13 +242,13 @@ export default function EditarEmpresaPage() {
       </div>
 
       {isSuccess && (
-        <p className="mt-3 max-w-6xl text-right text-sm text-green-700">
+        <p className="w-full max-w-6xl text-right text-sm text-green-700">
           Empresa actualizada correctamente.
         </p>
       )}
 
       {errors.root?.message && (
-        <p className="mt-3 max-w-6xl text-right text-sm text-red-600">{errors.root.message}</p>
+        <p className="w-full max-w-6xl text-right text-sm text-red-600">{errors.root.message}</p>
       )}
     </div>
   );
