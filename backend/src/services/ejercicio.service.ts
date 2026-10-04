@@ -17,6 +17,7 @@ import * as ejercicioRepository from '../repositories/ejercicio.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
 import { ForbiddenError } from '../errors/forbidden.error';
+import { notificarNuevoEjercicio } from '../socket/socket.server';
 
 import {
   DetalleEjercicioResponseDTO,
@@ -138,7 +139,20 @@ export async function crearEjercicio(
   // 5. Persistir el ejercicio con sus relaciones asociadas en el repositorio
   const ejercicio = await ejercicioRepository.crearEjercicio(docente.id, dto, fechaLimite);
 
-  // 6. Retornar el DTO desacoplado
+  // 6. Notificar en tiempo real al curso si el ejercicio se crea publicado
+  if (ejercicio.estado === 'PUBLICADO') {
+    notificarNuevoEjercicio({
+      idEjercicio: ejercicio.idEjercicio,
+      titulo: ejercicio.titulo,
+      cursoId: ejercicio.cursoId,
+      docenteNombre: `${docente.nombre} ${docente.apellido}`,
+      fechaLimite: ejercicio.fechaLimite,
+      mensaje: `El docente ${docente.nombre} ${docente.apellido} ha publicado un nuevo ejercicio: "${ejercicio.titulo}"`,
+      createdAt: ejercicio.createdAt,
+    });
+  }
+
+  // 7. Retornar el DTO desacoplado
   return toEjercicioCreadoResponse(ejercicio);
 }
 
@@ -286,10 +300,23 @@ export async function editarEjercicio(
     dataActualizar
   );
 
-  // 10. Consultar cantidad de alumnos del curso resultante
+  // 11. Notificar al curso si el ejercicio pasó de BORRADOR a PUBLICADO
+  if (ejercicio.estado === 'BORRADOR' && ejercicioActualizado.estado === 'PUBLICADO') {
+    notificarNuevoEjercicio({
+      idEjercicio: ejercicioActualizado.idEjercicio,
+      titulo: ejercicioActualizado.titulo,
+      cursoId: ejercicioActualizado.cursoId,
+      docenteNombre: `${docente.nombre} ${docente.apellido}`,
+      fechaLimite: ejercicioActualizado.fechaLimite,
+      mensaje: `El docente ${docente.nombre} ${docente.apellido} ha publicado un nuevo ejercicio: "${ejercicioActualizado.titulo}"`,
+      createdAt: ejercicioActualizado.updatedAt,
+    });
+  }
+
+  // 12. Consultar cantidad de alumnos del curso resultante
   const totalAlumnos = await alumnoRepository.countByCursoId(ejercicioActualizado.cursoId);
 
-  // 11. Mapear y retornar la respuesta
+  // 13. Mapear y retornar la respuesta
   return toDetalleEjercicioResponse(ejercicioActualizado, totalAlumnos);
 }
 

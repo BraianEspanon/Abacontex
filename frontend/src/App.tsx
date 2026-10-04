@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import keycloak from './services/keycloak';
 import AppRouter from './routes/AppRouter';
 import { config } from './config';
+import { conectarSocket, desconectarSocket } from './services/socket';
 
 type EstadoSincronizacion = 'pendiente' | 'sincronizando' | 'sincronizado' | 'error';
 
@@ -37,6 +38,8 @@ function AplicacionSincronizada() {
         if (!response.ok) {
           throw new Error('No se pudo sincronizar el usuario.');
         }
+        // Conectar socket en tiempo real con el token de autenticación
+        conectarSocket(keycloakActual.token);
 
         setEstadoSincronizacion('sincronizado');
       } catch (error) {
@@ -47,6 +50,12 @@ function AplicacionSincronizada() {
 
     void sincronizarUsuario();
   }, [initialized, keycloakActual]);
+
+  useEffect(() => {
+    return () => {
+      desconectarSocket();
+    };
+  }, []);
 
   if (!initialized) {
     return (
