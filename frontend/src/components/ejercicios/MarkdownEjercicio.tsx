@@ -6,6 +6,8 @@ interface MarkdownEjercicioProps {
 }
 
 export default function MarkdownEjercicio({ contenido }: MarkdownEjercicioProps) {
+  const contenidoNormalizado = contenido.replace(/<\/?u\b[^>]*>/gi, '');
+
   return (
     <div className="min-w-0 max-w-full">
       <ReactMarkdown
@@ -78,7 +80,7 @@ export default function MarkdownEjercicio({ contenido }: MarkdownEjercicioProps)
           hr: () => <hr className="my-5 border-gray-200" />,
         }}
       >
-        {contenido}
+        {contenidoNormalizado}
       </ReactMarkdown>
     </div>
   );
