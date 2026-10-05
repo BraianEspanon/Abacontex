@@ -1,5 +1,5 @@
 import { Check, Eye, Pencil, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import MarkdownEjercicio from './MarkdownEjercicio';
 
@@ -18,20 +18,32 @@ export default function ModalEditarEnunciado({
   onCerrar,
   onGuardar,
 }: ModalEditarEnunciadoProps) {
-  const [texto, setTexto] = useState(enunciado);
-
-  const [modoVista, setModoVista] = useState<ModoVista>('EDITAR');
-
-  useEffect(() => {
-    if (abierto) {
-      setTexto(enunciado);
-      setModoVista('EDITAR');
-    }
-  }, [abierto, enunciado]);
-
   if (!abierto) {
     return null;
   }
+
+  return (
+    <ContenidoModalEditarEnunciado
+      enunciado={enunciado}
+      onCerrar={onCerrar}
+      onGuardar={onGuardar}
+    />
+  );
+}
+
+interface ContenidoModalEditarEnunciadoProps {
+  enunciado: string;
+  onCerrar: () => void;
+  onGuardar: (enunciado: string) => void;
+}
+
+function ContenidoModalEditarEnunciado({
+  enunciado,
+  onCerrar,
+  onGuardar,
+}: ContenidoModalEditarEnunciadoProps) {
+  const [texto, setTexto] = useState(enunciado);
+  const [modoVista, setModoVista] = useState<ModoVista>('EDITAR');
 
   const guardar = () => {
     onGuardar(texto);

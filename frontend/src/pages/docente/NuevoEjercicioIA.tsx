@@ -7,7 +7,7 @@ import {
   LoaderCircle,
   RefreshCw,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ModalEditarEnunciado from '../../components/ejercicios/ModalEditarEnunciado';
 import { useCrearEjercicio } from '../../hooks/useCrearEjercicio';
@@ -15,6 +15,7 @@ import { useCursosDocente } from '../../hooks/useCursosDocente';
 import { useGenerarEjercicio } from '../../hooks/useGenerarEjercicio';
 import type {
   ContenidoAdicionalIA,
+  DetalleEjercicio,
   DificultadEjercicioIA,
   TipoEjercicioIA,
 } from '../../types/ejercicio.types';
@@ -93,23 +94,81 @@ const DIFICULTADES = [
 ] as const;
 
 export default function NuevoEjercicioIA() {
-  const [tipoEjercicio, setTipoEjercicio] = useState<TipoEjercicioIA | ''>('');
+  const [searchParams] = useSearchParams();
 
-  const [dificultad, setDificultad] = useState<DificultadEjercicioIA>('INTERMEDIO');
+  const idEditar = Number(searchParams.get('editar') ?? 0);
+  const modoEdicion = idEditar > 0;
 
-  const [contenidosAdicionales, setContenidosAdicionales] = useState<ContenidoAdicionalIA[]>([]);
+  const {
+    data: ejercicioEditar,
+    isLoading: cargandoEjercicio,
+    isError: errorEjercicio,
+  } = useEjercicioDetalle(idEditar);
 
-  const [contextoAdicional, setContextoAdicional] = useState('');
+  if (modoEdicion && cargandoEjercicio) {
+    return (
+      <div className="space-y-5 font-sans text-abacontex-black-text">
+        <p className="text-sm text-abacontex-gray-text">Cargando ejercicio...</p>
+      </div>
+    );
+  }
 
-  const [enunciado, setEnunciado] = useState('');
+  if (modoEdicion && (errorEjercicio || !ejercicioEditar)) {
+    return (
+      <div className="space-y-5 font-sans text-abacontex-black-text">
+        <p className="text-sm font-medium text-red-600">No fue posible cargar el ejercicio.</p>
+      </div>
+    );
+  }
 
-  const [titulo, setTitulo] = useState('');
+  return (
+    <FormularioEjercicioIA
+      key={ejercicioEditar?.idEjercicio ?? 'nuevo'}
+      idEditar={idEditar}
+      ejercicioEditar={ejercicioEditar}
+    />
+  );
+}
 
-  const [cursoId, setCursoId] = useState('');
+interface FormularioEjercicioIAProps {
+  idEditar: number;
+  ejercicioEditar?: DetalleEjercicio;
+}
 
-  const [fechaLimite, setFechaLimite] = useState('');
+function FormularioEjercicioIA({ idEditar, ejercicioEditar }: FormularioEjercicioIAProps) {
+  const generacionIA = ejercicioEditar?.generacionIA;
 
-  const [plantillas, setPlantillas] = useState<TipoPlantilla[]>([]);
+  const [tipoEjercicio, setTipoEjercicio] = useState<TipoEjercicioIA | ''>(
+    generacionIA?.tipoEjercicio ?? ''
+  );
+
+  const [dificultad, setDificultad] = useState<DificultadEjercicioIA>(
+    generacionIA?.dificultad ?? 'INTERMEDIO'
+  );
+
+  const [contenidosAdicionales, setContenidosAdicionales] = useState<ContenidoAdicionalIA[]>(
+    generacionIA?.contenidos ?? []
+  );
+
+  const [contextoAdicional, setContextoAdicional] = useState(generacionIA?.contextoAdicional ?? '');
+
+  const [enunciado, setEnunciado] = useState(ejercicioEditar?.enunciado ?? '');
+
+  const [titulo, setTitulo] = useState(ejercicioEditar?.titulo ?? '');
+
+  const [cursoId, setCursoId] = useState(
+    ejercicioEditar ? String(ejercicioEditar.curso.idCurso) : ''
+  );
+
+  const [fechaLimite, setFechaLimite] = useState(
+    ejercicioEditar ? convertirISOAFechaInput(ejercicioEditar.fechaLimite) : ''
+  );
+
+  const [plantillas, setPlantillas] = useState<TipoPlantilla[]>(
+    ejercicioEditar
+      ? ejercicioEditar.plantillas.map((plantilla) => plantilla.tipo as TipoPlantilla)
+      : []
+  );
 
   const [resolverAhora, setResolverAhora] = useState(false);
 
@@ -124,6 +183,10 @@ export default function NuevoEjercicioIA() {
   const generarEjercicio = useGenerarEjercicio();
 
   const crearEjercicio = useCrearEjercicio();
+
+  const editarEjercicio = useEditarEjercicio();
+
+  const modoEdicion = idEditar > 0;
 
   const generarEnunciado = () => {
     setErrorFormulario(null);
@@ -186,6 +249,7 @@ export default function NuevoEjercicioIA() {
       plantillas.length === 0
     ) {
       setErrorFormulario('Completá todos los campos obligatorios.');
+
       return;
     }
 
@@ -249,39 +313,6 @@ export default function NuevoEjercicioIA() {
     fechaLimite.length > 0 &&
     plantillas.length > 0;
 
-  const [searchParams] = useSearchParams();
-
-  const idEditar = Number(searchParams.get('editar') ?? 0);
-
-  const { data: ejercicioEditar } = useEjercicioDetalle(idEditar);
-
-  const editarEjercicio = useEditarEjercicio();
-
-  const modoEdicion = idEditar > 0;
-
-  useEffect(() => {
-    if (!ejercicioEditar) {
-      return;
-    }
-
-    setTitulo(ejercicioEditar.titulo);
-    setCursoId(String(ejercicioEditar.curso.idCurso));
-    setEnunciado(ejercicioEditar.enunciado);
-
-    setFechaLimite(convertirISOAFechaInput(ejercicioEditar.fechaLimite));
-
-    setPlantillas(ejercicioEditar.plantillas.map((plantilla) => plantilla.tipo));
-
-    if (ejercicioEditar.generacionIA) {
-      setTipoEjercicio(ejercicioEditar.generacionIA.tipoEjercicio);
-
-      setDificultad(ejercicioEditar.generacionIA.dificultad);
-
-      setContenidosAdicionales(ejercicioEditar.generacionIA.contenidos);
-
-      setContextoAdicional(ejercicioEditar.generacionIA.contextoAdicional ?? '');
-    }
-  }, [ejercicioEditar]);
   return (
     <div className="space-y-5 font-sans text-abacontex-black-text">
       <nav className="flex items-center gap-2 text-sm text-abacontex-gray-text">

@@ -9,8 +9,8 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import type { DetalleEjercicio } from '../../types/ejercicio.types';
 import ModalEditarEnunciado from '../../components/ejercicios/ModalEditarEnunciado';
 import SubirArchivoEjercicio from '../../components/ejercicios/SubirArchivoEjercicio';
 import { useCrearEjercicio } from '../../hooks/useCrearEjercicio';
@@ -42,17 +42,70 @@ const PLANTILLAS = [
 type TipoPlantilla = (typeof PLANTILLAS)[number]['id'];
 
 export default function NuevoEjercicioDigitalizar() {
+  const [searchParams] = useSearchParams();
+
+  const idEditar = Number(searchParams.get('editar') ?? 0);
+  const modoEdicion = idEditar > 0;
+
+  const {
+    data: ejercicioEditar,
+    isLoading: cargandoEjercicio,
+    isError: errorEjercicio,
+  } = useEjercicioDetalle(idEditar);
+
+  if (modoEdicion && cargandoEjercicio) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <p className="text-sm text-abacontex-gray-text">Cargando ejercicio...</p>
+      </div>
+    );
+  }
+
+  if (modoEdicion && (errorEjercicio || !ejercicioEditar)) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <p className="text-sm font-medium text-red-600">No fue posible cargar el ejercicio.</p>
+      </div>
+    );
+  }
+
+  return (
+    <FormularioEjercicioDigitalizar
+      key={ejercicioEditar?.idEjercicio ?? 'nuevo'}
+      idEditar={idEditar}
+      ejercicioEditar={ejercicioEditar}
+    />
+  );
+}
+
+interface FormularioEjercicioDigitalizarProps {
+  idEditar: number;
+  ejercicioEditar?: DetalleEjercicio;
+}
+
+function FormularioEjercicioDigitalizar({
+  idEditar,
+  ejercicioEditar,
+}: FormularioEjercicioDigitalizarProps) {
   const [archivo, setArchivo] = useState<File | null>(null);
 
-  const [enunciado, setEnunciado] = useState('');
+  const [enunciado, setEnunciado] = useState(ejercicioEditar?.enunciado ?? '');
 
-  const [titulo, setTitulo] = useState('');
+  const [titulo, setTitulo] = useState(ejercicioEditar?.titulo ?? '');
 
-  const [cursoId, setCursoId] = useState('');
+  const [cursoId, setCursoId] = useState(
+    ejercicioEditar ? String(ejercicioEditar.curso.idCurso) : ''
+  );
 
-  const [fechaLimite, setFechaLimite] = useState('');
+  const [fechaLimite, setFechaLimite] = useState(
+    ejercicioEditar ? convertirISOAFechaInput(ejercicioEditar.fechaLimite) : ''
+  );
 
-  const [plantillas, setPlantillas] = useState<TipoPlantilla[]>([]);
+  const [plantillas, setPlantillas] = useState<TipoPlantilla[]>(
+    ejercicioEditar
+      ? ejercicioEditar.plantillas.map((plantilla) => plantilla.tipo as TipoPlantilla)
+      : []
+  );
 
   const [resolverAhora, setResolverAhora] = useState(false);
 
@@ -67,6 +120,10 @@ export default function NuevoEjercicioDigitalizar() {
   const digitalizar = useDigitalizarEjercicio();
 
   const crearEjercicio = useCrearEjercicio();
+
+  const editarEjercicio = useEditarEjercicio();
+
+  const modoEdicion = idEditar > 0;
 
   const procesarArchivo = () => {
     if (!archivo) {
@@ -152,28 +209,6 @@ export default function NuevoEjercicioDigitalizar() {
 
   const formularioListo =
     titulo.trim() && cursoId && enunciado.trim() && fechaLimite && plantillas.length > 0;
-
-  const [searchParams] = useSearchParams();
-
-  const idEditar = Number(searchParams.get('editar') ?? 0);
-
-  const { data: ejercicioEditar } = useEjercicioDetalle(idEditar);
-
-  const editarEjercicio = useEditarEjercicio();
-
-  const modoEdicion = idEditar > 0;
-
-  useEffect(() => {
-    if (!ejercicioEditar) {
-      return;
-    }
-
-    setTitulo(ejercicioEditar.titulo);
-    setCursoId(String(ejercicioEditar.curso.idCurso));
-    setEnunciado(ejercicioEditar.enunciado);
-    setFechaLimite(convertirISOAFechaInput(ejercicioEditar.fechaLimite));
-    setPlantillas(ejercicioEditar.plantillas.map((plantilla) => plantilla.tipo));
-  }, [ejercicioEditar]);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 px-4 font-sans text-abacontex-black-text sm:px-6 lg:px-8">
