@@ -6,6 +6,14 @@ import { findByKeycloakIdWithDetalles } from '../repositories/usuario.repository
 
 let io: Server | null = null;
 
+export type UsuarioConDetalles = NonNullable<
+  Awaited<ReturnType<typeof findByKeycloakIdWithDetalles>>
+>;
+
+export interface SocketData {
+  usuario: UsuarioConDetalles;
+}
+
 export interface NotificacionNuevoEjercicioPayload {
   idEjercicio: number;
   titulo: string;
@@ -25,12 +33,16 @@ export interface NotificacionGenericaPayload {
 }
 
 /**
- * Inicializa la instancia de Socket.IO vinculada al servidor HTTP.
+ * Inicializa la instancia de Socket.IO vinculada al servidor HTTP con middleware de autenticación y CORS restrictivo.
  */
 export function initSocketServer(httpServer: HttpServer): Server {
+  const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost'];
+
   const options: Partial<ServerOptions> = {
     cors: {
-      origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
+      origin: allowedOrigins,
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
       credentials: true,
     },
@@ -38,7 +50,8 @@ export function initSocketServer(httpServer: HttpServer): Server {
 
   io = new Server(httpServer, options);
 
-  io.on('connection', async (socket) => {
+  // 1. Middleware de Handshake: valida el token ANTES de aceptar la conexión
+  io.use(async (socket, next) => {
     const rawAuthHeader =
       socket.handshake.headers?.authorization || (socket.handshake.headers?.token as string);
 
@@ -49,55 +62,68 @@ export function initSocketServer(httpServer: HttpServer): Server {
         : rawAuthHeader.trim();
     }
 
-    // Únicamente se acepta por auth payload (Frontend) o por cabeceras HTTP (Postman)
     const token = socket.handshake.auth?.token || headerToken;
 
     if (!token) {
-      console.warn(`[Socket.IO] Conexión rechazada: token ausente (${socket.id})`);
-      socket.disconnect();
-      return;
+      return next(new Error('AUTH_TOKEN_MISSING'));
     }
 
     try {
-      // 1. Validar el token con Keycloak
       const { payload } = await jwtVerify(token, JWKS, {
         issuer: KEYCLOAK_ISSUER,
       });
 
       const keycloakId = payload.sub as string;
-
-      // 2. Obtener el usuario y sus relaciones reales desde la BD
       const usuario = await findByKeycloakIdWithDetalles(keycloakId);
 
       if (!usuario) {
-        console.warn(`[Socket.IO] Usuario no encontrado en BD: ${keycloakId}`);
-        socket.disconnect();
-        return;
+        return next(new Error('USER_NOT_FOUND'));
       }
 
-      // 3. Unir a sus salas autorizadas automáticamente
-      socket.join(`user_${usuario.id}`);
-
-      if (usuario.alumno) {
-        if (usuario.alumno.idCurso) {
-          socket.join(`curso_${usuario.alumno.idCurso}`);
-        }
-        if (usuario.alumno.idEmpresa) {
-          socket.join(`empresa_${usuario.alumno.idEmpresa}`);
-        }
-      }
-
-      if (usuario.profesorCursos?.length) {
-        for (const pc of usuario.profesorCursos) {
-          socket.join(`curso_${pc.idCurso}`);
-        }
-      }
-
-      console.log(`[Socket.IO] Conectado: ${usuario.nombre} ${usuario.apellido} (${socket.id})`);
+      // Almacenamos el usuario autenticado en socket.data para acceso inmediato
+      socket.data.usuario = usuario;
+      next();
     } catch {
-      console.warn(`[Socket.IO] Conexión rechazada: token inválido o expirado (${socket.id})`);
-      socket.disconnect();
+      next(new Error('AUTH_TOKEN_INVALID'));
     }
+  });
+
+  // 2. Conexión autorizada: une automáticamente a las salas de negocio correspondientes
+  io.on('connection', (socket) => {
+    const usuario: UsuarioConDetalles | undefined = socket.data.usuario;
+
+    if (!usuario) {
+      socket.disconnect();
+      return;
+    }
+
+    // Unir a su sala de usuario privada
+    socket.join(`user_${usuario.id}`);
+
+    // Si es alumno, unir a las salas de su curso y de su empresa
+    if (usuario.alumno) {
+      if (usuario.alumno.idCurso) {
+        socket.join(`curso_${usuario.alumno.idCurso}`);
+      }
+      if (usuario.alumno.idEmpresa) {
+        socket.join(`empresa_${usuario.alumno.idEmpresa}`);
+      }
+    }
+
+    // Si es docente, unir a todas las salas de los cursos que dicta
+    if (usuario.profesorCursos?.length) {
+      for (const pc of usuario.profesorCursos) {
+        socket.join(`curso_${pc.idCurso}`);
+      }
+    }
+
+    console.log(
+      `[Socket.IO] Conectado y autenticado: ${usuario.nombre} ${usuario.apellido} (${socket.id})`
+    );
+
+    socket.on('disconnect', () => {
+      // Desconexión limpia
+    });
   });
 
   return io;
