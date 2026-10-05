@@ -798,12 +798,12 @@
  *           items:
  *             $ref: '#/components/schemas/CuentaMayorRequest'
  *
- *     ComprobanteIvaCompraRequest:
+ *     ComprobanteIvaRequest:
  *       type: object
  *       required:
  *         - fecha
  *         - comprobante
- *         - proveedor
+ *         - nombre
  *         - netoGravado
  *         - iva
  *         - total
@@ -813,10 +813,13 @@
  *           pattern: '^\\d{2}/\\d{2}/\\d{4}$'
  *           example: '02/05/2026'
  *         comprobante:
+ *           type: integer
+ *           minimum: 1
+ *           example: 1001
+ *           description: Número de comprobante.
+ *         nombre:
  *           type: string
- *           example: Factura A N° 0001-00001234
- *         proveedor:
- *           type: string
+ *           description: Nombre o razón social del proveedor (compras) o cliente/comprador (ventas).
  *           example: Distribuidora Mayorista S.A.
  *         netoGravado:
  *           type: number
@@ -831,67 +834,23 @@
  *           minimum: 0
  *           example: 121000
  *
- *     ComprobanteIvaVentaRequest:
- *       type: object
- *       required:
- *         - fecha
- *         - comprobante
- *         - comprador
- *         - netoGravado
- *         - iva
- *         - total
- *       properties:
- *         fecha:
- *           type: string
- *           pattern: '^\\d{2}/\\d{2}/\\d{4}$'
- *           example: '05/05/2026'
- *         comprobante:
- *           type: string
- *           example: Factura A N° 0001-00000001
- *         comprador:
- *           type: string
- *           example: Librería Belgrano S.R.L.
- *         netoGravado:
- *           type: number
- *           minimum: 0
- *           example: 200000
- *         iva:
- *           type: number
- *           minimum: 0
- *           example: 42000
- *         total:
- *           type: number
- *           minimum: 0
- *           example: 242000
- *
  *     LibroIvaContenidoRequest:
  *       type: object
  *       properties:
  *         compras:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/ComprobanteIvaCompraRequest'
+ *             $ref: '#/components/schemas/ComprobanteIvaRequest'
  *         ventas:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/ComprobanteIvaVentaRequest'
- *         totalIvaCreditoFiscal:
- *           type: number
- *           nullable: true
- *           example: 21000
- *         totalIvaDebitoFiscal:
- *           type: number
- *           nullable: true
- *           example: 42000
- *         saldoIva:
- *           type: number
- *           nullable: true
- *           example: 21000
- *         tipoSaldo:
+ *             $ref: '#/components/schemas/ComprobanteIvaRequest'
+ *         resultado:
  *           type: string
  *           enum: [A_FAVOR_CONTRIBUYENTE, A_PAGAR]
  *           nullable: true
  *           example: A_PAGAR
+ *           description: Resultado de la liquidación de IVA. Obligatorio al marcar como RESUELTO.
  *
  *     FilaHojaTrabajoRequest:
  *       type: object
