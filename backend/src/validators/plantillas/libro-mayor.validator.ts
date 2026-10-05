@@ -19,7 +19,7 @@ export const movimientoMayorSchema = z
 export const cuentaMayorSchema = z
   .object({
     idCuenta: z
-      .number({ message: 'El ID de la cuenta debe ser numérico.' })
+      .number('El ID de la cuenta debe ser numérico.')
       .int('El ID de la cuenta debe ser un número entero.')
       .positive('El ID de la cuenta debe ser mayor a cero.')
       .optional()

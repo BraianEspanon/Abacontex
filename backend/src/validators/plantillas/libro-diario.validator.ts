@@ -18,13 +18,10 @@ export const movimientoContableObligatorioSchema = z.enum(SIMBOLOS_MOVIMIENTO, {
 export const asientoLineaSchema = z
   .object({
     idCuenta: z
-      .number({ message: 'El ID de la cuenta debe ser numérico.' })
+      .number('El ID de la cuenta debe ser numérico.')
       .int('El ID de la cuenta debe ser un número entero.')
       .positive('Debe seleccionar una cuenta contable válida.'),
-    cuenta: z
-      .string({ message: 'La cuenta es obligatoria.' })
-      .trim()
-      .min(1, 'La cuenta no puede estar vacía.'),
+    cuenta: z.string('La cuenta es obligatoria.').trim().min(1, 'La cuenta no puede estar vacía.'),
     movimiento: movimientoContableObligatorioSchema,
     folio: z.number().int().positive('El folio debe ser un entero positivo.').optional().nullable(),
     debe: z.number().min(0, 'El importe al Debe no puede ser negativo.').default(0),

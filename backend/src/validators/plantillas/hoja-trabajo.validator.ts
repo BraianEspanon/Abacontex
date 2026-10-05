@@ -58,13 +58,10 @@ export const parResultadosSchema = z
 export const filaHojaTrabajoSchema = z
   .object({
     idCuenta: z
-      .number({ message: 'El ID de la cuenta debe ser numérico.' })
+      .number('El ID de la cuenta debe ser numérico.')
       .int('El ID de la cuenta debe ser un número entero.')
       .positive('Debe seleccionar una cuenta contable válida.'),
-    cuenta: z
-      .string({ message: 'La cuenta es obligatoria.' })
-      .trim()
-      .min(1, 'La cuenta no puede estar vacía.'),
+    cuenta: z.string('La cuenta es obligatoria.').trim().min(1, 'La cuenta no puede estar vacía.'),
     saldosSinAjustar: parSaldosSchema,
     ajustes: parAjustesSchema,
     saldosAjustados: parSaldosAjustadosSchema,
@@ -148,7 +145,7 @@ export function validarBalanceHojaTrabajo(contenido: unknown): void {
         `La cuenta "${f.cuenta}" está repetida. Cada cuenta contable debe registrarse en una única fila de la Hoja de Trabajo.`
       );
     }
-    
+
     idsCuentas.add(f.idCuenta);
     nombresCuentas.add(nombreNormalizado);
 
