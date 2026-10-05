@@ -63,7 +63,7 @@ export function calcularEstadoEjercicio(
     return 'COMPLETADO';
   }
   if (estado === 'PUBLICADO') {
-    if (estadoResolucion === 'COMPLETADA') {
+    if (estadoResolucion === 'RESUELTO') {
       return 'ENVIADO';
     }
     return 'SIN_RESOLVER';

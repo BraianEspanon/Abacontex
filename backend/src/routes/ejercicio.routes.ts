@@ -7,6 +7,7 @@ import { uploadDocumento } from '../middleware/upload.middleware';
 import { validate } from '../middleware/validate.middleware';
 
 import {
+  actualizarResolucionDocenteSchema,
   consultarResolucionDocenteSchema,
   crearEjercicioSchema,
   duplicarEjercicioSchema,
@@ -23,6 +24,7 @@ import {
   duplicarEjercicio,
   editarEjercicio,
   generarEjercicio,
+  guardarResolucionDocente,
   obtenerEjercicioPorId,
   obtenerEjercicios,
   obtenerOpcionesGeneracion,
@@ -99,6 +101,14 @@ router.get(
   requireRole(ROLES.DOCENTE),
   validate(consultarResolucionDocenteSchema),
   consultarResolucionDocente
+);
+
+router.patch(
+  '/:id/resolucion',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(actualizarResolucionDocenteSchema),
+  guardarResolucionDocente
 );
 
 export default router;

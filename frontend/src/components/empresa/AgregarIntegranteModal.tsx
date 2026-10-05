@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 
 import SelectorIntegrantes from './SelectorIntegrantes';
+import Button from '../ui/Button';
 
 import { useAgregarParticipantesEmpresa } from '../../hooks/useAgregarParticipantesEmpresa';
 import { useCandidatosEmpresa } from '../../hooks/useCandidatosEmpresa';
@@ -138,6 +139,8 @@ export default function AgregarIntegranteModal({ abierto, onCerrar }: AgregarInt
     }
   };
 
+  const sinSeleccion = seleccionados.length === 0 && invitaciones.length === 0;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-abacontext-light-bg shadow-xl">
@@ -191,23 +194,21 @@ export default function AgregarIntegranteModal({ abierto, onCerrar }: AgregarInt
 
         {/* Acciones */}
         <div className="sticky bottom-0 flex justify-end gap-3 border-t border-gray-200 bg-white px-6 py-4">
-          <button
+          <Button
             type="button"
+            label="Cancelar"
+            variant="outline"
             onClick={handleCerrar}
             disabled={enviando}
-            className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Cancelar
-          </button>
+          />
 
-          <button
+          <Button
             type="button"
-            onClick={handleConfirmar}
-            disabled={enviando || (seleccionados.length === 0 && invitaciones.length === 0)}
-            className="rounded-xl bg-abacontex-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-abacontex-primary-two disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {enviando ? 'Guardando...' : 'Confirmar'}
-          </button>
+            label={enviando ? 'Guardando...' : 'Confirmar'}
+            variant="solid"
+            onClick={() => void handleConfirmar()}
+            disabled={enviando || sinSeleccion}
+          />
         </div>
       </div>
     </div>
