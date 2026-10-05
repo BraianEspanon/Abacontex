@@ -1,7 +1,7 @@
 import { CalendarDays, Eye, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import type { EjercicioItem, EstadoVisualEjercicio } from '../../types/ejercicio.types';
+import type { EjercicioItem, EstadoEjercicio } from '../../types/ejercicio.types';
 
 interface CardEjercicioProps {
   ejercicio: EjercicioItem;
@@ -9,7 +9,7 @@ interface CardEjercicioProps {
 }
 
 export default function CardEjercicio({ ejercicio, totalAlumnos }: CardEjercicioProps) {
-  const estado = obtenerEstadoVisual(ejercicio.estadoVisual);
+  const estado = obtenerEstadoVisual(ejercicio.estado);
 
   const porcentaje =
     totalAlumnos > 0 ? Math.min((ejercicio.totalEntregas / totalAlumnos) * 100, 100) : 0;
@@ -86,7 +86,7 @@ export default function CardEjercicio({ ejercicio, totalAlumnos }: CardEjercicio
   );
 }
 
-function obtenerEstadoVisual(estado: EstadoVisualEjercicio) {
+function obtenerEstadoVisual(estado: EstadoEjercicio) {
   switch (estado) {
     case 'BORRADOR':
       return {
@@ -113,7 +113,6 @@ function obtenerEstadoVisual(estado: EstadoVisualEjercicio) {
       };
 
     case 'COMPLETADO':
-    case 'RESUELTO':
       return {
         id: 'COMPLETADO',
         label: 'Completado',
@@ -122,8 +121,6 @@ function obtenerEstadoVisual(estado: EstadoVisualEjercicio) {
       };
 
     case 'ENVIADO':
-    case 'PUBLICADO':
-    default:
       return {
         id: 'ENVIADO',
         label: 'Enviado',
@@ -140,7 +137,5 @@ function formatearFechaLimite(fecha: string) {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
   }).format(valor);
 }

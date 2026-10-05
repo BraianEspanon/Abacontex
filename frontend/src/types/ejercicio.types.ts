@@ -1,11 +1,7 @@
-export type EstadoEjercicio = 'BORRADOR' | 'PUBLICADO' | 'FINALIZADO';
-
-export type EstadoVisualEjercicio =
+export type EstadoEjercicio =
   | 'BORRADOR'
-  | 'PUBLICADO'
-  | 'SIN_RESOLVER'
-  | 'RESUELTO'
   | 'ENVIADO'
+  | 'SIN_RESOLVER'
   | 'EN_CORRECCION'
   | 'COMPLETADO';
 
@@ -20,7 +16,6 @@ export interface EjercicioItem {
   titulo: string;
   curso: CursoEjercicio;
   estado: EstadoEjercicio;
-  estadoVisual: EstadoVisualEjercicio;
   fechaLimite: string;
   totalEntregas: number;
   createdAt: string;
@@ -64,9 +59,14 @@ export interface CrearEjercicioRequest {
   enunciado: string;
   fechaLimite: string;
   indicaciones?: string | null;
-  estado: 'BORRADOR' | 'PUBLICADO';
+  estado: 'BORRADOR' | 'ENVIADO';
   plantillas: TipoPlantillaEjercicio[];
-  generacionIA?: null;
+  generacionIA?: {
+    tipoEjercicio: TipoEjercicioIA;
+    dificultad: DificultadEjercicioIA;
+    contextoAdicional?: string | null;
+    contenidos: ContenidoAdicionalIA[];
+  } | null;
 }
 
 export interface EjercicioCreadoResponse {
@@ -92,4 +92,81 @@ export interface EjercicioCreadoResponse {
   } | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export type TipoEjercicioIA =
+  | 'COMPRAS_VENTAS_BASICAS'
+  | 'OPERACIONES_COMERCIALES_INTEGRADAS'
+  | 'AJUSTES_HOJA_TRABAJO'
+  | 'COSTOS_PROCESO_PRODUCTIVO';
+
+export type DificultadEjercicioIA = 'BASICO' | 'INTERMEDIO' | 'AVANZADO';
+
+export type ContenidoAdicionalIA = 'IVA' | 'INTERESES' | 'DESCUENTOS';
+
+export interface GenerarEjercicioIARequest {
+  cursoId: number;
+  tipoEjercicio: TipoEjercicioIA;
+  dificultad: DificultadEjercicioIA;
+  contenidosAdicionales: ContenidoAdicionalIA[];
+  contextoAdicional?: string;
+}
+
+export interface GenerarEjercicioIAResponse {
+  enunciadoTexto: string;
+}
+
+export interface PlantillaDetalleEjercicio {
+  idEjercicioPlantilla: number;
+  tipo: TipoPlantillaEjercicio;
+}
+
+export interface GeneracionIADetalle {
+  tipoEjercicio: TipoEjercicioIA;
+  dificultad: DificultadEjercicioIA;
+  contextoAdicional?: string | null;
+  contenidos: ContenidoAdicionalIA[];
+}
+
+export interface DetalleEjercicio {
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  estado: EstadoEjercicio;
+  fechaLimite: string;
+  createdAt: string;
+  updatedAt: string;
+  progresoEntregas: {
+    totalAlumnos: number;
+    entregasCorregidas: number;
+    entregasPendientes: number;
+    sinEntregar: number;
+    porcentajeEntrega: number;
+  };
+
+  resolucionDocente: {
+    idResolucion: number;
+    estado: string;
+  } | null;
+  origen: 'IA' | 'DIGITALIZADO';
+
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+    año?: number;
+  };
+
+  plantillas: PlantillaDetalleEjercicio[];
+
+  generacionIA: GeneracionIADetalle | null;
+}
+
+export interface EditarEjercicioRequest {
+  titulo?: string;
+  cursoId?: number;
+  enunciado?: string;
+  fechaLimite?: string;
+  indicaciones?: string | null;
+  estado?: 'BORRADOR' | 'ENVIADO';
+  plantillas?: TipoPlantillaEjercicio[];
 }

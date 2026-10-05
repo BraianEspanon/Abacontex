@@ -6,6 +6,10 @@ import type {
   EjercicioCreadoResponse,
   FiltrosEjercicios,
   ListadoEjerciciosResponse,
+  GenerarEjercicioIARequest,
+  GenerarEjercicioIAResponse,
+  DetalleEjercicio,
+  EditarEjercicioRequest,
 } from '../types/ejercicio.types';
 
 export async function obtenerEjercicios(filtros: FiltrosEjercicios = {}) {
@@ -31,6 +35,27 @@ export async function digitalizarEjercicio(archivo: File) {
 
 export async function crearEjercicio(ejercicio: CrearEjercicioRequest) {
   const { data } = await clienteApi.post<EjercicioCreadoResponse>('/ejercicios', ejercicio);
+
+  return data;
+}
+
+export async function generarEjercicioIA(parametros: GenerarEjercicioIARequest) {
+  const { data } = await clienteApi.post<GenerarEjercicioIAResponse>(
+    '/ejercicios/generar',
+    parametros
+  );
+
+  return data;
+}
+
+export async function obtenerEjercicioPorId(idEjercicio: number) {
+  const { data } = await clienteApi.get<DetalleEjercicio>(`/ejercicios/${idEjercicio}`);
+
+  return data;
+}
+
+export async function editarEjercicio(idEjercicio: number, datos: EditarEjercicioRequest) {
+  const { data } = await clienteApi.patch<DetalleEjercicio>(`/ejercicios/${idEjercicio}`, datos);
 
   return data;
 }

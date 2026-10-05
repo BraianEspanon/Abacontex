@@ -3,10 +3,8 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 export type EstadoEjercicioFiltro =
   | 'TODOS'
   | 'BORRADOR'
-  | 'PUBLICADO'
-  | 'SIN_RESOLVER'
-  | 'RESUELTO'
   | 'ENVIADO'
+  | 'SIN_RESOLVER'
   | 'EN_CORRECCION'
   | 'COMPLETADO';
 
@@ -105,10 +103,8 @@ export default function FiltrosEjercicios({
           >
             <option value="TODOS">Todos</option>
             <option value="BORRADOR">Borrador</option>
-            <option value="PUBLICADO">Publicado</option>
-            <option value="SIN_RESOLVER">Sin resolver</option>
-            <option value="RESUELTO">Resuelto</option>
             <option value="ENVIADO">Enviado</option>
+            <option value="SIN_RESOLVER">Sin resolver</option>
             <option value="EN_CORRECCION">En corrección</option>
             <option value="COMPLETADO">Completado</option>
           </select>
