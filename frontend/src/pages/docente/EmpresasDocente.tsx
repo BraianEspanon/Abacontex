@@ -337,7 +337,7 @@ export default function EmpresasDocente() {
             top-0
             flex
             h-[calc(100vh-7rem)]
-            w-[360px]
+            w-90
             shrink-0
             flex-col
             overflow-hidden
