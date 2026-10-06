@@ -761,18 +761,22 @@
  *           example: 0
  *         saldo:
  *           type: number
- *           nullable: true
+ *           minimum: 0
+ *           default: 0
  *           example: 150000
+ *           description: Saldo acumulado del movimiento.
  *
  *     CuentaMayorRequest:
  *       type: object
  *       required:
+ *         - idCuenta
  *         - cuenta
  *       properties:
  *         idCuenta:
  *           type: integer
- *           nullable: true
+ *           minimum: 1
  *           example: 1
+ *           description: ID de la cuenta contable del catálogo.
  *         cuenta:
  *           type: string
  *           example: Caja
@@ -782,13 +786,16 @@
  *             $ref: '#/components/schemas/MovimientoMayorRequest'
  *         saldoFinal:
  *           type: number
- *           nullable: true
+ *           minimum: 0
+ *           default: 0
  *           example: 150000
+ *           description: Saldo final acumulado de la cuenta (obligatorio y coincidente al marcar como RESUELTO).
  *         tipoSaldo:
  *           type: string
  *           enum: [DEUDOR, ACREEDOR]
  *           nullable: true
  *           example: DEUDOR
+ *           description: Tipo de saldo resultante (obligatorio al marcar como RESUELTO).
  *
  *     LibroMayorContenidoRequest:
  *       type: object
