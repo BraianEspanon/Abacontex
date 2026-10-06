@@ -1,5 +1,6 @@
 {
-    "workbench.browser.openLocalhostLinks": false,
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "workbench.browser.openLocalhostLinks": false,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "markdown.math.enabled": false
 }

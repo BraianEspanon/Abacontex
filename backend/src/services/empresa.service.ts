@@ -531,3 +531,5 @@ export async function getInvitacionesEnviadas(user: AuthUser) {
 
   return invitacionRepository.findByEmpresa(alumno.empresa.id);
 }
+
+export { obtenerDashboardEmpresa } from './empresa-dashboard.service';

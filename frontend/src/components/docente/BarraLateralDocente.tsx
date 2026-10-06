@@ -51,6 +51,7 @@ const opcionesMenu: OpcionMenu[] = [
   {
     etiqueta: 'Ejercicios',
     icono: NotebookText,
+    ruta: '/docente/ejercicios',
   },
   {
     etiqueta: 'Correcciones',

@@ -114,15 +114,14 @@ ${kcSanitize(message.summary)?no_esc}
                 <a href="${actionUri}" class="btn-login" style="display:flex;text-decoration:none;">
                     Continuar
                 </a>
-            <#elseif client?? && client.baseUrl??>
+            <#elseif client?? && client.baseUrl?? && !client.baseUrl?contains("/account")>
                 <a href="${client.baseUrl}" class="btn-login" style="display:flex;justify-content:center;align-items:center;text-decoration:none;">
                     Volver a la aplicación
                 </a>
             <#else>
-                <!-- Fallback por si el cliente no tiene una URL base configurada -->
-                <p style="color:#c2c2c2; text-align:center;">
-                    El proceso ha finalizado. Por favor, cierra esta pestaña y vuelve a la aplicación para iniciar sesión.
-                </p>
+                <a href="/" class="btn-login" style="display:flex;justify-content:center;align-items:center;text-decoration:none;">
+                    Volver a la aplicación
+                </a>
             </#if>
         </div>
     </div>

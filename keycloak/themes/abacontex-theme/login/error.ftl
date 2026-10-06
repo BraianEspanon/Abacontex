@@ -58,10 +58,46 @@
                     ${message.summary}
                 </p>
 
-                <div class="form-actions" style="width: 100%; margin-top: 0.5rem;">
-                    <a href="${client.baseUrl}" class="btn-login" style="display: flex; align-items: center; justify-content: center; text-decoration: none; width: 100%;">
-                        Volver al inicio
+                <#if url?? && url.loginRestartFlowUrl?has_content>
+                    <#assign restartUrl = url.loginRestartFlowUrl>
+                <#else>
+                    <#assign restartUrl = "/realms/" + realm.name + "/login-actions/restart">
+                </#if>
+                
+                <div class="form-actions" style="width: 100%; margin-top: 0.5rem; display: flex; flex-direction: column; align-items: center;">
+                    <a href="${restartUrl}" class="btn-login" style="display: flex; align-items: center; justify-content: center; text-decoration: none; width: 100%;">
+                        Cerrar sesión e intentar de nuevo
                     </a>
+
+                    <#if client?? && client.baseUrl?has_content && !client.baseUrl?contains("/account")>
+                        <a 
+                            href="${client.baseUrl}" 
+                            style="
+                                color: #c2c2c2;
+                                text-decoration: none;
+                                font-size: 0.95rem;
+                                margin-top: 1rem;
+                            "
+                            onmouseover="this.style.color='white'"
+                            onmouseout="this.style.color='#c2c2c2'"
+                        >
+                            Volver al inicio
+                        </a>
+                    <#else>
+                        <a 
+                            href="/" 
+                            style="
+                                color: #c2c2c2;
+                                text-decoration: none;
+                                font-size: 0.95rem;
+                                margin-top: 1rem;
+                            "
+                            onmouseover="this.style.color='white'"
+                            onmouseout="this.style.color='#c2c2c2'"
+                        >
+                            Volver al inicio
+                        </a>
+                    </#if>
                 </div>
 
             </div>

@@ -48,6 +48,18 @@ import EquipoEmpresaPage from '../pages/empresa/EquipoEmpresaPage';
 import FinanzasPage from '../pages/finanzas/FinanzasPage';
 import ManualCuentasPage from '../pages/cuenta/ManualCuentasPage';
 import ManualCuentasDocentePage from '../pages/cuenta/ManualCuentasDocentePage';
+import RegistrarAsientoPage from '../pages/contabilidad/RegistrarAsientoPage';
+import ContabilidadPage from '../pages/contabilidad/ContabilidadPage';
+import LibroDiarioPage from '../pages/contabilidad/LibroDiarioPage';
+import EditarAsientoPage from '../pages/contabilidad/EditarAsientoPage';
+import LibroMayorPage from '../pages/contabilidad/LibroMayorPage';
+import EstadoResultadosPage from '../pages/contabilidad/EstadoResultadosPage';
+import BalanceGeneralPage from '../pages/contabilidad/BalanceGeneralPage';
+
+import EjerciciosDocente from '../pages/docente/EjerciciosDocente';
+import NuevoEjercicioDigitalizar from '../pages/docente/NuevoEjercicioDigitalizar';
+import NuevoEjercicioIA from '../pages/docente/NuevoEjercicioIA';
+import DetalleEjercicioPage from '../pages/docente/DetalleEjercicioPage';
 
 export default function AppRouter() {
   return (
@@ -126,6 +138,10 @@ export default function AppRouter() {
         <Route path="perfil" element={<PerfilDocente />} />
         <Route path="empresas" element={<EmpresasDocente />} />
         <Route path="manual-cuentas" element={<ManualCuentasDocentePage />} />
+        <Route path="ejercicios" element={<EjerciciosDocente />} />
+        <Route path="ejercicios/nuevo" element={<NuevoEjercicioDigitalizar />} />
+        <Route path="ejercicios/nuevo/ia" element={<NuevoEjercicioIA />} />
+        <Route path="ejercicios/:id" element={<DetalleEjercicioPage />} />
       </Route>
 
       <Route path="/docente/login" element={<LoginDocente />} />
@@ -178,6 +194,24 @@ export default function AppRouter() {
 
         {/* Manual de cuentas */}
         <Route path="manual-cuentas" element={<ManualCuentasPage />} />
+
+        {/* Contabilidad */}
+        <Route path="contabilidad" element={<ContabilidadPage />} />
+
+        <Route path="contabilidad/libro-diario" element={<LibroDiarioPage />} />
+
+        <Route
+          path="contabilidad/asientos/registrar/:tipo/:id"
+          element={<RegistrarAsientoPage />}
+        />
+
+        <Route path="contabilidad/asientos/:id/editar" element={<EditarAsientoPage />} />
+
+        <Route path="contabilidad/libro-mayor" element={<LibroMayorPage />} />
+
+        <Route path="contabilidad/estado-resultados" element={<EstadoResultadosPage />} />
+
+        <Route path="contabilidad/balance-general" element={<BalanceGeneralPage />} />
       </Route>
     </Routes>
   );

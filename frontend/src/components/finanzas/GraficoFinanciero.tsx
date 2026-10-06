@@ -49,7 +49,7 @@ export default function GraficoFinanciero({ periodo, onPeriodoChange }: Props) {
   const { data = [], isLoading, isError } = useGraficoFinanciero(periodo);
 
   return (
-    <section className="mx-auto w-full max-w-5xl rounded-2xl bg-white p-6 shadow-md">
+    <section className="h-full w-full rounded-2xl bg-white p-6 shadow-md">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="font-heading text-base font-semibold text-abacontex-black-text">
           Ingresos vs Egresos

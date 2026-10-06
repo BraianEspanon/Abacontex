@@ -13,6 +13,34 @@ function obtenerIniciales(nombre: string, apellido: string) {
   return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
 }
 
+function obtenerColorRol(nombreRol: string) {
+  switch (nombreRol.toUpperCase()) {
+    case 'CEO':
+      return 'bg-green-50 text-green-700';
+
+    case 'COO':
+      return 'bg-blue-50 text-blue-700';
+
+    case 'CFO':
+      return 'bg-violet-50 text-violet-700';
+
+    case 'CTO':
+      return 'bg-cyan-50 text-cyan-700';
+
+    case 'CCO':
+      return 'bg-orange-50 text-orange-700';
+
+    case 'CIO':
+      return 'bg-indigo-50 text-indigo-700';
+
+    case 'CMO':
+      return 'bg-rose-50 text-rose-700';
+
+    default:
+      return 'bg-gray-100 text-gray-700';
+  }
+}
+
 export default function TablaIntegrantesEmpresa({
   integrantes,
   esCEO,
@@ -25,16 +53,14 @@ export default function TablaIntegrantesEmpresa({
         <table className="w-full">
           <thead className="border-b border-gray-200 bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500">
                 Integrante
               </th>
 
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Rol
-              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500">Rol</th>
 
               {esCEO && (
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500">
                   Acciones
                 </th>
               )}
@@ -73,7 +99,11 @@ export default function TablaIntegrantesEmpresa({
 
                   <td className="px-6 py-4">
                     {integrante.rolEmpresa ? (
-                      <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                      <span
+                        className={`inline-flex rounded-md px-3 py-1 text-xs font-semibold ${obtenerColorRol(
+                          integrante.rolEmpresa.nombre
+                        )}`}
+                      >
                         {integrante.rolEmpresa.nombre}
                       </span>
                     ) : (
@@ -87,9 +117,9 @@ export default function TablaIntegrantesEmpresa({
                         <button
                           type="button"
                           onClick={() => onCambiarRol(integrante)}
-                          className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                          className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-3.5 w-3.5" />
                           Cambiar rol
                         </button>
                       ) : (

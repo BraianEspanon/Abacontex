@@ -108,9 +108,23 @@
 
             <!-- Botón secundario para cancelar o volver -->
             <#if !logoutConfirm.skipLink??>
-                <#if (client.baseUrl)?has_content>
+                <#if (client.baseUrl)?has_content && !client.baseUrl?contains("/account")>
                     <a 
                         href="${client.baseUrl}" 
+                        style="
+                            color: #c2c2c2;
+                            text-decoration: none;
+                            font-size: 0.95rem;
+                            margin-top: 1rem;
+                        "
+                        onmouseover="this.style.color='white'"
+                        onmouseout="this.style.color='#c2c2c2'"
+                    >
+                        Volver a la aplicación
+                    </a>
+                <#else>
+                    <a 
+                        href="/" 
                         style="
                             color: #c2c2c2;
                             text-decoration: none;

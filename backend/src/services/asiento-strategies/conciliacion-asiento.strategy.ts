@@ -99,13 +99,17 @@ export class ConciliacionAsientoStrategy implements OperacionPendienteStrategy {
   private toDetallePendienteDTO(
     conciliacion: ConciliacionPendienteByIdPayload
   ): DetallePendienteConciliacionDTO {
+    const diff = Number(conciliacion.diferencia);
+    const concepto = diff < 0 ? 'Faltante de caja' : 'Sobrante de caja';
+
     return {
       tipo: 'CONCILIACION_FINANCIERA',
       idConciliacion: conciliacion.idConciliacion,
       fecha: conciliacion.fecha,
+      concepto,
       saldoEsperado: Number(conciliacion.saldoEsperado),
       saldoContado: Number(conciliacion.saldoContado),
-      diferencia: Number(conciliacion.diferencia),
+      diferencia: diff,
       observacion: conciliacion.observacion,
     };
   }

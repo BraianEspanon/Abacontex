@@ -18,6 +18,7 @@ export interface DetallePendienteVentaDTO {
   idVenta: number;
   pedidoId: number;
   fecha: Date;
+  concepto: string;
   estado: string;
   clienteNombre: string;
   clienteMail: string;
@@ -51,6 +52,7 @@ export interface DetallePendienteConciliacionDTO {
   tipo: 'CONCILIACION_FINANCIERA';
   idConciliacion: number;
   fecha: Date;
+  concepto: string;
   saldoEsperado: number;
   saldoContado: number;
   diferencia: number;
