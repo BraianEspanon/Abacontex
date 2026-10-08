@@ -63,6 +63,10 @@ export default function TarjetaPedido({
 
   const puedeArrastrarse = puedeMarcarListoParaEntregar;
 
+  const mostrarStockInsuficiente = estado === 'PENDIENTE' && pedido.tieneFaltantesStock;
+
+  const mostrarProduccionEnCurso = estado === 'EN_PRODUCCION' && pedido.tieneFaltantesStock;
+
   /*
    * Cierra el menú de acciones cuando se hace click
    * en cualquier parte fuera del menú.
@@ -205,10 +209,18 @@ export default function TarjetaPedido({
         </div>
 
         {/* Stock insuficiente */}
-        {pedido.tieneFaltantesStock && (
+        {mostrarStockInsuficiente && (
           <div className="mt-2 flex w-fit items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-[11px] font-medium text-red-600">
             <CircleAlert className="h-3 w-3" />
             Stock insuficiente
+          </div>
+        )}
+
+        {/* Producción en curso */}
+        {mostrarProduccionEnCurso && (
+          <div className="mt-2 flex w-fit items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-600">
+            <Factory className="h-3 w-3" />
+            Producción en curso
           </div>
         )}
       </div>
