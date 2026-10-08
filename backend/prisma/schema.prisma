@@ -47,6 +47,7 @@ model Usuario {
   alumno            Alumno?
   auditLogs         AuditLog[]
   ejerciciosCreados Ejercicio[]
+  notificaciones    Notificacion[]
 
   @@map("usuarios")
 }
@@ -929,9 +930,10 @@ model Ejercicio {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  plantillas   EjercicioPlantilla[]
-  generacionIA GeneracionEjercicioIA?
-  resolucion   ResolucionDocente?
+  plantillas     EjercicioPlantilla[]
+  generacionIA   GeneracionEjercicioIA?
+  resolucion     ResolucionDocente?
+  notificaciones Notificacion[]
 
   @@index([docenteId])
   @@index([cursoId])
@@ -1012,4 +1014,27 @@ model ResolucionDocentePlantilla {
   @@index([resolucionId])
   @@index([ejercicioPlantillaId])
   @@map("resoluciones_docente_plantillas")
+}
+
+model Notificacion {
+  idNotificacion Int @id @default(autoincrement())
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  ejercicioId Int?
+  ejercicio   Ejercicio? @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: SetNull)
+
+  titulo  String @db.VarChar(100)
+  mensaje String @db.VarChar(255)
+
+  leida Boolean @default(false)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([usuarioId])
+  @@index([ejercicioId])
+  @@index([usuarioId, leida])
+  @@index([createdAt])
+  @@map("notificaciones")
 }
