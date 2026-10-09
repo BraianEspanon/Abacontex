@@ -9,6 +9,7 @@ import {
 
 import { ocrService } from '../integrations/ocr/ocr.service';
 import { generacionService } from '../integrations/generacion/generacion.service';
+import * as notificacionService from './notificacion.service';
 
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as cursoRepository from '../repositories/curso.repository';
@@ -17,7 +18,6 @@ import * as ejercicioRepository from '../repositories/ejercicio.repository';
 
 import { BadRequestError } from '../errors/bad-request-error';
 import { ForbiddenError } from '../errors/forbidden.error';
-import { notificarNuevoEjercicio } from '../socket/socket.server';
 
 import {
   DetalleEjercicioResponseDTO,
@@ -139,15 +139,14 @@ export async function crearEjercicio(
   // 5. Persistir el ejercicio con sus relaciones asociadas en el repositorio
   const ejercicio = await ejercicioRepository.crearEjercicio(docente.id, dto, fechaLimite);
 
-  // 6. Notificar en tiempo real al curso si el ejercicio se crea publicado
+  // 6. Notificar y persistir notificaciones si el ejercicio se crea publicado
   if (ejercicio.estado === 'PUBLICADO') {
-    notificarNuevoEjercicio({
-      idEjercicio: ejercicio.idEjercicio,
-      titulo: ejercicio.titulo,
+    await notificacionService.notificarNuevoEjercicioAlumnos({
       cursoId: ejercicio.cursoId,
+      ejercicioId: ejercicio.idEjercicio,
+      tituloEjercicio: ejercicio.titulo,
       docenteNombre: `${docente.nombre} ${docente.apellido}`,
       fechaLimite: ejercicio.fechaLimite,
-      mensaje: `El docente ${docente.nombre} ${docente.apellido} ha publicado un nuevo ejercicio: "${ejercicio.titulo}"`,
       createdAt: ejercicio.createdAt,
     });
   }
@@ -300,15 +299,14 @@ export async function editarEjercicio(
     dataActualizar
   );
 
-  // 11. Notificar al curso si el ejercicio pasó de BORRADOR a PUBLICADO
+  // 11. Notificar y persistir notificaciones si el ejercicio pasó de BORRADOR a PUBLICADO
   if (ejercicio.estado === 'BORRADOR' && ejercicioActualizado.estado === 'PUBLICADO') {
-    notificarNuevoEjercicio({
-      idEjercicio: ejercicioActualizado.idEjercicio,
-      titulo: ejercicioActualizado.titulo,
+    await notificacionService.notificarNuevoEjercicioAlumnos({
       cursoId: ejercicioActualizado.cursoId,
+      ejercicioId: ejercicioActualizado.idEjercicio,
+      tituloEjercicio: ejercicioActualizado.titulo,
       docenteNombre: `${docente.nombre} ${docente.apellido}`,
       fechaLimite: ejercicioActualizado.fechaLimite,
-      mensaje: `El docente ${docente.nombre} ${docente.apellido} ha publicado un nuevo ejercicio: "${ejercicioActualizado.titulo}"`,
       createdAt: ejercicioActualizado.updatedAt,
     });
   }
