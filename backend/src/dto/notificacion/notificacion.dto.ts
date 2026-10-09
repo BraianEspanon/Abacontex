@@ -1,3 +1,5 @@
+import { PaginatedResponse } from '../paginated-response.dto';
+
 export interface NotificacionItemDTO {
   idNotificacion: number;
   ejercicioId: number | null;
@@ -7,11 +9,4 @@ export interface NotificacionItemDTO {
   createdAt: string;
 }
 
-export interface ListadoNotificacionesResponseDTO {
-  items: NotificacionItemDTO[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-}
-
+export type ListadoNotificacionesResponseDTO = PaginatedResponse<NotificacionItemDTO>;
