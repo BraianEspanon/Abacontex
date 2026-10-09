@@ -10,3 +10,7 @@ export interface NotificacionItemDTO {
 }
 
 export type ListadoNotificacionesResponseDTO = PaginatedResponse<NotificacionItemDTO>;
+
+export interface ContadorNotificacionesResponseDTO {
+  noLeidas: number;
+}

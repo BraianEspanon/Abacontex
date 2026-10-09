@@ -70,3 +70,10 @@ export async function countNotificacionesByUsuario(
     where,
   });
 }
+
+export async function countNotificacionesNoLeidas(
+  usuarioId: string,
+  tx?: Prisma.TransactionClient
+): Promise<number> {
+  return countNotificacionesByUsuario(usuarioId, 'NO_LEIDAS', tx);
+}

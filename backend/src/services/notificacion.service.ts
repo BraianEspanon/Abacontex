@@ -5,7 +5,10 @@ import * as notificacionRepository from '../repositories/notificacion.repository
 import * as usuarioRepository from '../repositories/usuario.repository';
 import { notificarNuevoEjercicio } from '../socket/socket.server';
 import { ObtenerNotificacionesQueryDTO } from '../validators/notificacion.validator';
-import { ListadoNotificacionesResponseDTO } from '../dto/notificacion/notificacion.dto';
+import {
+  ListadoNotificacionesResponseDTO,
+  ContadorNotificacionesResponseDTO,
+} from '../dto/notificacion/notificacion.dto';
 import { toNotificacionItemDTO } from '../dto/notificacion/notificacion.mapper';
 
 export interface NotificarNuevoEjercicioParams {
@@ -89,4 +92,16 @@ export async function obtenerNotificaciones(
     totalItems,
     totalPages,
   };
+}
+
+/**
+ * Obtiene la cantidad de notificaciones no leídas del usuario autenticado.
+ */
+export async function obtenerContadorNoLeidas(
+  user: AuthUser
+): Promise<ContadorNotificacionesResponseDTO> {
+  const usuario = await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+  const noLeidas = await notificacionRepository.countNotificacionesNoLeidas(usuario.id);
+
+  return { noLeidas };
 }

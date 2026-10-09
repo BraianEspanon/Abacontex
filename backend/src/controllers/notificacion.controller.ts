@@ -11,3 +11,9 @@ export async function obtenerNotificaciones(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function obtenerContadorNoLeidas(req: Request, res: Response) {
+  const resultado = await notificacionService.obtenerContadorNoLeidas(req.user!);
+
+  res.status(200).json(resultado);
+}
