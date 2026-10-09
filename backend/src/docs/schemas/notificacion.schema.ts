@@ -72,4 +72,3 @@
  *           example: 4
  *           description: Cantidad de notificaciones que fueron marcadas como leídas.
  */
-

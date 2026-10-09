@@ -370,4 +370,3 @@ export async function findUserIdsByCursoId(
 
   return alumnos.map((alumno) => alumno.id);
 }
-

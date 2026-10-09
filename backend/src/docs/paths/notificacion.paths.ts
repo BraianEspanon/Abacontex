@@ -142,4 +142,3 @@
  *       404:
  *         description: Notificación no encontrada.
  */
-
