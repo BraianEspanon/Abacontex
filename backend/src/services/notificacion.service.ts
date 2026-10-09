@@ -1,15 +1,22 @@
 import { Prisma } from '@prisma/client';
 import { AuthUser } from '../types/express';
+
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as notificacionRepository from '../repositories/notificacion.repository';
 import * as usuarioRepository from '../repositories/usuario.repository';
+
 import { notificarNuevoEjercicio } from '../socket/socket.server';
+
 import { ObtenerNotificacionesQueryDTO } from '../validators/notificacion.validator';
 import {
   ListadoNotificacionesResponseDTO,
   ContadorNotificacionesResponseDTO,
+  NotificacionItemDTO,
 } from '../dto/notificacion/notificacion.dto';
 import { toNotificacionItemDTO } from '../dto/notificacion/notificacion.mapper';
+
+import { NotFoundError } from '../errors/not-found.error';
+import { ForbiddenError } from '../errors/forbidden.error';
 
 export interface NotificarNuevoEjercicioParams {
   cursoId: number;
@@ -104,4 +111,29 @@ export async function obtenerContadorNoLeidas(
   const noLeidas = await notificacionRepository.countNotificacionesNoLeidas(usuario.id);
 
   return { noLeidas };
+}
+
+/**
+ * Marca una notificación específica como leída para el usuario autenticado.
+ */
+export async function marcarNotificacionComoLeida(
+  user: AuthUser,
+  idNotificacion: number
+): Promise<NotificacionItemDTO> {
+  const usuario = await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  const notificacion = await notificacionRepository.findNotificacionByIdOrThrow(idNotificacion);
+
+  if (notificacion.usuarioId !== usuario.id) {
+    throw new ForbiddenError('No tienes permisos para acceder a esta notificación.');
+  }
+
+  if (notificacion.leida) {
+    return toNotificacionItemDTO(notificacion);
+  }
+
+  const notificacionActualizada =
+    await notificacionRepository.marcarNotificacionComoLeida(idNotificacion);
+
+  return toNotificacionItemDTO(notificacionActualizada);
 }

@@ -23,3 +23,13 @@ export const obtenerNotificacionesQuerySchema = z.object({
 export type ObtenerNotificacionesQueryDTO = z.infer<
   typeof obtenerNotificacionesQuerySchema
 >['query'];
+
+export const marcarNotificacionLeidaSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().positive(),
+  }),
+});
+
+export type MarcarNotificacionLeidaParamsDTO = z.infer<
+  typeof marcarNotificacionLeidaSchema
+>['params'];

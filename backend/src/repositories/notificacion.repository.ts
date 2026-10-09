@@ -1,9 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
+
 import {
   EstadoFiltroNotificacion,
   ObtenerNotificacionesQueryDTO,
 } from '../validators/notificacion.validator';
+
+import { NotFoundError } from '../errors/not-found.error';
 
 export interface CrearNotificacionData {
   usuarioId: string;
@@ -76,4 +79,39 @@ export async function countNotificacionesNoLeidas(
   tx?: Prisma.TransactionClient
 ): Promise<number> {
   return countNotificacionesByUsuario(usuarioId, 'NO_LEIDAS', tx);
+}
+
+export async function findNotificacionById(idNotificacion: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.notificacion.findUnique({
+    where: { idNotificacion },
+  });
+}
+
+export async function findNotificacionByIdOrThrow(
+  idNotificacion: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const notificacion = await findNotificacionById(idNotificacion, db);
+
+  if (!notificacion) {
+    throw new NotFoundError('Notificación no encontrada.');
+  }
+
+  return notificacion;
+}
+
+export async function marcarNotificacionComoLeida(
+  idNotificacion: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.notificacion.update({
+    where: { idNotificacion },
+    data: { leida: true },
+  });
 }
