@@ -109,6 +109,43 @@
  *       403:
  *         description: El usuario no posee permisos para modificar la empresa.
  *
+ * /empresas/me/dashboard:
+ *   get:
+ *     summary: Obtener el dashboard consolidado de la empresa del alumno autenticado
+ *     description: |
+ *       Retorna la información consolidada del dashboard empresarial para el alumno autenticado:
+ *       datos generales de la empresa, finanzas y caja con variaciones porcentuales, gráficos de evolución temporal
+ *       (último mes, tres meses y ciclo lectivo completo), métricas de actividad pendiente (pedidos pendientes o por entregar,
+ *       facturas pendientes, asientos contables pendientes, ejercicios sin resolver y órdenes de producción),
+ *       indicadores clave de negocio (ventas, pedidos, cumplimiento, rentabilidad), integrantes del equipo con roles
+ *       e invitaciones pendientes de respuesta.
+ *
+ *     tags:
+ *       - Empresas
+ *
+ *     security:
+ *       - oauth2: []
+ *
+ *     responses:
+ *       200:
+ *         description: Dashboard consolidado de la empresa obtenido exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EmpresaDashboardResponse'
+ *
+ *       401:
+ *         description: Token inválido o inexistente.
+ *
+ *       403:
+ *         description: Acceso denegado. Se requiere rol ALUMNO.
+ *
+ *       409:
+ *         description: El usuario no tiene perfil de alumno o no pertenece a una empresa.
+ *
+ *       500:
+ *         description: Error interno del servidor al consolidar el dashboard.
+ *
  * /empresas/candidatos:
  *   get:
  *     summary: Obtener candidatos para agregar a la empresa

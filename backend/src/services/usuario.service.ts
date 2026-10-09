@@ -18,7 +18,7 @@ import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
 
 export async function syncUsuario(user: AuthUser) {
-  const usuario = await usuarioRepository.findByKeycloakId(user.keycloakId);
+  const usuario = await usuarioRepository.findByKeycloakIdWithDetalles(user.keycloakId);
 
   if (usuario) {
     return usuario;
@@ -39,7 +39,12 @@ export async function syncUsuario(user: AuthUser) {
       description: 'Sincronización inicial del usuario desde Keycloak',
     });
 
-    return nuevoUsuario;
+    const usuarioConDetalles = await usuarioRepository.findByKeycloakIdWithDetalles(
+      user.keycloakId,
+      tx
+    );
+
+    return usuarioConDetalles ?? nuevoUsuario;
   });
 }
 

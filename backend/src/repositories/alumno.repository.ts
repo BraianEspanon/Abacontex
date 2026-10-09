@@ -352,3 +352,21 @@ export async function countByCursoId(
     },
   });
 }
+
+export async function findUserIdsByCursoId(
+  idCurso: number,
+  tx?: Prisma.TransactionClient
+): Promise<string[]> {
+  const db = getDbClient(tx);
+
+  const alumnos = await db.alumno.findMany({
+    where: {
+      idCurso,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return alumnos.map((alumno) => alumno.id);
+}

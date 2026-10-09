@@ -94,6 +94,10 @@ export const swaggerSpec = swaggerJsdoc({
         name: 'Roles de empresa',
         description: 'Consulta de roles disponibles dentro de una empresa.',
       },
+      {
+        name: 'Notificaciones',
+        description: 'Gestión y consulta de notificaciones del usuario.',
+      },
     ],
 
     components: {

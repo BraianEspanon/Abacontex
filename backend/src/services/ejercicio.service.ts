@@ -9,6 +9,7 @@ import {
 
 import { ocrService } from '../integrations/ocr/ocr.service';
 import { generacionService } from '../integrations/generacion/generacion.service';
+import * as notificacionService from './notificacion.service';
 
 import * as alumnoRepository from '../repositories/alumno.repository';
 import * as cursoRepository from '../repositories/curso.repository';
@@ -138,7 +139,19 @@ export async function crearEjercicio(
   // 5. Persistir el ejercicio con sus relaciones asociadas en el repositorio
   const ejercicio = await ejercicioRepository.crearEjercicio(docente.id, dto, fechaLimite);
 
-  // 6. Retornar el DTO desacoplado
+  // 6. Notificar y persistir notificaciones si el ejercicio se crea publicado
+  if (ejercicio.estado === 'PUBLICADO') {
+    await notificacionService.notificarNuevoEjercicioAlumnos({
+      cursoId: ejercicio.cursoId,
+      ejercicioId: ejercicio.idEjercicio,
+      tituloEjercicio: ejercicio.titulo,
+      docenteNombre: `${docente.nombre} ${docente.apellido}`,
+      fechaLimite: ejercicio.fechaLimite,
+      createdAt: ejercicio.createdAt,
+    });
+  }
+
+  // 7. Retornar el DTO desacoplado
   return toEjercicioCreadoResponse(ejercicio);
 }
 
@@ -286,66 +299,23 @@ export async function editarEjercicio(
     dataActualizar
   );
 
-  // 10. Consultar cantidad de alumnos del curso resultante
+  // 11. Notificar y persistir notificaciones si el ejercicio pasó de BORRADOR a PUBLICADO
+  if (ejercicio.estado === 'BORRADOR' && ejercicioActualizado.estado === 'PUBLICADO') {
+    await notificacionService.notificarNuevoEjercicioAlumnos({
+      cursoId: ejercicioActualizado.cursoId,
+      ejercicioId: ejercicioActualizado.idEjercicio,
+      tituloEjercicio: ejercicioActualizado.titulo,
+      docenteNombre: `${docente.nombre} ${docente.apellido}`,
+      fechaLimite: ejercicioActualizado.fechaLimite,
+      createdAt: ejercicioActualizado.updatedAt,
+    });
+  }
+
+  // 12. Consultar cantidad de alumnos del curso resultante
   const totalAlumnos = await alumnoRepository.countByCursoId(ejercicioActualizado.cursoId);
 
-  // 11. Mapear y retornar la respuesta
+  // 13. Mapear y retornar la respuesta
   return toDetalleEjercicioResponse(ejercicioActualizado, totalAlumnos);
-}
-
-export async function duplicarEjercicio(
-  user: AuthUser,
-  idEjercicio: number
-): Promise<EjercicioCreadoResponseDTO> {
-  // 1. Obtener docente autenticado
-  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
-
-  // 2. Consultar ejercicio original por ID
-  const ejercicio = await ejercicioRepository.findEjercicioByIdOrThrow(idEjercicio);
-
-  // 3. Validar autoría
-  if (ejercicio.docenteId !== docente.id) {
-    throw new ForbiddenError('No tienes permisos para duplicar este ejercicio.');
-  }
-
-  // 4. Validar pertenencia al curso
-  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
-  if (!cursosDocente.includes(ejercicio.cursoId)) {
-    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece este ejercicio.');
-  }
-
-  // 5. Preparar datos clonados
-  const nuevoTitulo = `${ejercicio.titulo} (Copia)`.slice(0, 100);
-
-  const ahora = new Date();
-  const finDeAñoActual = new Date(ahora.getFullYear(), 11, 31, 23, 59, 59, 999);
-  const fechaLimite = ejercicio.fechaLimite > ahora ? ejercicio.fechaLimite : finDeAñoActual;
-
-  // 6. Persistir clon en estado BORRADOR reutilizando crearEjercicio
-  const ejercicioClonado = await ejercicioRepository.crearEjercicio(
-    docente.id,
-    {
-      titulo: nuevoTitulo,
-      enunciado: ejercicio.enunciado,
-      cursoId: ejercicio.cursoId,
-      fechaLimite: fechaLimite.toISOString(),
-      indicaciones: ejercicio.indicaciones,
-      estado: 'BORRADOR',
-      plantillas: ejercicio.plantillas.map((p) => p.tipo),
-      generacionIA: ejercicio.generacionIA
-        ? {
-            tipoEjercicio: ejercicio.generacionIA.tipoEjercicio,
-            dificultad: ejercicio.generacionIA.dificultad,
-            contextoAdicional: ejercicio.generacionIA.contextoAdicional,
-            contenidos: ejercicio.generacionIA.contenidos.map((c) => c.contenido),
-          }
-        : null,
-    },
-    fechaLimite
-  );
-
-  // 7. Mapear y retornar la respuesta
-  return toEjercicioCreadoResponse(ejercicioClonado);
 }
 
 export async function consultarResolucionDocente(
