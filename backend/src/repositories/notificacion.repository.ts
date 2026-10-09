@@ -115,3 +115,22 @@ export async function marcarNotificacionComoLeida(
     data: { leida: true },
   });
 }
+
+export async function marcarTodasComoLeidasByUsuario(
+  usuarioId: string,
+  tx?: Prisma.TransactionClient
+): Promise<number> {
+  const db = getDbClient(tx);
+
+  const resultado = await db.notificacion.updateMany({
+    where: {
+      usuarioId,
+      leida: false,
+    },
+    data: {
+      leida: true,
+    },
+  });
+
+  return resultado.count;
+}

@@ -12,10 +12,10 @@ import {
   ListadoNotificacionesResponseDTO,
   ContadorNotificacionesResponseDTO,
   NotificacionItemDTO,
+  MarcarTodasLeidasResponseDTO,
 } from '../dto/notificacion/notificacion.dto';
 import { toNotificacionItemDTO } from '../dto/notificacion/notificacion.mapper';
 
-import { NotFoundError } from '../errors/not-found.error';
 import { ForbiddenError } from '../errors/forbidden.error';
 
 export interface NotificarNuevoEjercicioParams {
@@ -136,4 +136,15 @@ export async function marcarNotificacionComoLeida(
     await notificacionRepository.marcarNotificacionComoLeida(idNotificacion);
 
   return toNotificacionItemDTO(notificacionActualizada);
+}
+
+/**
+ * Marca todas las notificaciones no leídas como leídas para el usuario autenticado.
+ */
+export async function marcarTodasComoLeidas(user: AuthUser): Promise<MarcarTodasLeidasResponseDTO> {
+  const usuario = await usuarioRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  const actualizadas = await notificacionRepository.marcarTodasComoLeidasByUsuario(usuario.id);
+
+  return { actualizadas };
 }

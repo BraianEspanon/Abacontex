@@ -30,3 +30,9 @@ export async function marcarNotificacionComoLeida(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function marcarTodasComoLeidas(req: Request, res: Response) {
+  const resultado = await notificacionService.marcarTodasComoLeidas(req.user!);
+
+  res.status(200).json(resultado);
+}

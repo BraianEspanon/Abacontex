@@ -14,3 +14,7 @@ export type ListadoNotificacionesResponseDTO = PaginatedResponse<NotificacionIte
 export interface ContadorNotificacionesResponseDTO {
   noLeidas: number;
 }
+
+export interface MarcarTodasLeidasResponseDTO {
+  actualizadas: number;
+}

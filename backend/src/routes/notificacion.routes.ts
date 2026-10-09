@@ -11,12 +11,14 @@ import {
   obtenerNotificaciones,
   obtenerContadorNoLeidas,
   marcarNotificacionComoLeida,
+  marcarTodasComoLeidas,
 } from '../controllers/notificacion.controller';
 
 const router = Router();
 
 router.get('/', authenticate, validate(obtenerNotificacionesQuerySchema), obtenerNotificaciones);
 router.get('/contador', authenticate, obtenerContadorNoLeidas);
+router.patch('/leer-todas', authenticate, marcarTodasComoLeidas);
 router.patch(
   '/:id/leida',
   authenticate,
