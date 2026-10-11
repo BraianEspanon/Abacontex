@@ -1,4 +1,6 @@
-import { Bell, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
+
+import CampanaNotificaciones from '../notificaciones/CampanaNotificaciones';
 
 interface EncabezadoAlumnoProps {
   titulo: string;
@@ -19,13 +21,7 @@ export default function EncabezadoAlumno({ titulo }: EncabezadoAlumnoProps) {
         <h2 className="font-serif text-3xl font-semibold">{titulo}</h2>
       </div>
 
-      <button
-        type="button"
-        aria-label="Notificaciones"
-        className="rounded-full p-2 text-white/80 hover:bg-white/10 hover:text-white"
-      >
-        <Bell size={19} />
-      </button>
+      <CampanaNotificaciones />
     </header>
   );
 }
