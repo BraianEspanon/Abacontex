@@ -1,9 +1,39 @@
 services:
+  traefik:
+    image: traefik:v3.2
+    container_name: abacontex-traefik-prod
+    restart: always
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.api.address=:3000"
+      - "--entrypoints.auth.address=:8080"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "${BACKEND_PORT:-3000}:3000"
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certificates:/letsencrypt
+
   backend:
     image: ghcr.io/braianespanon/abacontex-backend:${BACKEND_TAG}
     container_name: abacontex-backend-prod
-    ports:
-      - "${BACKEND_PORT}:3000"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.backend.entrypoints=api"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
 
     environment:
       DATABASE_URL: ${DATABASE_URL_DOCKER}
@@ -50,8 +80,13 @@ services:
   frontend:
     image: ghcr.io/braianespanon/abacontex-frontend:${FRONTEND_TAG}
     container_name: abacontex-frontend-prod
-    ports:
-      - "${FRONTEND_PORT}:80"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
     environment:
       VITE_API_URL: ${VITE_API_URL}
@@ -115,8 +150,12 @@ services:
       postgres:
         condition: service_healthy
 
-    ports:
-      - "${KEYCLOAK_PORT}:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.keycloak.entrypoints=auth"
+      - "traefik.http.routers.keycloak.tls.certresolver=myresolver"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
 
     volumes:
       - ./keycloak/themes:/opt/keycloak/themes
@@ -124,3 +163,4 @@ services:
 
 volumes:
   postgres_prod_data:
+  traefik_certificates:
