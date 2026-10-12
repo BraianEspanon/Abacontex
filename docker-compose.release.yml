@@ -134,9 +134,9 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME}
+      KC_HOSTNAME: https://${DOMAIN}:8080
       KC_HTTP_ENABLED: "true"
-      KC_PROXY: edge
+      KC_PROXY_HEADERS: xforwarded
 
       KC_DB: postgres
       KC_DB_URL_HOST: postgres
