@@ -93,6 +93,7 @@ services:
 
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
@@ -110,6 +111,13 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_PROXY: edge
 
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: ${KEYCLOAK_DB:-keycloak}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_HOSTED_DOMAIN: ${GOOGLE_HOSTED_DOMAIN}
@@ -125,13 +133,16 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
 
+    depends_on:
+      postgres:
+        condition: service_healthy
+
     ports:
       - "${KEYCLOAK_PORT}:8080"
 
     volumes:
       - ./keycloak/themes:/opt/keycloak/themes
       - ./keycloak/realm-export.prod.json:/opt/keycloak/data/import/realm.json
-      - keycloak_test_data:/opt/keycloak/data
 
   mailpit:
     image: axllent/mailpit:latest
@@ -144,4 +155,3 @@ services:
 
 volumes:
   postgres_test_data:
-  keycloak_test_data:
