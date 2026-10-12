@@ -1,9 +1,43 @@
 services:
+  traefik:
+    image: traefik:latest
+    container_name: abacontex-traefik-test
+    restart: always
+    environment:
+      - DOCKER_API_VERSION=1.44
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.api.address=:3000"
+      - "--entrypoints.auth.address=:8080"
+      - "--entrypoints.mailpit.address=:8025"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "${BACKEND_PORT:-3000}:3000"
+      - "${KEYCLOAK_PORT:-8080}:8080"
+      - "${MAILPIT_PORT:-8025}:8025"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_test_certificates:/letsencrypt
+
   backend:
     image: ghcr.io/braianespanon/abacontex-backend:${BACKEND_TAG}
     container_name: abacontex-backend-test
-    ports:
-      - "${BACKEND_PORT}:3000"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.backend.entrypoints=api"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
 
     environment:
       DATABASE_URL: ${DATABASE_URL_DOCKER}
@@ -52,8 +86,13 @@ services:
   frontend:
     image: ghcr.io/braianespanon/abacontex-frontend:${FRONTEND_TAG}
     container_name: abacontex-frontend-test
-    ports:
-      - "${FRONTEND_PORT}:80"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
     environment:
       VITE_API_URL: ${VITE_API_URL}
@@ -99,9 +138,9 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME}
+      KC_HOSTNAME: https://${DOMAIN}:8080
       KC_HTTP_ENABLED: "true"
-      KC_PROXY: edge
+      KC_PROXY_HEADERS: xforwarded
 
       KC_DB: postgres
       KC_DB_URL_HOST: postgres
@@ -129,8 +168,12 @@ services:
       postgres:
         condition: service_healthy
 
-    ports:
-      - "${KEYCLOAK_PORT}:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.keycloak.entrypoints=auth"
+      - "traefik.http.routers.keycloak.tls.certresolver=myresolver"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
 
     volumes:
       - ./keycloak/themes:/opt/keycloak/themes
@@ -141,9 +184,16 @@ services:
 
     container_name: abacontex-mailpit-test
 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailpit.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.mailpit.entrypoints=mailpit"
+      - "traefik.http.routers.mailpit.tls.certresolver=myresolver"
+      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+
     ports:
       - "${SMTP_PORT}:1025" # SMTP
-      - "${MAILPIT_PORT}:8025" # Web UI
 
 volumes:
   postgres_test_data:
+  traefik_test_certificates:
