@@ -2,7 +2,7 @@ services:
   traefik:
     image: traefik:latest
     container_name: abacontex-traefik-test
-    restart: always
+    restart: unless-stopped
     environment:
       - DOCKER_API_VERSION=1.44
     command:
@@ -31,6 +31,7 @@ services:
   backend:
     image: ghcr.io/braianespanon/abacontex-backend:${BACKEND_TAG}
     container_name: abacontex-backend-test
+    restart: unless-stopped
 
     labels:
       - "traefik.enable=true"
@@ -86,6 +87,7 @@ services:
   frontend:
     image: ghcr.io/braianespanon/abacontex-frontend:${FRONTEND_TAG}
     container_name: abacontex-frontend-test
+    restart: unless-stopped
 
     labels:
       - "traefik.enable=true"
@@ -105,6 +107,7 @@ services:
   postgres:
     image: postgres:17
     container_name: abacontex-postgres-test
+    restart: unless-stopped
 
     ports:
       - "${POSTGRES_PORT}:5432"
@@ -130,6 +133,7 @@ services:
     image: quay.io/keycloak/keycloak:26.2
 
     container_name: abacontex-keycloak-test
+    restart: unless-stopped
 
     command:
       - start
@@ -183,6 +187,7 @@ services:
     image: axllent/mailpit:latest
 
     container_name: abacontex-mailpit-test
+    restart: unless-stopped
 
     labels:
       - "traefik.enable=true"
