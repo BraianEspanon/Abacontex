@@ -88,7 +88,7 @@ export interface EjercicioCreadoResponse {
   generacionIA: null;
   resolucion: {
     idResolucion: number;
-    estado: string;
+    estado: EstadoResolucionDocente;
   } | null;
   createdAt: string;
   updatedAt: string;
@@ -128,6 +128,14 @@ export interface GeneracionIADetalle {
   contenidos: ContenidoAdicionalIA[];
 }
 
+// ============================================================================
+// Resolución docente
+// ============================================================================
+
+export type EstadoResolucionDocente = 'PENDIENTE' | 'EN_EDICION' | 'RESUELTO';
+
+export type EstadoPlantillaResolucion = 'PENDIENTE' | 'EN_EDICION' | 'RESUELTO';
+
 export interface DetalleEjercicio {
   idEjercicio: number;
   titulo: string;
@@ -136,6 +144,7 @@ export interface DetalleEjercicio {
   fechaLimite: string;
   createdAt: string;
   updatedAt: string;
+
   progresoEntregas: {
     totalAlumnos: number;
     entregasCorregidas: number;
@@ -146,8 +155,9 @@ export interface DetalleEjercicio {
 
   resolucionDocente: {
     idResolucion: number;
-    estado: string;
+    estado: EstadoResolucionDocente;
   } | null;
+
   origen: 'IA' | 'DIGITALIZADO';
 
   curso: {
@@ -169,4 +179,86 @@ export interface EditarEjercicioRequest {
   indicaciones?: string | null;
   estado?: 'BORRADOR' | 'ENVIADO';
   plantillas?: TipoPlantillaEjercicio[];
+}
+
+export type MovimientoContable = 'A+' | 'A-' | 'P+' | 'P-' | 'PN+' | 'PN-' | 'R+' | 'R-';
+
+export interface LineaLibroDiario {
+  idCuenta: number;
+  cuenta: string;
+  movimiento: MovimientoContable;
+  folio?: number | null;
+  debe: number;
+  haber: number;
+}
+
+export interface AsientoLibroDiario {
+  numero: number;
+  fecha: string;
+  concepto: string;
+  lineas: LineaLibroDiario[];
+}
+
+export interface ContenidoLibroDiario {
+  asientos: AsientoLibroDiario[];
+}
+
+/**
+ * Las estructuras específicas de Libro Mayor, Libro IVA y Hoja de Trabajo
+ * se incorporarán al implementar cada una de esas plantillas.
+ */
+export type ContenidoResolucionPlantilla = ContenidoLibroDiario | unknown;
+
+export interface PlantillaResolucionDocente {
+  idEjercicioPlantilla: number;
+  tipo: TipoPlantillaEjercicio;
+  estado: EstadoPlantillaResolucion;
+  contenido: ContenidoResolucionPlantilla | null;
+  updatedAt?: string | null;
+}
+
+export interface ResolucionDocenteResponse {
+  idResolucion: number;
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  fechaLimite: string;
+  estado: EstadoResolucionDocente;
+  plantillas: PlantillaResolucionDocente[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ActualizarResolucionDocenteRequest {
+  tipo: TipoPlantillaEjercicio;
+  estado: Extract<EstadoPlantillaResolucion, 'EN_EDICION' | 'RESUELTO'>;
+  contenido: unknown;
+}
+
+// ============================================================================
+// Cuentas contables utilizadas en la resolución
+// ============================================================================
+
+export interface CuentaContableEjercicio {
+  idCuenta: number;
+  codigo: string;
+  nombre: string;
+  descripcion?: string | null;
+  rubro: {
+    idRubro: number;
+    nombre: string;
+    tipoCuenta: {
+      idTipoCuenta: number;
+      nombre: string;
+      abreviatura: string;
+    };
+  };
+}
+
+export interface CuentasContablesResponse {
+  items: CuentaContableEjercicio[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
 }
