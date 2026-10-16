@@ -636,6 +636,7 @@
  *         - enunciado
  *         - fechaLimite
  *         - estado
+ *         - curso
  *         - plantillas
  *       properties:
  *         idResolucion:
@@ -661,6 +662,8 @@
  *             - EN_EDICION
  *             - RESUELTO
  *           example: RESUELTO
+ *         curso:
+ *           $ref: '#/components/schemas/CursoEjercicioResponse'
  *         plantillas:
  *           type: array
  *           items:
