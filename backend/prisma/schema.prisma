@@ -1022,6 +1022,12 @@ model ResolucionDocentePlantilla {
   @@map("resoluciones_docente_plantillas")
 }
 
+enum TipoNotificacion {
+  EJERCICIO_NUEVO
+  VENCIMIENTO_PROXIMO
+  EJERCICIO_CORREGIDO
+}
+
 model Notificacion {
   idNotificacion Int @id @default(autoincrement())
 
@@ -1030,6 +1036,8 @@ model Notificacion {
 
   ejercicioId Int?
   ejercicio   Ejercicio? @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: SetNull)
+
+  tipo TipoNotificacion
 
   titulo  String @db.VarChar(100)
   mensaje String @db.VarChar(255)
