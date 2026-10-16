@@ -5,4 +5,3 @@ export const TIPOS_NOTIFICACION = [
 ] as const;
 
 export type TipoNotificacion = (typeof TIPOS_NOTIFICACION)[number];
-
