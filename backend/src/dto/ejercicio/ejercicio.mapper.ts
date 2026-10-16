@@ -176,6 +176,11 @@ export function toResolucionDocenteResponse(
     enunciado: ejercicio.enunciado,
     fechaLimite: ejercicio.fechaLimite.toISOString(),
     estado: ejercicio.resolucion?.estado ?? 'PENDIENTE',
+    curso: {
+      idCurso: ejercicio.curso.idCurso,
+      nombreCurso: ejercicio.curso.nombreCurso,
+      año: ejercicio.curso.año,
+    },
     plantillas: ejercicio.plantillas.map((plantilla) => {
       const resolucionPlantilla = plantillasResolucion.find(
         (rp) => rp.ejercicioPlantillaId === plantilla.idEjercicioPlantilla

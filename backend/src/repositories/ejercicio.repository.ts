@@ -23,6 +23,7 @@ export type EjercicioCreadoEntity = Prisma.EjercicioGetPayload<{
 export type EjercicioDetalleEntity = EjercicioCreadoEntity;
 
 const ejercicioResolucionInclude = {
+  curso: true,
   plantillas: true,
   resolucion: {
     include: {

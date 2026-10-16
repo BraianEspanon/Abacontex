@@ -133,5 +133,10 @@ export interface ResolucionDocenteResponseDTO {
   enunciado: string;
   fechaLimite: string;
   estado: string;
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+    año: number;
+  };
   plantillas: ResolucionPlantillaItemDTO[];
 }

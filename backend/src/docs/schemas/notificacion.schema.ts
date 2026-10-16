@@ -14,6 +14,14 @@
  *           nullable: true
  *           example: 5
  *           description: Identificador del ejercicio asociado si corresponde.
+ *         tipo:
+ *           type: string
+ *           enum:
+ *             - EJERCICIO_NUEVO
+ *             - VENCIMIENTO_PROXIMO
+ *             - EJERCICIO_CORREGIDO
+ *           example: EJERCICIO_NUEVO
+ *           description: Tipo o categoría de la notificación.
  *         titulo:
  *           type: string
  *           example: Nuevo Ejercicio Publicado
