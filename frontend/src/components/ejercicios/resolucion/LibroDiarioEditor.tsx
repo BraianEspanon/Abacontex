@@ -1,4 +1,6 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { CheckCircle2, Plus, Trash2 } from 'lucide-react';
+
+import Button from '../../ui/Button';
 
 import { useCuentasContablesEjercicio } from '../../../hooks/useCuentasContablesEjercicio';
 
@@ -16,11 +18,7 @@ interface LibroDiarioEditorProps {
 const MOVIMIENTOS: MovimientoContable[] = ['A+', 'A-', 'P+', 'P-', 'PN+', 'PN-', 'R+', 'R-'];
 
 /**
- * Convierte la fecha utilizada por el input HTML:
- * AAAA-MM-DD
- *
- * al formato esperado por el backend:
- * DD/MM/AAAA
+ * Convierte AAAA-MM-DD a DD/MM/AAAA.
  */
 function fechaInputAApi(fecha: string): string {
   if (!fecha) return '';
@@ -33,17 +31,11 @@ function fechaInputAApi(fecha: string): string {
 }
 
 /**
- * Convierte la fecha recibida desde el backend:
- * DD/MM/AAAA
- *
- * al formato requerido por input type="date":
- * AAAA-MM-DD
+ * Convierte DD/MM/AAAA a AAAA-MM-DD.
  */
 function fechaApiAInput(fecha: string): string {
   if (!fecha) return '';
 
-  // Por compatibilidad, si ya viniera en formato AAAA-MM-DD,
-  // lo dejamos como está.
   if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
     return fecha;
   }
@@ -69,13 +61,8 @@ function crearAsiento(numero: number): AsientoLibroDiario {
 }
 
 /**
- * Recalcula los folios de toda la resolución.
- *
- * Cada cuenta contable recibe un único número de folio según
- * el orden de su primera aparición dentro del Libro Diario.
- *
- * Si la misma cuenta vuelve a utilizarse en otro asiento,
- * conserva el mismo número de folio.
+ * Cada cuenta recibe un único folio según su primera aparición.
+ * Si vuelve a utilizarse, conserva el mismo número.
  */
 function recalcularFolios(asientos: AsientoLibroDiario[]): AsientoLibroDiario[] {
   const foliosPorCuenta = new Map<number, number>();
@@ -107,6 +94,13 @@ function recalcularFolios(asientos: AsientoLibroDiario[]): AsientoLibroDiario[] 
   }));
 }
 
+function formatearImporte(valor: number): string {
+  return new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(valor);
+}
+
 export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEditorProps) {
   const { data: cuentasData, isLoading: cargandoCuentas } = useCuentasContablesEjercicio();
 
@@ -120,7 +114,12 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
 
   function actualizarAsiento(indiceAsiento: number, cambios: Partial<AsientoLibroDiario>) {
     const asientos = contenido.asientos.map((asiento, index) =>
-      index === indiceAsiento ? { ...asiento, ...cambios } : asiento
+      index === indiceAsiento
+        ? {
+            ...asiento,
+            ...cambios,
+          }
+        : asiento
     );
 
     actualizarAsientos(asientos);
@@ -223,15 +222,22 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
         return (
           <section
             key={asiento.numero}
-            className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+            className="rounded-xl border border-gray-300 bg-white px-5 py-4 shadow-sm"
           >
-            <div className="mb-5 flex flex-wrap items-end gap-4">
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Asiento N° {asiento.numero}</p>
+            {/* ==============================================================
+                Encabezado del asiento
+            ============================================================== */}
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="border-r border-gray-300 pr-4">
+                <p className="pb-2 text-sm font-semibold text-gray-900">
+                  Asiento N° {asiento.numero}
+                </p>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Fecha</label>
+                <label className="mb-1 block text-xs font-medium text-gray-700">
+                  Fecha <span className="text-red-500">*</span>
+                </label>
 
                 <input
                   type="date"
@@ -241,12 +247,12 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
                       fecha: fechaInputAApi(event.target.value),
                     })
                   }
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="w-[150px] rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                 />
               </div>
 
-              <div className="min-w-64 flex-1">
-                <label className="mb-1 block text-xs font-medium text-gray-600">Concepto</label>
+              <div className="w-full sm:w-[420px]">
+                <label className="mb-1 block text-xs font-medium text-gray-700">Concepto</label>
 
                 <input
                   type="text"
@@ -257,106 +263,145 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
                     })
                   }
                   placeholder="Descripción del asiento"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                 />
               </div>
 
               <span
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                className={`mb-1 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
                   balanceado ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                 }`}
               >
+                {balanceado && <CheckCircle2 size={13} />}
+
                 {balanceado ? 'Balanceado' : 'Sin balancear'}
               </span>
 
               <button
                 type="button"
                 onClick={() => eliminarAsiento(indiceAsiento)}
-                className="rounded-md p-2 text-red-500 hover:bg-red-50"
+                className="ml-auto mb-1 rounded-md p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
                 title="Eliminar asiento"
+                aria-label={`Eliminar asiento ${asiento.numero}`}
               >
-                <Trash2 size={18} />
+                <Trash2 size={17} />
               </button>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* ==============================================================
+                Agregar línea
+            ============================================================== */}
+            <div className="mx-auto mt-3 flex w-[92%] justify-end">
+              <button
+                type="button"
+                onClick={() => agregarLinea(indiceAsiento)}
+                className="flex items-center gap-1 text-sm font-medium text-green-700 transition-colors hover:text-green-800"
+              >
+                <Plus size={15} />
+                Agregar línea
+              </button>
+            </div>
+
+            {/* ==============================================================
+                Tabla
+            ============================================================== */}
+            <div className="mx-auto mt-2 w-[92%] overflow-x-auto">
               <table className="w-full min-w-[900px] border-collapse text-sm">
                 <thead>
-                  <tr className="bg-green-100 text-gray-700">
-                    <th className="border border-gray-200 px-3 py-2 text-left">Cuenta</th>
+                  <tr className="bg-[#9db79c] text-gray-900">
+                    <th className="w-[125px] border border-gray-300 px-3 py-2 text-center font-medium">
+                      Fecha
+                    </th>
 
-                    <th className="border border-gray-200 px-3 py-2 text-left">Movimiento</th>
+                    <th className="border border-gray-300 px-3 py-2 text-center font-medium">
+                      Concepto
+                    </th>
 
-                    <th className="border border-gray-200 px-3 py-2">N° Folio</th>
+                    <th className="w-[100px] border border-gray-300 px-3 py-2 text-center font-medium">
+                      N° Folio
+                    </th>
 
-                    <th className="border border-gray-200 px-3 py-2">Debe</th>
+                    <th className="w-[180px] border border-gray-300 px-3 py-2 text-center font-medium">
+                      Debe
+                    </th>
 
-                    <th className="border border-gray-200 px-3 py-2">Haber</th>
+                    <th className="w-[180px] border border-gray-300 px-3 py-2 text-center font-medium">
+                      Haber
+                    </th>
 
-                    <th className="w-12 border border-gray-200" />
+                    <th className="w-12 bg-white" />
                   </tr>
                 </thead>
 
                 <tbody>
                   {asiento.lineas.map((linea, indiceLinea) => (
                     <tr key={indiceLinea}>
-                      <td className="border border-gray-200 p-2">
-                        <select
-                          value={linea.idCuenta || ''}
-                          disabled={cargandoCuentas}
-                          onChange={(event) =>
-                            actualizarLinea(
-                              indiceAsiento,
-                              indiceLinea,
-                              'idCuenta',
-                              Number(event.target.value)
-                            )
-                          }
-                          className="w-full rounded-md border border-gray-300 px-2 py-2"
-                        >
-                          <option value="">
-                            {cargandoCuentas ? 'Cargando cuentas...' : 'Seleccionar cuenta'}
-                          </option>
-
-                          {cuentas.map((cuenta) => (
-                            <option key={cuenta.idCuenta} value={cuenta.idCuenta}>
-                              {cuenta.codigo} - {cuenta.nombre}
-                            </option>
-                          ))}
-                        </select>
+                      {/* Fecha del asiento */}
+                      <td className="border border-gray-300 bg-white px-3 py-2 text-center text-gray-700">
+                        {asiento.fecha || '—'}
                       </td>
 
-                      <td className="border border-gray-200 p-2">
-                        <select
-                          value={linea.movimiento}
-                          onChange={(event) =>
-                            actualizarLinea(
-                              indiceAsiento,
-                              indiceLinea,
-                              'movimiento',
-                              event.target.value as MovimientoContable
-                            )
-                          }
-                          className="w-full rounded-md border border-gray-300 px-2 py-2"
-                        >
-                          {MOVIMIENTOS.map((movimiento) => (
-                            <option key={movimiento} value={movimiento}>
-                              {movimiento}
+                      {/* Cuenta + Movimiento */}
+                      <td className="border border-gray-300 p-2">
+                        <div className="flex min-w-[330px] gap-2">
+                          <select
+                            value={linea.idCuenta || ''}
+                            disabled={cargandoCuentas}
+                            onChange={(event) =>
+                              actualizarLinea(
+                                indiceAsiento,
+                                indiceLinea,
+                                'idCuenta',
+                                Number(event.target.value)
+                              )
+                            }
+                            className="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                          >
+                            <option value="">
+                              {cargandoCuentas ? 'Cargando cuentas...' : 'Seleccionar cuenta'}
                             </option>
-                          ))}
-                        </select>
+
+                            {cuentas.map((cuenta) => (
+                              <option key={cuenta.idCuenta} value={cuenta.idCuenta}>
+                                {cuenta.codigo} - {cuenta.nombre}
+                              </option>
+                            ))}
+                          </select>
+
+                          <select
+                            value={linea.movimiento}
+                            onChange={(event) =>
+                              actualizarLinea(
+                                indiceAsiento,
+                                indiceLinea,
+                                'movimiento',
+                                event.target.value as MovimientoContable
+                              )
+                            }
+                            aria-label={`Movimiento de la línea ${indiceLinea + 1}`}
+                            className="w-[78px] rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                          >
+                            {MOVIMIENTOS.map((movimiento) => (
+                              <option key={movimiento} value={movimiento}>
+                                {movimiento}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </td>
 
-                      <td className="border border-gray-200 bg-gray-50 p-2 text-center">
+                      {/* Folio */}
+                      <td className="border border-gray-300 bg-white px-3 py-2 text-center">
                         <span
-                          className="text-sm font-medium text-gray-700"
+                          className="text-sm text-gray-700"
                           title="El folio se asigna automáticamente según la cuenta contable."
                         >
                           {linea.folio ?? '—'}
                         </span>
                       </td>
 
-                      <td className="border border-gray-200 p-2">
+                      {/* Debe */}
+                      <td className="border border-gray-300 bg-white p-2">
                         <input
                           type="number"
                           min="0"
@@ -370,11 +415,12 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
                               Number(event.target.value)
                             )
                           }
-                          className="w-full rounded-md border border-gray-300 px-2 py-2 text-right"
+                          className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                         />
                       </td>
 
-                      <td className="border border-gray-200 p-2">
+                      {/* Haber */}
+                      <td className="border border-gray-300 bg-white p-2">
                         <input
                           type="number"
                           min="0"
@@ -388,16 +434,18 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
                               Number(event.target.value)
                             )
                           }
-                          className="w-full rounded-md border border-gray-300 px-2 py-2 text-right"
+                          className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                         />
                       </td>
 
-                      <td className="border border-gray-200 text-center">
+                      {/* Eliminar línea */}
+                      <td className="bg-white px-2 text-center">
                         <button
                           type="button"
                           onClick={() => eliminarLinea(indiceAsiento, indiceLinea)}
-                          className="p-2 text-red-500 hover:text-red-700"
+                          className="rounded-md p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
                           title="Eliminar línea"
+                          aria-label={`Eliminar línea ${indiceLinea + 1}`}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -405,35 +453,33 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
                     </tr>
                   ))}
 
-                  <tr>
-                    <td colSpan={6} className="border border-gray-200 p-2">
-                      <button
-                        type="button"
-                        onClick={() => agregarLinea(indiceAsiento)}
-                        className="flex items-center gap-1 text-sm font-medium text-green-700 hover:text-green-800"
+                  {asiento.lineas.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="border border-gray-300 px-4 py-6 text-center text-sm text-gray-400"
                       >
-                        <Plus size={15} />
-                        Agregar línea
-                      </button>
-                    </td>
-                  </tr>
+                        Agregá una línea para comenzar el asiento.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
 
                 <tfoot>
-                  <tr className="bg-gray-50 font-semibold">
-                    <td colSpan={3} className="border border-gray-200 px-3 py-2 text-right">
+                  <tr className="bg-gray-50 font-semibold text-gray-800">
+                    <td colSpan={3} className="border border-gray-300 px-3 py-2 text-right">
                       Total del asiento
                     </td>
 
-                    <td className="border border-gray-200 px-3 py-2 text-right">
-                      ${totalDebe.toLocaleString('es-AR')}
+                    <td className="border border-gray-300 px-3 py-2 text-right">
+                      ${formatearImporte(totalDebe)}
                     </td>
 
-                    <td className="border border-gray-200 px-3 py-2 text-right">
-                      ${totalHaber.toLocaleString('es-AR')}
+                    <td className="border border-gray-300 px-3 py-2 text-right">
+                      ${formatearImporte(totalHaber)}
                     </td>
 
-                    <td className="border border-gray-200" />
+                    <td className="bg-white" />
                   </tr>
                 </tfoot>
               </table>
@@ -442,14 +488,17 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
         );
       })}
 
-      <button
+      {/* ====================================================================
+          Agregar nuevo asiento
+      ==================================================================== */}
+      <Button
         type="button"
+        label="Agregar nuevo asiento"
+        variant="outline"
+        icon={<Plus size={17} />}
         onClick={agregarAsiento}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white py-3 text-sm font-medium text-green-700 hover:bg-green-50"
-      >
-        <Plus size={17} />
-        Agregar nuevo asiento
-      </button>
+        className="w-full"
+      />
     </div>
   );
 }

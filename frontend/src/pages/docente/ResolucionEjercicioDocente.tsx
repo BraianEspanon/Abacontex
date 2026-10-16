@@ -2,14 +2,27 @@ import { CalendarDays, ExternalLink, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import HojaTrabajoEditor from '../../components/ejercicios/resolucion/HojaTrabajoEditor';
 import LibroDiarioEditor from '../../components/ejercicios/resolucion/LibroDiarioEditor';
+import LibroIvaEditor from '../../components/ejercicios/resolucion/LibroIvaEditor';
+import LibroMayorEditor from '../../components/ejercicios/resolucion/LibroMayorEditor';
+import Button from '../../components/ui/Button';
 
 import { useGuardarResolucionEjercicio } from '../../hooks/useGuardarResolucionEjercicio';
 import { useResolucionEjercicio } from '../../hooks/useResolucionEjercicio';
 
-import type { ContenidoLibroDiario, TipoPlantillaEjercicio } from '../../types/ejercicio.types';
+import type {
+  ContenidoHojaTrabajo,
+  ContenidoLibroDiario,
+  ContenidoLibroIva,
+  ContenidoLibroMayor,
+  TipoPlantillaEjercicio,
+} from '../../types/ejercicio.types';
 
+import { validarHojaTrabajoResuelta } from '../../utils/validarHojaTrabajo';
 import { validarLibroDiarioResuelto } from '../../utils/validarLibroDiario';
+import { validarLibroIvaResuelto } from '../../utils/validarLibroIva';
+import { validarLibroMayorResuelto } from '../../utils/validarLibroMayor';
 
 const NOMBRES_PLANTILLAS: Record<TipoPlantillaEjercicio, string> = {
   LIBRO_DIARIO: 'Libro diario',
@@ -59,24 +72,26 @@ export default function ResolucionEjercicioDocente() {
   }, [data]);
 
   if (!idEjercicio || Number.isNaN(idEjercicio)) {
-    return (
-      <div className="p-6 text-sm text-red-600">El identificador del ejercicio no es válido.</div>
-    );
+    return <div className="text-sm text-red-600">El identificador del ejercicio no es válido.</div>;
   }
 
   if (isLoading) {
-    return <div className="p-6 text-sm text-gray-500">Cargando resolución...</div>;
+    return <div className="text-sm text-gray-500">Cargando resolución...</div>;
   }
 
   if (isError || !data) {
     return (
-      <div className="p-6 text-sm text-red-600">No se pudo cargar la resolución del ejercicio.</div>
+      <div className="text-sm text-red-600">No se pudo cargar la resolución del ejercicio.</div>
     );
   }
 
   const tipoActivo = tipoSeleccionado ?? data.plantillas[0]?.tipo ?? null;
 
   const plantillaActiva = data.plantillas.find((plantilla) => plantilla.tipo === tipoActivo);
+
+  // ==========================================================================
+  // Libro Diario
+  // ==========================================================================
 
   const libroDiario = data.plantillas.find((plantilla) => plantilla.tipo === 'LIBRO_DIARIO');
 
@@ -86,10 +101,44 @@ export default function ResolucionEjercicioDocente() {
     asientos: [],
   };
 
+  // ==========================================================================
+  // Libro Mayor
+  // ==========================================================================
+
+  const libroMayor = data.plantillas.find((plantilla) => plantilla.tipo === 'LIBRO_MAYOR');
+
+  const contenidoInicialLibroMayor = (libroMayor?.contenido as ContenidoLibroMayor | undefined) ?? {
+    cuentas: [],
+  };
+
+  // ==========================================================================
+  // Libro IVA
+  // ==========================================================================
+
+  const libroIva = data.plantillas.find((plantilla) => plantilla.tipo === 'LIBRO_IVA');
+
+  const contenidoInicialLibroIva = (libroIva?.contenido as ContenidoLibroIva | undefined) ?? {
+    compras: [],
+    ventas: [],
+    resultado: null,
+  };
+
+  // ==========================================================================
+  // Hoja de Trabajo
+  // ==========================================================================
+
+  const hojaTrabajo = data.plantillas.find((plantilla) => plantilla.tipo === 'HOJA_TRABAJO');
+
+  const contenidoInicialHojaTrabajo = (hojaTrabajo?.contenido as
+    | ContenidoHojaTrabajo
+    | undefined) ?? {
+    filas: [],
+  };
+
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-3">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-1.5 text-xs text-gray-500">
         <Link to="/docente" className="hover:text-green-700">
           Inicio
         </Link>
@@ -106,23 +155,23 @@ export default function ResolucionEjercicioDocente() {
       </div>
 
       {/* Encabezado */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold leading-tight text-gray-900">
             Continuar resolución del ejercicio
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-0.5 text-sm leading-tight text-gray-500">
             Completa la solución modelo del ejercicio utilizando las plantillas contables.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-            <CalendarDays size={17} className="text-gray-500" />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3">
+            <CalendarDays size={16} className="shrink-0 text-gray-500" />
 
-            <div>
-              <p className="text-[11px] text-gray-500">Fecha límite</p>
+            <div className="leading-tight">
+              <p className="text-[10px] text-gray-500">Fecha límite</p>
 
               <p className="text-xs font-medium text-gray-800">
                 {formatearFecha(data.fechaLimite)}
@@ -130,45 +179,51 @@ export default function ResolucionEjercicioDocente() {
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            label="Ver enunciado completo"
+            icon={<ExternalLink size={14} />}
             onClick={() => setEnunciadoAbierto(true)}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Ver enunciado completo
-            <ExternalLink size={15} />
-          </button>
+            className="!h-10 !rounded-lg !px-4 !py-0 !text-sm !font-medium"
+          />
         </div>
       </div>
 
       {/* Resumen + progreso */}
-      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <p className="font-semibold text-gray-900">{data.titulo}</p>
+      <div className="grid gap-3 lg:grid-cols-[240px_1fr]">
+        <div className="flex min-h-[72px] flex-col justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 shadow-sm">
+          <p className="truncate text-sm font-semibold text-gray-900" title={data.titulo}>
+            {data.titulo}
+          </p>
 
-          <div className="mt-3 flex items-center gap-2">
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] text-gray-600">
               Resolución
             </span>
 
-            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+            <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-medium text-green-700">
               {data.estado}
             </span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <p className="mb-3 text-sm font-semibold text-gray-900">Progreso de resolución</p>
+        <div className="flex min-h-[72px] flex-col justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xs font-semibold text-gray-900">Progreso de resolución</p>
 
-          <div className="mb-3 flex items-center justify-between text-xs text-gray-500">
-            <span>
-              {progreso.resueltas} de {progreso.total} plantillas completadas
-            </span>
+            <div className="flex items-center gap-2 text-[11px] text-gray-500">
+              <span>
+                {progreso.resueltas} de {progreso.total} completadas
+              </span>
 
-            <span>{Math.round(progreso.porcentaje)}%</span>
+              <span className="font-semibold text-gray-700">
+                {Math.round(progreso.porcentaje)}%
+              </span>
+            </div>
           </div>
 
-          <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-200">
             <div
               className="h-full bg-green-700 transition-all"
               style={{
@@ -177,12 +232,25 @@ export default function ResolucionEjercicioDocente() {
             />
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-4">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
             {data.plantillas.map((plantilla) => (
-              <div key={plantilla.idEjercicioPlantilla} className="text-xs">
-                <p className="font-medium text-gray-800">{NOMBRES_PLANTILLAS[plantilla.tipo]}</p>
+              <div
+                key={plantilla.idEjercicioPlantilla}
+                className="flex items-center gap-1 text-[10px] leading-none"
+              >
+                <span className="font-medium text-gray-700">
+                  {NOMBRES_PLANTILLAS[plantilla.tipo]}
+                </span>
 
-                <p className="text-gray-500">{plantilla.estado}</p>
+                <span className="text-gray-400">·</span>
+
+                <span
+                  className={
+                    plantilla.estado === 'RESUELTO' ? 'font-medium text-green-700' : 'text-gray-500'
+                  }
+                >
+                  {plantilla.estado}
+                </span>
               </div>
             ))}
           </div>
@@ -200,7 +268,7 @@ export default function ResolucionEjercicioDocente() {
                 key={plantilla.idEjercicioPlantilla}
                 type="button"
                 onClick={() => setTipoSeleccionado(plantilla.tipo)}
-                className={`border-b-2 px-1 pb-3 text-sm font-medium ${
+                className={`border-b-2 px-1 pb-2 pt-0.5 text-sm font-medium ${
                   activa
                     ? 'border-green-700 text-green-700'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -213,6 +281,7 @@ export default function ResolucionEjercicioDocente() {
         </div>
       </div>
 
+      {/* Libro Diario */}
       {plantillaActiva?.tipo === 'LIBRO_DIARIO' && (
         <ResolucionLibroDiario
           key={libroDiario?.idEjercicioPlantilla ?? 'libro-diario'}
@@ -222,22 +291,45 @@ export default function ResolucionEjercicioDocente() {
         />
       )}
 
-      {plantillaActiva && plantillaActiva.tipo !== 'LIBRO_DIARIO' && (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center text-sm text-gray-500">
-          La plantilla <strong>{NOMBRES_PLANTILLAS[plantillaActiva.tipo]}</strong> será implementada
-          en el siguiente paso.
-        </div>
+      {/* Libro Mayor */}
+      {plantillaActiva?.tipo === 'LIBRO_MAYOR' && (
+        <ResolucionLibroMayor
+          key={libroMayor?.idEjercicioPlantilla ?? 'libro-mayor'}
+          idEjercicio={idEjercicio}
+          contenidoInicial={contenidoInicialLibroMayor}
+          estadoInicial={libroMayor?.estado}
+        />
+      )}
+
+      {/* Libro IVA */}
+      {plantillaActiva?.tipo === 'LIBRO_IVA' && (
+        <ResolucionLibroIva
+          key={libroIva?.idEjercicioPlantilla ?? 'libro-iva'}
+          idEjercicio={idEjercicio}
+          contenidoInicial={contenidoInicialLibroIva}
+          estadoInicial={libroIva?.estado}
+        />
+      )}
+
+      {/* Hoja de Trabajo */}
+      {plantillaActiva?.tipo === 'HOJA_TRABAJO' && (
+        <ResolucionHojaTrabajo
+          key={hojaTrabajo?.idEjercicioPlantilla ?? 'hoja-trabajo'}
+          idEjercicio={idEjercicio}
+          contenidoInicial={contenidoInicialHojaTrabajo}
+          estadoInicial={hojaTrabajo?.estado}
+        />
       )}
 
       {/* Volver */}
-      <div className="border-t border-gray-200 pt-4">
-        <button
+      <div className="border-t border-gray-200 pt-3">
+        <Button
           type="button"
+          variant="outline"
+          label="← Volver a Mis ejercicios"
           onClick={() => navigate('/docente/ejercicios')}
-          className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          ← Volver a Mis ejercicios
-        </button>
+          className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+        />
       </div>
 
       {/* Modal del enunciado */}
@@ -276,6 +368,10 @@ export default function ResolucionEjercicioDocente() {
     </div>
   );
 }
+
+// ============================================================================
+// Resolución Libro Diario
+// ============================================================================
 
 interface ResolucionLibroDiarioProps {
   idEjercicio: number;
@@ -338,7 +434,6 @@ function ResolucionLibroDiario({
 
   return (
     <>
-      {/* Aviso de cambios sin guardar */}
       {hayCambiosSinGuardar && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
           <p className="text-sm font-medium text-amber-800">
@@ -355,7 +450,6 @@ function ResolucionLibroDiario({
 
       <LibroDiarioEditor contenido={contenidoDiario} onChange={cambiarContenidoDiario} />
 
-      {/* Errores de validación */}
       {erroresLibroDiario.length > 0 && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-semibold text-red-800">
@@ -370,22 +464,21 @@ function ResolucionLibroDiario({
         </div>
       )}
 
-      {/* Acciones */}
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4">
         {libroDiarioResuelto ? (
           hayCambiosSinGuardar ? (
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-amber-700">Cambios sin guardar</span>
 
-              <button
+              <Button
                 type="button"
+                variant="solid"
+                label="Guardar cambios"
+                icon={<Save size={16} />}
                 disabled={guardarResolucion.isPending}
                 onClick={() => void guardarLibroDiario('EN_EDICION')}
-                className="flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50"
-              >
-                <Save size={16} />
-                Guardar cambios
-              </button>
+                className="!rounded-lg !px-4 !py-2 !text-sm"
+              />
             </div>
           ) : (
             <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
@@ -394,24 +487,468 @@ function ResolucionLibroDiario({
           )
         ) : (
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              label="Guardar borrador"
+              icon={<Save size={16} />}
               disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
               onClick={() => void guardarLibroDiario('EN_EDICION')}
-              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Save size={16} />
-              Guardar borrador
-            </button>
+              className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+            />
 
-            <button
+            <Button
               type="button"
+              variant="solid"
+              label="✓ Marcar como resuelto"
               disabled={guardarResolucion.isPending}
               onClick={() => void guardarLibroDiario('RESUELTO')}
-              className="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50"
-            >
-              ✓ Marcar como resuelto
-            </button>
+              className="!rounded-lg !px-4 !py-2 !text-sm"
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ============================================================================
+// Resolución Libro Mayor
+// ============================================================================
+
+interface ResolucionLibroMayorProps {
+  idEjercicio: number;
+  contenidoInicial: ContenidoLibroMayor;
+  estadoInicial?: string;
+}
+
+function ResolucionLibroMayor({
+  idEjercicio,
+  contenidoInicial,
+  estadoInicial,
+}: ResolucionLibroMayorProps) {
+  const guardarResolucion = useGuardarResolucionEjercicio();
+
+  const [contenidoMayor, setContenidoMayor] = useState<ContenidoLibroMayor>(contenidoInicial);
+
+  const [erroresLibroMayor, setErroresLibroMayor] = useState<string[]>([]);
+
+  const [hayCambiosSinGuardar, setHayCambiosSinGuardar] = useState(false);
+
+  const libroMayorResuelto = estadoInicial === 'RESUELTO';
+
+  function cambiarContenidoMayor(nuevoContenido: ContenidoLibroMayor) {
+    setContenidoMayor(nuevoContenido);
+    setHayCambiosSinGuardar(true);
+
+    if (erroresLibroMayor.length > 0) {
+      setErroresLibroMayor([]);
+    }
+  }
+
+  async function guardarLibroMayor(estado: 'EN_EDICION' | 'RESUELTO') {
+    if (estado === 'RESUELTO') {
+      const errores = validarLibroMayorResuelto(contenidoMayor);
+
+      if (errores.length > 0) {
+        setErroresLibroMayor(
+          errores.map((error) => {
+            if (error.cuenta && error.movimiento) {
+              return `Cuenta N° ${error.cuenta}, movimiento N° ${error.movimiento}: ${error.mensaje}`;
+            }
+
+            if (error.cuenta) {
+              return `Cuenta N° ${error.cuenta}: ${error.mensaje}`;
+            }
+
+            return error.mensaje;
+          })
+        );
+
+        return;
+      }
+    }
+
+    setErroresLibroMayor([]);
+
+    await guardarResolucion.mutateAsync({
+      idEjercicio,
+      datos: {
+        tipo: 'LIBRO_MAYOR',
+        estado,
+        contenido: contenidoMayor,
+      },
+    });
+
+    setHayCambiosSinGuardar(false);
+  }
+
+  return (
+    <>
+      {hayCambiosSinGuardar && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-800">
+            Hay cambios sin guardar en el Libro Mayor.
+          </p>
+
+          {libroMayorResuelto && (
+            <p className="mt-1 text-xs text-amber-700">
+              La versión guardada continúa marcada como resuelta hasta que guardes estos cambios.
+            </p>
+          )}
+        </div>
+      )}
+
+      <LibroMayorEditor contenido={contenidoMayor} onChange={cambiarContenidoMayor} />
+
+      {erroresLibroMayor.length > 0 && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-800">
+            No se puede marcar el Libro Mayor como resuelto.
+          </p>
+
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+            {erroresLibroMayor.map((error, index) => (
+              <li key={`${error}-${index}`}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4">
+        {libroMayorResuelto ? (
+          hayCambiosSinGuardar ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-amber-700">Cambios sin guardar</span>
+
+              <Button
+                type="button"
+                variant="solid"
+                label="Guardar cambios"
+                icon={<Save size={16} />}
+                disabled={guardarResolucion.isPending}
+                onClick={() => void guardarLibroMayor('EN_EDICION')}
+                className="!rounded-lg !px-4 !py-2 !text-sm"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
+              ✓ Libro Mayor resuelto
+            </div>
+          )
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              label="Guardar borrador"
+              icon={<Save size={16} />}
+              disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+              onClick={() => void guardarLibroMayor('EN_EDICION')}
+              className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+            />
+
+            <Button
+              type="button"
+              variant="solid"
+              label="✓ Marcar como resuelto"
+              disabled={guardarResolucion.isPending}
+              onClick={() => void guardarLibroMayor('RESUELTO')}
+              className="!rounded-lg !px-4 !py-2 !text-sm"
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ============================================================================
+// Resolución Libro IVA
+// ============================================================================
+
+interface ResolucionLibroIvaProps {
+  idEjercicio: number;
+  contenidoInicial: ContenidoLibroIva;
+  estadoInicial?: string;
+}
+
+function ResolucionLibroIva({
+  idEjercicio,
+  contenidoInicial,
+  estadoInicial,
+}: ResolucionLibroIvaProps) {
+  const guardarResolucion = useGuardarResolucionEjercicio();
+
+  const [contenidoIva, setContenidoIva] = useState<ContenidoLibroIva>(contenidoInicial);
+
+  const [erroresLibroIva, setErroresLibroIva] = useState<string[]>([]);
+
+  const [hayCambiosSinGuardar, setHayCambiosSinGuardar] = useState(false);
+
+  const libroIvaResuelto = estadoInicial === 'RESUELTO';
+
+  function cambiarContenidoIva(nuevoContenido: ContenidoLibroIva) {
+    setContenidoIva(nuevoContenido);
+    setHayCambiosSinGuardar(true);
+
+    if (erroresLibroIva.length > 0) {
+      setErroresLibroIva([]);
+    }
+  }
+
+  async function guardarLibroIva(estado: 'EN_EDICION' | 'RESUELTO') {
+    if (estado === 'RESUELTO') {
+      const errores = validarLibroIvaResuelto(contenidoIva);
+
+      if (errores.length > 0) {
+        setErroresLibroIva(
+          errores.map((error) => {
+            if (error.seccion && error.comprobante) {
+              const seccion = error.seccion === 'COMPRA' ? 'Compra' : 'Venta';
+
+              return `${seccion} N° ${error.comprobante}: ${error.mensaje}`;
+            }
+
+            return error.mensaje;
+          })
+        );
+
+        return;
+      }
+    }
+
+    setErroresLibroIva([]);
+
+    await guardarResolucion.mutateAsync({
+      idEjercicio,
+      datos: {
+        tipo: 'LIBRO_IVA',
+        estado,
+        contenido: contenidoIva,
+      },
+    });
+
+    setHayCambiosSinGuardar(false);
+  }
+
+  return (
+    <>
+      {hayCambiosSinGuardar && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-800">
+            Hay cambios sin guardar en el Libro IVA.
+          </p>
+
+          {libroIvaResuelto && (
+            <p className="mt-1 text-xs text-amber-700">
+              La versión guardada continúa marcada como resuelta hasta que guardes estos cambios.
+            </p>
+          )}
+        </div>
+      )}
+
+      <LibroIvaEditor contenido={contenidoIva} onChange={cambiarContenidoIva} />
+
+      {erroresLibroIva.length > 0 && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-800">
+            No se puede marcar el Libro IVA como resuelto.
+          </p>
+
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+            {erroresLibroIva.map((error, index) => (
+              <li key={`${error}-${index}`}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4">
+        {libroIvaResuelto ? (
+          hayCambiosSinGuardar ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-amber-700">Cambios sin guardar</span>
+
+              <Button
+                type="button"
+                variant="solid"
+                label="Guardar cambios"
+                icon={<Save size={16} />}
+                disabled={guardarResolucion.isPending}
+                onClick={() => void guardarLibroIva('EN_EDICION')}
+                className="!rounded-lg !px-4 !py-2 !text-sm"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
+              ✓ Libro IVA resuelto
+            </div>
+          )
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              label="Guardar borrador"
+              icon={<Save size={16} />}
+              disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+              onClick={() => void guardarLibroIva('EN_EDICION')}
+              className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+            />
+
+            <Button
+              type="button"
+              variant="solid"
+              label="✓ Marcar como resuelto"
+              disabled={guardarResolucion.isPending}
+              onClick={() => void guardarLibroIva('RESUELTO')}
+              className="!rounded-lg !px-4 !py-2 !text-sm"
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ============================================================================
+// Resolución Hoja de Trabajo
+// ============================================================================
+
+interface ResolucionHojaTrabajoProps {
+  idEjercicio: number;
+  contenidoInicial: ContenidoHojaTrabajo;
+  estadoInicial?: string;
+}
+
+function ResolucionHojaTrabajo({
+  idEjercicio,
+  contenidoInicial,
+  estadoInicial,
+}: ResolucionHojaTrabajoProps) {
+  const guardarResolucion = useGuardarResolucionEjercicio();
+
+  const [contenidoHojaTrabajo, setContenidoHojaTrabajo] =
+    useState<ContenidoHojaTrabajo>(contenidoInicial);
+
+  const [erroresHojaTrabajo, setErroresHojaTrabajo] = useState<string[]>([]);
+
+  const [hayCambiosSinGuardar, setHayCambiosSinGuardar] = useState(false);
+
+  const hojaTrabajoResuelta = estadoInicial === 'RESUELTO';
+
+  function cambiarContenidoHojaTrabajo(nuevoContenido: ContenidoHojaTrabajo) {
+    setContenidoHojaTrabajo(nuevoContenido);
+    setHayCambiosSinGuardar(true);
+
+    if (erroresHojaTrabajo.length > 0) {
+      setErroresHojaTrabajo([]);
+    }
+  }
+
+  async function guardarHojaTrabajo(estado: 'EN_EDICION' | 'RESUELTO') {
+    if (estado === 'RESUELTO') {
+      const errores = validarHojaTrabajoResuelta(contenidoHojaTrabajo);
+
+      if (errores.length > 0) {
+        setErroresHojaTrabajo(
+          errores.map((error) =>
+            error.fila ? `Fila N° ${error.fila}: ${error.mensaje}` : error.mensaje
+          )
+        );
+
+        return;
+      }
+    }
+
+    setErroresHojaTrabajo([]);
+
+    await guardarResolucion.mutateAsync({
+      idEjercicio,
+      datos: {
+        tipo: 'HOJA_TRABAJO',
+        estado,
+        contenido: contenidoHojaTrabajo,
+      },
+    });
+
+    setHayCambiosSinGuardar(false);
+  }
+
+  return (
+    <>
+      {hayCambiosSinGuardar && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-800">
+            Hay cambios sin guardar en la Hoja de Trabajo.
+          </p>
+
+          {hojaTrabajoResuelta && (
+            <p className="mt-1 text-xs text-amber-700">
+              La versión guardada continúa marcada como resuelta hasta que guardes estos cambios.
+            </p>
+          )}
+        </div>
+      )}
+
+      <HojaTrabajoEditor contenido={contenidoHojaTrabajo} onChange={cambiarContenidoHojaTrabajo} />
+
+      {erroresHojaTrabajo.length > 0 && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-800">
+            No se puede marcar la Hoja de Trabajo como resuelta.
+          </p>
+
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+            {erroresHojaTrabajo.map((error, index) => (
+              <li key={`${error}-${index}`}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4">
+        {hojaTrabajoResuelta ? (
+          hayCambiosSinGuardar ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-amber-700">Cambios sin guardar</span>
+
+              <Button
+                type="button"
+                variant="solid"
+                label="Guardar cambios"
+                icon={<Save size={16} />}
+                disabled={guardarResolucion.isPending}
+                onClick={() => void guardarHojaTrabajo('EN_EDICION')}
+                className="!rounded-lg !px-4 !py-2 !text-sm"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
+              ✓ Hoja de Trabajo resuelta
+            </div>
+          )
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              label="Guardar borrador"
+              icon={<Save size={16} />}
+              disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+              onClick={() => void guardarHojaTrabajo('EN_EDICION')}
+              className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+            />
+
+            <Button
+              type="button"
+              variant="solid"
+              label="✓ Marcar como resuelto"
+              disabled={guardarResolucion.isPending}
+              onClick={() => void guardarHojaTrabajo('RESUELTO')}
+              className="!rounded-lg !px-4 !py-2 !text-sm"
+            />
           </div>
         )}
       </div>

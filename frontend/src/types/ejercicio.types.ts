@@ -181,6 +181,10 @@ export interface EditarEjercicioRequest {
   plantillas?: TipoPlantillaEjercicio[];
 }
 
+// ============================================================================
+// Libro Diario
+// ============================================================================
+
 export type MovimientoContable = 'A+' | 'A-' | 'P+' | 'P-' | 'PN+' | 'PN-' | 'R+' | 'R-';
 
 export interface LineaLibroDiario {
@@ -203,11 +207,120 @@ export interface ContenidoLibroDiario {
   asientos: AsientoLibroDiario[];
 }
 
+// ============================================================================
+// Libro Mayor
+// ============================================================================
+
+export type TipoSaldoMayor = 'DEUDOR' | 'ACREEDOR';
+
+export interface MovimientoLibroMayor {
+  fecha: string;
+  concepto: string;
+  debe: number;
+  haber: number;
+  saldo: number;
+}
+
+export interface CuentaLibroMayor {
+  idCuenta: number;
+  cuenta: string;
+  movimientos: MovimientoLibroMayor[];
+  saldoFinal: number;
+  tipoSaldo: TipoSaldoMayor | null;
+}
+
+export interface ContenidoLibroMayor {
+  cuentas: CuentaLibroMayor[];
+}
+
+// ============================================================================
+// Libro IVA
+// ============================================================================
+
+export type TipoResultadoIva = 'A_FAVOR_CONTRIBUYENTE' | 'A_PAGAR';
+
+export interface ComprobanteIva {
+  fecha: string;
+  comprobante: number;
+  nombre: string;
+  netoGravado: number;
+  iva: number;
+  total: number;
+}
+
+export interface ContenidoLibroIva {
+  compras: ComprobanteIva[];
+  ventas: ComprobanteIva[];
+  resultado: TipoResultadoIva | null;
+}
+
+export interface LiquidacionIva {
+  totalNetoCompras: number;
+  totalIvaCreditoFiscal: number;
+  totalCompras: number;
+  totalNetoVentas: number;
+  totalIvaDebitoFiscal: number;
+  totalVentas: number;
+  saldoIva: number;
+  resultadoCalculado: TipoResultadoIva;
+}
+
+// ============================================================================
+// Hoja de Trabajo
+// ============================================================================
+
+export interface ParSaldosHojaTrabajo {
+  deudor: number;
+  acreedor: number;
+}
+
+export interface ParAjustesHojaTrabajo {
+  debe: number;
+  haber: number;
+}
+
+export interface ParSaldosAjustadosHojaTrabajo {
+  deudor: number;
+  acreedor: number;
+}
+
+export interface ParPatrimonialHojaTrabajo {
+  activo: number;
+  pasivoMasPn: number;
+}
+
+export interface ParResultadosHojaTrabajo {
+  negativo: number;
+  positivo: number;
+}
+
+export interface FilaHojaTrabajo {
+  idCuenta: number;
+  cuenta: string;
+  saldosSinAjustar: ParSaldosHojaTrabajo;
+  ajustes: ParAjustesHojaTrabajo;
+  saldosAjustados: ParSaldosAjustadosHojaTrabajo;
+  estadoPatrimonial: ParPatrimonialHojaTrabajo;
+  estadoResultados: ParResultadosHojaTrabajo;
+}
+
+export interface ContenidoHojaTrabajo {
+  filas: FilaHojaTrabajo[];
+}
+
+// ============================================================================
+// Contenido de las plantillas de resolución
+// ============================================================================
+
 /**
- * Las estructuras específicas de Libro Mayor, Libro IVA y Hoja de Trabajo
- * se incorporarán al implementar cada una de esas plantillas.
+ * Todas las plantillas de resolución cuentan con una estructura
+ * específica de contenido.
  */
-export type ContenidoResolucionPlantilla = ContenidoLibroDiario | unknown;
+export type ContenidoResolucionPlantilla =
+  | ContenidoLibroDiario
+  | ContenidoLibroMayor
+  | ContenidoLibroIva
+  | ContenidoHojaTrabajo;
 
 export interface PlantillaResolucionDocente {
   idEjercicioPlantilla: number;
