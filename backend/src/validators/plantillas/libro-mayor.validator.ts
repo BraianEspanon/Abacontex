@@ -134,9 +134,8 @@ export function validarBalanceLibroMayor(contenido: unknown): void {
     }
 
     // Validar líneas del Debe
-    for (let i = 0; i < c.debe.length; i++) {
-      const linea = c.debe[i];
-      const nroFila = i + 1;
+    for (const [index, linea] of c.debe.entries()) {
+      const nroFila = index + 1;
 
       if (linea.monto <= 0) {
         throw new BadRequestError(
@@ -152,9 +151,8 @@ export function validarBalanceLibroMayor(contenido: unknown): void {
     }
 
     // Validar líneas del Haber
-    for (let i = 0; i < c.haber.length; i++) {
-      const linea = c.haber[i];
-      const nroFila = i + 1;
+    for (const [index, linea] of c.haber.entries()) {
+      const nroFila = index + 1;
 
       if (linea.monto <= 0) {
         throw new BadRequestError(
