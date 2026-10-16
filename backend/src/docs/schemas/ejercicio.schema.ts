@@ -736,8 +736,11 @@
  *           items:
  *             $ref: '#/components/schemas/AsientoLibroDiarioRequest'
  *
- *     MovimientoMayorRequest:
+ *     LineaMayorTRequest:
  *       type: object
+ *       required:
+ *         - idContraCuenta
+ *         - contraCuenta
  *       properties:
  *         fecha:
  *           type: string
@@ -745,26 +748,21 @@
  *           nullable: true
  *           example: '02/05/2026'
  *           description: Fecha en formato DD/MM/AAAA (opcional).
- *         concepto:
+ *         idContraCuenta:
+ *           type: integer
+ *           minimum: 1
+ *           example: 2
+ *           description: ID de la contracuenta seleccionada del plan de cuentas.
+ *         contraCuenta:
  *           type: string
- *           example: Asiento N° 1
- *           default: ''
- *         debe:
+ *           example: Ventas
+ *           description: Nombre de la contracuenta contable.
+ *         monto:
  *           type: number
  *           minimum: 0
  *           default: 0
  *           example: 150000
- *         haber:
- *           type: number
- *           minimum: 0
- *           default: 0
- *           example: 0
- *         saldo:
- *           type: number
- *           minimum: 0
- *           default: 0
- *           example: 150000
- *           description: Saldo acumulado del movimiento.
+ *           description: Monto debitado o acreditado en este lado de la T.
  *
  *     CuentaMayorRequest:
  *       type: object
@@ -780,22 +778,22 @@
  *         cuenta:
  *           type: string
  *           example: Caja
- *         movimientos:
+ *         debe:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/MovimientoMayorRequest'
- *         saldoFinal:
- *           type: number
- *           minimum: 0
- *           default: 0
- *           example: 150000
- *           description: Saldo final acumulado de la cuenta (obligatorio y coincidente al marcar como RESUELTO).
+ *             $ref: '#/components/schemas/LineaMayorTRequest'
+ *           description: Movimientos registrados en la columna del Debe.
+ *         haber:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/LineaMayorTRequest'
+ *           description: Movimientos registrados en la columna del Haber.
  *         tipoSaldo:
  *           type: string
- *           enum: [DEUDOR, ACREEDOR]
+ *           enum: [DEUDOR, ACREEDOR, SALDADA]
  *           nullable: true
  *           example: DEUDOR
- *           description: Tipo de saldo resultante (obligatorio al marcar como RESUELTO).
+ *           description: Interpretación del tipo de saldo (obligatorio al marcar como RESUELTO).
  *
  *     LibroMayorContenidoRequest:
  *       type: object
