@@ -7,10 +7,12 @@ import {
 } from '../validators/notificacion.validator';
 
 import { NotFoundError } from '../errors/not-found.error';
+import { TipoNotificacion } from '../constants/notificacion.constants';
 
 export interface CrearNotificacionData {
   usuarioId: string;
   ejercicioId?: number | null;
+  tipo: TipoNotificacion;
   titulo: string;
   mensaje: string;
 }

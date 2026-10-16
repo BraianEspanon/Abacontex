@@ -53,6 +53,7 @@ export async function notificarNuevoEjercicioAlumnos(
     (usuarioId) => ({
       usuarioId,
       ejercicioId,
+      tipo: 'EJERCICIO_NUEVO',
       titulo,
       mensaje,
     })
