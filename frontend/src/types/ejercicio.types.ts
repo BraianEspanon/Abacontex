@@ -351,6 +351,7 @@ export interface ResolucionDocenteResponse {
   enunciado: string;
   fechaLimite: string;
   estado: EstadoResolucionDocente;
+  curso: CursoEjercicio;
   plantillas: PlantillaResolucionDocente[];
   createdAt?: string;
   updatedAt?: string;

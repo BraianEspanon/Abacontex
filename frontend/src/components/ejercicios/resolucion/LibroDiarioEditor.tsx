@@ -1,4 +1,4 @@
-import { CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle2, CircleAlert, Plus, Trash2 } from 'lucide-react';
 
 import Button from '../../ui/Button';
 
@@ -217,7 +217,24 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
           0
         );
 
-        const balanceado = asiento.lineas.length > 0 && Math.abs(totalDebe - totalHaber) <= 0.01;
+        /**
+         * Un asiento se considera con movimientos únicamente cuando existe
+         * al menos un importe mayor a cero.
+         *
+         * Esto evita mostrar "Balanceado" cuando todas las líneas están vacías
+         * y los totales son $0 / $0.
+         */
+        const tieneMovimientos = asiento.lineas.some(
+          (linea) => Number(linea.debe || 0) > 0 || Number(linea.haber || 0) > 0
+        );
+
+        const balanceado = tieneMovimientos && Math.abs(totalDebe - totalHaber) <= 0.01;
+
+        const estadoBalance = !tieneMovimientos
+          ? 'INCOMPLETO'
+          : balanceado
+            ? 'BALANCEADO'
+            : 'SIN_BALANCEAR';
 
         return (
           <section
@@ -267,15 +284,25 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
                 />
               </div>
 
-              <span
-                className={`mb-1 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
-                  balanceado ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                }`}
-              >
-                {balanceado && <CheckCircle2 size={13} />}
+              {estadoBalance === 'BALANCEADO' && (
+                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                  <CheckCircle2 size={13} />
+                  Balanceado
+                </span>
+              )}
 
-                {balanceado ? 'Balanceado' : 'Sin balancear'}
-              </span>
+              {estadoBalance === 'SIN_BALANCEAR' && (
+                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                  <CircleAlert size={13} />
+                  Sin balancear
+                </span>
+              )}
+
+              {estadoBalance === 'INCOMPLETO' && (
+                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500">
+                  Incompleto
+                </span>
+              )}
 
               <button
                 type="button"
