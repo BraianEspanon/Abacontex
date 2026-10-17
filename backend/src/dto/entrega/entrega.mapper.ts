@@ -1,6 +1,8 @@
 import {
+  EjercicioConPlantillasEntity,
   EjercicioDetalleAlumnoEntity,
   EjercicioTableroAlumnoEntity,
+  EntregaConResolucionesEntity,
 } from '../../repositories/entrega.repository';
 import { EstadoEntregaAlumno } from '../../constants/entrega.constants';
 import {
@@ -8,6 +10,7 @@ import {
   DetalleEjercicioAlumnoResponseDTO,
   ItemTableroEntregaDTO,
   ListadoEntregasAlumnoResponseDTO,
+  ResolucionAlumnoResponseDTO,
   ResumenTableroEntregasDTO,
 } from './entrega.dto';
 
@@ -177,4 +180,52 @@ export function toDetalleEjercicioAlumnoResponse(
     updatedAt: ejercicio.updatedAt.toISOString(),
   };
 }
+
+export function toResolucionAlumnoResponse(
+  ejercicio: EjercicioConPlantillasEntity,
+  entrega: EntregaConResolucionesEntity,
+  fechaReferencia: Date = new Date()
+): ResolucionAlumnoResponseDTO {
+  const resoluciones = entrega.resoluciones ?? [];
+
+  const plantillas = ejercicio.plantillas.map((p) => {
+    const res = resoluciones.find((r) => r.ejercicioPlantillaId === p.idEjercicioPlantilla);
+    return {
+      idEjercicioPlantilla: p.idEjercicioPlantilla,
+      tipo: p.tipo,
+      estado: res?.estado ?? 'PENDIENTE',
+      contenido: res?.contenido ?? null,
+    };
+  });
+
+  return {
+    idEntrega: entrega.idEntrega,
+    idEjercicio: ejercicio.idEjercicio,
+    titulo: ejercicio.titulo,
+    enunciado: ejercicio.enunciado,
+    fechaLimite: ejercicio.fechaLimite.toISOString(),
+    bloqueado: Boolean(entrega.fechaEntrega),
+    fechaEntrega: entrega.fechaEntrega ? entrega.fechaEntrega.toISOString() : null,
+    estado: calcularEstadoEntregaAlumno(
+      {
+        fechaLimite: ejercicio.fechaLimite,
+        entregas: [
+          {
+            fechaEntrega: entrega.fechaEntrega,
+            resoluciones: entrega.resoluciones,
+            correccion: entrega.correccion,
+          },
+        ],
+      },
+      fechaReferencia
+    ),
+    curso: {
+      idCurso: ejercicio.curso.idCurso,
+      nombreCurso: ejercicio.curso.nombreCurso,
+      año: ejercicio.curso.año,
+    },
+    plantillas,
+  };
+}
+
 

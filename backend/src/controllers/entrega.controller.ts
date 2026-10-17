@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import * as entregaService from '../services/entrega.service';
 
 import {
-  obtenerDetalleEntregaSchema,
+  ejercicioIdParamSchema,
   obtenerEntregasAlumnoQuerySchema,
 } from '../validators/entrega.validator';
 
@@ -24,7 +24,7 @@ export async function obtenerFiltrosTablero(req: Request, res: Response) {
 }
 
 export async function obtenerDetalleEjercicio(req: Request, res: Response) {
-  const { params } = obtenerDetalleEntregaSchema.parse({
+  const { params } = ejercicioIdParamSchema.parse({
     params: req.params,
   });
 
@@ -33,4 +33,12 @@ export async function obtenerDetalleEjercicio(req: Request, res: Response) {
   res.status(200).json(resultado);
 }
 
+export async function consultarResolucion(req: Request, res: Response) {
+  const { params } = ejercicioIdParamSchema.parse({
+    params: req.params,
+  });
 
+  const resultado = await entregaService.consultarResolucionAlumno(req.user!, params.ejercicioId);
+
+  res.status(200).json(resultado);
+}

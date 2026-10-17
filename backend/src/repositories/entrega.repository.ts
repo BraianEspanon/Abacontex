@@ -258,4 +258,84 @@ export async function findDetalleEjercicioParaAlumno(
   });
 }
 
+export type EntregaConResolucionesEntity = Prisma.EntregaEjercicioGetPayload<{
+  include: {
+    resoluciones: true;
+    correccion: true;
+  };
+}>;
 
+export type EjercicioConPlantillasEntity = Prisma.EjercicioGetPayload<{
+  include: {
+    curso: {
+      select: {
+        idCurso: true;
+        nombreCurso: true;
+        año: true;
+      };
+    };
+    plantillas: {
+      select: {
+        idEjercicioPlantilla: true;
+        tipo: true;
+      };
+    };
+  };
+}>;
+
+export async function findOrCreateEntrega(
+  ejercicioId: number,
+  alumnoId: string,
+  tx?: Prisma.TransactionClient
+): Promise<EntregaConResolucionesEntity> {
+  const db = getDbClient(tx);
+
+  return db.entregaEjercicio.upsert({
+    where: {
+      ejercicioId_alumnoId: {
+        ejercicioId,
+        alumnoId,
+      },
+    },
+    create: {
+      ejercicioId,
+      alumnoId,
+    },
+    update: {},
+    include: {
+      resoluciones: true,
+      correccion: true,
+    },
+  });
+}
+
+export async function findEjercicioConPlantillas(
+  idEjercicio: number,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioConPlantillasEntity | null> {
+  const db = getDbClient(tx);
+
+  return db.ejercicio.findUnique({
+    where: {
+      idEjercicio,
+    },
+    include: {
+      curso: {
+        select: {
+          idCurso: true,
+          nombreCurso: true,
+          año: true,
+        },
+      },
+      plantillas: {
+        select: {
+          idEjercicioPlantilla: true,
+          tipo: true,
+        },
+        orderBy: {
+          idEjercicioPlantilla: 'asc',
+        },
+      },
+    },
+  });
+}

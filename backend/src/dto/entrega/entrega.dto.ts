@@ -81,3 +81,24 @@ export interface DetalleEjercicioAlumnoResponseDTO {
   updatedAt: string;
 }
 
+export interface ResolucionAlumnoPlantillaItemDTO {
+  idEjercicioPlantilla: number;
+  tipo: string;
+  estado: string;
+  contenido: unknown | null;
+}
+
+export interface ResolucionAlumnoResponseDTO {
+  idEntrega: number;
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  fechaLimite: string;
+  bloqueado: boolean;
+  fechaEntrega: string | null;
+  estado: EstadoEntregaAlumno;
+  curso: CursoResumenDTO;
+  plantillas: ResolucionAlumnoPlantillaItemDTO[];
+}
+
+

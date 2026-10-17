@@ -15,6 +15,7 @@ import {
   DetalleEjercicioAlumnoResponseDTO,
   ListadoEntregasAlumnoResponseDTO,
   OpcionesFiltrosEntregaResponseDTO,
+  ResolucionAlumnoResponseDTO,
   ResumenTableroEntregasDTO,
 } from '../dto/entrega/entrega.dto';
 
@@ -22,6 +23,7 @@ import {
   toDetalleEjercicioAlumnoResponse,
   toItemTableroEntrega,
   toListadoEntregasResponse,
+  toResolucionAlumnoResponse,
 } from '../dto/entrega/entrega.mapper';
 
 export async function obtenerEntregasAlumno(
@@ -98,10 +100,7 @@ export async function obtenerDetalleEjercicio(
   const { alumno } = await alumnoService.getAlumnoConCursoOrThrow(user);
 
   // 2. Consultar ejercicio con la entrega del alumno
-  const ejercicio = await entregaRepository.findDetalleEjercicioParaAlumno(
-    idEjercicio,
-    alumno.id
-  );
+  const ejercicio = await entregaRepository.findDetalleEjercicioParaAlumno(idEjercicio, alumno.id);
 
   // 3. Validar existencia y estado disponible
   if (!ejercicio || ejercicio.estado !== 'PUBLICADO') {
@@ -117,3 +116,29 @@ export async function obtenerDetalleEjercicio(
   return toDetalleEjercicioAlumnoResponse(ejercicio);
 }
 
+export async function consultarResolucionAlumno(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<ResolucionAlumnoResponseDTO> {
+  // 1. Obtener alumno autenticado y validar curso
+  const { alumno } = await alumnoService.getAlumnoConCursoOrThrow(user);
+
+  // 2. Consultar ejercicio con sus plantillas habilitadas
+  const ejercicio = await entregaRepository.findEjercicioConPlantillas(idEjercicio);
+
+  // 3. Validar existencia y publicación
+  if (!ejercicio || ejercicio.estado !== 'PUBLICADO') {
+    throw new NotFoundError('El ejercicio no se encuentra disponible.');
+  }
+
+  // 4. Validar pertenencia al curso del alumno
+  if (ejercicio.curso.idCurso !== alumno.idCurso) {
+    throw new ForbiddenError('No tienes permisos para acceder a ejercicios de otro curso.');
+  }
+
+  // 5. Obtener o inicializar la entrega del alumno
+  const entrega = await entregaRepository.findOrCreateEntrega(idEjercicio, alumno.id);
+
+  // 6. Mapear y retornar respuesta
+  return toResolucionAlumnoResponse(ejercicio, entrega);
+}

@@ -7,10 +7,11 @@ import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
 import {
-  obtenerDetalleEntregaSchema,
+  ejercicioIdParamSchema,
   obtenerEntregasAlumnoQuerySchema,
 } from '../validators/entrega.validator';
 import {
+  consultarResolucion,
   obtenerDetalleEjercicio,
   obtenerEntregas,
   obtenerFiltrosTablero,
@@ -26,19 +27,22 @@ router.get(
   obtenerEntregas
 );
 
-router.get(
-  '/filtros',
-  authenticate,
-  requireRole(ROLES.ALUMNO),
-  obtenerFiltrosTablero
-);
+router.get('/filtros', authenticate, requireRole(ROLES.ALUMNO), obtenerFiltrosTablero);
 
 router.get(
   '/:ejercicioId',
   authenticate,
   requireRole(ROLES.ALUMNO),
-  validate(obtenerDetalleEntregaSchema),
+  validate(ejercicioIdParamSchema),
   obtenerDetalleEjercicio
+);
+
+router.get(
+  '/:ejercicioId/resolucion',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(ejercicioIdParamSchema),
+  consultarResolucion
 );
 
 export default router;
