@@ -21,7 +21,8 @@ Este documento define en líneas generales el diseño, responsabilidades y regla
 | Método | Endpoint | Responsabilidad Principal |
 | :--- | :--- | :--- |
 | **`GET`** | `/entregas` | Tablero principal "Mis ejercicios" del alumno (filtros, paginación y cards resumen). |
-| **`GET`** | `/entregas/:ejercicioId` | Detalle del ejercicio y estado/contenido actual de la entrega del alumno. |
+| **`GET`** | `/entregas/:ejercicioId` | Detalle informativo del ejercicio y estado de entrega (enunciado, fechas, progreso y plantillas sin contenido JSON pesado). |
+| **`GET`** | `/entregas/:ejercicioId/resolucion` | Espacio de trabajo: carga de plantillas habilitadas con su contenido JSON para resolver. |
 | **`PATCH`** | `/entregas/:ejercicioId/plantilla` | Guardar borrador o marcar como completada una plantilla puntual. |
 | **`POST`** | `/entregas/:ejercicioId/finalizar` | Entrega definitiva del ejercicio (cierre de edición). |
 
@@ -53,8 +54,8 @@ Permite al alumno consultar la lista de ejercicios publicados para su curso y el
 
 ---
 
-### 3.2. `GET /entregas/:ejercicioId` — Detalle y Resolución de la Entrega
-Provee toda la información necesaria para renderizar la pantalla de detalle del ejercicio y la pantalla de trabajo de plantillas (o el modo lectura una vez entregado).
+### 3.2. `GET /entregas/:ejercicioId` — Detalle del Ejercicio y Estado de Entrega
+Provee la información necesaria para renderizar la pantalla informativa de detalle del ejercicio (primera vista previa a comenzar la resolución).
 
 * **Parámetros de ruta (Params):**
   * `ejercicioId`: Identificador numérico del ejercicio.
@@ -62,15 +63,31 @@ Provee toda la información necesaria para renderizar la pantalla de detalle del
 * **Lógica y Reglas de Negocio:**
   1. Valida que el ejercicio exista, esté `PUBLICADO` y pertenezca al curso del alumno autenticado (de lo contrario, `ForbiddenError` o `NotFoundError`).
   2. Obtiene o inicializa la `EntregaEjercicio` asociada al par `(ejercicioId, alumnoId)`.
-  3. Retorna la información consolidada:
+  3. Retorna la información consolidada liviana:
      * **Datos del ejercicio:** Título, enunciado, fecha límite, indicaciones opcionales, datos del docente.
-     * **Plantillas habilitadas:** Listado de plantillas del ejercicio con su estado individual (`PENDIENTE`, `EN_EDICION`, `COMPLETADA`) y su contenido JSON guardado por el alumno.
-     * **Control de edición (`bloqueado`):** Si `fechaEntrega != null`, se marca como bloqueado para que el frontend deshabilite inputs de edición.
-     * **Estado de corrección:** Si el ejercicio fue entregado, indica si está pendiente de corrección, en revisión por el docente o si ya cuenta con la corrección disponible.
+     * **Plantillas habilitadas (resumen liviano):** Listado de plantillas con `{ idEjercicioPlantilla, tipo, estado }` (`PENDIENTE`, `EN_EDICION`, `COMPLETADA`), **sin** incluir el contenido JSON.
+     * **Progreso de resolución:** Cantidad de plantillas completadas sobre el total habilitado.
+     * **Control de edición (`bloqueado`):** `true` si `fechaEntrega != null`, indicando que la entrega ya fue efectuada.
+     * **Estado de corrección:** Información para las cards informativas (pendiente de corrección, en revisión o corrección disponible).
 
 ---
 
-### 3.3. `PATCH /entregas/:ejercicioId/plantilla` — Guardar Borrador / Completar Plantilla
+### 3.3. `GET /entregas/:ejercicioId/resolucion` — Espacio de Trabajo / Carga de Resolución de Plantillas
+Provee toda la información necesaria para el espacio de trabajo del alumno cuando presiona *"Comenzar a resolver"* o *"Continuar resolución"* (o en modo lectura si ya entregó).
+
+* **Parámetros de ruta (Params):**
+  * `ejercicioId`: Identificador numérico del ejercicio.
+
+* **Lógica y Reglas de Negocio:**
+  1. Valida que el ejercicio exista, esté `PUBLICADO` y pertenezca al curso del alumno autenticado.
+  2. Obtiene o inicializa la `EntregaEjercicio` asociada al par `(ejercicioId, alumnoId)`.
+  3. Retorna la estructura completa de resolución:
+     * **Cabecera:** `idEntrega`, `idEjercicio`, `titulo`, `enunciado`, `fechaLimite`, `bloqueado` (`fechaEntrega != null`), `fechaEntrega` y `estado`.
+     * **Plantillas con contenido:** Array con todas las plantillas habilitadas en el ejercicio, cada una con su `idEjercicioPlantilla`, `tipo`, `estado` y su `contenido: Json` completo (o `null` si aún no fue iniciada).
+
+---
+
+### 3.4. `PATCH /entregas/:ejercicioId/plantilla` — Guardar Borrador / Completar Plantilla
 Permite al alumno registrar avances parciales o marcar como completada una plantilla específica (Libro Diario, Libro Mayor, Libro IVA o Hoja de Trabajo).
 
 * **Parámetros de ruta (Params):**
@@ -92,7 +109,7 @@ Permite al alumno registrar avances parciales o marcar como completada una plant
 
 ---
 
-### 3.4. `POST /entregas/:ejercicioId/finalizar` — Entregar Ejercicio
+### 3.5. `POST /entregas/:ejercicioId/finalizar` — Entregar Ejercicio
 Acción definitiva que ejecuta el alumno al presionar el botón *"Entregar ejercicio"*.
 
 * **Parámetros de ruta (Params):**
