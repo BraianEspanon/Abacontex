@@ -211,7 +211,6 @@ export interface ContenidoLibroDiario {
 // Libro Mayor
 // ============================================================================
 
-<<<<<<< HEAD
 /**
  * El backend determina automáticamente el importe del saldo.
  * El docente únicamente indica su interpretación contable.
@@ -245,23 +244,6 @@ export interface CuentaLibroMayor {
   cuenta: string;
   debe: LineaLibroMayor[];
   haber: LineaLibroMayor[];
-=======
-export type TipoSaldoMayor = 'DEUDOR' | 'ACREEDOR';
-
-export interface MovimientoLibroMayor {
-  fecha: string;
-  concepto: string;
-  debe: number;
-  haber: number;
-  saldo: number;
-}
-
-export interface CuentaLibroMayor {
-  idCuenta: number;
-  cuenta: string;
-  movimientos: MovimientoLibroMayor[];
-  saldoFinal: number;
->>>>>>> 52cb2514e70053be440beca2cc829b730a4847da
   tipoSaldo: TipoSaldoMayor | null;
 }
 
@@ -348,13 +330,6 @@ export interface ContenidoHojaTrabajo {
 // Contenido de las plantillas de resolución
 // ============================================================================
 
-<<<<<<< HEAD
-=======
-/**
- * Todas las plantillas de resolución cuentan con una estructura
- * específica de contenido.
- */
->>>>>>> 52cb2514e70053be440beca2cc829b730a4847da
 export type ContenidoResolucionPlantilla =
   | ContenidoLibroDiario
   | ContenidoLibroMayor
