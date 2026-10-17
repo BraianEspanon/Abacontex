@@ -60,6 +60,7 @@ import EjerciciosDocente from '../pages/docente/EjerciciosDocente';
 import NuevoEjercicioDigitalizar from '../pages/docente/NuevoEjercicioDigitalizar';
 import NuevoEjercicioIA from '../pages/docente/NuevoEjercicioIA';
 import DetalleEjercicioPage from '../pages/docente/DetalleEjercicioPage';
+import ResolucionEjercicioDocente from '../pages/docente/ResolucionEjercicioDocente';
 
 export default function AppRouter() {
   return (
@@ -141,6 +142,7 @@ export default function AppRouter() {
         <Route path="ejercicios" element={<EjerciciosDocente />} />
         <Route path="ejercicios/nuevo" element={<NuevoEjercicioDigitalizar />} />
         <Route path="ejercicios/nuevo/ia" element={<NuevoEjercicioIA />} />
+        <Route path="ejercicios/:id/resolucion" element={<ResolucionEjercicioDocente />} />
         <Route path="ejercicios/:id" element={<DetalleEjercicioPage />} />
       </Route>
 

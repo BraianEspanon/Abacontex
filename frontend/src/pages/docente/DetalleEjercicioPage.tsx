@@ -89,6 +89,12 @@ export default function DetalleEjercicioPage() {
 
   const entregados = totalAlumnos - ejercicio.progresoEntregas.sinEntregar;
 
+  const estadoResolucion = ejercicio.resolucionDocente?.estado ?? 'PENDIENTE';
+
+  function irAResolucion() {
+    navigate(`/docente/ejercicios/${idEjercicio}/resolucion`);
+  }
+
   return (
     <div className="min-w-0 space-y-5 overflow-x-clip">
       {/* BREADCRUMB */}
@@ -182,13 +188,7 @@ export default function DetalleEjercicioPage() {
           {ejercicio.estado === 'SIN_RESOLVER' && (
             <button
               type="button"
-              onClick={() => {
-                if (ejercicio.origen === 'IA') {
-                  navigate(`/docente/ejercicios/nuevo/ia?editar=${ejercicio.idEjercicio}`);
-                } else {
-                  navigate(`/docente/ejercicios/nuevo?editar=${ejercicio.idEjercicio}`);
-                }
-              }}
+              onClick={irAResolucion}
               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-abacontex-black-text shadow-sm transition hover:bg-abacontex-light"
             >
               <Pencil className="size-4" />
@@ -332,41 +332,78 @@ export default function DetalleEjercicioPage() {
           <section className="min-w-0 rounded-2xl bg-white p-5 shadow-md">
             <TituloSeccion icono={<Pencil className="size-5" />} titulo="Resolución docente" />
 
-            {ejercicio.resolucionDocente?.estado === 'COMPLETADA' ? (
+            {estadoResolucion === 'RESUELTO' && (
               <div className="mt-4">
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className="rounded-lg bg-abacontex-primary-three/30 px-3 py-1 text-sm font-medium text-abacontex-primary">
-                    Cargada
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="rounded-lg bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+                    Resuelta
                   </span>
+
+                  <p className="text-sm text-abacontex-gray-text">
+                    La resolución modelo del ejercicio está completa.
+                  </p>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button
                     type="button"
+                    onClick={irAResolucion}
                     className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-abacontex-black-text shadow-sm transition hover:bg-abacontex-light"
                   >
                     <Eye className="size-4" />
                     Ver resolución
                   </button>
+                </div>
+              </div>
+            )}
 
+            {estadoResolucion === 'EN_EDICION' && (
+              <div className="mt-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="rounded-lg bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700">
+                    En edición
+                  </span>
+
+                  <p className="text-sm text-abacontex-gray-text">
+                    La resolución docente está en proceso y todavía no fue completada.
+                  </p>
+                </div>
+
+                <div className="mt-4">
                   <button
                     type="button"
+                    onClick={irAResolucion}
                     className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-abacontex-black-text shadow-sm transition hover:bg-abacontex-light"
                   >
                     <Pencil className="size-4" />
-                    Editar resolución
+                    Continuar resolución
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="mt-4 flex flex-wrap items-center gap-4">
-                <span className="rounded-lg bg-gray-200 px-3 py-1 text-sm font-medium text-abacontex-primary">
-                  Sin cargar
-                </span>
+            )}
 
-                <p className="text-sm text-abacontex-gray-text">
-                  Todavía no hay una resolución cargada para este ejercicio.
-                </p>
+            {estadoResolucion === 'PENDIENTE' && (
+              <div className="mt-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="rounded-lg bg-gray-200 px-3 py-1 text-sm font-medium text-abacontex-primary">
+                    Pendiente
+                  </span>
+
+                  <p className="text-sm text-abacontex-gray-text">
+                    La resolución docente todavía no fue completada para este ejercicio.
+                  </p>
+                </div>
+
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={irAResolucion}
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-abacontex-black-text shadow-sm transition hover:bg-abacontex-light"
+                  >
+                    <Pencil className="size-4" />
+                    Resolver ejercicio
+                  </button>
+                </div>
               </div>
             )}
           </section>
