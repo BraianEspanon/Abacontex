@@ -30,3 +30,6 @@ export const OPCIONES_FILTRO_ESTADO_ENTREGA: readonly {
   { clave: 'CORREGIDO', label: 'Corregidas' },
   { clave: 'VENCIDO', label: 'Vencidas' },
 ] as const;
+
+export const ESTADOS_GUARDAR_PLANTILLA_ALUMNO = ['EN_EDICION', 'COMPLETADA'] as const;
+export type EstadoGuardarPlantillaAlumno = (typeof ESTADOS_GUARDAR_PLANTILLA_ALUMNO)[number];

@@ -8,10 +8,12 @@ import { validate } from '../middleware/validate.middleware';
 
 import {
   ejercicioIdParamSchema,
+  guardarPlantillaAlumnoSchema,
   obtenerEntregasAlumnoQuerySchema,
 } from '../validators/entrega.validator';
 import {
   consultarResolucion,
+  guardarPlantilla,
   obtenerDetalleEjercicio,
   obtenerEntregas,
   obtenerFiltrosTablero,
@@ -43,6 +45,14 @@ router.get(
   requireRole(ROLES.ALUMNO),
   validate(ejercicioIdParamSchema),
   consultarResolucion
+);
+
+router.patch(
+  '/:ejercicioId/plantilla',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(guardarPlantillaAlumnoSchema),
+  guardarPlantilla
 );
 
 export default router;

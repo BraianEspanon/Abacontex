@@ -1,18 +1,24 @@
+import { Prisma } from '@prisma/client';
 import { AuthUser } from '../types/express';
 
 import * as alumnoService from './alumno.service';
 
 import * as entregaRepository from '../repositories/entrega.repository';
 
-import { ObtenerEntregasAlumnoQueryDTO } from '../validators/entrega.validator';
+import {
+  GuardarPlantillaAlumnoBodyDTO,
+  ObtenerEntregasAlumnoQueryDTO,
+} from '../validators/entrega.validator';
 
 import { OPCIONES_FILTRO_ESTADO_ENTREGA } from '../constants/entrega.constants';
 
 import { NotFoundError } from '../errors/not-found.error';
 import { ForbiddenError } from '../errors/forbidden.error';
+import { ConflictError } from '../errors/conflict.error';
 
 import {
   DetalleEjercicioAlumnoResponseDTO,
+  GuardarPlantillaAlumnoResponseDTO,
   ListadoEntregasAlumnoResponseDTO,
   OpcionesFiltrosEntregaResponseDTO,
   ResolucionAlumnoResponseDTO,
@@ -21,6 +27,7 @@ import {
 
 import {
   toDetalleEjercicioAlumnoResponse,
+  toGuardarPlantillaAlumnoResponse,
   toItemTableroEntrega,
   toListadoEntregasResponse,
   toResolucionAlumnoResponse,
@@ -141,4 +148,53 @@ export async function consultarResolucionAlumno(
 
   // 6. Mapear y retornar respuesta
   return toResolucionAlumnoResponse(ejercicio, entrega);
+}
+
+export async function guardarResolucionPlantilla(
+  user: AuthUser,
+  idEjercicio: number,
+  body: GuardarPlantillaAlumnoBodyDTO
+): Promise<GuardarPlantillaAlumnoResponseDTO> {
+  // 1. Obtener alumno autenticado y validar curso
+  const { alumno } = await alumnoService.getAlumnoConCursoOrThrow(user);
+
+  // 2. Consultar ejercicio con sus plantillas habilitadas
+  const ejercicio = await entregaRepository.findEjercicioConPlantillas(idEjercicio);
+
+  // 3. Validar existencia y publicación
+  if (!ejercicio || ejercicio.estado !== 'PUBLICADO') {
+    throw new NotFoundError('El ejercicio no se encuentra disponible.');
+  }
+
+  // 4. Validar pertenencia al curso del alumno
+  if (ejercicio.curso.idCurso !== alumno.idCurso) {
+    throw new ForbiddenError('No tienes permisos para acceder a ejercicios de otro curso.');
+  }
+
+  // 5. Validar que la plantilla requerida esté habilitada en este ejercicio
+  const plantilla = ejercicio.plantillas.find((p) => p.tipo === body.tipo);
+  if (!plantilla) {
+    throw new NotFoundError(`La plantilla ${body.tipo} no está habilitada en este ejercicio.`);
+  }
+
+  // 6. Obtener o inicializar la entrega del alumno
+  const entrega = await entregaRepository.findOrCreateEntrega(idEjercicio, alumno.id);
+
+  // 7. Bloqueo posterior a la entrega
+  if (entrega.fechaEntrega) {
+    throw new ConflictError('El ejercicio ya fue entregado y no admite modificaciones.');
+  }
+
+  // 8. Crear o actualizar la resolución de la plantilla específica
+  const resolucionActualizada = await entregaRepository.upsertResolucionAlumnoPlantilla(
+    entrega.idEntrega,
+    plantilla.idEjercicioPlantilla,
+    {
+      estado: body.estado,
+      contenido: body.contenido as Prisma.InputJsonValue,
+    }
+  );
+
+  // 9. Mapear y retornar respuesta
+  return toGuardarPlantillaAlumnoResponse(resolucionActualizada, body.tipo);
 }

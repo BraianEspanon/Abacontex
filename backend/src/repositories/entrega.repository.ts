@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { EstadoResolucionAlumnoPlantilla, Prisma, TipoPlantillaEjercicio } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 import { ObtenerEntregasAlumnoQueryDTO } from '../validators/entrega.validator';
 
@@ -336,6 +336,58 @@ export async function findEjercicioConPlantillas(
           idEjercicioPlantilla: 'asc',
         },
       },
+    },
+  });
+}
+
+export type EjercicioPlantillaEntity = Prisma.EjercicioPlantillaGetPayload<{}>;
+
+export async function findEjercicioPlantillaPorTipo(
+  ejercicioId: number,
+  tipo: TipoPlantillaEjercicio,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioPlantillaEntity | null> {
+  const db = getDbClient(tx);
+
+  return db.ejercicioPlantilla.findUnique({
+    where: {
+      ejercicioId_tipo: {
+        ejercicioId,
+        tipo,
+      },
+    },
+  });
+}
+
+export type ResolucionAlumnoPlantillaEntity = Prisma.ResolucionAlumnoPlantillaGetPayload<{}>;
+
+export async function upsertResolucionAlumnoPlantilla(
+  entregaId: number,
+  ejercicioPlantillaId: number,
+  data: {
+    estado: EstadoResolucionAlumnoPlantilla;
+    contenido: Prisma.InputJsonValue;
+  },
+  tx?: Prisma.TransactionClient
+): Promise<ResolucionAlumnoPlantillaEntity> {
+  const db = getDbClient(tx);
+
+  return db.resolucionAlumnoPlantilla.upsert({
+    where: {
+      entregaId_ejercicioPlantillaId: {
+        entregaId,
+        ejercicioPlantillaId,
+      },
+    },
+    create: {
+      entregaId,
+      ejercicioPlantillaId,
+      estado: data.estado,
+      contenido: data.contenido,
+    },
+    update: {
+      estado: data.estado,
+      contenido: data.contenido,
     },
   });
 }

@@ -4,6 +4,7 @@ import * as entregaService from '../services/entrega.service';
 
 import {
   ejercicioIdParamSchema,
+  guardarPlantillaAlumnoSchema,
   obtenerEntregasAlumnoQuerySchema,
 } from '../validators/entrega.validator';
 
@@ -39,6 +40,21 @@ export async function consultarResolucion(req: Request, res: Response) {
   });
 
   const resultado = await entregaService.consultarResolucionAlumno(req.user!, params.ejercicioId);
+
+  res.status(200).json(resultado);
+}
+
+export async function guardarPlantilla(req: Request, res: Response) {
+  const { params, body } = guardarPlantillaAlumnoSchema.parse({
+    params: req.params,
+    body: req.body,
+  });
+
+  const resultado = await entregaService.guardarResolucionPlantilla(
+    req.user!,
+    params.ejercicioId,
+    body
+  );
 
   res.status(200).json(resultado);
 }

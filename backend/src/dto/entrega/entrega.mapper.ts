@@ -3,11 +3,13 @@ import {
   EjercicioDetalleAlumnoEntity,
   EjercicioTableroAlumnoEntity,
   EntregaConResolucionesEntity,
+  ResolucionAlumnoPlantillaEntity,
 } from '../../repositories/entrega.repository';
 import { EstadoEntregaAlumno } from '../../constants/entrega.constants';
 import {
   DetalleCorreccionEntregaDTO,
   DetalleEjercicioAlumnoResponseDTO,
+  GuardarPlantillaAlumnoResponseDTO,
   ItemTableroEntregaDTO,
   ListadoEntregasAlumnoResponseDTO,
   ResolucionAlumnoResponseDTO,
@@ -125,9 +127,7 @@ function calcularEstadoCorreccion(
     };
   }
 
-  const algunaPlantillaCorregida = correccion.plantillas?.some(
-    (p) => p.estado === 'COMPLETADA'
-  );
+  const algunaPlantillaCorregida = correccion.plantillas?.some((p) => p.estado === 'COMPLETADA');
 
   return {
     estado: algunaPlantillaCorregida ? 'EN_REVISION' : 'PENDIENTE',
@@ -228,4 +228,15 @@ export function toResolucionAlumnoResponse(
   };
 }
 
-
+export function toGuardarPlantillaAlumnoResponse(
+  resolucion: ResolucionAlumnoPlantillaEntity,
+  tipo: string
+): GuardarPlantillaAlumnoResponseDTO {
+  return {
+    idResolucionPlantilla: resolucion.idResolucionPlantilla,
+    idEjercicioPlantilla: resolucion.ejercicioPlantillaId,
+    tipo,
+    estado: resolucion.estado,
+    contenido: resolucion.contenido ?? null,
+  };
+}

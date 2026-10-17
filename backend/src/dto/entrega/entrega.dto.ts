@@ -101,4 +101,10 @@ export interface ResolucionAlumnoResponseDTO {
   plantillas: ResolucionAlumnoPlantillaItemDTO[];
 }
 
-
+export interface GuardarPlantillaAlumnoResponseDTO {
+  idResolucionPlantilla: number;
+  idEjercicioPlantilla: number;
+  tipo: string;
+  estado: string;
+  contenido: unknown | null;
+}
