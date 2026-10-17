@@ -258,3 +258,23 @@ export async function completarRegistro(
 
   return getAlumnoActual(user);
 }
+
+export async function getAlumnoConCursoOrThrow(user: AuthUser) {
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ForbiddenError('El alumno no completó su registro.');
+  }
+
+  if (!usuario.alumno.idCurso) {
+    throw new ForbiddenError('El alumno no pertenece a ningún curso activo.');
+  }
+
+  return {
+    ...usuario,
+    alumno: {
+      ...usuario.alumno,
+      idCurso: usuario.alumno.idCurso,
+    },
+  };
+}
