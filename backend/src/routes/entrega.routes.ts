@@ -7,7 +7,7 @@ import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
 import { obtenerEntregasAlumnoQuerySchema } from '../validators/entrega.validator';
-import { obtenerEntregas } from '../controllers/entrega.controller';
+import { obtenerEntregas, obtenerFiltrosTablero } from '../controllers/entrega.controller';
 
 const router = Router();
 
@@ -17,6 +17,13 @@ router.get(
   requireRole(ROLES.ALUMNO),
   validate(obtenerEntregasAlumnoQuerySchema),
   obtenerEntregas
+);
+
+router.get(
+  '/filtros',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  obtenerFiltrosTablero
 );
 
 export default router;

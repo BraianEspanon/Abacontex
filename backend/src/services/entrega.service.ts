@@ -6,8 +6,11 @@ import * as entregaRepository from '../repositories/entrega.repository';
 
 import { ObtenerEntregasAlumnoQueryDTO } from '../validators/entrega.validator';
 
+import { OPCIONES_FILTRO_ESTADO_ENTREGA } from '../constants/entrega.constants';
+
 import {
   ListadoEntregasAlumnoResponseDTO,
+  OpcionesFiltrosEntregaResponseDTO,
   ResumenTableroEntregasDTO,
 } from '../dto/entrega/entrega.dto';
 
@@ -57,4 +60,24 @@ export async function obtenerEntregasAlumno(
 
   // 7. Retornar respuesta
   return toListadoEntregasResponse(itemsPaginados, page, pageSize, totalItems, resumen);
+}
+
+export async function obtenerFiltrosTablero(
+  user: AuthUser
+): Promise<OpcionesFiltrosEntregaResponseDTO> {
+  // 1. Obtener alumno autenticado y su curso
+  const { alumno } = await alumnoService.getAlumnoConCursoOrThrow(user);
+
+  // 2. Consultar docentes vinculados al curso
+  const docentes = await entregaRepository.findDocentesPorCurso(alumno.idCurso);
+
+  // 3. Mapear y retornar respuesta
+  return {
+    docentes: docentes.map((d) => ({
+      idDocente: d.id,
+      nombre: d.nombre,
+      apellido: d.apellido,
+    })),
+    estados: [...OPCIONES_FILTRO_ESTADO_ENTREGA],
+  };
 }

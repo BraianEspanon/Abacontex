@@ -13,3 +13,10 @@ export async function obtenerEntregas(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function obtenerFiltrosTablero(req: Request, res: Response) {
+  const resultado = await entregaService.obtenerFiltrosTablero(req.user!);
+
+  res.status(200).json(resultado);
+}
+

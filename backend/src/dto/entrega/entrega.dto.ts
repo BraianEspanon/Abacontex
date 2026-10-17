@@ -34,3 +34,13 @@ export interface ResumenTableroEntregasDTO {
 export interface ListadoEntregasAlumnoResponseDTO extends PaginatedResponse<ItemTableroEntregaDTO> {
   resumen: ResumenTableroEntregasDTO;
 }
+
+export interface OpcionFiltroEstadoDTO {
+  clave: string;
+  label: string;
+}
+
+export interface OpcionesFiltrosEntregaResponseDTO {
+  docentes: DocenteResumenDTO[];
+  estados: OpcionFiltroEstadoDTO[];
+}

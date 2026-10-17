@@ -103,3 +103,47 @@ export async function findEjerciciosParaTableroAlumno(
     },
   });
 }
+
+export type DocenteCursoEntity = {
+  id: string;
+  nombre: string;
+  apellido: string;
+};
+
+export async function findDocentesPorCurso(
+  cursoId: number,
+  tx?: Prisma.TransactionClient
+): Promise<DocenteCursoEntity[]> {
+  const db = getDbClient(tx);
+
+  return db.usuario.findMany({
+    where: {
+      OR: [
+        {
+          profesorCursos: {
+            some: {
+              idCurso: cursoId,
+            },
+          },
+        },
+        {
+          ejerciciosCreados: {
+            some: {
+              cursoId,
+              estado: 'PUBLICADO',
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      nombre: true,
+      apellido: true,
+    },
+    orderBy: {
+      apellido: 'asc',
+    },
+  });
+}
+
