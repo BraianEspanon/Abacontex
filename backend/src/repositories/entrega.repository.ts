@@ -391,3 +391,24 @@ export async function upsertResolucionAlumnoPlantilla(
     },
   });
 }
+
+export async function finalizarEntregaAlumno(
+  idEntrega: number,
+  fechaEntrega: Date,
+  tx?: Prisma.TransactionClient
+): Promise<EntregaConResolucionesEntity> {
+  const db = getDbClient(tx);
+
+  return db.entregaEjercicio.update({
+    where: {
+      idEntrega,
+    },
+    data: {
+      fechaEntrega,
+    },
+    include: {
+      resoluciones: true,
+      correccion: true,
+    },
+  });
+}

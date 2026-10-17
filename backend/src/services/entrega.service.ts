@@ -15,9 +15,11 @@ import { OPCIONES_FILTRO_ESTADO_ENTREGA } from '../constants/entrega.constants';
 import { NotFoundError } from '../errors/not-found.error';
 import { ForbiddenError } from '../errors/forbidden.error';
 import { ConflictError } from '../errors/conflict.error';
+import { BadRequestError } from '../errors/bad-request-error';
 
 import {
   DetalleEjercicioAlumnoResponseDTO,
+  FinalizarEntregaAlumnoResponseDTO,
   GuardarPlantillaAlumnoResponseDTO,
   ListadoEntregasAlumnoResponseDTO,
   OpcionesFiltrosEntregaResponseDTO,
@@ -27,6 +29,7 @@ import {
 
 import {
   toDetalleEjercicioAlumnoResponse,
+  toFinalizarEntregaAlumnoResponse,
   toGuardarPlantillaAlumnoResponse,
   toItemTableroEntrega,
   toListadoEntregasResponse,
@@ -197,4 +200,54 @@ export async function guardarResolucionPlantilla(
 
   // 9. Mapear y retornar respuesta
   return toGuardarPlantillaAlumnoResponse(resolucionActualizada, body.tipo);
+}
+
+export async function finalizarEntrega(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<FinalizarEntregaAlumnoResponseDTO> {
+  // 1. Obtener alumno autenticado y validar curso
+  const { alumno } = await alumnoService.getAlumnoConCursoOrThrow(user);
+
+  // 2. Consultar ejercicio con sus plantillas habilitadas
+  const ejercicio = await entregaRepository.findEjercicioConPlantillas(idEjercicio);
+
+  // 3. Validar existencia y publicación
+  if (!ejercicio || ejercicio.estado !== 'PUBLICADO') {
+    throw new NotFoundError('El ejercicio no se encuentra disponible.');
+  }
+
+  // 4. Validar pertenencia al curso del alumno
+  if (ejercicio.curso.idCurso !== alumno.idCurso) {
+    throw new ForbiddenError('No tienes permisos para acceder a ejercicios de otro curso.');
+  }
+
+  // 5. Obtener o inicializar la entrega del alumno
+  const entrega = await entregaRepository.findOrCreateEntrega(idEjercicio, alumno.id);
+
+  // 6. Validar que no haya sido entregada previamente
+  if (entrega.fechaEntrega) {
+    throw new ConflictError('El ejercicio ya fue entregado previamente.');
+  }
+
+  // 7. Validación de completitud: todas las plantillas deben estar COMPLETADA
+  const resoluciones = entrega.resoluciones ?? [];
+  const plantillasIncompletas = ejercicio.plantillas.filter((plantilla) => {
+    const res = resoluciones.find((r) => r.ejercicioPlantillaId === plantilla.idEjercicioPlantilla);
+    return !res || res.estado !== 'COMPLETADA';
+  });
+
+  if (plantillasIncompletas.length > 0) {
+    throw new BadRequestError('Debe completar todas las plantillas antes de enviar la entrega.');
+  }
+
+  // 8. Persistir la finalización con la fecha actual
+  const fechaEntrega = new Date();
+  const entregaActualizada = await entregaRepository.finalizarEntregaAlumno(
+    entrega.idEntrega,
+    fechaEntrega
+  );
+
+  // 9. Mapear y retornar la confirmación de entrega
+  return toFinalizarEntregaAlumnoResponse(ejercicio, entregaActualizada);
 }

@@ -108,3 +108,13 @@ export interface GuardarPlantillaAlumnoResponseDTO {
   estado: string;
   contenido: unknown | null;
 }
+
+export interface FinalizarEntregaAlumnoResponseDTO {
+  idEntrega: number;
+  idEjercicio: number;
+  mensaje: string;
+  estado: EstadoEntregaAlumno;
+  bloqueado: boolean;
+  fechaEntrega: string;
+  fueraDeTermino: boolean;
+}

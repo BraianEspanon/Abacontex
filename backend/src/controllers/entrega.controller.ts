@@ -58,3 +58,13 @@ export async function guardarPlantilla(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function finalizarEntrega(req: Request, res: Response) {
+  const { params } = ejercicioIdParamSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await entregaService.finalizarEntrega(req.user!, params.ejercicioId);
+
+  res.status(200).json(resultado);
+}

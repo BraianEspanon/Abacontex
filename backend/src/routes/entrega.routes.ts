@@ -13,6 +13,7 @@ import {
 } from '../validators/entrega.validator';
 import {
   consultarResolucion,
+  finalizarEntrega,
   guardarPlantilla,
   obtenerDetalleEjercicio,
   obtenerEntregas,
@@ -53,6 +54,14 @@ router.patch(
   requireRole(ROLES.ALUMNO),
   validate(guardarPlantillaAlumnoSchema),
   guardarPlantilla
+);
+
+router.post(
+  '/:ejercicioId/finalizar',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(ejercicioIdParamSchema),
+  finalizarEntrega
 );
 
 export default router;

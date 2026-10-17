@@ -9,6 +9,7 @@ import { EstadoEntregaAlumno } from '../../constants/entrega.constants';
 import {
   DetalleCorreccionEntregaDTO,
   DetalleEjercicioAlumnoResponseDTO,
+  FinalizarEntregaAlumnoResponseDTO,
   GuardarPlantillaAlumnoResponseDTO,
   ItemTableroEntregaDTO,
   ListadoEntregasAlumnoResponseDTO,
@@ -238,5 +239,25 @@ export function toGuardarPlantillaAlumnoResponse(
     tipo,
     estado: resolucion.estado,
     contenido: resolucion.contenido ?? null,
+  };
+}
+
+export function toFinalizarEntregaAlumnoResponse(
+  ejercicio: EjercicioConPlantillasEntity,
+  entrega: EntregaConResolucionesEntity
+): FinalizarEntregaAlumnoResponseDTO {
+  const fechaEntrega = entrega.fechaEntrega ?? new Date();
+  const fueraDeTermino = fechaEntrega > ejercicio.fechaLimite;
+
+  return {
+    idEntrega: entrega.idEntrega,
+    idEjercicio: ejercicio.idEjercicio,
+    mensaje: fueraDeTermino
+      ? 'Ejercicio entregado exitosamente (fuera de término).'
+      : 'Ejercicio entregado exitosamente.',
+    estado: 'ENTREGADO',
+    bloqueado: true,
+    fechaEntrega: fechaEntrega.toISOString(),
+    fueraDeTermino,
   };
 }
