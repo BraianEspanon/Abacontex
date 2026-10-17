@@ -1,13 +1,27 @@
-import { EjercicioTableroAlumnoEntity } from '../../repositories/entrega.repository';
+import {
+  EjercicioDetalleAlumnoEntity,
+  EjercicioTableroAlumnoEntity,
+} from '../../repositories/entrega.repository';
 import { EstadoEntregaAlumno } from '../../constants/entrega.constants';
 import {
+  DetalleCorreccionEntregaDTO,
+  DetalleEjercicioAlumnoResponseDTO,
   ItemTableroEntregaDTO,
   ListadoEntregasAlumnoResponseDTO,
   ResumenTableroEntregasDTO,
 } from './entrega.dto';
 
+interface EjercicioConEntregasBase {
+  fechaLimite: Date;
+  entregas: {
+    fechaEntrega: Date | null;
+    resoluciones?: { estado: string }[];
+    correccion?: { fechaCorreccion: Date | null } | null;
+  }[];
+}
+
 export function calcularEstadoEntregaAlumno(
-  ejercicio: EjercicioTableroAlumnoEntity,
+  ejercicio: EjercicioConEntregasBase,
   fechaReferencia: Date = new Date()
 ): EstadoEntregaAlumno {
   const entrega = ejercicio.entregas[0] ?? null;
@@ -85,3 +99,82 @@ export function toListadoEntregasResponse(
     resumen,
   };
 }
+
+function calcularEstadoCorreccion(
+  entrega: EjercicioDetalleAlumnoEntity['entregas'][0] | null
+): DetalleCorreccionEntregaDTO | null {
+  if (!entrega || !entrega.fechaEntrega) {
+    return null;
+  }
+
+  const correccion = entrega.correccion;
+  if (!correccion) {
+    return {
+      estado: 'PENDIENTE',
+      fechaCorreccion: null,
+    };
+  }
+
+  if (correccion.fechaCorreccion) {
+    return {
+      estado: 'CORREGIDO',
+      fechaCorreccion: correccion.fechaCorreccion.toISOString(),
+    };
+  }
+
+  const algunaPlantillaCorregida = correccion.plantillas?.some(
+    (p) => p.estado === 'COMPLETADA'
+  );
+
+  return {
+    estado: algunaPlantillaCorregida ? 'EN_REVISION' : 'PENDIENTE',
+    fechaCorreccion: null,
+  };
+}
+
+export function toDetalleEjercicioAlumnoResponse(
+  ejercicio: EjercicioDetalleAlumnoEntity,
+  fechaReferencia: Date = new Date()
+): DetalleEjercicioAlumnoResponseDTO {
+  const entrega = ejercicio.entregas[0] ?? null;
+  const resoluciones = entrega?.resoluciones ?? [];
+
+  const plantillas = ejercicio.plantillas.map((p) => {
+    const res = resoluciones.find((r) => r.ejercicioPlantillaId === p.idEjercicioPlantilla);
+    return {
+      idEjercicioPlantilla: p.idEjercicioPlantilla,
+      tipo: p.tipo,
+      estado: res?.estado ?? 'PENDIENTE',
+    };
+  });
+
+  const plantillasCompletadas = plantillas.filter((p) => p.estado === 'COMPLETADA').length;
+
+  return {
+    idEjercicio: ejercicio.idEjercicio,
+    titulo: ejercicio.titulo,
+    enunciado: ejercicio.enunciado,
+    indicaciones: ejercicio.indicaciones,
+    fechaLimite: ejercicio.fechaLimite.toISOString(),
+    estado: calcularEstadoEntregaAlumno(ejercicio, fechaReferencia),
+    bloqueado: Boolean(entrega?.fechaEntrega),
+    fechaEntrega: entrega?.fechaEntrega ? entrega.fechaEntrega.toISOString() : null,
+    curso: {
+      idCurso: ejercicio.curso.idCurso,
+      nombreCurso: ejercicio.curso.nombreCurso,
+      año: ejercicio.curso.año,
+    },
+    docente: {
+      idDocente: ejercicio.docente.id,
+      nombre: ejercicio.docente.nombre,
+      apellido: ejercicio.docente.apellido,
+    },
+    totalPlantillas: ejercicio.plantillas.length,
+    plantillasCompletadas,
+    plantillas,
+    correccion: calcularEstadoCorreccion(entrega),
+    createdAt: ejercicio.createdAt.toISOString(),
+    updatedAt: ejercicio.updatedAt.toISOString(),
+  };
+}
+

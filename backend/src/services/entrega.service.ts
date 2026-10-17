@@ -8,13 +8,21 @@ import { ObtenerEntregasAlumnoQueryDTO } from '../validators/entrega.validator';
 
 import { OPCIONES_FILTRO_ESTADO_ENTREGA } from '../constants/entrega.constants';
 
+import { NotFoundError } from '../errors/not-found.error';
+import { ForbiddenError } from '../errors/forbidden.error';
+
 import {
+  DetalleEjercicioAlumnoResponseDTO,
   ListadoEntregasAlumnoResponseDTO,
   OpcionesFiltrosEntregaResponseDTO,
   ResumenTableroEntregasDTO,
 } from '../dto/entrega/entrega.dto';
 
-import { toItemTableroEntrega, toListadoEntregasResponse } from '../dto/entrega/entrega.mapper';
+import {
+  toDetalleEjercicioAlumnoResponse,
+  toItemTableroEntrega,
+  toListadoEntregasResponse,
+} from '../dto/entrega/entrega.mapper';
 
 export async function obtenerEntregasAlumno(
   user: AuthUser,
@@ -81,3 +89,31 @@ export async function obtenerFiltrosTablero(
     estados: [...OPCIONES_FILTRO_ESTADO_ENTREGA],
   };
 }
+
+export async function obtenerDetalleEjercicio(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<DetalleEjercicioAlumnoResponseDTO> {
+  // 1. Obtener alumno autenticado y validar curso
+  const { alumno } = await alumnoService.getAlumnoConCursoOrThrow(user);
+
+  // 2. Consultar ejercicio con la entrega del alumno
+  const ejercicio = await entregaRepository.findDetalleEjercicioParaAlumno(
+    idEjercicio,
+    alumno.id
+  );
+
+  // 3. Validar existencia y estado disponible
+  if (!ejercicio || ejercicio.estado !== 'PUBLICADO') {
+    throw new NotFoundError('El ejercicio no se encuentra disponible.');
+  }
+
+  // 4. Validar pertenencia al curso del alumno
+  if (ejercicio.cursoId !== alumno.idCurso) {
+    throw new ForbiddenError('No tienes permisos para acceder a ejercicios de otro curso.');
+  }
+
+  // 5. Mapear y retornar detalle
+  return toDetalleEjercicioAlumnoResponse(ejercicio);
+}
+

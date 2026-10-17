@@ -44,3 +44,40 @@ export interface OpcionesFiltrosEntregaResponseDTO {
   docentes: DocenteResumenDTO[];
   estados: OpcionFiltroEstadoDTO[];
 }
+
+export interface CursoResumenDTO {
+  idCurso: number;
+  nombreCurso: string;
+  año: number;
+}
+
+export interface PlantillaDetalleResumenDTO {
+  idEjercicioPlantilla: number;
+  tipo: string;
+  estado: string;
+}
+
+export interface DetalleCorreccionEntregaDTO {
+  estado: 'PENDIENTE' | 'EN_REVISION' | 'CORREGIDO';
+  fechaCorreccion: string | null;
+}
+
+export interface DetalleEjercicioAlumnoResponseDTO {
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  indicaciones: string | null;
+  fechaLimite: string;
+  estado: EstadoEntregaAlumno;
+  bloqueado: boolean;
+  fechaEntrega: string | null;
+  curso: CursoResumenDTO;
+  docente: DocenteResumenDTO;
+  totalPlantillas: number;
+  plantillasCompletadas: number;
+  plantillas: PlantillaDetalleResumenDTO[];
+  correccion: DetalleCorreccionEntregaDTO | null;
+  createdAt: string;
+  updatedAt: string;
+}
+

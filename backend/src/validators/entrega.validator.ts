@@ -20,3 +20,17 @@ export const obtenerEntregasAlumnoQuerySchema = z.object({
 export type ObtenerEntregasAlumnoQueryDTO = z.infer<
   typeof obtenerEntregasAlumnoQuerySchema
 >['query'];
+
+export const obtenerDetalleEntregaSchema = z.object({
+  params: z.object({
+    ejercicioId: z.coerce
+      .number()
+      .int()
+      .positive('El ID del ejercicio debe ser mayor a 0.'),
+  }),
+});
+
+export type ObtenerDetalleEntregaParamsDTO = z.infer<
+  typeof obtenerDetalleEntregaSchema
+>['params'];
+

@@ -2,7 +2,10 @@ import { Request, Response } from 'express';
 
 import * as entregaService from '../services/entrega.service';
 
-import { obtenerEntregasAlumnoQuerySchema } from '../validators/entrega.validator';
+import {
+  obtenerDetalleEntregaSchema,
+  obtenerEntregasAlumnoQuerySchema,
+} from '../validators/entrega.validator';
 
 export async function obtenerEntregas(req: Request, res: Response) {
   const { query } = obtenerEntregasAlumnoQuerySchema.parse({
@@ -19,4 +22,15 @@ export async function obtenerFiltrosTablero(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function obtenerDetalleEjercicio(req: Request, res: Response) {
+  const { params } = obtenerDetalleEntregaSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await entregaService.obtenerDetalleEjercicio(req.user!, params.ejercicioId);
+
+  res.status(200).json(resultado);
+}
+
 
