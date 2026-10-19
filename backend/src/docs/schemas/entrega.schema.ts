@@ -531,4 +531,3 @@
  *           example: false
  *           description: Indica si la entrega se produjo después de la fecha límite establecida.
  */
-

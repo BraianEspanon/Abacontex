@@ -254,4 +254,3 @@
  *       409:
  *         description: El ejercicio ya fue entregado previamente.
  */
-

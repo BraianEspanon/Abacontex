@@ -1,4 +1,10 @@
-import { EstadoResolucionAlumnoPlantilla, Prisma, TipoPlantillaEjercicio } from '@prisma/client';
+import {
+  EjercicioPlantilla,
+  EstadoResolucionAlumnoPlantilla,
+  Prisma,
+  ResolucionAlumnoPlantilla,
+  TipoPlantillaEjercicio,
+} from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 import { ObtenerEntregasAlumnoQueryDTO } from '../validators/entrega.validator';
 
@@ -340,7 +346,7 @@ export async function findEjercicioConPlantillas(
   });
 }
 
-export type EjercicioPlantillaEntity = Prisma.EjercicioPlantillaGetPayload<{}>;
+export type EjercicioPlantillaEntity = EjercicioPlantilla;
 
 export async function findEjercicioPlantillaPorTipo(
   ejercicioId: number,
@@ -359,7 +365,7 @@ export async function findEjercicioPlantillaPorTipo(
   });
 }
 
-export type ResolucionAlumnoPlantillaEntity = Prisma.ResolucionAlumnoPlantillaGetPayload<{}>;
+export type ResolucionAlumnoPlantillaEntity = ResolucionAlumnoPlantilla;
 
 export async function upsertResolucionAlumnoPlantilla(
   entregaId: number,
