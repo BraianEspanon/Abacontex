@@ -245,7 +245,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"idCurso\": 2,\r\n  \"idRolEmpresa\": 1\r\n}",
+              "raw": "{\r\n  \"idCurso\": 4,\r\n  \"idRolEmpresa\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -340,7 +340,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"cursoIds\": [1, 2]\r\n}",
+              "raw": "{\r\n    \"cursoIds\": [1, 2, 4]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -776,6 +776,25 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Dashboard mi empresa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/empresas/me/dashboard",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "empresas",
+                "me",
+                "dashboard"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -1028,7 +1047,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n      \"clienteNombre\":\"braian\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":4,\r\n            \"cantidad\":2\r\n        },{\r\n            \"productoId\":5,\r\n            \"cantidad\":2\r\n        }\r\n      ]\r\n}\r\n    \r\n",
+              "raw": "{\r\n      \"clienteNombre\":\"braian\", \r\n      \"clienteMail\": \"bespanon@gmail.com\",\r\n      \"productos\": [\r\n        {\r\n            \"productoId\":3,\r\n            \"cantidad\":92\r\n        }\r\n      ]\r\n}\r\n    \r\n",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1125,7 +1144,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"productoId\": 34,\r\n    \"cantidadProducir\": 2,\r\n    \"prioridad\": \"ALTA\"\r\n}",
+              "raw": "{\r\n    \"productoId\": 3,\r\n    \"cantidadProducir\": 2,\r\n    \"prioridad\": \"ALTA\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1229,7 +1248,7 @@
               "variable": [
                 {
                   "key": "idOrden",
-                  "value": "4"
+                  "value": "1"
                 }
               ]
             }
@@ -1365,7 +1384,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"aplicaIva\":true,\n    \"pedidoId\":1,\n    \"metodoPagoId\":2,\n    \"tipoAjuste\":\"RECARGO\",\n    \"porcentajeAjuste\": 5, \n    \"cantidadCuotas\": null,\n    \"porcentajeInteres\": 0\n}",
+              "raw": "{\n    \"aplicaIva\":true,\n    \"pedidoId\":4,\n    \"metodoPagoId\":2,\n    \"tipoAjuste\":\"RECARGO\",\n    \"porcentajeAjuste\": 5, \n    \"cantidadCuotas\": 1,\n    \"porcentajeInteres\": 0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2337,7 +2356,7 @@
       "name": "Ejercicios",
       "item": [
         {
-          "name": "digitalizar",
+          "name": "digitalizar enunciado",
           "request": {
             "method": "POST",
             "header": [],
@@ -2367,8 +2386,909 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "generar enunciado",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cursoId\": 4,\n    \"tipoEjercicio\": \"COSTOS_PROCESO_PRODUCTIVO\",\n    \"dificultad\": \"INTERMEDIO\",\n    \"contenidosAdicionales\": [\"DESCUENTOS\", \"INTERESES\"],\n    \"contextoAdicional\": \"Empresa de robotica\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/generar",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                "generar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "generar enunciado (opciones)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/generar/opciones",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                "generar",
+                "opciones"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "crear ejercicio",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"prueba\",\n  \"cursoId\": 4,\n  \"enunciado\": \"### Distribuidora del Centro S.R.L.\\n\\n1. **02/05** - **Factura Original N° 0001-00004523** por compra de 100 artículos a $ 1.500,00 c/u. IVA 21%. Se abona 50% en efectivo y saldo en cuenta corriente a 30 días.\\n2. **10/05** - **Factura Duplicado N° 0001-00000101** por venta de 40 artículos a $ 2.800,00 c/u. IVA 21%. Se cobra con cheque común del Banco Galicia.\\n\\n**Se pide:** Registrar las operaciones en el Libro Diario y mayorizar las cuentas.\",\n  \"fechaLimite\": \"2026-10-20T19:33:59.000Z\",\n  \"indicaciones\": \"Recuerden identificar correctamente los comprobantes respaldatorios y calcular el IVA correspondiente.\",\n  \"estado\": \"ENVIADO\",\n  \"plantillas\": [\n    \"LIBRO_MAYOR\",\n    \"LIBRO_DIARIO\",\n    \"HOJA_TRABAJO\",\n    \"LIBRO_IVA\"\n  ],\n  \"generacionIA\": {\n    \"tipoEjercicio\": \"OPERACIONES_COMERCIALES_INTEGRADAS\",\n    \"dificultad\": \"AVANZADO\",\n    \"contextoAdicional\": \"Empresa dedicada a la distribución mayorista de artículos de librería\",\n    \"contenidos\": [\n      \"IVA\",\n      \"INTERESES\"\n    ]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/ejercicios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ver ejercicios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/ejercicios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "3",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "4",
+                  "disabled": true
+                },
+                {
+                  "key": "cursoId",
+                  "value": "4",
+                  "disabled": true
+                },
+                {
+                  "key": "titulo",
+                  "value": "tecno",
+                  "disabled": true
+                },
+                {
+                  "key": "estado",
+                  "value": "COMPLETADO",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ver detalle ejercicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/:idEjercicio",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                ":idEjercicio"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "editar ejercicio",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Práctico N° 3 - Operaciones Comerciales asdasdsasd\",\n  \"cursoId\": 4,\n  \"enunciado\": \"### Distribuidora del Centro central S.R.L.\\n\\n1. **02/05** - **Factura Original N° 0001-00004523** por compra de 100 artículos a $ 1.500,00 c/u. IVA 21%. Se abona 50% en efectivo y saldo en cuenta corriente a 30 días.\\n2. **10/05** - **Factura Duplicado N° 0001-00000101** por venta de 40 artículos a $ 2.800,00 c/u. IVA 21%. Se cobra con cheque común del Banco Galicia.\\n\\n**Se pide:** Registrar las operaciones en el Libro Diario y mayorizar las cuentas.\",\n  \"fechaLimite\": \"2026-10-30T23:59:59.000Z\",\n  \"indicaciones\": \"Olviden identificar correctamente los comprobantes respaldatorios y calcular el IVA correspondiente.\",\n  \"estado\": \"PUBLICADO\",\n  \"plantillas\": [\n    \"LIBRO_DIARIO\",\n    \"LIBRO_MAYOR\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/:idEjercicio",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                ":idEjercicio"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "duplicar ejercicio",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/:idEjercicio/duplicar",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                ":idEjercicio",
+                "duplicar"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ver resolucion ejercicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/:idEjercicio/resolucion",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                ":idEjercicio",
+                "resolucion"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "crear resolucion ejercicio",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tipo\": \"LIBRO_DIARIO\",\n    \"estado\": \"RESUELTO\",\n    \"contenido\": {\n        \"asientos\": [\n            {\n                \"numero\": 1,\n                \"fecha\": \"14/05/2026\",\n                \"concepto\": \"conseptual\",\n                \"lineas\": [\n                    {\n                        \"idCuenta\": 1,\n                        \"cuenta\": \"Fondo Fijo\",\n                        \"movimiento\": \"A+\",\n                        \"folio\": 1,\n                        \"debe\": 2000,\n                        \"haber\": 0\n                    },{\n                        \"idCuenta\": 2,\n                        \"cuenta\": \"Fondo Fijo\",\n                        \"movimiento\": \"A-\",\n                        \"folio\": 1,\n                        \"debe\": 0,\n                        \"haber\": 2000\n                    }\n                ]\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/ejercicios/:idEjercicio/resolucion",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "ejercicios",
+                ":idEjercicio",
+                "resolucion"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "crear libro diario",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipo\": \"LIBRO_DIARIO\",\n    \"estado\": \"EN_EDICION\",\n    \"contenido\": {\n        \"asientos\": [\n            {\n                \"numero\": 1,\n                \"fecha\": \"ola\",\n                \"concepto\": \"conseptual\",\n                \"lineas\": [\n                    {\n                        \"cuenta\": 1,\n                        \"movimiento\": 1,\n                        \"folio\": 1,\n                        \"debe\": 1000,\n                        \"haber\": 1000\n                    }\n                ]\n            }\n        ]\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/ejercicios/:idEjercicio/resolucion",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "3000",
+                  "path": [
+                    "ejercicios",
+                    ":idEjercicio",
+                    "resolucion"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idEjercicio",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "crear hoja de trabajo",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipo\": \"HOJA_TRABAJO\",\n    \"estado\": \"RESUELTO\",\n    \"contenido\": {\n        \"filas\":[\n            {\n                \"idCuenta\":1,\n                \"cuenta\": \"Fondo Fijo\",\n                \"estadoResultados\":{\n                    \"positivo\": 2000\n                }\n            },\n            {\n                \"idCuenta\":2,\n                \"cuenta\": \"Caja\",\n                \"saldosAjustados\":{\n                    \"deudor\":1001\n                }\n            },\n            {\n                \"idCuenta\":3,\n                \"cuenta\": \"ASD\",\n                \"saldosAjustados\":{\n                    \"acreedor\":1001\n                }\n            }\n        ]\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/ejercicios/:idEjercicio/resolucion",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "3000",
+                  "path": [
+                    "ejercicios",
+                    ":idEjercicio",
+                    "resolucion"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idEjercicio",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "crear libro iva",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipo\": \"LIBRO_IVA\",\n    \"estado\": \"RESUELTO\",\n    \"contenido\": {\n        \"compras\":[\n            {\n                \"fecha\": \"31/10/2026\",\n                \"comprobante\": 1,\n                \"nombre\": \"Yo S.R.L.\",\n                \"netoGravado\": 10,\n                \"iva\": 30,\n                \"total\": 40\n            }\n        ],\n        \"ventas\":[\n            {\n                \"fecha\": \"31/10/2026\",\n                \"comprobante\": 2,\n                \"nombre\": \"Vos S.R.L.\",\n                \"netoGravado\": 10,\n                \"iva\": 20,\n                \"total\": 30\n            }\n        ],\n        \"resultado\": \"A_FAVOR_CONTRIBUYENTE\"\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/ejercicios/:idEjercicio/resolucion",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "3000",
+                  "path": [
+                    "ejercicios",
+                    ":idEjercicio",
+                    "resolucion"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idEjercicio",
+                      "value": "4"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "crear libro mayor",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipo\": \"LIBRO_MAYOR\",\n    \"estado\": \"RESUELTO\",\n    \"contenido\": {\n        \"cuentas\": [\n            {\n                \"idCuenta\": 2,\n                \"cuenta\": \"Caja\",\n                \"debe\": [\n                    {\n                        \"fecha\": \"17/10/2026\",\n                        \"monto\": 1000,\n                        \"idContraCuenta\": 1,\n                        \"contraCuenta\": \"Fondo Fijo\"\n                    }\n                ],\n                \"haber\": [\n                    {\n                        \"fecha\": \"17/10/2026\",\n                        \"monto\": 999,\n                        \"idContraCuenta\": 1,\n                        \"contraCuenta\": \"Fondo Fijo\"\n                    },\n                    {\n                        \"fecha\": \"17/10/2026\",\n                        \"monto\": 1,\n                        \"idContraCuenta\": 3,\n                        \"contraCuenta\": \"Valores a Depositar\"\n                    }\n                ],\n                \"tipoSaldo\": \"SALDADA\"\n            }\n        ]\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/ejercicios/:idEjercicio/resolucion",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "3000",
+                  "path": [
+                    "ejercicios",
+                    ":idEjercicio",
+                    "resolucion"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idEjercicio",
+                      "value": "4"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            }
+          ]
         }
       ]
+    },
+    {
+      "name": "Notificacion",
+      "item": [
+        {
+          "name": "ver notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/notificaciones",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "2",
+                  "disabled": true
+                },
+                {
+                  "key": "estado",
+                  "value": "NO_LEIDAS",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ver notifaciones contador no leido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/notificaciones/contador",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "notificaciones",
+                "contador"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "marcar notifacion leida",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/notificaciones/:idNotificacion/leida",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "notificaciones",
+                ":idNotificacion",
+                "leida"
+              ],
+              "variable": [
+                {
+                  "key": "idNotificacion",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "marcar todas notifaciones leidas",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/notificaciones/leer-todas",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "notificaciones",
+                "leer-todas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Entregas",
+      "item": [
+        {
+          "name": "Ver entregas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/entregas",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "entregas"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "2",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "busqueda",
+                  "value": "prueba",
+                  "disabled": true
+                },
+                {
+                  "key": "estado",
+                  "value": "EN_PROGRESO",
+                  "disabled": true
+                },
+                {
+                  "key": "docenteId",
+                  "value": "0fdb3cd3-d45c-43e4-8b21-7f667bbb4a2f",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver  filtros entregas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/entregas/filtros",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "entregas",
+                "filtros"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver detalle entrega",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/entregas/:idEjercicio",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "entregas",
+                ":idEjercicio"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver resolucion entrega",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/entregas/:idEjercicio/resolucion",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "entregas",
+                ":idEjercicio",
+                "resolucion"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Finalizar entrega",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_Url}}/entregas/:idEjercicio/finalizar",
+              "host": [
+                "{{base_Url}}"
+              ],
+              "path": [
+                "entregas",
+                ":idEjercicio",
+                "finalizar"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "crear resolucion entrega",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tipo\": \"LIBRO_DIARIO\",\n    \"estado\": \"EN_EDICION\",\n    \"contenido\": {\n        \"asientos\": [\n            {\n                \"numero\": 1,\n                \"fecha\": \"14/05/2026\",\n                \"concepto\": \"conseptual\",\n                \"lineas\": [\n                    {\n                        \"idCuenta\": 1,\n                        \"cuenta\": \"Fondo Fijo\",\n                        \"movimiento\": \"A+\",\n                        \"folio\": 1,\n                        \"debe\": 2000,\n                        \"haber\": 0\n                    },{\n                        \"idCuenta\": 2,\n                        \"cuenta\": \"Fondo Fijo\",\n                        \"movimiento\": \"A-\",\n                        \"folio\": 1,\n                        \"debe\": 0,\n                        \"haber\": 2000\n                    }\n                ]\n            }\n        ]\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/entregas/:idEjercicio/plantilla",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "entregas",
+                ":idEjercicio",
+                "plantilla"
+              ],
+              "variable": [
+                {
+                  "key": "idEjercicio",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "crear libro diario",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipo\": \"LIBRO_DIARIO\",\n    \"estado\": \"COMPLETADA\",\n    \"contenido\": {\n        \"asientos\": [\n            {\n                \"numero\": 1,\n                \"fecha\": \"31/10/2026\",\n                \"concepto\": \"conseptual\",\n                \"lineas\": [\n                    {\n                        \"idCuenta\": 2,\n                        \"cuenta\": \"Caja\",\n                        \"movimiento\": \"A+\",\n                        \"folio\": 1,\n                        \"debe\": 1000,\n                        \"haber\": 1000\n                    }\n                ]\n            }\n        ]\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/entregas/:idEjercicio/plantilla",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "3000",
+                  "path": [
+                    "entregas",
+                    ":idEjercicio",
+                    "plantilla"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idEjercicio",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "crear hoja de trabajo",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipo\": \"HOJA_TRABAJO\",\n    \"estado\": \"EN_EDICION\",\n    \"contenido\": {\n        \"filas\":[\n            {\n                \"idCuenta\":1,\n                \"cuenta\": \"Fondo Fijo\",\n                \"estadoResultados\":{\n                    \"positivo\": 2000\n                }\n            },\n            {\n                \"idCuenta\":2,\n                \"cuenta\": \"Caja\",\n                \"saldosAjustados\":{\n                    \"deudor\":1001\n                }\n            },\n            {\n                \"idCuenta\":3,\n                \"cuenta\": \"ASD\",\n                \"saldosAjustados\":{\n                    \"acreedor\":1001\n                }\n            }\n        ]\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/entregas/:idEjercicio/plantilla",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "3000",
+                  "path": [
+                    "entregas",
+                    ":idEjercicio",
+                    "plantilla"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idEjercicio",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "crear libro iva",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipo\": \"LIBRO_IVA\",\n    \"estado\": \"COMPLETADA\",\n    \"contenido\": {\n        \"compras\":[\n            {\n                \"fecha\": \"31/10/2026\",\n                \"comprobante\": 1,\n                \"nombre\": \"Yo S.R.L.\",\n                \"netoGravado\": 10,\n                \"iva\": 30,\n                \"total\": 40\n            }\n        ],\n        \"ventas\":[\n            {\n                \"fecha\": \"31/10/2026\",\n                \"comprobante\": 2,\n                \"nombre\": \"Vos S.R.L.\",\n                \"netoGravado\": 10,\n                \"iva\": 20,\n                \"total\": 30\n            }\n        ],\n        \"resultado\": \"A_FAVOR_CONTRIBUYENTE\"\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/entregas/:idEjercicio/plantilla",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "3000",
+                  "path": [
+                    "entregas",
+                    ":idEjercicio",
+                    "plantilla"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idEjercicio",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "crear libro mayor",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tipo\": \"LIBRO_MAYOR\",\n    \"estado\": \"COMPLETADA\",\n    \"contenido\": {\n        \"cuentas\": [\n            {\n                \"idCuenta\": 2,\n                \"cuenta\": \"Caja\",\n                \"debe\": [\n                    {\n                        \"fecha\": \"17/10/2026\",\n                        \"monto\": 1000,\n                        \"idContraCuenta\": 1,\n                        \"contraCuenta\": \"Fondo Fijo\"\n                    }\n                ],\n                \"haber\": [\n                    {\n                        \"fecha\": \"17/10/2026\",\n                        \"monto\": 999,\n                        \"idContraCuenta\": 1,\n                        \"contraCuenta\": \"Fondo Fijo\"\n                    },\n                    {\n                        \"fecha\": \"17/10/2026\",\n                        \"monto\": 1,\n                        \"idContraCuenta\": 3,\n                        \"contraCuenta\": \"Valores a Depositar\"\n                    }\n                ],\n                \"tipoSaldo\": \"SALDADA\"\n            }\n        ]\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/entregas/:idEjercicio/plantilla",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "3000",
+                  "path": [
+                    "entregas",
+                    ":idEjercicio",
+                    "plantilla"
+                  ],
+                  "variable": [
+                    {
+                      "key": "idEjercicio",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
     }
   ],
   "auth": {

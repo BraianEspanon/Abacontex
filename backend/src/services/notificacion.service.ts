@@ -5,7 +5,7 @@ import * as alumnoRepository from '../repositories/alumno.repository';
 import * as notificacionRepository from '../repositories/notificacion.repository';
 import * as usuarioRepository from '../repositories/usuario.repository';
 
-import { notificarNuevoEjercicio } from '../socket/socket.server';
+import { emitirAUsuario, notificarNuevoEjercicio } from '../socket/socket.server';
 
 import { ObtenerNotificacionesQueryDTO } from '../validators/notificacion.validator';
 import {
@@ -148,4 +148,96 @@ export async function marcarTodasComoLeidas(user: AuthUser): Promise<MarcarTodas
   const actualizadas = await notificacionRepository.marcarTodasComoLeidasByUsuario(usuario.id);
 
   return { actualizadas };
+}
+
+export interface ResumenProcesamientoVencimientoDTO {
+  ejerciciosEvaluados: number;
+  notificacionesEnviadas: number;
+  alumnosOmitidosPorEntrega: number;
+  alumnosOmitidosPorDuplicado: number;
+}
+
+/**
+ * Evalúa los ejercicios publicados que vencen en las próximas 24 horas y emite notificaciones
+ * de vencimiento próximo a los alumnos que aún no hayan realizado la entrega formal.
+ *
+ * Es idempotente: no duplica avisos si la notificación ya fue enviada previamente al alumno.
+ */
+export async function procesarNotificacionesVencimientoProximo(
+  fechaReferencia: Date = new Date(),
+  tx?: Prisma.TransactionClient
+): Promise<ResumenProcesamientoVencimientoDTO> {
+  const limiteSuperior = new Date(fechaReferencia.getTime() + 24 * 60 * 60 * 1000);
+
+  const ejercicios = await notificacionRepository.findEjerciciosParaAvisoVencimiento(
+    fechaReferencia,
+    limiteSuperior,
+    tx
+  );
+
+  let notificacionesEnviadas = 0;
+  let alumnosOmitidosPorEntrega = 0;
+  let alumnosOmitidosPorDuplicado = 0;
+
+  for (const ejercicio of ejercicios) {
+    const alumnosCurso = ejercicio.curso.alumnos.map((a) => a.id);
+    const alumnosEntregados = new Set(ejercicio.entregas.map((e) => e.alumnoId));
+    const alumnosYaNotificados = new Set(ejercicio.notificaciones.map((n) => n.usuarioId));
+
+    const alumnosANotificar: string[] = [];
+
+    for (const alumnoId of alumnosCurso) {
+      if (alumnosEntregados.has(alumnoId)) {
+        alumnosOmitidosPorEntrega++;
+        continue;
+      }
+      if (alumnosYaNotificados.has(alumnoId)) {
+        alumnosOmitidosPorDuplicado++;
+        continue;
+      }
+      alumnosANotificar.push(alumnoId);
+    }
+
+    if (alumnosANotificar.length === 0) {
+      continue;
+    }
+
+    const titulo = 'Fecha límite próxima';
+    const mensaje = `El ejercicio "${ejercicio.titulo}" vence en menos de 24 horas. Recordá completar tus plantillas y realizar la entrega.`;
+
+    const dataNotificaciones: notificacionRepository.CrearNotificacionData[] =
+      alumnosANotificar.map((usuarioId) => ({
+        usuarioId,
+        ejercicioId: ejercicio.idEjercicio,
+        tipo: 'VENCIMIENTO_PROXIMO',
+        titulo,
+        mensaje,
+      }));
+
+    await notificacionRepository.crearNotificacionesMasivas(dataNotificaciones, tx);
+    notificacionesEnviadas += alumnosANotificar.length;
+
+    // Emisión en tiempo real vía Socket.IO a cada alumno conectado
+    const ahora = new Date();
+    for (const usuarioId of alumnosANotificar) {
+      emitirAUsuario(usuarioId, 'notificacion:nueva', {
+        tipo: 'VENCIMIENTO_PROXIMO',
+        titulo,
+        mensaje,
+        data: {
+          idEjercicio: ejercicio.idEjercicio,
+          titulo: ejercicio.titulo,
+          fechaLimite: ejercicio.fechaLimite,
+        },
+        createdAt: ahora,
+      });
+    }
+  }
+
+  return {
+    ejerciciosEvaluados: ejercicios.length,
+    notificacionesEnviadas,
+    alumnosOmitidosPorEntrega,
+    alumnosOmitidosPorDuplicado,
+  };
 }
