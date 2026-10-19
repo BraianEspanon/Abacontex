@@ -136,3 +136,83 @@ export async function marcarTodasComoLeidasByUsuario(
 
   return resultado.count;
 }
+
+export type EjercicioConAlumnosParaAvisoEntity = Prisma.EjercicioGetPayload<{
+  select: {
+    idEjercicio: true;
+    titulo: true;
+    fechaLimite: true;
+    cursoId: true;
+    curso: {
+      select: {
+        alumnos: {
+          select: {
+            id: true;
+          };
+        };
+      };
+    };
+    entregas: {
+      select: {
+        alumnoId: true;
+      };
+    };
+    notificaciones: {
+      select: {
+        usuarioId: true;
+      };
+    };
+  };
+}>;
+
+export async function findEjerciciosParaAvisoVencimiento(
+  ahora: Date,
+  limiteSuperior: Date,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioConAlumnosParaAvisoEntity[]> {
+  const db = getDbClient(tx);
+
+  return db.ejercicio.findMany({
+    where: {
+      estado: 'PUBLICADO',
+      fechaLimite: {
+        gt: ahora,
+        lte: limiteSuperior,
+      },
+    },
+    select: {
+      idEjercicio: true,
+      titulo: true,
+      fechaLimite: true,
+      cursoId: true,
+      curso: {
+        select: {
+          alumnos: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+      entregas: {
+        where: {
+          fechaEntrega: {
+            not: null,
+          },
+        },
+        select: {
+          alumnoId: true,
+        },
+      },
+      notificaciones: {
+        where: {
+          tipo: 'VENCIMIENTO_PROXIMO',
+        },
+        select: {
+          usuarioId: true,
+        },
+      },
+    },
+  });
+}
+
