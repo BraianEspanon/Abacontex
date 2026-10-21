@@ -3,6 +3,7 @@ import { CheckCircle2, CircleAlert, Plus, Trash2 } from 'lucide-react';
 import Button from '../../ui/Button';
 
 import { useCuentasContablesEjercicio } from '../../../hooks/useCuentasContablesEjercicio';
+import SelectorCuentaContable from './SelectorCuentaContable';
 
 import type {
   AsientoLibroDiario,
@@ -13,6 +14,7 @@ import type {
 interface LibroDiarioEditorProps {
   contenido: ContenidoLibroDiario;
   onChange: (contenido: ContenidoLibroDiario) => void;
+  mostrarEstadoBalance?: boolean;
 }
 
 const MOVIMIENTOS: MovimientoContable[] = ['A+', 'A-', 'P+', 'P-', 'PN+', 'PN-', 'R+', 'R-'];
@@ -101,7 +103,11 @@ function formatearImporte(valor: number): string {
   }).format(valor);
 }
 
-export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEditorProps) {
+export default function LibroDiarioEditor({
+  contenido,
+  onChange,
+  mostrarEstadoBalance = true,
+}: LibroDiarioEditorProps) {
   const { data: cuentasData, isLoading: cargandoCuentas } = useCuentasContablesEjercicio();
 
   const cuentas = cuentasData?.items ?? [];
@@ -284,24 +290,28 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
                 />
               </div>
 
-              {estadoBalance === 'BALANCEADO' && (
-                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                  <CheckCircle2 size={13} />
-                  Balanceado
-                </span>
-              )}
+              {mostrarEstadoBalance && (
+                <>
+                  {estadoBalance === 'BALANCEADO' && (
+                    <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                      <CheckCircle2 size={13} />
+                      Balanceado
+                    </span>
+                  )}
 
-              {estadoBalance === 'SIN_BALANCEAR' && (
-                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-                  <CircleAlert size={13} />
-                  Sin balancear
-                </span>
-              )}
+                  {estadoBalance === 'SIN_BALANCEAR' && (
+                    <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                      <CircleAlert size={13} />
+                      Sin balancear
+                    </span>
+                  )}
 
-              {estadoBalance === 'INCOMPLETO' && (
-                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500">
-                  Incompleto
-                </span>
+                  {estadoBalance === 'INCOMPLETO' && (
+                    <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500">
+                      Incompleto
+                    </span>
+                  )}
+                </>
               )}
 
               <button
@@ -332,11 +342,11 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
             {/* ==============================================================
                 Tabla
             ============================================================== */}
-            <div className="mx-auto mt-2 w-[92%] overflow-x-auto">
-              <table className="w-full min-w-[900px] border-collapse text-sm">
+            <div className="mx-auto mt-2 w-[92%] max-w-full overflow-x-auto">
+              <table className="w-full min-w-[255 border-collapse text-sm">
                 <thead>
                   <tr className="bg-[#9db79c] text-gray-900">
-                    <th className="w-[125px] border border-gray-300 px-3 py-2 text-center font-medium">
+                    <th className="w-31.25 border border-gray-300 px-3 py-2 text-center font-medium">
                       Fecha
                     </th>
 
@@ -344,15 +354,15 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
                       Concepto
                     </th>
 
-                    <th className="w-[100px] border border-gray-300 px-3 py-2 text-center font-medium">
+                    <th className="w-25 border border-gray-300 px-3 py-2 text-center font-medium">
                       N° Folio
                     </th>
 
-                    <th className="w-[180px] border border-gray-300 px-3 py-2 text-center font-medium">
+                    <th className="w-45 border border-gray-300 px-3 py-2 text-center font-medium">
                       Debe
                     </th>
 
-                    <th className="w-[180px] border border-gray-300 px-3 py-2 text-center font-medium">
+                    <th className="w-45 border border-gray-300 px-3 py-2 text-center font-medium">
                       Haber
                     </th>
 
@@ -370,30 +380,18 @@ export default function LibroDiarioEditor({ contenido, onChange }: LibroDiarioEd
 
                       {/* Cuenta + Movimiento */}
                       <td className="border border-gray-300 p-2">
-                        <div className="flex min-w-[330px] gap-2">
-                          <select
-                            value={linea.idCuenta || ''}
+                        <div className="flex min-w-82.5 gap-2">
+                          <SelectorCuentaContable
+                            cuentas={cuentas}
+                            value={linea.idCuenta || null}
                             disabled={cargandoCuentas}
-                            onChange={(event) =>
-                              actualizarLinea(
-                                indiceAsiento,
-                                indiceLinea,
-                                'idCuenta',
-                                Number(event.target.value)
-                              )
+                            placeholder={
+                              cargandoCuentas ? 'Cargando cuentas...' : 'Buscar cuenta...'
                             }
-                            className="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                          >
-                            <option value="">
-                              {cargandoCuentas ? 'Cargando cuentas...' : 'Seleccionar cuenta'}
-                            </option>
-
-                            {cuentas.map((cuenta) => (
-                              <option key={cuenta.idCuenta} value={cuenta.idCuenta}>
-                                {cuenta.codigo} - {cuenta.nombre}
-                              </option>
-                            ))}
-                          </select>
+                            onSelect={(idCuenta) =>
+                              actualizarLinea(indiceAsiento, indiceLinea, 'idCuenta', idCuenta)
+                            }
+                          />
 
                           <select
                             value={linea.movimiento}

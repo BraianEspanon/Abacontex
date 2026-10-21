@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react';
 
 import { useCuentasContablesEjercicio } from '../../../hooks/useCuentasContablesEjercicio';
+import SelectorCuentaContable from './SelectorCuentaContable';
 
 import type { ContenidoHojaTrabajo, FilaHojaTrabajo } from '../../../types/ejercicio.types';
 
@@ -502,29 +503,18 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                     </td>
 
                     <td className="border-r border-gray-100 px-1.5 py-1.5">
-                      <select
-                        value={fila.idCuenta || ''}
+                      <SelectorCuentaContable
+                        cuentas={cuentasContables.filter(
+                          (cuenta) =>
+                            cuenta.idCuenta === fila.idCuenta ||
+                            !cuentaYaSeleccionada(cuenta.idCuenta, indiceFila)
+                        )}
+                        value={fila.idCuenta || null}
                         disabled={cargandoCuentas}
-                        onChange={(event) =>
-                          seleccionarCuenta(indiceFila, Number(event.target.value))
-                        }
-                        aria-label={`Cuenta de la fila ${indiceFila + 1}`}
-                        className="h-8 w-full truncate rounded-md border border-gray-300 bg-white px-1.5 text-[11px] text-gray-800 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                      >
-                        <option value="">
-                          {cargandoCuentas ? 'Cargando cuentas...' : 'Seleccionar cuenta'}
-                        </option>
-
-                        {cuentasContables.map((cuenta) => (
-                          <option
-                            key={cuenta.idCuenta}
-                            value={cuenta.idCuenta}
-                            disabled={cuentaYaSeleccionada(cuenta.idCuenta, indiceFila)}
-                          >
-                            {cuenta.codigo} - {cuenta.nombre}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder={cargandoCuentas ? 'Cargando cuentas...' : 'Buscar cuenta...'}
+                        compacto
+                        onSelect={(idCuenta) => seleccionarCuenta(indiceFila, idCuenta)}
+                      />
                     </td>
 
                     <CeldaImporte

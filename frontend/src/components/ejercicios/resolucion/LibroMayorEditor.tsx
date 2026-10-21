@@ -1,9 +1,11 @@
 import { CirclePlus, Info, Trash2 } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { useMemo, useState } from 'react';
 
 import Button from '../../ui/Button';
 
 import { useCuentasContablesEjercicio } from '../../../hooks/useCuentasContablesEjercicio';
+
+import SelectorCuentaContable from './SelectorCuentaContable';
 
 import type {
   ContenidoLibroMayor,
@@ -34,16 +36,11 @@ function formatearImporte(valor: number) {
   }).format(valor);
 }
 
-/**
- * Convierte la fecha utilizada por la API (DD/MM/AAAA)
- * al formato requerido por <input type="date"> (AAAA-MM-DD).
- */
 function fechaApiAInput(fecha: string): string {
   if (!fecha) {
     return '';
   }
 
-  // Compatibilidad por si algún dato ya estuviera en formato del input.
   if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
     return fecha;
   }
@@ -59,16 +56,11 @@ function fechaApiAInput(fecha: string): string {
   return `${anio}-${mes}-${dia}`;
 }
 
-/**
- * Convierte la fecha de <input type="date"> (AAAA-MM-DD)
- * al formato esperado por la API (DD/MM/AAAA).
- */
 function fechaInputAApi(fecha: string): string {
   if (!fecha) {
     return '';
   }
 
-  // Compatibilidad por si el valor ya estuviera en formato de la API.
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(fecha)) {
     return fecha;
   }
@@ -113,9 +105,9 @@ function crearCuentaVacia(cuenta: CuentaContableEjercicio): CuentaLibroMayor {
 }
 
 export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEditorProps) {
-  const { data: cuentasData, isLoading: cargandoCuentas } = useCuentasContablesEjercicio();
+  const [mostrarNuevaCuenta, setMostrarNuevaCuenta] = useState(false);
 
-  const selectorNuevaCuentaRef = useRef<HTMLSelectElement>(null);
+  const { data: cuentasData, isLoading: cargandoCuentas } = useCuentasContablesEjercicio();
 
   const cuentasContables: CuentaContableEjercicio[] = useMemo(
     () => cuentasData?.items ?? [],
@@ -287,8 +279,8 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
     });
   }
 
-  function enfocarSelectorNuevaCuenta() {
-    selectorNuevaCuentaRef.current?.focus();
+  function mostrarSelectorNuevaCuenta() {
+    setMostrarNuevaCuenta(true);
   }
 
   return (
@@ -300,7 +292,7 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
           variant="outline"
           label="Agregar cuenta"
           icon={<CirclePlus size={15} />}
-          onClick={enfocarSelectorNuevaCuenta}
+          onClick={mostrarSelectorNuevaCuenta}
           disabled={cargandoCuentas || cuentasDisponibles.length === 0}
           className="!rounded-lg !px-4 !py-2 !text-xs"
         />
@@ -317,7 +309,7 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
         </div>
       )}
 
-      {/* Tarjetas de cuentas */}
+      {/* Tarjetas: DOS cuentas por fila */}
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
         {contenido.cuentas.map((cuenta, indiceCuenta) => {
           const totales = calcularTotales(cuenta);
@@ -334,10 +326,10 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
               key={`${cuenta.idCuenta}-${indiceCuenta}`}
               className="w-full min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
             >
-              {/* Cabecera */}
+              {/* Cabecera cuenta */}
               <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex min-w-0 items-center gap-2.5">
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-abacontex-primary-three text-[10px] font-semibold text-white">
+                  <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-abacontex-primary-three text-[10px] font-semibold text-white">
                     {indiceCuenta + 1}
                   </div>
 
@@ -353,7 +345,7 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                 <button
                   type="button"
                   onClick={() => eliminarCuenta(indiceCuenta)}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                  className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
                   aria-label={`Eliminar cuenta ${cuenta.cuenta}`}
                   title="Eliminar cuenta"
                 >
@@ -365,19 +357,13 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
               <div className="grid grid-cols-2 border-t border-gray-200">
                 {/* DEBE */}
                 <div className="min-w-0 border-r border-gray-300">
-                  <div className="border-b border-gray-200 bg-green-50/50 py-1 text-center">
-                    <span className="text-[11px] font-semibold uppercase text-green-700">Debe</span>
+                  <div className="border-b border-gray-200 bg-green-50/50 py-2 text-center">
+                    <span className="text-xs font-bold uppercase tracking-wide text-abacontex-primary">
+                      Debe
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-[78px_minmax(0,1fr)_78px_26px] border-b border-gray-200 text-[10px] font-medium text-gray-700">
-                    <div className="px-2 py-1.5">Fecha</div>
-
-                    <div className="border-l border-gray-200 px-2 py-1.5">Contra cuenta</div>
-
-                    <div className="border-l border-gray-200 px-2 py-1.5 text-right">Monto</div>
-
-                    <div className="border-l border-gray-200" />
-                  </div>
+                  <CabeceraMayor />
 
                   {cuenta.debe.map((linea, indiceLinea) => (
                     <LineaMayor
@@ -398,7 +384,7 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                   <button
                     type="button"
                     onClick={() => agregarLinea(indiceCuenta, 'DEBE')}
-                    className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium text-gray-600 transition hover:text-abacontex-primary-three"
+                    className="flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[11px] font-medium text-gray-600 transition hover:text-abacontex-primary-three"
                   >
                     <CirclePlus size={12} />
                     Agregar línea
@@ -407,21 +393,13 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
 
                 {/* HABER */}
                 <div className="min-w-0">
-                  <div className="border-b border-gray-200 bg-green-50/50 py-1 text-center">
-                    <span className="text-[11px] font-semibold uppercase text-green-700">
+                  <div className="border-b border-gray-200 bg-green-50/50 py-2 text-center">
+                    <span className="text-xs font-bold uppercase tracking-wide text-abacontex-primary">
                       Haber
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-[78px_minmax(0,1fr)_78px_26px] border-b border-gray-200 text-[10px] font-medium text-gray-700">
-                    <div className="px-2 py-1.5">Fecha</div>
-
-                    <div className="border-l border-gray-200 px-2 py-1.5">Contra cuenta</div>
-
-                    <div className="border-l border-gray-200 px-2 py-1.5 text-right">Monto</div>
-
-                    <div className="border-l border-gray-200" />
-                  </div>
+                  <CabeceraMayor />
 
                   {cuenta.haber.map((linea, indiceLinea) => (
                     <LineaMayor
@@ -442,7 +420,7 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                   <button
                     type="button"
                     onClick={() => agregarLinea(indiceCuenta, 'HABER')}
-                    className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium text-gray-600 transition hover:text-abacontex-primary-three"
+                    className="flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[11px] font-medium text-gray-600 transition hover:text-abacontex-primary-three"
                   >
                     <CirclePlus size={12} />
                     Agregar línea
@@ -488,8 +466,11 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                     className="h-8 w-full min-w-0 rounded-md border border-gray-300 bg-white px-2 text-[11px] text-gray-600 outline-none transition focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
                   >
                     <option value="">Seleccione saldo</option>
+
                     <option value="DEUDOR">Deudor</option>
+
                     <option value="ACREEDOR">Acreedor</option>
+
                     <option value="SALDADA">Saldada</option>
                   </select>
                 </div>
@@ -500,63 +481,70 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
       </div>
 
       {/* Nueva cuenta */}
-      <div className="w-full rounded-lg border border-dashed border-emerald-300 bg-white p-3 xl:max-w-[calc(50%-0.5rem)]">
-        <div className="mb-2 flex items-center gap-2">
-          <CirclePlus size={15} className="text-abacontex-primary-three" />
+      {mostrarNuevaCuenta && (
+        <div className="w-full rounded-xl border border-dashed border-emerald-300 bg-white p-4 xl:max-w-[650px]">
+          <div className="mb-3 flex items-center gap-2">
+            <CirclePlus size={16} className="text-abacontex-primary-three" />
 
-          <span className="text-xs font-semibold text-gray-800">Nueva cuenta</span>
+            <span className="text-sm font-semibold text-gray-800">Nueva cuenta</span>
 
-          <span className="rounded bg-sky-100 px-2 py-0.5 text-[9px] font-medium text-sky-600">
-            En edición
-          </span>
-        </div>
+            <span className="rounded bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-600">
+              En edición
+            </span>
+          </div>
 
-        <div className="space-y-2">
-          <div>
-            <label className="mb-1 block text-[10px] font-medium text-gray-600">
-              Seleccionar cuenta del plan de cuentas <span className="text-red-500">*</span>
-            </label>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-2 block text-xs font-medium text-gray-600">
+                Seleccionar cuenta del plan de cuentas <span className="text-red-500">*</span>
+              </label>
 
-            <select
-              ref={selectorNuevaCuentaRef}
-              defaultValue=""
-              disabled={cargandoCuentas || cuentasDisponibles.length === 0}
-              onChange={(event) => {
-                const idCuenta = Number(event.target.value);
-
-                if (idCuenta > 0) {
-                  agregarCuenta(idCuenta);
-                  event.target.value = '';
+              <SelectorCuentaContable
+                cuentas={cuentasDisponibles}
+                disabled={cargandoCuentas || cuentasDisponibles.length === 0}
+                placeholder={
+                  cargandoCuentas
+                    ? 'Cargando cuentas...'
+                    : cuentasDisponibles.length === 0
+                      ? 'No hay cuentas disponibles'
+                      : 'Buscar cuenta por código o nombre...'
                 }
-              }}
-              className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-[11px] text-gray-600 outline-none transition focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three disabled:cursor-not-allowed disabled:bg-gray-100"
-            >
-              <option value="">
-                {cargandoCuentas
-                  ? 'Cargando cuentas...'
-                  : cuentasDisponibles.length === 0
-                    ? 'No hay cuentas disponibles'
-                    : 'Buscar y seleccionar cuenta...'}
-              </option>
+                onSelect={(idCuenta) => {
+                  agregarCuenta(idCuenta);
+                  setMostrarNuevaCuenta(false);
+                }}
+              />
+            </div>
 
-              {cuentasDisponibles.map((cuenta) => (
-                <option key={cuenta.idCuenta} value={cuenta.idCuenta}>
-                  {cuenta.codigo} - {cuenta.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2.5">
+              <Info size={15} className="shrink-0 text-abacontex-primary-three" />
 
-          <div className="flex items-center gap-2 rounded-md bg-green-50 px-3 py-2">
-            <Info size={15} className="shrink-0 text-abacontex-primary-three" />
-
-            <p className="text-[10px] leading-4 text-gray-600">
-              Seleccioná una cuenta del plan de cuentas para agregar una nueva tarjeta al libro
-              mayor.
-            </p>
+              <p className="text-xs leading-5 text-gray-600">
+                Seleccioná una cuenta del plan de cuentas para agregar una nueva tarjeta al libro
+                mayor.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   CABECERA DE DEBE / HABER
+============================================================ */
+
+function CabeceraMayor() {
+  return (
+    <div className="grid grid-cols-[94px_minmax(0,1fr)_88px_34px] border-b border-gray-200 text-[11px] font-semibold text-gray-700">
+      <div className="px-1.5 py-2 text-center">Fecha</div>
+
+      <div className="border-l border-gray-200 px-1.5 py-2 text-center">Contra cuenta</div>
+
+      <div className="border-l border-gray-200 px-1.5 py-2 text-center">Monto</div>
+
+      <div className="border-l border-gray-200" />
     </div>
   );
 }
@@ -581,7 +569,7 @@ function LineaMayor({
   const cuentasContrapartida = cuentas.filter((cuenta) => cuenta.idCuenta !== cuentaPrincipalId);
 
   return (
-    <div className="grid grid-cols-[78px_minmax(0,1fr)_78px_26px] items-center border-b border-gray-200">
+    <div className="grid grid-cols-[94px_minmax(0,1fr)_88px_34px] items-center border-b border-gray-200">
       {/* Fecha */}
       <div className="min-w-0 p-1">
         <input
@@ -592,26 +580,18 @@ function LineaMayor({
               fecha: fechaInputAApi(event.target.value),
             })
           }
-          className="h-7 w-full min-w-0 rounded border border-gray-300 bg-white px-1 text-[9px] text-gray-700 outline-none focus:border-abacontex-primary-three"
+          className="h-9 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
         />
       </div>
 
       {/* Contracuenta */}
       <div className="min-w-0 border-l border-gray-200 p-1">
-        <select
-          value={linea.idContraCuenta || ''}
-          onChange={(event) => onCambiarContracuenta(Number(event.target.value))}
-          className="h-7 w-full min-w-0 rounded border border-gray-300 bg-white px-1 text-[9px] text-gray-700 outline-none focus:border-abacontex-primary-three"
-          title={linea.contraCuenta || 'Seleccionar contracuenta'}
-        >
-          <option value="">Seleccionar...</option>
-
-          {cuentasContrapartida.map((cuenta) => (
-            <option key={cuenta.idCuenta} value={cuenta.idCuenta}>
-              {cuenta.nombre}
-            </option>
-          ))}
-        </select>
+        <SelectorCuentaContable
+          cuentas={cuentasContrapartida}
+          value={linea.idContraCuenta || null}
+          placeholder="Buscar contracuenta..."
+          onSelect={onCambiarContracuenta}
+        />
       </div>
 
       {/* Monto */}
@@ -632,20 +612,20 @@ function LineaMayor({
             }
           }}
           placeholder="0,00"
-          className="h-7 w-full min-w-0 rounded border border-gray-300 bg-white px-1 text-right text-[9px] text-gray-700 outline-none focus:border-abacontex-primary-three"
+          className="h-9 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-right text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
         />
       </div>
 
       {/* Eliminar */}
-      <div className="flex h-full items-center justify-center border-l border-gray-200">
+      <div className="flex h-full min-w-0 items-center justify-center border-l border-gray-200">
         <button
           type="button"
           onClick={onEliminar}
-          className="flex h-6 w-6 items-center justify-center rounded text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+          className="flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
           aria-label="Eliminar movimiento"
           title="Eliminar movimiento"
         >
-          <Trash2 size={11} />
+          <Trash2 size={14} />
         </button>
       </div>
     </div>
