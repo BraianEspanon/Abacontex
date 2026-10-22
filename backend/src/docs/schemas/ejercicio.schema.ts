@@ -917,6 +917,35 @@
  *             positivo:
  *               type: number
  *               example: 0
+ *     ResultadoEjercicioRequest:
+ *       type: object
+ *       description: Celdas del resultado final del ejercicio al pie de las últimas 4 columnas de la planilla.
+ *       properties:
+ *         activo:
+ *           type: number
+ *           minimum: 0
+ *           default: 0
+ *           example: 3036.35
+ *           description: Importe si el Activo supera al Pasivo + PN (Ganancia).
+ *         pasivoMasPn:
+ *           type: number
+ *           minimum: 0
+ *           default: 0
+ *           example: 0
+ *           description: Importe si el Pasivo + PN supera al Activo (Pérdida).
+ *         negativo:
+ *           type: number
+ *           minimum: 0
+ *           default: 0
+ *           example: 0
+ *           description: Importe si los Resultados Negativos superan a los Positivos (Pérdida).
+ *         positivo:
+ *           type: number
+ *           minimum: 0
+ *           default: 0
+ *           example: 3036.35
+ *           description: Importe si los Resultados Positivos superan a los Negativos (Ganancia).
+ *
  *     HojaTrabajoContenidoRequest:
  *       type: object
  *       properties:
@@ -924,6 +953,10 @@
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/FilaHojaTrabajoRequest'
+ *         resultadoDelEjercicio:
+ *           $ref: '#/components/schemas/ResultadoEjercicioRequest'
+ *           nullable: true
+ *           description: Sección del resultado del ejercicio al pie de las últimas 4 columnas (opcional en borrador).
  *
  *     ActualizarResolucionDocenteRequest:
  *       type: object
