@@ -55,6 +55,16 @@ export const parResultadosSchema = z
   .strict()
   .default({ negativo: 0, positivo: 0 });
 
+export const resultadoEjercicioSchema = z
+  .object({
+    activo: celdaImporteSchema,
+    pasivoMasPn: celdaImporteSchema,
+    negativo: celdaImporteSchema,
+    positivo: celdaImporteSchema,
+  })
+  .strict()
+  .default({ activo: 0, pasivoMasPn: 0, negativo: 0, positivo: 0 });
+
 export const filaHojaTrabajoSchema = z
   .object({
     idCuenta: z
@@ -75,17 +85,20 @@ export type FilaHojaTrabajoDTO = z.infer<typeof filaHojaTrabajoSchema>;
 export const hojaTrabajoContenidoSchema = z
   .object({
     filas: z.array(filaHojaTrabajoSchema).default([]),
+    resultadoDelEjercicio: resultadoEjercicioSchema.optional().nullable(),
   })
   .strict();
 
 export type HojaTrabajoContenidoDTO = z.infer<typeof hojaTrabajoContenidoSchema>;
 
+export type TipoResultadoEjercicio = 'GANANCIA' | 'PERDIDA' | 'EQUILIBRIO';
+
 /**
  * Función utilitaria para calcular dinámicamente los totales de cada columna
- * a partir de las filas registradas.
+ * y el resultado del ejercicio a partir de las filas registradas.
  */
 export function calcularTotalesHojaTrabajo(filas: FilaHojaTrabajoDTO[]) {
-  return filas.reduce(
+  const columnas = filas.reduce(
     (acc, f) => ({
       saldosSinAjustar: {
         deudor: Number((acc.saldosSinAjustar.deudor + f.saldosSinAjustar.deudor).toFixed(2)),
@@ -118,6 +131,30 @@ export function calcularTotalesHojaTrabajo(filas: FilaHojaTrabajoDTO[]) {
       estadoResultados: { negativo: 0, positivo: 0 },
     }
   );
+
+  const difPatrimonial = Number(
+    (columnas.estadoPatrimonial.activo - columnas.estadoPatrimonial.pasivoMasPn).toFixed(2)
+  );
+  const difResultados = Number(
+    (columnas.estadoResultados.positivo - columnas.estadoResultados.negativo).toFixed(2)
+  );
+
+  const montoResultado = Math.abs(difPatrimonial);
+
+  let tipoResultadoCalculado: TipoResultadoEjercicio = 'EQUILIBRIO';
+  if (difPatrimonial > 0.01) {
+    tipoResultadoCalculado = 'GANANCIA';
+  } else if (difPatrimonial < -0.01) {
+    tipoResultadoCalculado = 'PERDIDA';
+  }
+
+  return {
+    ...columnas,
+    diferenciaPatrimonial: difPatrimonial,
+    diferenciaResultados: difResultados,
+    montoResultadoCalculado: montoResultado,
+    tipoResultadoCalculado,
+  };
 }
 
 export function validarBalanceHojaTrabajo(contenido: unknown): void {
@@ -187,7 +224,7 @@ export function validarBalanceHojaTrabajo(contenido: unknown): void {
     }
   }
 
-  // 7. Balances por pares de columnas (Sumas Iguales)
+  // 7. Balances por pares de columnas (Sumas Iguales en las primeras 6 columnas)
   const totales = calcularTotalesHojaTrabajo(parsed.data.filas);
 
   if (Math.abs(totales.saldosSinAjustar.deudor - totales.saldosSinAjustar.acreedor) > 0.01) {
