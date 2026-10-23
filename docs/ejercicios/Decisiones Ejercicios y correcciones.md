@@ -394,11 +394,16 @@ La pantalla funciona como una planilla. Se muestran columnas para:
 - Estado Patrimonial;
 - Estado de Resultados.
 
-Al final se agrega una sección llamada **Resultado del ejercicio**, con las últimas cuatro columnas:
+Al final se agrega una sección llamada **Resultado del ejercicio**, debajo de las últimas 4 columnas:
 
 Activo | P \+ PN | Negativo | Positivo
 
 Estas celdas quedan vacías para que el docente/alumno complete el resultado final del ejercicio.
+
+Ejemplo:
+
+Lo que hacen los chicos es, del estado patrimonial hacen la diferencia de las columnas de activo y de P+PN. O sea, en este caso 434.108 \- 127.757 \= 3036.351. Como en este caso el activo es mayo, se pone ese resultado abajo de esa columna; por ende, si el pasivo hubiera sido el mayor, se pone bajo esa otra columna la diferencia.  
+Y se hace exactamente lo mismo para los estados de resultado, en este caso el monto de positivo es mayor, así que la diferencia se pone ahí.
 
 La hoja de trabajo puede ser bastante ancha, así que acá conviene permitir **scroll horizontal dentro de la tabla** y scroll vertical para recorrer las filas. No usar paginación, porque la lógica de la hoja se entiende mejor viéndola como una planilla completa.
 
