@@ -1,9 +1,15 @@
-export const ESTADOS_CORRECCION_EJERCICIO = ['PENDIENTE', 'EN_CORRECCION', 'CORREGIDO'] as const;
+export const ESTADOS_CORRECCION_EJERCICIO = [
+  'SIN_ENTREGAS',
+  'PENDIENTE',
+  'EN_CORRECCION',
+  'CORREGIDO',
+] as const;
 
 export type EstadoCorreccionEjercicio = (typeof ESTADOS_CORRECCION_EJERCICIO)[number];
 
 export const FILTROS_ESTADO_CORRECCION_EJERCICIO = [
   'TODAS',
+  'SIN_ENTREGAS',
   'PENDIENTE',
   'EN_CORRECCION',
   'CORREGIDO',
@@ -16,6 +22,7 @@ export const OPCIONES_FILTRO_ESTADO_CORRECCION: readonly {
   label: string;
 }[] = [
   { clave: 'TODAS', label: 'Todas' },
+  { clave: 'SIN_ENTREGAS', label: 'Sin entregas' },
   { clave: 'PENDIENTE', label: 'Pendientes' },
   { clave: 'EN_CORRECCION', label: 'En corrección' },
   { clave: 'CORREGIDO', label: 'Corregidas' },

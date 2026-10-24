@@ -20,7 +20,7 @@ export async function obtenerEjerciciosACorregir(
   // 1. Obtener docente autenticado
   const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
 
-  // 2. Consultar ejercicios del docente que tengan entregas recibidas
+  // 2. Consultar ejercicios publicados del docente
   const ejercicios = await correccionRepository.findEjerciciosParaTableroCorreccion(docente.id, {
     busqueda: query.busqueda,
     cursoId: query.cursoId,
@@ -32,6 +32,7 @@ export async function obtenerEjerciciosACorregir(
   // 4. Calcular métricas de resumen para las cards superiores del tablero
   const resumen: ResumenTableroCorreccionesDTO = {
     total: todosLosItems.length,
+    sinEntregas: todosLosItems.filter((i) => i.estado === 'SIN_ENTREGAS').length,
     pendientes: todosLosItems.filter((i) => i.estado === 'PENDIENTE').length,
     enCorreccion: todosLosItems.filter((i) => i.estado === 'EN_CORRECCION').length,
     corregidos: todosLosItems.filter((i) => i.estado === 'CORREGIDO').length,

@@ -9,7 +9,9 @@ import {
 export function toItemTableroCorreccion(
   ejercicio: EjercicioTableroCorreccionEntity
 ): ItemTableroCorreccionDTO {
+  const totalAlumnos = ejercicio.curso._count.alumnos;
   const totalEntregasRecibidas = ejercicio.entregas.length;
+  const cantidadSinEntregar = Math.max(0, totalAlumnos - totalEntregasRecibidas);
 
   const entregasCorregidas = ejercicio.entregas.filter(
     (e) => e.correccion !== null && e.correccion.fechaCorreccion !== null
@@ -25,7 +27,9 @@ export function toItemTableroCorreccion(
   );
 
   let estado: EstadoCorreccionEjercicio = 'PENDIENTE';
-  if (totalEntregasRecibidas > 0 && entregasCorregidas === totalEntregasRecibidas) {
+  if (totalEntregasRecibidas === 0) {
+    estado = 'SIN_ENTREGAS';
+  } else if (entregasCorregidas === totalEntregasRecibidas) {
     estado = 'CORREGIDO';
   } else if (entregasEnCorreccion > 0 || entregasCorregidas > 0) {
     estado = 'EN_CORRECCION';
@@ -38,10 +42,11 @@ export function toItemTableroCorreccion(
     curso: {
       idCurso: ejercicio.curso.idCurso,
       nombreCurso: ejercicio.curso.nombreCurso,
-      totalAlumnos: ejercicio.curso._count.alumnos,
+      totalAlumnos,
     },
     estado,
     totalEntregasRecibidas,
+    cantidadSinEntregar,
     entregasCorregidas,
     entregasEnCorreccion,
     entregasPendientes,

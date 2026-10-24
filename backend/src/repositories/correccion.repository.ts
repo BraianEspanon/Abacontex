@@ -49,11 +49,6 @@ export async function findEjerciciosParaTableroCorreccion(
   const where: Prisma.EjercicioWhereInput = {
     docenteId,
     estado: { in: ['PUBLICADO', 'FINALIZADO'] },
-    entregas: {
-      some: {
-        fechaEntrega: { not: null },
-      },
-    },
   };
 
   if (filtros.cursoId) {

@@ -14,6 +14,7 @@ export interface ItemTableroCorreccionDTO {
   curso: CursoResumenCorreccionDTO;
   estado: EstadoCorreccionEjercicio;
   totalEntregasRecibidas: number;
+  cantidadSinEntregar: number;
   entregasCorregidas: number;
   entregasEnCorreccion: number;
   entregasPendientes: number;
@@ -22,6 +23,7 @@ export interface ItemTableroCorreccionDTO {
 
 export interface ResumenTableroCorreccionesDTO {
   total: number;
+  sinEntregas: number;
   pendientes: number;
   enCorreccion: number;
   corregidos: number;

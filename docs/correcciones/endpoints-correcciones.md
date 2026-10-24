@@ -61,14 +61,15 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 ## 3. Especificación Detallada de Endpoints
 
 ### 3.1. `GET /correcciones/ejercicios` — Tablero de Correcciones
-* **Query Params:** `page` (default 1), `pageSize` (default 6), `busqueda` (opcional), `cursoId` (opcional), `estado` (`TODAS | PENDIENTE | EN_CORRECCION | CORREGIDO`).
+* **Query Params:** `page` (default 1), `pageSize` (default 6), `busqueda` (opcional), `cursoId` (opcional), `estado` (`TODAS | SIN_ENTREGAS | PENDIENTE | EN_CORRECCION | CORREGIDO`).
 * **Lógica:**
-  1. Filtra los ejercicios creados por el docente autenticado que posean entregas realizadas.
+  1. Filtra los ejercicios creados por el docente autenticado que se encuentren publicados (`PUBLICADO` o `FINALIZADO`).
   2. Determina el estado de corrección del ejercicio según las entregas recibidas:
-     * `PENDIENTE`: Ninguna entrega ha sido corregida aún.
-     * `EN_CORRECCION`: Al menos una entrega fue corregida o iniciada, pero quedan entregas pendientes.
-     * `CORREGIDO`: El 100% de las entregas recibidas ya fueron finalizadas.
-  3. Calcula contadores resumen para las tarjetas superiores.
+     * `SIN_ENTREGAS`: El ejercicio fue publicado, pero ningún alumno entregó todavía (`totalEntregasRecibidas === 0`).
+     * `PENDIENTE`: Hay entregas recibidas de alumnos, pero el docente todavía no inició la corrección de ninguna.
+     * `EN_CORRECCION`: Al menos una entrega fue corregida o iniciada con borrador, pero quedan entregas pendientes de revisar.
+     * `CORREGIDO`: El 100% de las entregas recibidas hasta el momento ya fueron finalizadas.
+  3. Calcula contadores resumen para las tarjetas superiores (`total`, `sinEntregas`, `pendientes`, `enCorreccion`, `corregidos`).
   4. Retorna paginación plana (`items`, `page`, `pageSize`, `totalItems`, `totalPages`) y contadores.
 
 ### 3.2. `GET /correcciones/ejercicios/:ejercicioId/entregas` — Lista de Entregas del Ejercicio
