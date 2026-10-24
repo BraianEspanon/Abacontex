@@ -2,5 +2,8 @@
   "workbench.browser.openLocalhostLinks": false,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "markdown.math.enabled": false
+  "markdown.math.enabled": false,
+  "[markdown]": {
+    "editor.formatOnSave": false
+  }
 }
