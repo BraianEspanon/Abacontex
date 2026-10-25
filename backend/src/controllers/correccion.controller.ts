@@ -13,3 +13,9 @@ export async function obtenerEjerciciosACorregir(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function obtenerFiltrosTablero(req: Request, res: Response) {
+  const resultado = await correccionService.obtenerFiltrosTableroCorreccion(req.user!);
+
+  res.status(200).json(resultado);
+}

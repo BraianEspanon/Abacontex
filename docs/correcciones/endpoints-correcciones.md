@@ -29,6 +29,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 | Método | Endpoint | Responsabilidad Principal |
 | :--- | :--- | :--- |
 | **`GET`** | `/correcciones/ejercicios` | Tablero de ejercicios con entregas (cards horizontales, filtros por curso/estado, contadores resumen y paginación). |
+| **`GET`** | `/correcciones/filtros` | Opciones de filtros para el tablero docente (cursos asignados al docente y estados de corrección). |
 | **`GET`** | `/correcciones/ejercicios/:ejercicioId/entregas` | Listado de alumnos y entregas de un ejercicio específico (con estados: `PENDIENTE`, `EN_CORRECCION`, `CORREGIDA`). |
 
 ### 2.2. Submenú 1.1: Pantalla "Corrección del Ejercicio" (Espacio de Trabajo)
@@ -72,7 +73,14 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
   3. Calcula contadores resumen para las tarjetas superiores (`total`, `sinEntregas`, `pendientes`, `enCorreccion`, `corregidos`).
   4. Retorna paginación plana (`items`, `page`, `pageSize`, `totalItems`, `totalPages`) y contadores.
 
-### 3.2. `GET /correcciones/ejercicios/:ejercicioId/entregas` — Lista de Entregas del Ejercicio
+### 3.2. `GET /correcciones/filtros` — Opciones de Filtros para el Tablero
+* **Query/Path Params:** Ninguno (utiliza el docente autenticado `req.user`).
+* **Lógica:**
+  1. Identifica al docente autenticado.
+  2. Consulta los cursos asignados al docente (`docenteRepository.findCursosByDocente`).
+  3. Retorna la lista de cursos (`idCurso`, `nombreCurso`) y las opciones de estado de corrección (`clave`, `label`) para poblar los selects del frontend.
+
+### 3.3. `GET /correcciones/ejercicios/:ejercicioId/entregas` — Lista de Entregas del Ejercicio
 * **Path Params:** `ejercicioId` (número entero).
 * **Lógica:**
   1. Valida que el ejercicio pertenezca al docente.

@@ -8,7 +8,10 @@ import { validate } from '../middleware/validate.middleware';
 
 import { obtenerEjerciciosACorregirQuerySchema } from '../validators/correccion.validator';
 
-import { obtenerEjerciciosACorregir } from '../controllers/correccion.controller';
+import {
+  obtenerEjerciciosACorregir,
+  obtenerFiltrosTablero,
+} from '../controllers/correccion.controller';
 
 const router = Router();
 
@@ -19,5 +22,7 @@ router.get(
   validate(obtenerEjerciciosACorregirQuerySchema),
   obtenerEjerciciosACorregir
 );
+
+router.get('/filtros', authenticate, requireRole(ROLES.DOCENTE), obtenerFiltrosTablero);
 
 export default router;

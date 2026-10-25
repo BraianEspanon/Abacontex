@@ -4,8 +4,10 @@ import * as docenteRepository from '../repositories/docente.repository';
 import * as correccionRepository from '../repositories/correccion.repository';
 
 import { ObtenerEjerciciosACorregirQueryDTO } from '../validators/correccion.validator';
+import { OPCIONES_FILTRO_ESTADO_CORRECCION } from '../constants/correccion.constants';
 import {
   ListadoEjerciciosACorregirResponseDTO,
+  OpcionesFiltrosCorreccionResponseDTO,
   ResumenTableroCorreccionesDTO,
 } from '../dto/correccion/correccion.dto';
 import {
@@ -57,4 +59,21 @@ export async function obtenerEjerciciosACorregir(
     itemsFiltrados.length,
     resumen
   );
+}
+
+export async function obtenerFiltrosTableroCorreccion(
+  user: AuthUser
+): Promise<OpcionesFiltrosCorreccionResponseDTO> {
+  const cursos = await docenteRepository.findCursosByDocente(user.keycloakId);
+
+  return {
+    cursos: cursos.map((c) => ({
+      idCurso: c.idCurso,
+      nombreCurso: c.nombreCurso,
+    })),
+    estados: OPCIONES_FILTRO_ESTADO_CORRECCION.map((opcion) => ({
+      clave: opcion.clave,
+      label: opcion.label,
+    })),
+  };
 }

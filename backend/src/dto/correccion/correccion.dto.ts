@@ -32,3 +32,18 @@ export interface ResumenTableroCorreccionesDTO {
 export interface ListadoEjerciciosACorregirResponseDTO extends PaginatedResponse<ItemTableroCorreccionDTO> {
   resumen: ResumenTableroCorreccionesDTO;
 }
+
+export interface CursoFiltroDTO {
+  idCurso: number;
+  nombreCurso: string;
+}
+
+export interface OpcionFiltroEstadoCorreccionDTO {
+  clave: string;
+  label: string;
+}
+
+export interface OpcionesFiltrosCorreccionResponseDTO {
+  cursos: CursoFiltroDTO[];
+  estados: OpcionFiltroEstadoCorreccionDTO[];
+}

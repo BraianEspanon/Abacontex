@@ -21,9 +21,9 @@ export const OPCIONES_FILTRO_ESTADO_CORRECCION: readonly {
   clave: FiltroEstadoCorreccionEjercicio;
   label: string;
 }[] = [
-  { clave: 'TODAS', label: 'Todas' },
+  { clave: 'TODAS', label: 'Todos' },
   { clave: 'SIN_ENTREGAS', label: 'Sin entregas' },
   { clave: 'PENDIENTE', label: 'Pendientes' },
   { clave: 'EN_CORRECCION', label: 'En corrección' },
-  { clave: 'CORREGIDO', label: 'Corregidas' },
+  { clave: 'CORREGIDO', label: 'Corregidos' },
 ] as const;
