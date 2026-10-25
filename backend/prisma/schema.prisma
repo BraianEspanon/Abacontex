@@ -44,9 +44,11 @@ model Usuario {
   historialOrdenes       HistorialEstadoOrdenProduccion[]
   ventas                 Venta[]
 
-  alumno            Alumno?
-  auditLogs         AuditLog[]
-  ejerciciosCreados Ejercicio[]
+  alumno                 Alumno?
+  auditLogs              AuditLog[]
+  ejerciciosCreados      Ejercicio[]
+  notificaciones         Notificacion[]
+  correccionesEjercicios CorreccionEntrega[]
 
   @@map("usuarios")
 }
@@ -68,6 +70,7 @@ model Alumno {
   auditLogs                 AuditLog[]
   asientosContables         AsientoContable[]
   conciliacionesFinancieras ConciliacionFinanciera[]
+  entregasEjercicios        EntregaEjercicio[]
 
   @@index([idCurso])
   @@index([idEmpresa])
@@ -929,9 +932,11 @@ model Ejercicio {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  plantillas   EjercicioPlantilla[]
-  generacionIA GeneracionEjercicioIA?
-  resolucion   ResolucionDocente?
+  plantillas     EjercicioPlantilla[]
+  generacionIA   GeneracionEjercicioIA?
+  resolucion     ResolucionDocente?
+  notificaciones Notificacion[]
+  entregas       EntregaEjercicio[]
 
   @@index([docenteId])
   @@index([cursoId])
@@ -949,6 +954,9 @@ model EjercicioPlantilla {
   tipo TipoPlantillaEjercicio
 
   resolucionesDocente ResolucionDocentePlantilla[]
+  resolucionesAlumno  ResolucionAlumnoPlantilla[]
+  correcciones        CorreccionPlantilla[]
+  erroresCorreccion   ErrorCorreccion[]
 
   @@unique([ejercicioId, tipo])
   @@index([ejercicioId])
@@ -1012,4 +1020,173 @@ model ResolucionDocentePlantilla {
   @@index([resolucionId])
   @@index([ejercicioPlantillaId])
   @@map("resoluciones_docente_plantillas")
+}
+
+enum TipoNotificacion {
+  EJERCICIO_NUEVO
+  VENCIMIENTO_PROXIMO
+  EJERCICIO_CORREGIDO
+}
+
+model Notificacion {
+  idNotificacion Int @id @default(autoincrement())
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  ejercicioId Int?
+  ejercicio   Ejercicio? @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: SetNull)
+
+  tipo TipoNotificacion
+
+  titulo  String @db.VarChar(100)
+  mensaje String @db.VarChar(255)
+
+  leida Boolean @default(false)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([usuarioId])
+  @@index([ejercicioId])
+  @@index([usuarioId, leida])
+  @@index([createdAt])
+  @@map("notificaciones")
+}
+
+enum EstadoResolucionAlumnoPlantilla {
+  PENDIENTE
+  EN_EDICION
+  COMPLETADA
+}
+
+enum EstadoCorreccionPlantilla {
+  PENDIENTE
+  COMPLETADA
+}
+
+enum TipoErrorCorreccion {
+  // Libro Diario
+  CUENTA_INCORRECTA
+  TIPO_MOVIMIENTO_INCORRECTO
+  IMPORTE_INCORRECTO
+  DEBE_HABER_INVERTIDO
+  CUENTA_OMITIDA
+  CUENTA_ADICIONAL
+
+  // Libro Mayor
+  CUENTA_MAYORIZAR_OMITIDA
+  SALDO_FINAL_INCORRECTO
+  TIPO_SALDO_INCORRECTO
+
+  // Libro IVA
+  COMPROBANTE_OMITIDO
+  COMPROBANTE_ADICIONAL
+  FECHA_INCORRECTA
+  CLASIFICACION_SALDO_INCORRECTA
+
+  // Hoja de Trabajo
+  RESULTADO_EJERCICIO_INCORRECTO
+  RESULTADO_EJERCICIO_INCOMPLETO
+}
+
+model EntregaEjercicio {
+  idEntrega Int @id @default(autoincrement())
+
+  ejercicioId Int
+  ejercicio   Ejercicio @relation(fields: [ejercicioId], references: [idEjercicio], onDelete: Cascade)
+
+  alumnoId String
+  alumno   Alumno @relation(fields: [alumnoId], references: [id])
+
+  fechaEntrega DateTime? @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  resoluciones ResolucionAlumnoPlantilla[]
+  correccion   CorreccionEntrega?
+
+  @@unique([ejercicioId, alumnoId])
+  @@index([ejercicioId])
+  @@index([alumnoId])
+  @@index([fechaEntrega])
+  @@map("entregas_ejercicios")
+}
+
+model ResolucionAlumnoPlantilla {
+  idResolucionPlantilla Int @id @default(autoincrement())
+
+  entregaId Int
+  entrega   EntregaEjercicio @relation(fields: [entregaId], references: [idEntrega], onDelete: Cascade)
+
+  ejercicioPlantillaId Int
+  ejercicioPlantilla   EjercicioPlantilla @relation(fields: [ejercicioPlantillaId], references: [idEjercicioPlantilla], onDelete: Cascade)
+
+  estado    EstadoResolucionAlumnoPlantilla @default(PENDIENTE)
+  contenido Json?
+
+  @@unique([entregaId, ejercicioPlantillaId])
+  @@index([entregaId])
+  @@index([ejercicioPlantillaId])
+  @@map("resoluciones_alumno_plantillas")
+}
+
+model CorreccionEntrega {
+  idCorreccion Int @id @default(autoincrement())
+
+  entregaId Int              @unique
+  entrega   EntregaEjercicio @relation(fields: [entregaId], references: [idEntrega], onDelete: Cascade)
+
+  docenteId String
+  docente   Usuario @relation(fields: [docenteId], references: [id])
+
+  retroalimentacion String?
+  fechaCorreccion   DateTime? @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  plantillas CorreccionPlantilla[]
+  errores    ErrorCorreccion[]
+
+  @@index([docenteId])
+  @@index([fechaCorreccion])
+  @@map("correcciones_entregas")
+}
+
+model CorreccionPlantilla {
+  idCorreccionPlantilla Int @id @default(autoincrement())
+
+  correccionId Int
+  correccion   CorreccionEntrega @relation(fields: [correccionId], references: [idCorreccion], onDelete: Cascade)
+
+  ejercicioPlantillaId Int
+  ejercicioPlantilla   EjercicioPlantilla @relation(fields: [ejercicioPlantillaId], references: [idEjercicioPlantilla], onDelete: Cascade)
+
+  estado EstadoCorreccionPlantilla @default(PENDIENTE)
+
+  @@unique([correccionId, ejercicioPlantillaId])
+  @@index([correccionId])
+  @@index([ejercicioPlantillaId])
+  @@map("correcciones_plantillas")
+}
+
+model ErrorCorreccion {
+  idError Int @id @default(autoincrement())
+
+  correccionId Int
+  correccion   CorreccionEntrega @relation(fields: [correccionId], references: [idCorreccion], onDelete: Cascade)
+
+  ejercicioPlantillaId Int
+  ejercicioPlantilla   EjercicioPlantilla @relation(fields: [ejercicioPlantillaId], references: [idEjercicioPlantilla], onDelete: Cascade)
+
+  tipoError TipoErrorCorreccion
+  detalle   Json
+
+  comentarioDocente String? @db.VarChar(255)
+
+  @@index([correccionId])
+  @@index([ejercicioPlantillaId])
+  @@index([tipoError])
+  @@map("errores_correcciones")
 }

@@ -26,6 +26,34 @@ export async function findByKeycloakId(keycloakId: string) {
   });
 }
 
+export async function findByKeycloakIdWithDetalles(
+  keycloakId: string,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.usuario.findUnique({
+    where: {
+      keycloakId,
+    },
+    include: {
+      rolSistema: true,
+      alumno: {
+        include: {
+          curso: true,
+          empresa: true,
+          rolEmpresa: true,
+        },
+      },
+      profesorCursos: {
+        include: {
+          curso: true,
+        },
+      },
+    },
+  });
+}
+
 export async function findByKeycloakIdOrThrow(keycloakId: string) {
   const usuario = await findByKeycloakId(keycloakId);
 

@@ -42,7 +42,7 @@ const registrarProductoSchema = z.object({
       error: 'El margen de ganancia es obligatorio.',
     })
     .finite('El margen de ganancia debe ser un número válido.')
-    .min(0, 'El margen de ganancia no puede ser negativo.'),
+    .positive('El margen de ganancia debe ser mayor que cero.'),
 
   stockInicial: z
     .number({

@@ -311,7 +311,7 @@ export default function RegistrarProductoForm({
               </label>
 
               <p className="mb-2 text-xs text-gray-500">
-                Indicá el porcentaje de ganancia sobre el precio unitario.
+                Indicá el porcentaje de ganancia sobre el precio unitario. Debe ser mayor a cero.
               </p>
 
               <div className="relative">

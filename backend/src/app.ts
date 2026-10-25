@@ -20,6 +20,9 @@ import rolEmpresaRoutes from './routes/rol-empresa.routes';
 import metodoPagoRoutes from './routes/metodo-pago.routes';
 import contabilidadRoutes from './routes/contabilidad.routes';
 import ejercicioRoutes from './routes/ejercicio.routes';
+import entregaRoutes from './routes/entrega.routes';
+import correccionRoutes from './routes/correccion.routes';
+import notificacionRoutes from './routes/notificacion.routes';
 
 import { errorMiddleware } from './middleware/error.middleware';
 
@@ -43,6 +46,9 @@ app.use('/facturas', facturaRoutes);
 app.use('/finanzas', movimientoFinancieroRoutes);
 app.use('/contabilidad', contabilidadRoutes);
 app.use('/ejercicios', ejercicioRoutes);
+app.use('/entregas', entregaRoutes);
+app.use('/correcciones', correccionRoutes);
+app.use('/notificaciones', notificacionRoutes);
 
 app.use('/cursos', cursoRoutes);
 app.use('/roles-empresa', rolEmpresaRoutes);

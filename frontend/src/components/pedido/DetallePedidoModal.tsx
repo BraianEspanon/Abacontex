@@ -2,12 +2,15 @@ import {
   AlertTriangle,
   CalendarDays,
   Clock3,
+  Factory,
   Layers3,
   Mail,
   Package,
   UserRound,
   X,
 } from 'lucide-react';
+
+import { usePedidosAsociablesProduccion } from '../../hooks/usePedidosAsociablesProduccion';
 
 import type { EstadoPedido, PedidoDetalle } from '../../types/pedido.types';
 
@@ -100,6 +103,21 @@ export default function DetallePedidoModal({
   onCerrar,
   onCrearOrdenProduccion,
 }: DetallePedidoModalProps) {
+  const { data: pedidosAsociables, isLoading: cargandoPedidosAsociables } =
+    usePedidosAsociablesProduccion();
+
+  const puedeCrearOrdenProduccion =
+    pedido !== undefined &&
+    pedidosAsociables?.some(
+      (pedidoAsociable) => pedidoAsociable.idPedido === pedido.numeroPedido
+    ) === true;
+
+  const faltantesCubiertosPorProduccion =
+    pedido?.tieneFaltantesStock === true &&
+    pedido.estado === 'EN_PRODUCCION' &&
+    !cargandoPedidosAsociables &&
+    !puedeCrearOrdenProduccion;
+
   if (!abierto) {
     return null;
   }
@@ -188,29 +206,53 @@ export default function DetallePedidoModal({
                 {pedido.cliente.nombre}
               </DatoPedido>
 
-              {/* Stock insuficiente ocupa el lugar de la derecha */}
+              {/* Situación del faltante */}
               {pedido.tieneFaltantesStock && (
-                <div className="rounded-md border border-gray-200 bg-white p-2 shadow-sm">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
+                <>
+                  {/* Todavía quedan productos sin orden */}
+                  {puedeCrearOrdenProduccion && (
+                    <div className="rounded-md border border-orange-200 bg-orange-50/50 p-2">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-semibold leading-4 text-red-600">
-                        Stock insuficiente
-                      </p>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14px] font-semibold leading-4 text-orange-700">
+                            Stock insuficiente
+                          </p>
 
-                      {onCrearOrdenProduccion && (
-                        <button
-                          type="button"
-                          onClick={() => onCrearOrdenProduccion(pedido.numeroPedido)}
-                          className="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-semibold text-red-600 transition hover:bg-red-100"
-                        >
-                          Crear orden de producción
-                        </button>
-                      )}
+                          {onCrearOrdenProduccion && (
+                            <button
+                              type="button"
+                              onClick={() => onCrearOrdenProduccion(pedido.numeroPedido)}
+                              className="mt-2 rounded-md border border-orange-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-orange-700 transition hover:bg-orange-100"
+                            >
+                              Crear orden de producción
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )}
+
+                  {/* Todos los faltantes ya tienen orden */}
+                  {faltantesCubiertosPorProduccion && (
+                    <div className="rounded-md border border-blue-200 bg-blue-50/50 p-2">
+                      <div className="flex items-start gap-2">
+                        <Factory className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14px] font-semibold leading-4 text-blue-700">
+                            Producción en curso
+                          </p>
+
+                          <p className="mt-1 text-[10px] leading-4 text-blue-600">
+                            El faltante está siendo cubierto por una orden de producción.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </section>
 
