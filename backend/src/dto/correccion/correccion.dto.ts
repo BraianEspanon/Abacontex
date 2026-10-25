@@ -1,5 +1,8 @@
 import { PaginatedResponse } from '../paginated-response.dto';
-import { EstadoCorreccionEjercicio } from '../../constants/correccion.constants';
+import {
+  EstadoCorreccionAlumno,
+  EstadoCorreccionEjercicio,
+} from '../../constants/correccion.constants';
 
 export interface CursoResumenCorreccionDTO {
   idCurso: number;
@@ -46,4 +49,45 @@ export interface OpcionFiltroEstadoCorreccionDTO {
 export interface OpcionesFiltrosCorreccionResponseDTO {
   cursos: CursoFiltroDTO[];
   estados: OpcionFiltroEstadoCorreccionDTO[];
+}
+
+export interface CabeceraEjercicioEntregasDTO {
+  idEjercicio: number;
+  titulo: string;
+  fechaLimite: string;
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+  };
+  plantillasHabilitadas: string[];
+  totalAlumnos: number;
+  totalEntregasRecibidas: number;
+  entregasCorregidas: number;
+  entregasPendientes: number;
+  cantidadSinEntregar: number;
+}
+
+export interface ItemAlumnoEntregaDTO {
+  idAlumno: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  fotoPerfilUrl: string | null;
+  idEntrega: number | null;
+  fechaEntrega: string | null;
+  fueraDeTermino: boolean;
+  estado: EstadoCorreccionAlumno;
+  totalPlantillas: number;
+  plantillasResueltas: number;
+  plantillasCorregidas: number;
+  tieneRetroalimentacion: boolean;
+}
+
+export interface FiltrosEntregasEjercicioDTO {
+  estados: OpcionFiltroEstadoCorreccionDTO[];
+}
+
+export interface ListadoEntregasEjercicioResponseDTO extends PaginatedResponse<ItemAlumnoEntregaDTO> {
+  ejercicio: CabeceraEjercicioEntregasDTO;
+  filtros: FiltrosEntregasEjercicioDTO;
 }

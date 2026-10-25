@@ -103,3 +103,131 @@ export async function findEjerciciosParaTableroCorreccion(
     },
   });
 }
+
+export type DetalleEjercicioEntregasEntity = Prisma.EjercicioGetPayload<{
+  include: {
+    curso: {
+      select: {
+        idCurso: true;
+        nombreCurso: true;
+        alumnos: {
+          select: {
+            id: true;
+            usuario: {
+              select: {
+                nombre: true;
+                apellido: true;
+                email: true;
+                fotoPerfilUrl: true;
+              };
+            };
+          };
+        };
+      };
+    };
+    plantillas: {
+      select: {
+        idEjercicioPlantilla: true;
+        tipo: true;
+      };
+    };
+    entregas: {
+      select: {
+        idEntrega: true;
+        alumnoId: true;
+        fechaEntrega: true;
+        resoluciones: {
+          select: {
+            idResolucionPlantilla: true;
+            ejercicioPlantillaId: true;
+            estado: true;
+          };
+        };
+        correccion: {
+          select: {
+            idCorreccion: true;
+            fechaCorreccion: true;
+            retroalimentacion: true;
+            plantillas: {
+              select: {
+                idCorreccionPlantilla: true;
+                ejercicioPlantillaId: true;
+                estado: true;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export async function findEjercicioConEntregasYAlumnos(
+  ejercicioId: number,
+  docenteId: string,
+  tx?: Prisma.TransactionClient
+): Promise<DetalleEjercicioEntregasEntity | null> {
+  const db = getDbClient(tx);
+
+  return db.ejercicio.findFirst({
+    where: {
+      idEjercicio: ejercicioId,
+      docenteId,
+    },
+    include: {
+      curso: {
+        select: {
+          idCurso: true,
+          nombreCurso: true,
+          alumnos: {
+            select: {
+              id: true,
+              usuario: {
+                select: {
+                  nombre: true,
+                  apellido: true,
+                  email: true,
+                  fotoPerfilUrl: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      plantillas: {
+        select: {
+          idEjercicioPlantilla: true,
+          tipo: true,
+        },
+      },
+      entregas: {
+        select: {
+          idEntrega: true,
+          alumnoId: true,
+          fechaEntrega: true,
+          resoluciones: {
+            select: {
+              idResolucionPlantilla: true,
+              ejercicioPlantillaId: true,
+              estado: true,
+            },
+          },
+          correccion: {
+            select: {
+              idCorreccion: true,
+              fechaCorreccion: true,
+              retroalimentacion: true,
+              plantillas: {
+                select: {
+                  idCorreccionPlantilla: true,
+                  ejercicioPlantillaId: true,
+                  estado: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+}

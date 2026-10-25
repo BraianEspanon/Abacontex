@@ -82,15 +82,22 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 
 ### 3.3. `GET /correcciones/ejercicios/:ejercicioId/entregas` — Lista de Entregas del Ejercicio
 * **Path Params:** `ejercicioId` (número entero).
+* **Query Params:** `page` (default 1), `pageSize` (default 10), `busqueda` (opcional), `estado` (`TODAS | SIN_ENTREGAR | PENDIENTE | EN_CORRECCION | CORREGIDA`).
 * **Lógica:**
-  1. Valida que el ejercicio pertenezca al docente.
-  2. Retorna la lista de entregas de los alumnos con:
-     * Datos del alumno (nombre, apellido, iniciales/avatar).
-     * Fecha y hora de entrega (y badge si fue fuera de término).
-     * Estado de corrección individual (`PENDIENTE`, `EN_CORRECCION`, `CORREGIDA`).
-     * Cantidad de plantillas revisadas sobre el total (ej: `2/3`).
+  1. Valida que el ejercicio pertenezca al docente autenticado.
+  2. Retorna la información de cabecera del ejercicio:
+     * Datos generales: `idEjercicio`, `titulo`, `fechaLimite`, `curso` (`idCurso`, `nombreCurso`).
+     * `plantillasHabilitadas`: Listado de nombres legibles (ej: `["Libro diario", "Libro IVA"]`).
+     * Métricas de avance: `totalAlumnos`, `totalEntregasRecibidas`, `entregasCorregidas`, `entregasPendientes`, `cantidadSinEntregar`.
+  3. Retorna el listado paginado de todos los alumnos inscriptos en el curso con su estado individual:
+     * Datos del alumno: `idAlumno`, `nombre`, `apellido`, `email`, `fotoPerfilUrl` (o `null`).
+     * Datos de la entrega: `idEntrega` (o `null`), `fechaEntrega` (o `null`), `fueraDeTermino` (boolean).
+     * Estado individual: `'SIN_ENTREGAR' | 'PENDIENTE' | 'EN_CORRECCION' | 'CORREGIDA'`.
+     * Progreso de plantillas: `totalPlantillas`, `plantillasResueltas` (cuántas completó el alumno, ej: `3 de 4`) y `plantillasCorregidas` (cuántas revisó el docente).
+     * `tieneRetroalimentacion`: boolean.
+  4. Retorna el bloque `filtros` con la lista de opciones de estado (`clave`, `label`) para que el frontend pueble directamente el dropdown de filtro sin necesidad de llamadas HTTP adicionales.
 
-### 3.3. `GET /correcciones/entregas/:entregaId` — Espacio de Trabajo de Corrección
+### 3.4. `GET /correcciones/entregas/:entregaId` — Espacio de Trabajo de Corrección
 * **Path Params:** `entregaId` (número entero).
 * **Lógica y Principio Pedagógico:**
   1. Carga la resolución del alumno (`ResolucionAlumnoPlantilla[]`) y la solución modelo del docente (`EjercicioPlantilla.contenido`).
@@ -112,17 +119,17 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * Plantillas del alumno con celdas observadas en rojo/alerta y comentarios puntuales.
      * Borrador actual de la retroalimentación docente (si existe).
 
-### 3.4. `PATCH /correcciones/entregas/:entregaId/plantillas/:plantillaId` — Revisión de Plantilla
+### 3.5. `PATCH /correcciones/entregas/:entregaId/plantillas/:plantillaId` — Revisión de Plantilla
 * **Path Params:** `entregaId`, `plantillaId`.
 * **Body:** `{ estado: 'PENDIENTE' | 'CORREGIDA' }`.
 * **Lógica:** Permite al docente marcar como revisada una plantilla puntual (ej. finalizó Libro Diario pero deja Libro Mayor para después). Actualiza `CorreccionPlantilla`.
 
-### 3.5. `PATCH /correcciones/entregas/:entregaId/borrador` — Guardar Borrador
+### 3.6. `PATCH /correcciones/entregas/:entregaId/borrador` — Guardar Borrador
 * **Path Params:** `entregaId`.
 * **Body:** `{ retroalimentacion?: string }` (validado a máx. 500 caracteres).
 * **Lógica:** Guarda el avance de la retroalimentación sin cerrar la entrega ni notificar al alumno.
 
-### 3.6. `POST /correcciones/entregas/:entregaId/finalizar` — Enviar Corrección
+### 3.7. `POST /correcciones/entregas/:entregaId/finalizar` — Enviar Corrección
 * **Path Params:** `entregaId`.
 * **Body:** `{ retroalimentacion?: string }` (opcional, máx. 500 caracteres).
 * **Lógica y Reglas de Negocio:**
@@ -131,7 +138,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
   3. Persiste definitivamente los errores detectados en `ErrorCorreccion`.
   4. Dispara una notificación al alumno (en base de datos y vía Socket.IO en tiempo real): *"Tu ejercicio [Título] ha sido corregido"*.
 
-### 3.7. `GET /correcciones/cursos/:cursoId/analisis-errores` — Panel Global de Análisis de Errores
+### 3.8. `GET /correcciones/cursos/:cursoId/analisis-errores` — Panel Global de Análisis de Errores
 * **Path Params:** `cursoId` (número entero).
 * **Lógica y Respuesta:**
   1. Valida que el docente tenga asignado el curso solicitado.
@@ -161,7 +168,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * Si no hay diagnóstico previo ni suficientes datos:
        `diagnosticoIa: null`, `puedeGenerar: false`, `motivoDeshabilitado: "Aún no hay suficiente información analizada para generar el resumen."`
 
-### 3.8. `POST /correcciones/cursos/:cursoId/sugerir-refuerzo` — Generar / Actualizar Diagnóstico de Curso
+### 3.9. `POST /correcciones/cursos/:cursoId/sugerir-refuerzo` — Generar / Actualizar Diagnóstico de Curso
 * **Path Params:** `cursoId` (número entero).
 * **Lógica y Reglas de Negocio:**
   1. Valida permisos del docente sobre el curso.
@@ -173,7 +180,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * Realiza un `upsert` en `DiagnosticoCurso` actualizando el contenido y la nueva foto del snapshot (`totalErroresEnSnapshot`, `distribucionEnSnapshot`, etc.).
      * Retorna el diagnóstico generado.
 
-### 3.9. `GET /entregas/:ejercicioId/correccion` — Consulta de Corrección (Alumno)
+### 3.10. `GET /entregas/:ejercicioId/correccion` — Consulta de Corrección (Alumno)
 * **Path Params:** `ejercicioId` (número entero).
 * **Lógica:**
   1. Valida que el alumno pertenezca al curso del ejercicio y que la entrega esté en estado `CORREGIDA` (`fechaCorreccion != null`).

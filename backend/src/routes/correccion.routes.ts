@@ -6,10 +6,14 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
-import { obtenerEjerciciosACorregirQuerySchema } from '../validators/correccion.validator';
+import {
+  obtenerEjerciciosACorregirQuerySchema,
+  obtenerEntregasEjercicioSchema,
+} from '../validators/correccion.validator';
 
 import {
   obtenerEjerciciosACorregir,
+  obtenerEntregasEjercicio,
   obtenerFiltrosTablero,
 } from '../controllers/correccion.controller';
 
@@ -24,5 +28,13 @@ router.get(
 );
 
 router.get('/filtros', authenticate, requireRole(ROLES.DOCENTE), obtenerFiltrosTablero);
+
+router.get(
+  '/ejercicios/:ejercicioId/entregas',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(obtenerEntregasEjercicioSchema),
+  obtenerEntregasEjercicio
+);
 
 export default router;
