@@ -17,6 +17,17 @@ export interface CrearNotificacionData {
   mensaje: string;
 }
 
+export async function crearNotificacion(
+  data: CrearNotificacionData,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.notificacion.create({
+    data,
+  });
+}
+
 export async function crearNotificacionesMasivas(
   data: CrearNotificacionData[],
   tx?: Prisma.TransactionClient

@@ -3,7 +3,7 @@ import { AuthUser } from '../types/express';
 import { NotFoundError } from '../errors/not-found.error';
 import { BadRequestError } from '../errors/bad-request-error';
 import { ConflictError } from '../errors/conflict.error';
-import { emitirAUsuario } from '../socket/socket.server';
+import { notificarEjercicioCorregido } from '../socket/socket.server';
 
 import * as docenteRepository from '../repositories/docente.repository';
 import * as correccionRepository from '../repositories/correccion.repository';
@@ -445,11 +445,13 @@ export async function finalizarCorreccion(
       : (entrega.correccion?.retroalimentacion ?? null);
 
   const fechaCorreccion = new Date();
+  const docenteNombre = `${docente.nombre} ${docente.apellido}`;
 
   // 9. Persistir en transacción atómica: cabecera + errores + notificación en BD
   const resultadoTransaccion = await correccionRepository.finalizarCorreccionTransaccion({
     entregaId,
     docenteId: docente.id,
+    docenteNombre,
     alumnoUsuarioId: entrega.alumno.usuario.id,
     ejercicioId: entrega.ejercicio.idEjercicio,
     tituloEjercicio: entrega.ejercicio.titulo,
@@ -458,19 +460,15 @@ export async function finalizarCorreccion(
     errores: erroresAPersistir,
   });
 
-  // 10. Emitir evento en tiempo real vía Socket.IO al alumno
+  // 10. Emitir eventos en tiempo real vía Socket.IO al alumno
   try {
-    emitirAUsuario(entrega.alumno.usuario.id, 'notificacion:nueva', {
-      tipo: 'EJERCICIO_CORREGIDO',
-      titulo: 'Ejercicio corregido',
-      mensaje: `Tu entrega para "${entrega.ejercicio.titulo}" ha sido corregida.`,
-      data: {
-        idEjercicio: entrega.ejercicio.idEjercicio,
-        idEntrega: entrega.idEntrega,
-        titulo: entrega.ejercicio.titulo,
-        fechaCorreccion: fechaCorreccion.toISOString(),
-      },
-      createdAt: fechaCorreccion,
+    notificarEjercicioCorregido(entrega.alumno.usuario.id, {
+      idEjercicio: entrega.ejercicio.idEjercicio,
+      idEntrega: entrega.idEntrega,
+      titulo: entrega.ejercicio.titulo,
+      docenteNombre,
+      fechaCorreccion,
+      mensaje: `Tu entrega para "${entrega.ejercicio.titulo}" ha sido corregida por el docente ${docenteNombre}.`,
     });
   } catch {
     // Si la emisión de socket falla, la corrección ya quedó persistida en BD correctamente

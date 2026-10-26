@@ -777,6 +777,7 @@ export interface ErrorParaPersistirData {
 export interface FinalizarCorreccionParams {
   entregaId: number;
   docenteId: string;
+  docenteNombre?: string;
   alumnoUsuarioId: string;
   ejercicioId: number;
   tituloEjercicio: string;
@@ -825,13 +826,17 @@ export async function finalizarCorreccionTransaccion(params: FinalizarCorreccion
     }
 
     // 4. Crear notificación para el alumno
+    const mensaje = params.docenteNombre
+      ? `Tu entrega para "${params.tituloEjercicio}" ha sido corregida por el docente ${params.docenteNombre}.`
+      : `Tu entrega para "${params.tituloEjercicio}" ha sido corregida.`;
+
     const notificacion = await tx.notificacion.create({
       data: {
         usuarioId: params.alumnoUsuarioId,
         ejercicioId: params.ejercicioId,
         tipo: 'EJERCICIO_CORREGIDO',
         titulo: 'Ejercicio corregido',
-        mensaje: `Tu entrega para "${params.tituloEjercicio}" ha sido corregida.`,
+        mensaje,
       },
     });
 

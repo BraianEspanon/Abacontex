@@ -5,7 +5,11 @@ import * as alumnoRepository from '../repositories/alumno.repository';
 import * as notificacionRepository from '../repositories/notificacion.repository';
 import * as usuarioRepository from '../repositories/usuario.repository';
 
-import { emitirAUsuario, notificarNuevoEjercicio } from '../socket/socket.server';
+import {
+  emitirAUsuario,
+  notificarNuevoEjercicio,
+  notificarEjercicioCorregido,
+} from '../socket/socket.server';
 
 import { ObtenerNotificacionesQueryDTO } from '../validators/notificacion.validator';
 import {
@@ -71,6 +75,62 @@ export async function notificarNuevoEjercicioAlumnos(
     mensaje,
     createdAt,
   });
+}
+
+export interface NotificarEjercicioCorregidoParams {
+  alumnoUsuarioId: string;
+  ejercicioId: number;
+  idEntrega: number;
+  tituloEjercicio: string;
+  docenteNombre: string;
+  fechaCorreccion: Date;
+}
+
+/**
+ * Persiste la notificación en base de datos para el alumno de una entrega corregida
+ * y emite los eventos en tiempo real vía Socket.IO.
+ */
+export async function notificarEjercicioCorregidoAlumno(
+  params: NotificarEjercicioCorregidoParams,
+  tx?: Prisma.TransactionClient
+): Promise<void> {
+  const {
+    alumnoUsuarioId,
+    ejercicioId,
+    idEntrega,
+    tituloEjercicio,
+    docenteNombre,
+    fechaCorreccion,
+  } = params;
+
+  const titulo = 'Ejercicio corregido';
+  const mensaje = `Tu entrega para "${tituloEjercicio}" ha sido corregida por el docente ${docenteNombre}.`;
+
+  // 1. Persistir notificación en la base de datos
+  await notificacionRepository.crearNotificacion(
+    {
+      usuarioId: alumnoUsuarioId,
+      ejercicioId,
+      tipo: 'EJERCICIO_CORREGIDO',
+      titulo,
+      mensaje,
+    },
+    tx
+  );
+
+  // 2. Emitir eventos en tiempo real al alumno vía WebSockets
+  try {
+    notificarEjercicioCorregido(alumnoUsuarioId, {
+      idEjercicio: ejercicioId,
+      idEntrega,
+      titulo: tituloEjercicio,
+      docenteNombre,
+      fechaCorreccion,
+      mensaje,
+    });
+  } catch (error) {
+    console.warn('[Socket.IO] Error al emitir notificación de ejercicio corregido:', error);
+  }
 }
 
 /**
