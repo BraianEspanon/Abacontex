@@ -1,15 +1,18 @@
 import clienteApi from './clienteApi';
 
 import type {
+  ActualizarResolucionDocenteRequest,
   CrearEjercicioRequest,
+  CuentasContablesResponse,
+  DetalleEjercicio,
   DigitalizarEjercicioResponse,
+  EditarEjercicioRequest,
   EjercicioCreadoResponse,
   FiltrosEjercicios,
-  ListadoEjerciciosResponse,
   GenerarEjercicioIARequest,
   GenerarEjercicioIAResponse,
-  DetalleEjercicio,
-  EditarEjercicioRequest,
+  ListadoEjerciciosResponse,
+  ResolucionDocenteResponse,
 } from '../types/ejercicio.types';
 
 export async function obtenerEjercicios(filtros: FiltrosEjercicios = {}) {
@@ -56,6 +59,37 @@ export async function obtenerEjercicioPorId(idEjercicio: number) {
 
 export async function editarEjercicio(idEjercicio: number, datos: EditarEjercicioRequest) {
   const { data } = await clienteApi.patch<DetalleEjercicio>(`/ejercicios/${idEjercicio}`, datos);
+
+  return data;
+}
+
+export async function obtenerResolucionDocente(idEjercicio: number) {
+  const { data } = await clienteApi.get<ResolucionDocenteResponse>(
+    `/ejercicios/${idEjercicio}/resolucion`
+  );
+
+  return data;
+}
+
+export async function actualizarResolucionDocente(
+  idEjercicio: number,
+  datos: ActualizarResolucionDocenteRequest
+) {
+  const { data } = await clienteApi.patch<ResolucionDocenteResponse>(
+    `/ejercicios/${idEjercicio}/resolucion`,
+    datos
+  );
+
+  return data;
+}
+
+export async function obtenerCuentasContables() {
+  const { data } = await clienteApi.get<CuentasContablesResponse>('/contabilidad/cuentas', {
+    params: {
+      page: 1,
+      pageSize: 100,
+    },
+  });
 
   return data;
 }

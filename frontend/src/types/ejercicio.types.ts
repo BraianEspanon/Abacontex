@@ -88,7 +88,7 @@ export interface EjercicioCreadoResponse {
   generacionIA: null;
   resolucion: {
     idResolucion: number;
-    estado: string;
+    estado: EstadoResolucionDocente;
   } | null;
   createdAt: string;
   updatedAt: string;
@@ -128,6 +128,14 @@ export interface GeneracionIADetalle {
   contenidos: ContenidoAdicionalIA[];
 }
 
+// ============================================================================
+// Resolución docente
+// ============================================================================
+
+export type EstadoResolucionDocente = 'PENDIENTE' | 'EN_EDICION' | 'RESUELTO';
+
+export type EstadoPlantillaResolucion = 'PENDIENTE' | 'EN_EDICION' | 'RESUELTO';
+
 export interface DetalleEjercicio {
   idEjercicio: number;
   titulo: string;
@@ -136,6 +144,7 @@ export interface DetalleEjercicio {
   fechaLimite: string;
   createdAt: string;
   updatedAt: string;
+
   progresoEntregas: {
     totalAlumnos: number;
     entregasCorregidas: number;
@@ -146,8 +155,9 @@ export interface DetalleEjercicio {
 
   resolucionDocente: {
     idResolucion: number;
-    estado: string;
+    estado: EstadoResolucionDocente;
   } | null;
+
   origen: 'IA' | 'DIGITALIZADO';
 
   curso: {
@@ -169,4 +179,222 @@ export interface EditarEjercicioRequest {
   indicaciones?: string | null;
   estado?: 'BORRADOR' | 'ENVIADO';
   plantillas?: TipoPlantillaEjercicio[];
+}
+
+// ============================================================================
+// Libro Diario
+// ============================================================================
+
+export type MovimientoContable = 'A+' | 'A-' | 'P+' | 'P-' | 'PN+' | 'PN-' | 'R+' | 'R-';
+
+export interface LineaLibroDiario {
+  idCuenta: number;
+  cuenta: string;
+  movimiento: MovimientoContable;
+  folio?: number | null;
+  debe: number;
+  haber: number;
+}
+
+export interface AsientoLibroDiario {
+  numero: number;
+  fecha: string;
+  concepto: string;
+  lineas: LineaLibroDiario[];
+}
+
+export interface ContenidoLibroDiario {
+  asientos: AsientoLibroDiario[];
+}
+
+// ============================================================================
+// Libro Mayor
+// ============================================================================
+
+/**
+ * El backend determina automáticamente el importe del saldo.
+ * El docente únicamente indica su interpretación contable.
+ *
+ * SALDADA se utiliza cuando Total Debe === Total Haber.
+ */
+export type TipoSaldoMayor = 'DEUDOR' | 'ACREEDOR' | 'SALDADA';
+
+/**
+ * Movimiento de uno de los lados de una cuenta T.
+ *
+ * La contracuenta se selecciona desde el Plan de Cuentas.
+ * `monto` representa el importe registrado en el Debe o Haber,
+ * dependiendo del arreglo al que pertenezca la línea.
+ */
+export interface LineaLibroMayor {
+  fecha: string;
+  idContraCuenta: number;
+  contraCuenta: string;
+  monto: number;
+}
+
+/**
+ * Cuenta mayorizada en formato T.
+ *
+ * Los totales Debe/Haber y el saldo final son valores derivados,
+ * por lo que no se persisten en el contenido.
+ */
+export interface CuentaLibroMayor {
+  idCuenta: number;
+  cuenta: string;
+  debe: LineaLibroMayor[];
+  haber: LineaLibroMayor[];
+  tipoSaldo: TipoSaldoMayor | null;
+}
+
+export interface ContenidoLibroMayor {
+  cuentas: CuentaLibroMayor[];
+}
+
+// ============================================================================
+// Libro IVA
+// ============================================================================
+
+export type TipoResultadoIva = 'A_FAVOR_CONTRIBUYENTE' | 'A_PAGAR';
+
+export interface ComprobanteIva {
+  fecha: string;
+  comprobante: number;
+  nombre: string;
+  netoGravado: number;
+  iva: number;
+  total: number;
+}
+
+export interface ContenidoLibroIva {
+  compras: ComprobanteIva[];
+  ventas: ComprobanteIva[];
+  resultado: TipoResultadoIva | null;
+}
+
+export interface LiquidacionIva {
+  totalNetoCompras: number;
+  totalIvaCreditoFiscal: number;
+  totalCompras: number;
+  totalNetoVentas: number;
+  totalIvaDebitoFiscal: number;
+  totalVentas: number;
+  saldoIva: number;
+  resultadoCalculado: TipoResultadoIva;
+}
+
+// ============================================================================
+// Hoja de Trabajo
+// ============================================================================
+
+export interface ParSaldosHojaTrabajo {
+  deudor: number;
+  acreedor: number;
+}
+
+export interface ParAjustesHojaTrabajo {
+  debe: number;
+  haber: number;
+}
+
+export interface ParSaldosAjustadosHojaTrabajo {
+  deudor: number;
+  acreedor: number;
+}
+
+export interface ParPatrimonialHojaTrabajo {
+  activo: number;
+  pasivoMasPn: number;
+}
+
+export interface ParResultadosHojaTrabajo {
+  negativo: number;
+  positivo: number;
+}
+
+export interface ResultadoEjercicioHojaTrabajo {
+  activo: number;
+  pasivoMasPn: number;
+  negativo: number;
+  positivo: number;
+}
+
+export interface FilaHojaTrabajo {
+  idCuenta: number;
+  cuenta: string;
+  saldosSinAjustar: ParSaldosHojaTrabajo;
+  ajustes: ParAjustesHojaTrabajo;
+  saldosAjustados: ParSaldosAjustadosHojaTrabajo;
+  estadoPatrimonial: ParPatrimonialHojaTrabajo;
+  estadoResultados: ParResultadosHojaTrabajo;
+}
+
+export interface ContenidoHojaTrabajo {
+  filas: FilaHojaTrabajo[];
+  resultadoDelEjercicio?: ResultadoEjercicioHojaTrabajo | null;
+}
+
+// ============================================================================
+// Contenido de las plantillas de resolución
+// ============================================================================
+
+export type ContenidoResolucionPlantilla =
+  | ContenidoLibroDiario
+  | ContenidoLibroMayor
+  | ContenidoLibroIva
+  | ContenidoHojaTrabajo;
+
+export interface PlantillaResolucionDocente {
+  idEjercicioPlantilla: number;
+  tipo: TipoPlantillaEjercicio;
+  estado: EstadoPlantillaResolucion;
+  contenido: ContenidoResolucionPlantilla | null;
+  updatedAt?: string | null;
+}
+
+export interface ResolucionDocenteResponse {
+  idResolucion: number;
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  fechaLimite: string;
+  estado: EstadoResolucionDocente;
+  curso: CursoEjercicio;
+  plantillas: PlantillaResolucionDocente[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ActualizarResolucionDocenteRequest {
+  tipo: TipoPlantillaEjercicio;
+  estado: Extract<EstadoPlantillaResolucion, 'EN_EDICION' | 'RESUELTO'>;
+  contenido: unknown;
+}
+
+// ============================================================================
+// Cuentas contables utilizadas en la resolución
+// ============================================================================
+
+export interface CuentaContableEjercicio {
+  idCuenta: number;
+  codigo: string;
+  nombre: string;
+  descripcion?: string | null;
+  rubro: {
+    idRubro: number;
+    nombre: string;
+    tipoCuenta: {
+      idTipoCuenta: number;
+      nombre: string;
+      abreviatura: string;
+    };
+  };
+}
+
+export interface CuentasContablesResponse {
+  items: CuentaContableEjercicio[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
 }
