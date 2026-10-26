@@ -94,3 +94,14 @@ export const guardarBorradorCorreccionSchema = z.object({
 export type GuardarBorradorCorreccionBodyDTO = z.infer<
   typeof guardarBorradorCorreccionSchema
 >['body'];
+
+export const finalizarCorreccionSchema = z.object({
+  params: z.object({
+    entregaId: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    retroalimentacion: z.string().trim().max(500).optional(),
+  }),
+});
+
+export type FinalizarCorreccionBodyDTO = z.infer<typeof finalizarCorreccionSchema>['body'];

@@ -4,6 +4,7 @@ import * as correccionService from '../services/correccion.service';
 
 import {
   entregaIdParamSchema,
+  finalizarCorreccionSchema,
   guardarBorradorCorreccionSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
@@ -81,6 +82,17 @@ export async function guardarBorradorCorreccion(req: Request, res: Response) {
     params.entregaId,
     body
   );
+
+  res.status(200).json(resultado);
+}
+
+export async function finalizarCorreccion(req: Request, res: Response) {
+  const { params, body } = finalizarCorreccionSchema.parse({
+    params: req.params,
+    body: req.body,
+  });
+
+  const resultado = await correccionService.finalizarCorreccion(req.user!, params.entregaId, body);
 
   res.status(200).json(resultado);
 }

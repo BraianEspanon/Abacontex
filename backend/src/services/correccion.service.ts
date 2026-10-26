@@ -1,13 +1,15 @@
-import { EstadoCorreccionPlantilla } from '@prisma/client';
+import { EstadoCorreccionPlantilla, Prisma } from '@prisma/client';
 import { AuthUser } from '../types/express';
 import { NotFoundError } from '../errors/not-found.error';
 import { BadRequestError } from '../errors/bad-request-error';
 import { ConflictError } from '../errors/conflict.error';
+import { emitirAUsuario } from '../socket/socket.server';
 
 import * as docenteRepository from '../repositories/docente.repository';
 import * as correccionRepository from '../repositories/correccion.repository';
 
 import {
+  FinalizarCorreccionBodyDTO,
   GuardarBorradorCorreccionBodyDTO,
   ObtenerEjerciciosACorregirQueryDTO,
   ObtenerEntregasEjercicioQueryDTO,
@@ -343,5 +345,138 @@ export async function guardarBorradorCorreccion(
     entregaId: correccion.entregaId,
     retroalimentacion: correccion.retroalimentacion,
     mensaje: 'Borrador de retroalimentación guardado correctamente.',
+  };
+}
+
+export async function finalizarCorreccion(
+  user: AuthUser,
+  entregaId: number,
+  body: FinalizarCorreccionBodyDTO
+) {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Buscar entrega para finalizar y verificar pertenencia al docente
+  const entrega = await correccionRepository.findEntregaParaFinalizar(entregaId);
+
+  if (!entrega || entrega.ejercicio.docenteId !== docente.id) {
+    throw new NotFoundError('Entrega no encontrada o no pertenece al docente.');
+  }
+
+  // 3. Validar que la entrega haya sido completada por el alumno
+  if (!entrega.fechaEntrega) {
+    throw new BadRequestError('La entrega aún no ha sido completada por el alumno.');
+  }
+
+  // 4. Validar que la corrección no haya sido finalizada previamente
+  if (entrega.correccion?.fechaCorreccion) {
+    throw new ConflictError(
+      'La corrección de esta entrega ya ha sido finalizada y no puede modificarse.'
+    );
+  }
+
+  // 5. Validación de completitud obligatoria:
+  // Todas las plantillas habilitadas del ejercicio deben estar marcadas como COMPLETADA (CORREGIDA)
+  const plantillasHabilitadas = entrega.ejercicio.plantillas;
+  const plantillasCorregidas = entrega.correccion?.plantillas ?? [];
+
+  const faltanCorregir = plantillasHabilitadas.filter((ph) => {
+    const revision = plantillasCorregidas.find(
+      (p) => p.ejercicioPlantillaId === ph.idEjercicioPlantilla
+    );
+    return !revision || revision.estado !== EstadoCorreccionPlantilla.COMPLETADA;
+  });
+
+  if (faltanCorregir.length > 0) {
+    throw new ConflictError('Debe marcar todas las plantillas como corregidas antes de enviar.');
+  }
+
+  // 6. Ejecutar motor de comparación determinista para calcular errores finales
+  const plantillasParaComparar = entrega.ejercicio.plantillas.map((ep) => {
+    const resDoc = entrega.ejercicio.resolucion?.plantillas.find(
+      (p) => p.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+    const resAlu = entrega.resoluciones.find(
+      (r) => r.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+    const erroresPrevios = entrega.correccion?.errores.filter(
+      (e) => e.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+
+    return {
+      ejercicioPlantillaId: ep.idEjercicioPlantilla,
+      tipo: ep.tipo,
+      contenidoDocente: resDoc?.contenido ?? null,
+      contenidoAlumno: resAlu?.contenido ?? null,
+      erroresPreviosDocente: (erroresPrevios ?? []).map((e) => ({
+        idError: e.idError,
+        ejercicioPlantillaId: e.ejercicioPlantillaId,
+        tipoError: e.tipoError,
+        detalle: e.detalle,
+        comentarioDocente: e.comentarioDocente,
+      })),
+    };
+  });
+
+  const resultadoComparacion = compararResolucionConModelo(plantillasParaComparar);
+
+  // 7. Aplanar lista de errores contables definitivos para persistencia
+  const erroresAPersistir: correccionRepository.ErrorParaPersistirData[] = [];
+  for (const [, errores] of resultadoComparacion.erroresPorPlantilla) {
+    for (const err of errores) {
+      erroresAPersistir.push({
+        ejercicioPlantillaId: err.ejercicioPlantillaId,
+        tipoError: err.tipoError,
+        detalle: err.detalle as Prisma.InputJsonValue,
+        comentarioDocente: err.comentarioDocente ?? null,
+      });
+    }
+  }
+
+  // 8. Determinar retroalimentación definitiva (body si fue enviada, o el borrador existente)
+  const retroalimentacionFinal =
+    body.retroalimentacion !== undefined
+      ? body.retroalimentacion.trim() || null
+      : (entrega.correccion?.retroalimentacion ?? null);
+
+  const fechaCorreccion = new Date();
+
+  // 9. Persistir en transacción atómica: cabecera + errores + notificación en BD
+  const resultadoTransaccion = await correccionRepository.finalizarCorreccionTransaccion({
+    entregaId,
+    docenteId: docente.id,
+    alumnoUsuarioId: entrega.alumno.usuario.id,
+    ejercicioId: entrega.ejercicio.idEjercicio,
+    tituloEjercicio: entrega.ejercicio.titulo,
+    fechaCorreccion,
+    retroalimentacion: retroalimentacionFinal,
+    errores: erroresAPersistir,
+  });
+
+  // 10. Emitir evento en tiempo real vía Socket.IO al alumno
+  try {
+    emitirAUsuario(entrega.alumno.usuario.id, 'notificacion:nueva', {
+      tipo: 'EJERCICIO_CORREGIDO',
+      titulo: 'Ejercicio corregido',
+      mensaje: `Tu entrega para "${entrega.ejercicio.titulo}" ha sido corregida.`,
+      data: {
+        idEjercicio: entrega.ejercicio.idEjercicio,
+        idEntrega: entrega.idEntrega,
+        titulo: entrega.ejercicio.titulo,
+        fechaCorreccion: fechaCorreccion.toISOString(),
+      },
+      createdAt: fechaCorreccion,
+    });
+  } catch {
+    // Si la emisión de socket falla, la corrección ya quedó persistida en BD correctamente
+  }
+
+  return {
+    idCorreccion: resultadoTransaccion.correccion.idCorreccion,
+    entregaId,
+    fechaCorreccion: fechaCorreccion.toISOString(),
+    retroalimentacion: retroalimentacionFinal,
+    totalErrores: resultadoTransaccion.totalErroresPersistidos,
+    mensaje: 'La corrección ha sido enviada y notificada al alumno exitosamente.',
   };
 }

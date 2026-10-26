@@ -1,4 +1,4 @@
-import { EstadoCorreccionPlantilla, Prisma } from '@prisma/client';
+import { EstadoCorreccionPlantilla, Prisma, TipoErrorCorreccion } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 import { ObtenerEjerciciosACorregirQueryDTO } from '../validators/correccion.validator';
 
@@ -455,6 +455,15 @@ export type EntregaParaRevisionPlantillaEntity = Prisma.EntregaEjercicioGetPaylo
             estado: true;
           };
         };
+        errores: {
+          select: {
+            idError: true;
+            ejercicioPlantillaId: true;
+            tipoError: true;
+            detalle: true;
+            comentarioDocente: true;
+          };
+        };
       };
     };
   };
@@ -490,6 +499,15 @@ export async function findEntregaParaRevisionPlantilla(
               idCorreccionPlantilla: true,
               ejercicioPlantillaId: true,
               estado: true,
+            },
+          },
+          errores: {
+            select: {
+              idError: true,
+              ejercicioPlantillaId: true,
+              tipoError: true,
+              detalle: true,
+              comentarioDocente: true,
             },
           },
         },
@@ -567,3 +585,239 @@ export async function upsertBorradorCorreccion(
     },
   });
 }
+
+export type EntregaParaFinalizarEntity = Prisma.EntregaEjercicioGetPayload<{
+  include: {
+    alumno: {
+      select: {
+        id: true;
+        usuario: {
+          select: {
+            id: true;
+            nombre: true;
+            apellido: true;
+            email: true;
+          };
+        };
+      };
+    };
+    ejercicio: {
+      select: {
+        idEjercicio: true;
+        docenteId: true;
+        titulo: true;
+        plantillas: {
+          select: {
+            idEjercicioPlantilla: true;
+            tipo: true;
+          };
+        };
+        resolucion: {
+          select: {
+            idResolucion: true;
+            plantillas: {
+              select: {
+                idResolucionPlantilla: true;
+                ejercicioPlantillaId: true;
+                contenido: true;
+              };
+            };
+          };
+        };
+      };
+    };
+    resoluciones: {
+      select: {
+        idResolucionPlantilla: true;
+        ejercicioPlantillaId: true;
+        estado: true;
+        contenido: true;
+      };
+    };
+    correccion: {
+      select: {
+        idCorreccion: true;
+        docenteId: true;
+        fechaCorreccion: true;
+        retroalimentacion: true;
+        plantillas: {
+          select: {
+            idCorreccionPlantilla: true;
+            ejercicioPlantillaId: true;
+            estado: true;
+          };
+        };
+        errores: {
+          select: {
+            idError: true;
+            ejercicioPlantillaId: true;
+            tipoError: true;
+            detalle: true;
+            comentarioDocente: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export async function findEntregaParaFinalizar(
+  entregaId: number,
+  tx?: Prisma.TransactionClient
+): Promise<EntregaParaFinalizarEntity | null> {
+  const db = getDbClient(tx);
+  return db.entregaEjercicio.findUnique({
+    where: { idEntrega: entregaId },
+    include: {
+      alumno: {
+        select: {
+          id: true,
+          usuario: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              email: true,
+            },
+          },
+        },
+      },
+      ejercicio: {
+        select: {
+          idEjercicio: true,
+          docenteId: true,
+          titulo: true,
+          plantillas: {
+            select: {
+              idEjercicioPlantilla: true,
+              tipo: true,
+            },
+          },
+          resolucion: {
+            select: {
+              idResolucion: true,
+              plantillas: {
+                select: {
+                  idResolucionPlantilla: true,
+                  ejercicioPlantillaId: true,
+                  contenido: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      resoluciones: {
+        select: {
+          idResolucionPlantilla: true,
+          ejercicioPlantillaId: true,
+          estado: true,
+          contenido: true,
+        },
+      },
+      correccion: {
+        select: {
+          idCorreccion: true,
+          docenteId: true,
+          fechaCorreccion: true,
+          retroalimentacion: true,
+          plantillas: {
+            select: {
+              idCorreccionPlantilla: true,
+              ejercicioPlantillaId: true,
+              estado: true,
+            },
+          },
+          errores: {
+            select: {
+              idError: true,
+              ejercicioPlantillaId: true,
+              tipoError: true,
+              detalle: true,
+              comentarioDocente: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export interface ErrorParaPersistirData {
+  ejercicioPlantillaId: number;
+  tipoError: TipoErrorCorreccion;
+  detalle: Prisma.InputJsonValue;
+  comentarioDocente?: string | null;
+}
+
+export interface FinalizarCorreccionParams {
+  entregaId: number;
+  docenteId: string;
+  alumnoUsuarioId: string;
+  ejercicioId: number;
+  tituloEjercicio: string;
+  fechaCorreccion: Date;
+  retroalimentacion?: string | null;
+  errores: ErrorParaPersistirData[];
+}
+
+export async function finalizarCorreccionTransaccion(
+  params: FinalizarCorreccionParams
+) {
+  const db = getDbClient();
+
+  return db.$transaction(async (tx) => {
+    // 1. Upsert cabecera de corrección y marcar fecha de corrección
+    const correccion = await tx.correccionEntrega.upsert({
+      where: { entregaId: params.entregaId },
+      create: {
+        entregaId: params.entregaId,
+        docenteId: params.docenteId,
+        fechaCorreccion: params.fechaCorreccion,
+        retroalimentacion: params.retroalimentacion ?? null,
+      },
+      update: {
+        fechaCorreccion: params.fechaCorreccion,
+        ...(params.retroalimentacion !== undefined
+          ? { retroalimentacion: params.retroalimentacion }
+          : {}),
+      },
+    });
+
+    // 2. Eliminar errores previos asociados si existieran
+    await tx.errorCorreccion.deleteMany({
+      where: { correccionId: correccion.idCorreccion },
+    });
+
+    // 3. Persistir errores contables definitivos
+    if (params.errores.length > 0) {
+      await tx.errorCorreccion.createMany({
+        data: params.errores.map((e) => ({
+          correccionId: correccion.idCorreccion,
+          ejercicioPlantillaId: e.ejercicioPlantillaId,
+          tipoError: e.tipoError,
+          detalle: e.detalle,
+          comentarioDocente: e.comentarioDocente ?? null,
+        })),
+      });
+    }
+
+    // 4. Crear notificación para el alumno
+    const notificacion = await tx.notificacion.create({
+      data: {
+        usuarioId: params.alumnoUsuarioId,
+        ejercicioId: params.ejercicioId,
+        tipo: 'EJERCICIO_CORREGIDO',
+        titulo: 'Ejercicio corregido',
+        mensaje: `Tu entrega para "${params.tituloEjercicio}" ha sido corregida.`,
+      },
+    });
+
+    return {
+      correccion,
+      totalErroresPersistidos: params.errores.length,
+      notificacion,
+    };
+  });
+}
+
