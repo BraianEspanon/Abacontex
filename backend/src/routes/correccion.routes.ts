@@ -10,6 +10,7 @@ import {
   entregaIdParamSchema,
   finalizarCorreccionSchema,
   guardarBorradorCorreccionSchema,
+  guardarComentarioErrorSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
   revisarPlantillaSchema,
@@ -19,6 +20,7 @@ import {
   actualizarRevisionPlantilla,
   finalizarCorreccion,
   guardarBorradorCorreccion,
+  guardarComentarioError,
   obtenerEjerciciosACorregir,
   obtenerEntregasEjercicio,
   obtenerEspacioTrabajoCorreccion,
@@ -67,6 +69,14 @@ router.patch(
   requireRole(ROLES.DOCENTE),
   validate(guardarBorradorCorreccionSchema),
   guardarBorradorCorreccion
+);
+
+router.patch(
+  '/entregas/:entregaId/errores/comentario',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(guardarComentarioErrorSchema),
+  guardarComentarioError
 );
 
 router.post(

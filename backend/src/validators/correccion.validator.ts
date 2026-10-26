@@ -1,3 +1,4 @@
+import { TipoErrorCorreccion } from '@prisma/client';
 import { z } from 'zod';
 import {
   FILTROS_ESTADO_CORRECCION_ALUMNO,
@@ -105,3 +106,18 @@ export const finalizarCorreccionSchema = z.object({
 });
 
 export type FinalizarCorreccionBodyDTO = z.infer<typeof finalizarCorreccionSchema>['body'];
+
+export const guardarComentarioErrorSchema = z.object({
+  params: z.object({
+    entregaId: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    idError: z.coerce.number().int().positive().optional(),
+    ejercicioPlantillaId: z.coerce.number().int().positive(),
+    tipoError: z.nativeEnum(TipoErrorCorreccion),
+    detalle: z.record(z.string(), z.unknown()),
+    comentario: z.string().trim().max(255).optional().nullable(),
+  }),
+});
+
+export type GuardarComentarioErrorBodyDTO = z.infer<typeof guardarComentarioErrorSchema>['body'];

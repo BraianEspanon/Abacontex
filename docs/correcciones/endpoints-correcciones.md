@@ -38,7 +38,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 | :--- | :--- | :--- |
 | **`GET`** | `/correcciones/entregas/:entregaId` | Carga el espacio de trabajo completo de la entrega: comparación alumno vs docente en memoria, KPIs (aciertos, diferencias, incompletos), celdas observadas y borrador existente. |
 | **`PATCH`** | `/correcciones/entregas/:entregaId/plantillas/:plantillaId` | Marca una plantilla individual como revisada (`PENDIENTE` o `CORREGIDA`). |
-| **`PATCH`** | `/correcciones/entregas/:entregaId/errores/:errorId/comentario` | Guarda o edita una observación puntual del docente sobre un error contable específico. |
+| **`PATCH`** | `/correcciones/entregas/:entregaId/errores/comentario` | Guarda o edita una observación puntual del docente sobre un error contable específico desde el modal de la celda. |
 | **`PATCH`** | `/correcciones/entregas/:entregaId/borrador` | Guarda avances parciales del docente (retroalimentación general de hasta 500 caracteres) sin cerrar la entrega. |
 | **`POST`** | `/correcciones/entregas/:entregaId/finalizar` | Cierre definitivo y envío de la corrección. Valida que todas las plantillas estén marcadas como corregidas y notifica al alumno. |
 | **`POST`** | `/correcciones/entregas/:entregaId/sugerir-retroalimentacion` | **Asistencia IA (Bajo Demanda):** Genera una sugerencia de retroalimentación individual (máx. 500 caracteres) basada en los errores detectados (habilitado únicamente si hay **3 o más errores**). |
@@ -128,12 +128,30 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
   * **Al destildar / desmarcar:** Envía `{ estado: 'PENDIENTE' }` (permite al docente deshacer la acción si necesita seguir revisando antes del cierre definitivo).
   * **Impacto en el flujo de corrección:** Conforme a `docs/ejercicios/Decisiones Ejercicios y correcciones.md`, el botón **"Enviar corrección"** solo debe habilitarse en el frontend cuando el 100% de las plantillas habilitadas del ejercicio se encuentren marcadas como `CORREGIDA`. Actualiza la tabla `correcciones_plantillas`.
 
-### 3.6. `PATCH /correcciones/entregas/:entregaId/borrador` — Guardar Borrador
+### 3.6. `PATCH /correcciones/entregas/:entregaId/errores/comentario` — Guardar Comentario en Error Puntual (Modal)
+* **Path Params:** `entregaId` (número entero).
+* **Body:**
+  ```json
+  {
+    "idError": 1,
+    "ejercicioPlantillaId": 3,
+    "tipoError": "TIPO_MOVIMIENTO_INCORRECTO",
+    "detalle": { "numeroAsiento": 3, "idCuenta": 5, "celda": "movimiento" },
+    "comentario": "Revisar la clasificación de Compras."
+  }
+  ```
+  *(El campo `comentario` está limitado a máx. 255 caracteres, conforme a `ErrorCorreccion.comentarioDocente` y al diseño UX del modal)*.
+* **Lógica:**
+  1. Permite guardar la observación puntual escrita por el docente en el modal de detalle del error al presionar **`[ Guardar cambios ]`**.
+  2. Si el error aún no tenía ID en la BD, se persiste bajo demanda en `ErrorCorreccion` con su comentario sin afectar la idempotencia del `GET`.
+  3. Si ya existía, actualiza su `comentarioDocente` (o lo limpia si se envía vacío/null).
+
+### 3.7. `PATCH /correcciones/entregas/:entregaId/borrador` — Guardar Borrador
 * **Path Params:** `entregaId`.
 * **Body:** `{ retroalimentacion?: string }` (validado a máx. 500 caracteres).
 * **Lógica:** Guarda el avance de la retroalimentación sin cerrar la entrega ni notificar al alumno.
 
-### 3.7. `POST /correcciones/entregas/:entregaId/finalizar` — Enviar Corrección
+### 3.8. `POST /correcciones/entregas/:entregaId/finalizar` — Enviar Corrección
 * **Path Params:** `entregaId`.
 * **Body:** `{ retroalimentacion?: string }` (opcional, máx. 500 caracteres).
 * **Lógica y Reglas de Negocio:**

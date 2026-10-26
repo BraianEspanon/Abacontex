@@ -6,6 +6,7 @@ import {
   entregaIdParamSchema,
   finalizarCorreccionSchema,
   guardarBorradorCorreccionSchema,
+  guardarComentarioErrorSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
   revisarPlantillaSchema,
@@ -93,6 +94,21 @@ export async function finalizarCorreccion(req: Request, res: Response) {
   });
 
   const resultado = await correccionService.finalizarCorreccion(req.user!, params.entregaId, body);
+
+  res.status(200).json(resultado);
+}
+
+export async function guardarComentarioError(req: Request, res: Response) {
+  const { params, body } = guardarComentarioErrorSchema.parse({
+    params: req.params,
+    body: req.body,
+  });
+
+  const resultado = await correccionService.guardarComentarioError(
+    req.user!,
+    params.entregaId,
+    body
+  );
 
   res.status(200).json(resultado);
 }

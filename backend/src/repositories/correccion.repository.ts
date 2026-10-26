@@ -747,7 +747,7 @@ export interface ErrorParaPersistirData {
   ejercicioPlantillaId: number;
   tipoError: TipoErrorCorreccion;
   detalle: Prisma.InputJsonValue;
-  comentarioDocente?: string | null;
+  comentarioDocente?: string | null | undefined;
 }
 
 export interface FinalizarCorreccionParams {
@@ -757,13 +757,11 @@ export interface FinalizarCorreccionParams {
   ejercicioId: number;
   tituloEjercicio: string;
   fechaCorreccion: Date;
-  retroalimentacion?: string | null;
+  retroalimentacion?: string | null | undefined;
   errores: ErrorParaPersistirData[];
 }
 
-export async function finalizarCorreccionTransaccion(
-  params: FinalizarCorreccionParams
-) {
+export async function finalizarCorreccionTransaccion(params: FinalizarCorreccionParams) {
   const db = getDbClient();
 
   return db.$transaction(async (tx) => {
@@ -821,3 +819,100 @@ export async function finalizarCorreccionTransaccion(
   });
 }
 
+export interface UpsertComentarioErrorData {
+  idError?: number | undefined;
+  ejercicioPlantillaId: number;
+  tipoError: TipoErrorCorreccion;
+  detalle: Record<string, unknown>;
+  comentario?: string | null | undefined;
+}
+
+export async function upsertComentarioError(
+  entregaId: number,
+  docenteId: string,
+  data: UpsertComentarioErrorData,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  // 1. Asegurar existencia de CorreccionEntrega
+  const correccion = await db.correccionEntrega.upsert({
+    where: { entregaId },
+    create: {
+      entregaId,
+      docenteId,
+    },
+    update: {},
+    select: { idCorreccion: true },
+  });
+
+  const comentarioLimpio = data.comentario?.trim() || null;
+
+  // 2. Si vino idError específico, actualizar directamente
+  if (data.idError) {
+    const errorExistente = await db.errorCorreccion.findFirst({
+      where: {
+        idError: data.idError,
+        correccionId: correccion.idCorreccion,
+      },
+    });
+
+    if (errorExistente) {
+      return db.errorCorreccion.update({
+        where: { idError: errorExistente.idError },
+        data: { comentarioDocente: comentarioLimpio },
+      });
+    }
+  }
+
+  // 3. Si no vino idError o no se encontró, buscar por coincidencia en la BD
+  const erroresPrevios = await db.errorCorreccion.findMany({
+    where: {
+      correccionId: correccion.idCorreccion,
+      ejercicioPlantillaId: data.ejercicioPlantillaId,
+      tipoError: data.tipoError,
+    },
+  });
+
+  const errorCoincidente = erroresPrevios.find((e) => {
+    if (!e.detalle || typeof e.detalle !== 'object') return false;
+    const det = e.detalle as Record<string, unknown>;
+    if (
+      data.detalle.numeroAsiento !== undefined &&
+      det.numeroAsiento !== data.detalle.numeroAsiento
+    ) {
+      return false;
+    }
+    if (data.detalle.idCuenta !== undefined && det.idCuenta !== data.detalle.idCuenta) {
+      return false;
+    }
+    if (data.detalle.celda !== undefined && det.celda !== data.detalle.celda) {
+      return false;
+    }
+    if (data.detalle.comprobante !== undefined && det.comprobante !== data.detalle.comprobante) {
+      return false;
+    }
+    if (data.detalle.columna !== undefined && det.columna !== data.detalle.columna) {
+      return false;
+    }
+    return true;
+  });
+
+  if (errorCoincidente) {
+    return db.errorCorreccion.update({
+      where: { idError: errorCoincidente.idError },
+      data: { comentarioDocente: comentarioLimpio },
+    });
+  }
+
+  // 4. Si no existía aún en la BD, crearlo
+  return db.errorCorreccion.create({
+    data: {
+      correccionId: correccion.idCorreccion,
+      ejercicioPlantillaId: data.ejercicioPlantillaId,
+      tipoError: data.tipoError,
+      detalle: data.detalle as Prisma.InputJsonValue,
+      comentarioDocente: comentarioLimpio,
+    },
+  });
+}

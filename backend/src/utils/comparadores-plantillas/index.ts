@@ -93,6 +93,29 @@ export function compararResolucionConModelo(
   };
 }
 
+function coincidenDetalles(a: unknown, b: unknown): boolean {
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return true;
+  const detA = a as Record<string, unknown>;
+  const detB = b as Record<string, unknown>;
+
+  if (detA.numeroAsiento !== undefined && detB.numeroAsiento !== undefined) {
+    if (detA.numeroAsiento !== detB.numeroAsiento) return false;
+  }
+  if (detA.idCuenta !== undefined && detB.idCuenta !== undefined) {
+    if (detA.idCuenta !== detB.idCuenta) return false;
+  }
+  if (detA.celda !== undefined && detB.celda !== undefined) {
+    if (detA.celda !== detB.celda) return false;
+  }
+  if (detA.comprobante !== undefined && detB.comprobante !== undefined) {
+    if (detA.comprobante !== detB.comprobante) return false;
+  }
+  if (detA.columna !== undefined && detB.columna !== undefined) {
+    if (detA.columna !== detB.columna) return false;
+  }
+  return true;
+}
+
 function fusionarComentariosPrevios(
   detectados: ErrorDetalleItemDTO[],
   guardados: Array<{
@@ -110,7 +133,8 @@ function fusionarComentariosPrevios(
       (d) =>
         d.ejercicioPlantillaId === g.ejercicioPlantillaId &&
         d.tipoError === g.tipoError &&
-        d.idError === null
+        d.idError === null &&
+        coincidenDetalles(d.detalle, g.detalle)
     );
 
     if (match) {

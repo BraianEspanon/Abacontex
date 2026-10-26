@@ -11,6 +11,7 @@ import * as correccionRepository from '../repositories/correccion.repository';
 import {
   FinalizarCorreccionBodyDTO,
   GuardarBorradorCorreccionBodyDTO,
+  GuardarComentarioErrorBodyDTO,
   ObtenerEjerciciosACorregirQueryDTO,
   ObtenerEntregasEjercicioQueryDTO,
   RevisarPlantillaBodyDTO,
@@ -478,5 +479,60 @@ export async function finalizarCorreccion(
     retroalimentacion: retroalimentacionFinal,
     totalErrores: resultadoTransaccion.totalErroresPersistidos,
     mensaje: 'La corrección ha sido enviada y notificada al alumno exitosamente.',
+  };
+}
+
+export async function guardarComentarioError(
+  user: AuthUser,
+  entregaId: number,
+  body: GuardarComentarioErrorBodyDTO
+) {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Buscar entrega y verificar pertenencia al docente
+  const entrega = await correccionRepository.findEntregaParaRevisionPlantilla(entregaId);
+
+  if (!entrega || entrega.ejercicio.docenteId !== docente.id) {
+    throw new NotFoundError('Entrega no encontrada o no pertenece al docente.');
+  }
+
+  // 3. Validar que la entrega haya sido completada por el alumno
+  if (!entrega.fechaEntrega) {
+    throw new BadRequestError('La entrega aún no ha sido completada por el alumno.');
+  }
+
+  // 4. Validar que la corrección no haya sido finalizada previamente
+  if (entrega.correccion?.fechaCorreccion) {
+    throw new ConflictError(
+      'La corrección de esta entrega ya ha sido finalizada y no puede modificarse.'
+    );
+  }
+
+  // 5. Validar que la plantilla pertenezca al ejercicio de la entrega
+  const plantillaExiste = entrega.ejercicio.plantillas.some(
+    (p) => p.idEjercicioPlantilla === body.ejercicioPlantillaId
+  );
+  if (!plantillaExiste) {
+    throw new NotFoundError('La plantilla especificada no pertenece al ejercicio de esta entrega.');
+  }
+
+  // 6. Persistir comentario del error
+  const errorGuardado = await correccionRepository.upsertComentarioError(entregaId, docente.id, {
+    idError: body.idError,
+    ejercicioPlantillaId: body.ejercicioPlantillaId,
+    tipoError: body.tipoError,
+    detalle: body.detalle,
+    comentario: body.comentario ?? null,
+  });
+
+  return {
+    idError: errorGuardado.idError,
+    ejercicioPlantillaId: errorGuardado.ejercicioPlantillaId,
+    tipoError: errorGuardado.tipoError,
+    comentarioDocente: errorGuardado.comentarioDocente,
+    mensaje: errorGuardado.comentarioDocente
+      ? 'Comentario del error guardado correctamente.'
+      : 'Comentario del error eliminado correctamente.',
   };
 }
