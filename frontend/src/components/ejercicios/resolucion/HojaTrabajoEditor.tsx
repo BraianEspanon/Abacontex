@@ -1,12 +1,19 @@
 import { Plus, Trash2 } from 'lucide-react';
 
 import { useCuentasContablesEjercicio } from '../../../hooks/useCuentasContablesEjercicio';
+import SelectorCuentaContable from './SelectorCuentaContable';
 
-import type { ContenidoHojaTrabajo, FilaHojaTrabajo } from '../../../types/ejercicio.types';
+import type {
+  ContenidoHojaTrabajo,
+  FilaHojaTrabajo,
+  ResultadoEjercicioHojaTrabajo,
+} from '../../../types/ejercicio.types';
+import InputImporte from './InputImporte';
 
 interface HojaTrabajoEditorProps {
   contenido: ContenidoHojaTrabajo;
   onChange: (contenido: ContenidoHojaTrabajo) => void;
+  soloLectura?: boolean;
 }
 
 interface TotalesHojaTrabajo {
@@ -283,15 +290,27 @@ function actualizarCampoImporte(
   }
 }
 
-export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEditorProps) {
+export default function HojaTrabajoEditor({
+  contenido,
+  onChange,
+  soloLectura = false,
+}: HojaTrabajoEditorProps) {
   const { data: cuentasData, isLoading: cargandoCuentas } = useCuentasContablesEjercicio();
 
   const cuentasContables = cuentasData?.items ?? [];
 
   const totales = calcularTotales(contenido.filas);
 
+  const resultadoDelEjercicio: ResultadoEjercicioHojaTrabajo = contenido.resultadoDelEjercicio ?? {
+    activo: 0,
+    pasivoMasPn: 0,
+    negativo: 0,
+    positivo: 0,
+  };
+
   function actualizarFilas(filas: FilaHojaTrabajo[]) {
     onChange({
+      ...contenido,
       filas,
     });
   }
@@ -322,10 +341,8 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
     actualizarFilas(nuevasFilas);
   }
 
-  function actualizarImporte(indiceFila: number, campo: CampoImporteFila, valor: string) {
-    const numero = valor === '' ? 0 : Number(valor);
-
-    if (!Number.isFinite(numero) || numero < 0) {
+  function actualizarImporte(indiceFila: number, campo: CampoImporteFila, valor: number) {
+    if (!Number.isFinite(valor) || valor < 0) {
       return;
     }
 
@@ -334,10 +351,46 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
         return fila;
       }
 
-      return actualizarCampoImporte(fila, campo, numero);
+      return actualizarCampoImporte(fila, campo, valor);
     });
 
     actualizarFilas(nuevasFilas);
+  }
+
+  function actualizarResultadoEjercicio(campo: keyof ResultadoEjercicioHojaTrabajo, valor: number) {
+    const resultadoActualizado: ResultadoEjercicioHojaTrabajo = {
+      ...resultadoDelEjercicio,
+      [campo]: valor,
+    };
+
+    /*
+     * Estado patrimonial:
+     * Activo y Pasivo + PN son excluyentes.
+     */
+    if (campo === 'activo' && valor > 0) {
+      resultadoActualizado.pasivoMasPn = 0;
+    }
+
+    if (campo === 'pasivoMasPn' && valor > 0) {
+      resultadoActualizado.activo = 0;
+    }
+
+    /*
+     * Estado de resultados:
+     * Negativo y Positivo son excluyentes.
+     */
+    if (campo === 'negativo' && valor > 0) {
+      resultadoActualizado.positivo = 0;
+    }
+
+    if (campo === 'positivo' && valor > 0) {
+      resultadoActualizado.negativo = 0;
+    }
+
+    onChange({
+      ...contenido,
+      resultadoDelEjercicio: resultadoActualizado,
+    });
   }
 
   function cuentaYaSeleccionada(idCuenta: number, indiceFilaActual: number): boolean {
@@ -358,14 +411,16 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={agregarFila}
-          className="flex h-9 items-center gap-1.5 rounded-lg border border-green-700 bg-white px-3 text-xs font-medium text-green-700 transition-colors hover:bg-green-50"
-        >
-          <Plus size={15} />
-          Agregar línea
-        </button>
+        {!soloLectura && (
+          <button
+            type="button"
+            onClick={agregarFila}
+            className="flex h-9 items-center gap-1.5 rounded-lg border border-green-700 bg-white px-3 text-xs font-medium text-green-700 transition-colors hover:bg-green-50"
+          >
+            <Plus size={15} />
+            Agregar línea
+          </button>
+        )}
       </div>
 
       {contenido.filas.length === 0 ? (
@@ -381,9 +436,9 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
       ) : (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1180px] table-fixed border-collapse text-[11px]">
+            <table className="w-full min-w-295 table-fixed border-collapse text-[11px]">
               <colgroup>
-                <col className="w-[38px]" />
+                <col className="w-9.5" />
                 <col className="w-[190px]" />
 
                 <col className="w-[90px]" />
@@ -502,29 +557,18 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                     </td>
 
                     <td className="border-r border-gray-100 px-1.5 py-1.5">
-                      <select
-                        value={fila.idCuenta || ''}
-                        disabled={cargandoCuentas}
-                        onChange={(event) =>
-                          seleccionarCuenta(indiceFila, Number(event.target.value))
-                        }
-                        aria-label={`Cuenta de la fila ${indiceFila + 1}`}
-                        className="h-8 w-full truncate rounded-md border border-gray-300 bg-white px-1.5 text-[11px] text-gray-800 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                      >
-                        <option value="">
-                          {cargandoCuentas ? 'Cargando cuentas...' : 'Seleccionar cuenta'}
-                        </option>
-
-                        {cuentasContables.map((cuenta) => (
-                          <option
-                            key={cuenta.idCuenta}
-                            value={cuenta.idCuenta}
-                            disabled={cuentaYaSeleccionada(cuenta.idCuenta, indiceFila)}
-                          >
-                            {cuenta.codigo} - {cuenta.nombre}
-                          </option>
-                        ))}
-                      </select>
+                      <SelectorCuentaContable
+                        cuentas={cuentasContables.filter(
+                          (cuenta) =>
+                            cuenta.idCuenta === fila.idCuenta ||
+                            !cuentaYaSeleccionada(cuenta.idCuenta, indiceFila)
+                        )}
+                        value={fila.idCuenta || null}
+                        disabled={cargandoCuentas || soloLectura}
+                        placeholder={cargandoCuentas ? 'Cargando cuentas...' : 'Buscar cuenta...'}
+                        compacto
+                        onSelect={(idCuenta) => seleccionarCuenta(indiceFila, idCuenta)}
+                      />
                     </td>
 
                     <CeldaImporte
@@ -532,6 +576,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       campo="saldosSinAjustar.deudor"
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -540,6 +585,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
                       separador
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -547,6 +593,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       campo="ajustes.debe"
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -555,6 +602,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
                       separador
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -562,6 +610,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       campo="saldosAjustados.deudor"
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -570,6 +619,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
                       separador
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -577,6 +627,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       campo="estadoPatrimonial.activo"
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -585,6 +636,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
                       separador
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -592,6 +644,7 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       campo="estadoResultados.negativo"
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
+                      soloLectura={soloLectura}
                     />
 
                     <CeldaImporte
@@ -600,18 +653,21 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                       indiceFila={indiceFila}
                       onChange={actualizarImporte}
                       separador
+                      soloLectura={soloLectura}
                     />
 
                     <td className="px-1 py-1.5 text-center">
-                      <button
-                        type="button"
-                        onClick={() => eliminarFila(indiceFila)}
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                        aria-label={`Eliminar fila ${indiceFila + 1}`}
-                        title="Eliminar fila"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {!soloLectura && (
+                        <button
+                          type="button"
+                          onClick={() => eliminarFila(indiceFila)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                          aria-label={`Eliminar fila ${indiceFila + 1}`}
+                          title="Eliminar fila"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -647,13 +703,59 @@ export default function HojaTrabajoEditor({ contenido, onChange }: HojaTrabajoEd
                   <td />
                 </tr>
 
-                <tr>
+                <tr className="border-t border-gray-300 bg-white">
                   <td
-                    colSpan={13}
-                    className="px-3 py-2 text-center text-[11px] font-semibold text-gray-800"
+                    colSpan={8}
+                    className="border-r border-gray-200 px-3 py-2 text-right text-[11px] font-semibold text-gray-900"
                   >
                     Resultado del ejercicio
                   </td>
+
+                  {/* Activo */}
+                  <td className="px-1 py-1.5">
+                    <InputImporte
+                      value={resultadoDelEjercicio.activo}
+                      onChange={(valor) => actualizarResultadoEjercicio('activo', valor)}
+                      ariaLabel="Resultado del ejercicio - Activo"
+                      disabled={soloLectura}
+                      className="h-8 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-right text-[11px] font-medium text-gray-800 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                    />
+                  </td>
+
+                  {/* Pasivo + PN */}
+                  <td className="border-r border-gray-200 px-1 py-1.5">
+                    <InputImporte
+                      value={resultadoDelEjercicio.pasivoMasPn}
+                      onChange={(valor) => actualizarResultadoEjercicio('pasivoMasPn', valor)}
+                      ariaLabel="Resultado del ejercicio - Pasivo más patrimonio neto"
+                      disabled={soloLectura}
+                      className="h-8 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-right text-[11px] font-medium text-gray-800 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                    />
+                  </td>
+
+                  {/* Negativo */}
+                  <td className="px-1 py-1.5">
+                    <InputImporte
+                      value={resultadoDelEjercicio.negativo}
+                      onChange={(valor) => actualizarResultadoEjercicio('negativo', valor)}
+                      ariaLabel="Resultado del ejercicio - Negativo"
+                      disabled={soloLectura}
+                      className="h-8 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-right text-[11px] font-medium text-gray-800 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                    />
+                  </td>
+
+                  {/* Positivo */}
+                  <td className="border-r border-gray-200 px-1 py-1.5">
+                    <InputImporte
+                      value={resultadoDelEjercicio.positivo}
+                      onChange={(valor) => actualizarResultadoEjercicio('positivo', valor)}
+                      ariaLabel="Resultado del ejercicio - Positivo"
+                      disabled={soloLectura}
+                      className="h-8 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-right text-[11px] font-medium text-gray-800 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                    />
+                  </td>
+
+                  <td />
                 </tr>
               </tfoot>
             </table>
@@ -673,22 +775,27 @@ interface CeldaImporteProps {
   campo: CampoImporteFila;
   indiceFila: number;
   separador?: boolean;
-  onChange: (indiceFila: number, campo: CampoImporteFila, valor: string) => void;
+  soloLectura?: boolean;
+  onChange: (indiceFila: number, campo: CampoImporteFila, valor: number) => void;
 }
 
-function CeldaImporte({ fila, campo, indiceFila, separador = false, onChange }: CeldaImporteProps) {
+function CeldaImporte({
+  fila,
+  campo,
+  indiceFila,
+  separador = false,
+  soloLectura = false,
+  onChange,
+}: CeldaImporteProps) {
   const valor = obtenerValorCampo(fila, campo);
 
   return (
     <td className={`px-1 py-1.5 ${separador ? 'border-r border-gray-200' : ''}`}>
-      <input
-        type="number"
-        min="0"
-        step="0.01"
-        value={valor === 0 ? '' : valor}
-        placeholder="-"
-        onChange={(event) => onChange(indiceFila, campo, event.target.value)}
-        className="h-8 w-full min-w-0 rounded-md border border-gray-300 px-1.5 text-right text-[11px] text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
+      <InputImporte
+        value={valor}
+        onChange={(nuevoValor) => onChange(indiceFila, campo, nuevoValor)}
+        disabled={soloLectura}
+        className="h-8 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-right text-[11px] text-gray-700 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
       />
     </td>
   );

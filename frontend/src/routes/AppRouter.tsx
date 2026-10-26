@@ -62,6 +62,10 @@ import NuevoEjercicioIA from '../pages/docente/NuevoEjercicioIA';
 import DetalleEjercicioPage from '../pages/docente/DetalleEjercicioPage';
 import ResolucionEjercicioDocente from '../pages/docente/ResolucionEjercicioDocente';
 
+import EjerciciosAlumno from '../pages/alumnos/EjerciciosAlumno';
+import DetalleEjercicioAlumno from '../pages/alumnos/DetalleEjercicioAlumno';
+import ResolucionEjercicioAlumno from '../pages/alumnos/ResolucionEjercicioAlumno';
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -214,6 +218,10 @@ export default function AppRouter() {
         <Route path="contabilidad/estado-resultados" element={<EstadoResultadosPage />} />
 
         <Route path="contabilidad/balance-general" element={<BalanceGeneralPage />} />
+
+        <Route path="ejercicios" element={<EjerciciosAlumno />} />
+        <Route path="ejercicios/:id" element={<DetalleEjercicioAlumno />} />
+        <Route path="ejercicios/:id/resolucion" element={<ResolucionEjercicioAlumno />} />
       </Route>
     </Routes>
   );
