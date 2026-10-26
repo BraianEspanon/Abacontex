@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { EstadoCorreccionPlantilla, Prisma } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 import { ObtenerEjerciciosACorregirQueryDTO } from '../validators/correccion.validator';
 
@@ -425,6 +425,117 @@ export async function findEntregaParaEspacioTrabajo(
           },
         },
       },
+    },
+  });
+}
+
+export type EntregaParaRevisionPlantillaEntity = Prisma.EntregaEjercicioGetPayload<{
+  include: {
+    ejercicio: {
+      select: {
+        idEjercicio: true;
+        docenteId: true;
+        plantillas: {
+          select: {
+            idEjercicioPlantilla: true;
+            tipo: true;
+          };
+        };
+      };
+    };
+    correccion: {
+      select: {
+        idCorreccion: true;
+        docenteId: true;
+        fechaCorreccion: true;
+        plantillas: {
+          select: {
+            idCorreccionPlantilla: true;
+            ejercicioPlantillaId: true;
+            estado: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export async function findEntregaParaRevisionPlantilla(
+  entregaId: number,
+  tx?: Prisma.TransactionClient
+): Promise<EntregaParaRevisionPlantillaEntity | null> {
+  const db = getDbClient(tx);
+  return db.entregaEjercicio.findUnique({
+    where: { idEntrega: entregaId },
+    include: {
+      ejercicio: {
+        select: {
+          idEjercicio: true,
+          docenteId: true,
+          plantillas: {
+            select: {
+              idEjercicioPlantilla: true,
+              tipo: true,
+            },
+          },
+        },
+      },
+      correccion: {
+        select: {
+          idCorreccion: true,
+          docenteId: true,
+          fechaCorreccion: true,
+          plantillas: {
+            select: {
+              idCorreccionPlantilla: true,
+              ejercicioPlantillaId: true,
+              estado: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function upsertCorreccionPlantilla(
+  entregaId: number,
+  docenteId: string,
+  ejercicioPlantillaId: number,
+  estado: EstadoCorreccionPlantilla,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const correccion = await db.correccionEntrega.upsert({
+    where: { entregaId },
+    create: {
+      entregaId,
+      docenteId,
+    },
+    update: {},
+  });
+
+  return db.correccionPlantilla.upsert({
+    where: {
+      correccionId_ejercicioPlantillaId: {
+        correccionId: correccion.idCorreccion,
+        ejercicioPlantillaId,
+      },
+    },
+    create: {
+      correccionId: correccion.idCorreccion,
+      ejercicioPlantillaId,
+      estado,
+    },
+    update: {
+      estado,
+    },
+    select: {
+      idCorreccionPlantilla: true,
+      correccionId: true,
+      ejercicioPlantillaId: true,
+      estado: true,
     },
   });
 }

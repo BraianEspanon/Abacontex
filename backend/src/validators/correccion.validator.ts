@@ -68,3 +68,16 @@ export const entregaIdParamSchema = z.object({
 });
 
 export type EntregaIdParamDTO = z.infer<typeof entregaIdParamSchema>['params'];
+
+export const revisarPlantillaSchema = z.object({
+  params: z.object({
+    entregaId: z.coerce.number().int().positive(),
+    plantillaId: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    estado: z.enum(['PENDIENTE', 'CORREGIDA']),
+  }),
+});
+
+export type RevisarPlantillaParamDTO = z.infer<typeof revisarPlantillaSchema>['params'];
+export type RevisarPlantillaBodyDTO = z.infer<typeof revisarPlantillaSchema>['body'];

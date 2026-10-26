@@ -1,5 +1,8 @@
+import { EstadoCorreccionPlantilla } from '@prisma/client';
 import { AuthUser } from '../types/express';
 import { NotFoundError } from '../errors/not-found.error';
+import { BadRequestError } from '../errors/bad-request-error';
+import { ConflictError } from '../errors/conflict.error';
 
 import * as docenteRepository from '../repositories/docente.repository';
 import * as correccionRepository from '../repositories/correccion.repository';
@@ -7,6 +10,7 @@ import * as correccionRepository from '../repositories/correccion.repository';
 import {
   ObtenerEjerciciosACorregirQueryDTO,
   ObtenerEntregasEjercicioQueryDTO,
+  RevisarPlantillaBodyDTO,
 } from '../validators/correccion.validator';
 import {
   OPCIONES_FILTRO_ESTADO_CORRECCION,
@@ -233,4 +237,65 @@ export async function obtenerEspacioTrabajoCorreccion(
 
   // 5. Mapear y retornar respuesta estructurada
   return toEspacioTrabajoCorreccionResponse(entrega, resultadoComparacion);
+}
+
+export async function actualizarRevisionPlantilla(
+  user: AuthUser,
+  entregaId: number,
+  plantillaId: number,
+  body: RevisarPlantillaBodyDTO
+) {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Buscar entrega y verificar pertenencia al docente
+  const entrega = await correccionRepository.findEntregaParaRevisionPlantilla(entregaId);
+
+  if (!entrega || entrega.ejercicio.docenteId !== docente.id) {
+    throw new NotFoundError('Entrega no encontrada o no pertenece al docente.');
+  }
+
+  // 3. Validar que la entrega haya sido efectivamente realizada por el alumno
+  if (!entrega.fechaEntrega) {
+    throw new BadRequestError('La entrega aún no ha sido completada por el alumno.');
+  }
+
+  // 4. Validar que la corrección no haya sido finalizada previamente
+  if (entrega.correccion?.fechaCorreccion) {
+    throw new ConflictError(
+      'La corrección de esta entrega ya ha sido finalizada y no puede modificarse.'
+    );
+  }
+
+  // 5. Validar que la plantilla pertenezca al ejercicio de la entrega
+  const plantillaExiste = entrega.ejercicio.plantillas.some(
+    (p) => p.idEjercicioPlantilla === plantillaId
+  );
+  if (!plantillaExiste) {
+    throw new NotFoundError('La plantilla especificada no pertenece al ejercicio de esta entrega.');
+  }
+
+  // 6. Traducir estado del contrato API ('PENDIENTE' | 'CORREGIDA') al enum de la BD ('PENDIENTE' | 'COMPLETADA')
+  const estadoPrisma: EstadoCorreccionPlantilla =
+    body.estado === 'CORREGIDA'
+      ? EstadoCorreccionPlantilla.COMPLETADA
+      : EstadoCorreccionPlantilla.PENDIENTE;
+
+  // 7. Persistir estado de revisión de la plantilla
+  const plantillaActualizada = await correccionRepository.upsertCorreccionPlantilla(
+    entregaId,
+    docente.id,
+    plantillaId,
+    estadoPrisma
+  );
+
+  return {
+    idCorreccionPlantilla: plantillaActualizada.idCorreccionPlantilla,
+    idEjercicioPlantilla: plantillaActualizada.ejercicioPlantillaId,
+    estado: body.estado,
+    mensaje:
+      body.estado === 'CORREGIDA'
+        ? 'Plantilla marcada como revisada.'
+        : 'Plantilla marcada como pendiente de revisión.',
+  };
 }

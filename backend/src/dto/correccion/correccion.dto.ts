@@ -1,6 +1,5 @@
 import { PaginatedResponse } from '../paginated-response.dto';
 import {
-  EstadoCorreccionPlantilla,
   EstadoResolucionAlumnoPlantilla,
   TipoErrorCorreccion,
   TipoPlantillaEjercicio,
@@ -118,11 +117,13 @@ export interface ErrorDetalleItemDTO {
   comentarioDocente: string | null;
 }
 
+export type EstadoRevisionPlantillaDTO = 'PENDIENTE' | 'CORREGIDA';
+
 export interface PlantillaEspacioTrabajoDTO {
   idEjercicioPlantilla: number;
   tipo: TipoPlantillaEjercicio;
   nombre: string;
-  estadoRevision: EstadoCorreccionPlantilla;
+  estadoRevision: EstadoRevisionPlantillaDTO;
   estadoAlumno: EstadoResolucionAlumnoPlantilla;
   contenidoAlumno: unknown;
   contenidoDocente: unknown;

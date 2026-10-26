@@ -10,9 +10,11 @@ import {
   entregaIdParamSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
+  revisarPlantillaSchema,
 } from '../validators/correccion.validator';
 
 import {
+  actualizarRevisionPlantilla,
   obtenerEjerciciosACorregir,
   obtenerEntregasEjercicio,
   obtenerEspacioTrabajoCorreccion,
@@ -45,6 +47,14 @@ router.get(
   requireRole(ROLES.DOCENTE),
   validate(entregaIdParamSchema),
   obtenerEspacioTrabajoCorreccion
+);
+
+router.patch(
+  '/entregas/:entregaId/plantillas/:plantillaId',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(revisarPlantillaSchema),
+  actualizarRevisionPlantilla
 );
 
 export default router;

@@ -120,9 +120,13 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * Borrador actual de la retroalimentación docente (si existe).
 
 ### 3.5. `PATCH /correcciones/entregas/:entregaId/plantillas/:plantillaId` — Revisión de Plantilla
-* **Path Params:** `entregaId`, `plantillaId`.
+* **Path Params:** `entregaId`, `plantillaId` (ID de la plantilla del ejercicio `ejercicioPlantillaId`).
 * **Body:** `{ estado: 'PENDIENTE' | 'CORREGIDA' }`.
-* **Lógica:** Permite al docente marcar como revisada una plantilla puntual (ej. finalizó Libro Diario pero deja Libro Mayor para después). Actualiza `CorreccionPlantilla`.
+* **Lógica y Comportamiento UI (Toggle):**
+  * Gobierna el control interactivo **"Estado de la corrección: Marcar como corregido"** ubicado en el pie de la resolución de cada pestaña/plantilla.
+  * **Al tildar / marcar:** Envía `{ estado: 'CORREGIDA' }` (se traduce y persiste internamente en Prisma como `EstadoCorreccionPlantilla.COMPLETADA`).
+  * **Al destildar / desmarcar:** Envía `{ estado: 'PENDIENTE' }` (permite al docente deshacer la acción si necesita seguir revisando antes del cierre definitivo).
+  * **Impacto en el flujo de corrección:** Conforme a `docs/ejercicios/Decisiones Ejercicios y correcciones.md`, el botón **"Enviar corrección"** solo debe habilitarse en el frontend cuando el 100% de las plantillas habilitadas del ejercicio se encuentren marcadas como `CORREGIDA`. Actualiza la tabla `correcciones_plantillas`.
 
 ### 3.6. `PATCH /correcciones/entregas/:entregaId/borrador` — Guardar Borrador
 * **Path Params:** `entregaId`.

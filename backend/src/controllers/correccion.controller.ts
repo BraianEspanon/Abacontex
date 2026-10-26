@@ -6,6 +6,7 @@ import {
   entregaIdParamSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
+  revisarPlantillaSchema,
 } from '../validators/correccion.validator';
 
 export async function obtenerEjerciciosACorregir(req: Request, res: Response) {
@@ -47,6 +48,22 @@ export async function obtenerEspacioTrabajoCorreccion(req: Request, res: Respons
   const resultado = await correccionService.obtenerEspacioTrabajoCorreccion(
     req.user!,
     params.entregaId
+  );
+
+  res.status(200).json(resultado);
+}
+
+export async function actualizarRevisionPlantilla(req: Request, res: Response) {
+  const { params, body } = revisarPlantillaSchema.parse({
+    params: req.params,
+    body: req.body,
+  });
+
+  const resultado = await correccionService.actualizarRevisionPlantilla(
+    req.user!,
+    params.entregaId,
+    params.plantillaId,
+    body
   );
 
   res.status(200).json(resultado);

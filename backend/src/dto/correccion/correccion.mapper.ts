@@ -213,7 +213,7 @@ export function toEspacioTrabajoCorreccionResponse(
       idEjercicioPlantilla: ep.idEjercicioPlantilla,
       tipo: ep.tipo,
       nombre: NOMBRES_PLANTILLAS_LEGIBLES[ep.tipo] ?? ep.tipo,
-      estadoRevision: revision?.estado ?? 'PENDIENTE',
+      estadoRevision: revision?.estado === 'COMPLETADA' ? 'CORREGIDA' : 'PENDIENTE',
       estadoAlumno: resolucionAlumno?.estado ?? 'PENDIENTE',
       contenidoAlumno: resolucionAlumno?.contenido ?? null,
       contenidoDocente: resolucionDocente?.contenido ?? null,
