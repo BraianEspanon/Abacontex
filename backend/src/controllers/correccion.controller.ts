@@ -112,3 +112,13 @@ export async function guardarComentarioError(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function sugerirRetroalimentacionIa(req: Request, res: Response) {
+  const { params } = entregaIdParamSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await correccionService.sugerirRetroalimentacionIa(req.user!, params.entregaId);
+
+  res.status(200).json(resultado);
+}

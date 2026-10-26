@@ -17,9 +17,12 @@ import {
   RevisarPlantillaBodyDTO,
 } from '../validators/correccion.validator';
 import {
+  NOMBRES_PLANTILLAS_LEGIBLES,
   OPCIONES_FILTRO_ESTADO_CORRECCION,
   OPCIONES_FILTRO_ESTADO_CORRECCION_ALUMNO,
 } from '../constants/correccion.constants';
+import { correccionIaService } from '../integrations/correccion-ia/correccion-ia.service';
+import { ErrorResumenIa } from '../integrations/correccion-ia/correccion-ia.types';
 import {
   CabeceraEjercicioEntregasDTO,
   EspacioTrabajoCorreccionResponseDTO,
@@ -535,5 +538,91 @@ export async function guardarComentarioError(
     mensaje: errorGuardado.comentarioDocente
       ? 'Comentario del error guardado correctamente.'
       : 'Comentario del error eliminado correctamente.',
+  };
+}
+
+export async function sugerirRetroalimentacionIa(
+  user: AuthUser,
+  entregaId: number
+): Promise<{ sugerencia: string }> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar entrega verificando pertenencia
+  const entrega = await correccionRepository.findEntregaParaEspacioTrabajo(entregaId, docente.id);
+
+  if (!entrega) {
+    throw new NotFoundError('Entrega no encontrada o no pertenece al docente.');
+  }
+
+  // 3. Validar que la entrega haya sido completada por el alumno
+  if (!entrega.fechaEntrega) {
+    throw new BadRequestError('La entrega aún no ha sido completada por el alumno.');
+  }
+
+  // 4. Validar que la corrección no haya sido finalizada previamente
+  if (entrega.correccion?.fechaCorreccion) {
+    throw new ConflictError(
+      'La corrección de esta entrega ya ha sido finalizada y no puede modificarse.'
+    );
+  }
+
+  // 5. Validar que el ejercicio cuente con resolución docente cargada
+  const tieneResolucion = entrega.ejercicio.resolucion?.estado === 'RESUELTO';
+  if (!tieneResolucion) {
+    throw new BadRequestError(
+      'El ejercicio no cuenta con resolución modelo docente cargada para contrastar errores.'
+    );
+  }
+
+  // 6. Preparar datos de plantillas para la comparación determinista en memoria
+  const plantillasParaComparar = entrega.ejercicio.plantillas.map((ep) => {
+    const resDoc = entrega.ejercicio.resolucion?.plantillas.find(
+      (p) => p.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+    const resAlu = entrega.resoluciones.find(
+      (r) => r.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+
+    return {
+      ejercicioPlantillaId: ep.idEjercicioPlantilla,
+      tipo: ep.tipo,
+      contenidoDocente: resDoc?.contenido ?? null,
+      contenidoAlumno: resAlu?.contenido ?? null,
+    };
+  });
+
+  const resultadoComparacion = compararResolucionConModelo(plantillasParaComparar);
+  const totalErrores = resultadoComparacion.kpis.totalErrores;
+
+  // 7. Regla de guardia estricta: se requieren al menos 3 errores detectados
+  if (totalErrores < 3) {
+    throw new BadRequestError('La sugerencia con IA requiere al menos 3 errores detectados.');
+  }
+
+  // 8. Consolidar lista de errores detectados para el prompt de IA (sin plantillas completas)
+  const erroresParaIa: ErrorResumenIa[] = [];
+  for (const ep of entrega.ejercicio.plantillas) {
+    const erroresPlantilla =
+      resultadoComparacion.erroresPorPlantilla.get(ep.idEjercicioPlantilla) ?? [];
+
+    for (const err of erroresPlantilla) {
+      erroresParaIa.push({
+        plantilla: NOMBRES_PLANTILLAS_LEGIBLES[ep.tipo] ?? ep.tipo,
+        tipoError: err.tipoError,
+        detalle: err.detalle,
+      });
+    }
+  }
+
+  // 9. Coordinar con el proveedor de IA la devolución pedagógica formativa
+  const sugerencia = await correccionIaService.generarSugerenciaRetroalimentacion({
+    tituloEjercicio: entrega.ejercicio.titulo,
+    enunciado: entrega.ejercicio.enunciado,
+    errores: erroresParaIa,
+  });
+
+  return {
+    sugerencia,
   };
 }

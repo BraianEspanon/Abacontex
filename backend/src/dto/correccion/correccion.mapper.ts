@@ -1,6 +1,7 @@
 import {
   EstadoCorreccionAlumno,
   EstadoCorreccionEjercicio,
+  NOMBRES_PLANTILLAS_LEGIBLES,
 } from '../../constants/correccion.constants';
 import {
   DetalleEjercicioEntregasEntity,
@@ -87,13 +88,6 @@ export function toListadoEjerciciosACorregirResponse(
     resumen,
   };
 }
-
-const NOMBRES_PLANTILLAS_LEGIBLES: Record<string, string> = {
-  LIBRO_DIARIO: 'Libro diario',
-  LIBRO_MAYOR: 'Libro mayor',
-  LIBRO_IVA: 'Libro IVA',
-  HOJA_TRABAJO: 'Hoja de trabajo',
-};
 
 export function formatearNombresPlantillas(tipos: string[]): string[] {
   return tipos.map((t) => NOMBRES_PLANTILLAS_LEGIBLES[t] ?? t);

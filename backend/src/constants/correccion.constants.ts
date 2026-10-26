@@ -57,3 +57,10 @@ export const OPCIONES_FILTRO_ESTADO_CORRECCION_ALUMNO: readonly {
   { clave: 'EN_CORRECCION', label: 'En corrección' },
   { clave: 'CORREGIDA', label: 'Corregidas' },
 ] as const;
+
+export const NOMBRES_PLANTILLAS_LEGIBLES: Record<string, string> = {
+  LIBRO_DIARIO: 'Libro diario',
+  LIBRO_MAYOR: 'Libro mayor',
+  LIBRO_IVA: 'Libro IVA',
+  HOJA_TRABAJO: 'Hoja de trabajo',
+};

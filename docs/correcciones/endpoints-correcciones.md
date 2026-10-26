@@ -213,14 +213,14 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 
 ---
 
-## 4. Estrategia Integral de Asistencia con IA (Google Gemini)
+## 4. Estrategia Integral de Asistencia con IA (Groq / Gemini)
 
 La utilización de Inteligencia Artificial en Abacontex sigue un criterio estricto de **optimización de costos, control docente (*human-in-the-loop*) y cero fallos bloqueantes**.
 
 ```
                            MATRIZ DE RESPONSABILIDADES
 ┌───────────────────────────────────────┬───────────────────────────────────────┐
-│     MOTOR DETERMINISTA (TypeScript)   │         ASISTENTE IA (Gemini)         │
+│     MOTOR DETERMINISTA (TypeScript)   │         ASISTENTE IA (Groq / Gemini)  │
 ├───────────────────────────────────────┼───────────────────────────────────────┤
 │ • Detección de errores contables      │ • Redacción de devolución individual  │
 │ • Comparación Debe / Haber / Saldos   │   pedagógica (< 500 caracteres).      │

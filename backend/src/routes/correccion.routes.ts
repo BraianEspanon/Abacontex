@@ -25,6 +25,7 @@ import {
   obtenerEntregasEjercicio,
   obtenerEspacioTrabajoCorreccion,
   obtenerFiltrosTablero,
+  sugerirRetroalimentacionIa,
 } from '../controllers/correccion.controller';
 
 const router = Router();
@@ -77,6 +78,14 @@ router.patch(
   requireRole(ROLES.DOCENTE),
   validate(guardarComentarioErrorSchema),
   guardarComentarioError
+);
+
+router.post(
+  '/entregas/:entregaId/sugerir-retroalimentacion',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(entregaIdParamSchema),
+  sugerirRetroalimentacionIa
 );
 
 router.post(
