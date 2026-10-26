@@ -18,6 +18,7 @@ import { ConflictError } from '../errors/conflict.error';
 import { BadRequestError } from '../errors/bad-request-error';
 
 import {
+  ConsultaCorreccionAlumnoResponseDTO,
   DetalleEjercicioAlumnoResponseDTO,
   FinalizarEntregaAlumnoResponseDTO,
   GuardarPlantillaAlumnoResponseDTO,
@@ -28,6 +29,7 @@ import {
 } from '../dto/entrega/entrega.dto';
 
 import {
+  toConsultaCorreccionAlumnoResponse,
   toDetalleEjercicioAlumnoResponse,
   toFinalizarEntregaAlumnoResponse,
   toGuardarPlantillaAlumnoResponse,
@@ -250,4 +252,37 @@ export async function finalizarEntrega(
 
   // 9. Mapear y retornar la confirmación de entrega
   return toFinalizarEntregaAlumnoResponse(ejercicio, entregaActualizada);
+}
+
+export async function consultarCorreccionAlumno(
+  user: AuthUser,
+  idEjercicio: number
+): Promise<ConsultaCorreccionAlumnoResponseDTO> {
+  // 1. Obtener alumno autenticado y validar curso
+  const { alumno } = await alumnoService.getAlumnoConCursoOrThrow(user);
+
+  // 2. Consultar ejercicio con entregas y corrección finalizada
+  const ejercicio = await entregaRepository.findCorreccionEjercicioParaAlumno(
+    idEjercicio,
+    alumno.id
+  );
+
+  // 3. Validar existencia y publicación
+  if (!ejercicio || ejercicio.estado !== 'PUBLICADO') {
+    throw new NotFoundError('El ejercicio no se encuentra disponible.');
+  }
+
+  // 4. Validar pertenencia al curso del alumno
+  if (ejercicio.curso.idCurso !== alumno.idCurso) {
+    throw new ForbiddenError('No tienes permisos para acceder a ejercicios de otro curso.');
+  }
+
+  // 5. Validar que la entrega exista y que la corrección esté finalizada
+  const entrega = ejercicio.entregas[0] ?? null;
+  if (!entrega || !entrega.correccion || !entrega.correccion.fechaCorreccion) {
+    throw new NotFoundError('La corrección para este ejercicio aún no está disponible.');
+  }
+
+  // 6. Mapear y retornar respuesta
+  return toConsultaCorreccionAlumnoResponse(ejercicio);
 }

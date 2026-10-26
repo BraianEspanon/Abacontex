@@ -118,3 +118,47 @@ export interface FinalizarEntregaAlumnoResponseDTO {
   fechaEntrega: string;
   fueraDeTermino: boolean;
 }
+
+export interface ErrorCorreccionAlumnoDTO {
+  idError: number;
+  ejercicioPlantillaId: number;
+  tipoError: string;
+  detalle: Record<string, unknown>;
+  comentarioDocente: string | null;
+}
+
+export interface PlantillaCorreccionAlumnoDTO {
+  idEjercicioPlantilla: number;
+  tipo: string;
+  nombre: string;
+  estadoAlumno: string;
+  contenidoAlumno: unknown | null;
+  errores: ErrorCorreccionAlumnoDTO[];
+}
+
+export interface DetalleCorreccionAlumnoDTO {
+  idCorreccion: number;
+  fechaCorreccion: string;
+  retroalimentacion: string | null;
+  totalErrores: number;
+}
+
+export interface ConsultaCorreccionAlumnoResponseDTO {
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  indicaciones: string | null;
+  fechaLimite: string;
+  docente: DocenteResumenDTO;
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+  };
+  entrega: {
+    idEntrega: number;
+    fechaEntrega: string | null;
+    fueraDeTermino: boolean;
+  };
+  correccion: DetalleCorreccionAlumnoDTO;
+  plantillas: PlantillaCorreccionAlumnoDTO[];
+}

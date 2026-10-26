@@ -418,3 +418,121 @@ export async function finalizarEntregaAlumno(
     },
   });
 }
+
+export type EjercicioCorreccionAlumnoEntity = Prisma.EjercicioGetPayload<{
+  include: {
+    docente: {
+      select: {
+        id: true;
+        nombre: true;
+        apellido: true;
+      };
+    };
+    curso: {
+      select: {
+        idCurso: true;
+        nombreCurso: true;
+      };
+    };
+    plantillas: {
+      select: {
+        idEjercicioPlantilla: true;
+        tipo: true;
+      };
+    };
+    entregas: {
+      include: {
+        resoluciones: {
+          select: {
+            idResolucionPlantilla: true;
+            ejercicioPlantillaId: true;
+            estado: true;
+            contenido: true;
+          };
+        };
+        correccion: {
+          include: {
+            errores: {
+              select: {
+                idError: true;
+                ejercicioPlantillaId: true;
+                tipoError: true;
+                detalle: true;
+                comentarioDocente: true;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export async function findCorreccionEjercicioParaAlumno(
+  ejercicioId: number,
+  alumnoId: string,
+  tx?: Prisma.TransactionClient
+): Promise<EjercicioCorreccionAlumnoEntity | null> {
+  const db = getDbClient(tx);
+
+  return db.ejercicio.findUnique({
+    where: {
+      idEjercicio: ejercicioId,
+    },
+    include: {
+      docente: {
+        select: {
+          id: true,
+          nombre: true,
+          apellido: true,
+        },
+      },
+      curso: {
+        select: {
+          idCurso: true,
+          nombreCurso: true,
+        },
+      },
+      plantillas: {
+        select: {
+          idEjercicioPlantilla: true,
+          tipo: true,
+        },
+        orderBy: {
+          idEjercicioPlantilla: 'asc',
+        },
+      },
+      entregas: {
+        where: {
+          alumnoId,
+        },
+        include: {
+          resoluciones: {
+            select: {
+              idResolucionPlantilla: true,
+              ejercicioPlantillaId: true,
+              estado: true,
+              contenido: true,
+            },
+          },
+          correccion: {
+            include: {
+              errores: {
+                select: {
+                  idError: true,
+                  ejercicioPlantillaId: true,
+                  tipoError: true,
+                  detalle: true,
+                  comentarioDocente: true,
+                },
+                orderBy: {
+                  idError: 'asc',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+}

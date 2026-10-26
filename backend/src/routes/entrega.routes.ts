@@ -12,6 +12,7 @@ import {
   obtenerEntregasAlumnoQuerySchema,
 } from '../validators/entrega.validator';
 import {
+  consultarCorreccion,
   consultarResolucion,
   finalizarEntrega,
   guardarPlantilla,
@@ -46,6 +47,14 @@ router.get(
   requireRole(ROLES.ALUMNO),
   validate(ejercicioIdParamSchema),
   consultarResolucion
+);
+
+router.get(
+  '/:ejercicioId/correccion',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(ejercicioIdParamSchema),
+  consultarCorreccion
 );
 
 router.patch(

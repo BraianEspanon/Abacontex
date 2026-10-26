@@ -1,18 +1,23 @@
 import {
   EjercicioConPlantillasEntity,
+  EjercicioCorreccionAlumnoEntity,
   EjercicioDetalleAlumnoEntity,
   EjercicioTableroAlumnoEntity,
   EntregaConResolucionesEntity,
   ResolucionAlumnoPlantillaEntity,
 } from '../../repositories/entrega.repository';
 import { EstadoEntregaAlumno } from '../../constants/entrega.constants';
+import { NOMBRES_PLANTILLAS_LEGIBLES } from '../../constants/correccion.constants';
 import {
+  ConsultaCorreccionAlumnoResponseDTO,
   DetalleCorreccionEntregaDTO,
   DetalleEjercicioAlumnoResponseDTO,
+  ErrorCorreccionAlumnoDTO,
   FinalizarEntregaAlumnoResponseDTO,
   GuardarPlantillaAlumnoResponseDTO,
   ItemTableroEntregaDTO,
   ListadoEntregasAlumnoResponseDTO,
+  PlantillaCorreccionAlumnoDTO,
   ResolucionAlumnoResponseDTO,
   ResumenTableroEntregasDTO,
 } from './entrega.dto';
@@ -259,5 +264,67 @@ export function toFinalizarEntregaAlumnoResponse(
     bloqueado: true,
     fechaEntrega: fechaEntrega.toISOString(),
     fueraDeTermino,
+  };
+}
+
+export function toConsultaCorreccionAlumnoResponse(
+  ejercicio: EjercicioCorreccionAlumnoEntity
+): ConsultaCorreccionAlumnoResponseDTO {
+  const entrega = ejercicio.entregas[0]!;
+  const correccion = entrega.correccion!;
+  const fechaEntrega = entrega.fechaEntrega;
+  const fueraDeTermino = fechaEntrega ? fechaEntrega > ejercicio.fechaLimite : false;
+
+  const plantillas: PlantillaCorreccionAlumnoDTO[] = ejercicio.plantillas.map((ep) => {
+    const resAlu = entrega.resoluciones.find(
+      (r) => r.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+    const erroresPlantilla: ErrorCorreccionAlumnoDTO[] = (correccion.errores ?? [])
+      .filter((e) => e.ejercicioPlantillaId === ep.idEjercicioPlantilla)
+      .map((e) => ({
+        idError: e.idError,
+        ejercicioPlantillaId: e.ejercicioPlantillaId,
+        tipoError: e.tipoError,
+        detalle: (e.detalle as Record<string, unknown>) ?? {},
+        comentarioDocente: e.comentarioDocente ?? null,
+      }));
+
+    return {
+      idEjercicioPlantilla: ep.idEjercicioPlantilla,
+      tipo: ep.tipo,
+      nombre: NOMBRES_PLANTILLAS_LEGIBLES[ep.tipo] ?? ep.tipo,
+      estadoAlumno: resAlu?.estado ?? 'PENDIENTE',
+      contenidoAlumno: resAlu?.contenido ?? null,
+      errores: erroresPlantilla,
+    };
+  });
+
+  return {
+    idEjercicio: ejercicio.idEjercicio,
+    titulo: ejercicio.titulo,
+    enunciado: ejercicio.enunciado,
+    indicaciones: ejercicio.indicaciones,
+    fechaLimite: ejercicio.fechaLimite.toISOString(),
+    docente: {
+      idDocente: ejercicio.docente.id,
+      nombre: ejercicio.docente.nombre,
+      apellido: ejercicio.docente.apellido,
+    },
+    curso: {
+      idCurso: ejercicio.curso.idCurso,
+      nombreCurso: ejercicio.curso.nombreCurso,
+    },
+    entrega: {
+      idEntrega: entrega.idEntrega,
+      fechaEntrega: fechaEntrega ? fechaEntrega.toISOString() : null,
+      fueraDeTermino,
+    },
+    correccion: {
+      idCorreccion: correccion.idCorreccion,
+      fechaCorreccion: correccion.fechaCorreccion!.toISOString(),
+      retroalimentacion: correccion.retroalimentacion,
+      totalErrores: correccion.errores.length,
+    },
+    plantillas,
   };
 }
