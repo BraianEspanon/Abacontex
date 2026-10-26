@@ -29,6 +29,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 | Método | Endpoint | Responsabilidad Principal |
 | :--- | :--- | :--- |
 | **`GET`** | `/correcciones/ejercicios` | Tablero de ejercicios con entregas (cards horizontales, filtros por curso/estado, contadores resumen y paginación). |
+| **`GET`** | `/correcciones/filtros` | Opciones de filtros para el tablero docente (cursos asignados al docente y estados de corrección). |
 | **`GET`** | `/correcciones/ejercicios/:ejercicioId/entregas` | Listado de alumnos y entregas de un ejercicio específico (con estados: `PENDIENTE`, `EN_CORRECCION`, `CORREGIDA`). |
 
 ### 2.2. Submenú 1.1: Pantalla "Corrección del Ejercicio" (Espacio de Trabajo)
@@ -37,7 +38,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 | :--- | :--- | :--- |
 | **`GET`** | `/correcciones/entregas/:entregaId` | Carga el espacio de trabajo completo de la entrega: comparación alumno vs docente en memoria, KPIs (aciertos, diferencias, incompletos), celdas observadas y borrador existente. |
 | **`PATCH`** | `/correcciones/entregas/:entregaId/plantillas/:plantillaId` | Marca una plantilla individual como revisada (`PENDIENTE` o `CORREGIDA`). |
-| **`PATCH`** | `/correcciones/entregas/:entregaId/errores/:errorId/comentario` | Guarda o edita una observación puntual del docente sobre un error contable específico. |
+| **`PATCH`** | `/correcciones/entregas/:entregaId/errores/comentario` | Guarda o edita una observación puntual del docente sobre un error contable específico desde el modal de la celda. |
 | **`PATCH`** | `/correcciones/entregas/:entregaId/borrador` | Guarda avances parciales del docente (retroalimentación general de hasta 500 caracteres) sin cerrar la entrega. |
 | **`POST`** | `/correcciones/entregas/:entregaId/finalizar` | Cierre definitivo y envío de la corrección. Valida que todas las plantillas estén marcadas como corregidas y notifica al alumno. |
 | **`POST`** | `/correcciones/entregas/:entregaId/sugerir-retroalimentacion` | **Asistencia IA (Bajo Demanda):** Genera una sugerencia de retroalimentación individual (máx. 500 caracteres) basada en los errores detectados (habilitado únicamente si hay **3 o más errores**). |
@@ -61,27 +62,42 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 ## 3. Especificación Detallada de Endpoints
 
 ### 3.1. `GET /correcciones/ejercicios` — Tablero de Correcciones
-* **Query Params:** `page` (default 1), `pageSize` (default 6), `busqueda` (opcional), `cursoId` (opcional), `estado` (`TODAS | PENDIENTE | EN_CORRECCION | CORREGIDO`).
+* **Query Params:** `page` (default 1), `pageSize` (default 6), `busqueda` (opcional), `cursoId` (opcional), `estado` (`TODAS | SIN_ENTREGAS | PENDIENTE | EN_CORRECCION | CORREGIDO`).
 * **Lógica:**
-  1. Filtra los ejercicios creados por el docente autenticado que posean entregas realizadas.
+  1. Filtra los ejercicios creados por el docente autenticado que se encuentren publicados (`PUBLICADO` o `FINALIZADO`).
   2. Determina el estado de corrección del ejercicio según las entregas recibidas:
-     * `PENDIENTE`: Ninguna entrega ha sido corregida aún.
-     * `EN_CORRECCION`: Al menos una entrega fue corregida o iniciada, pero quedan entregas pendientes.
-     * `CORREGIDO`: El 100% de las entregas recibidas ya fueron finalizadas.
-  3. Calcula contadores resumen para las tarjetas superiores.
-  4. Retorna paginación plana (`items`, `page`, `pageSize`, `totalItems`, `totalPages`) y contadores.
+     * `SIN_ENTREGAS`: El ejercicio fue publicado, pero ningún alumno entregó todavía (`totalEntregasRecibidas === 0`).
+     * `PENDIENTE`: Hay entregas recibidas de alumnos, pero el docente todavía no inició la corrección de ninguna.
+     * `EN_CORRECCION`: Al menos una entrega fue corregida o iniciada con borrador, pero quedan entregas pendientes de revisar.
+     * `CORREGIDO`: El 100% de las entregas recibidas hasta el momento ya fueron finalizadas.
+  3. Calcula contadores resumen para las tarjetas superiores (`total`, `sinEntregas`, `pendientes`, `enCorreccion`, `corregidos`).
+  4. Retorna paginación plana (`items`, `page`, `pageSize`, `totalItems`, `totalPages`) y contadores. Cada item incluye `tieneResolucionDocente: boolean` (`true` si `resolucion.estado === 'RESUELTO'`) para que el frontend pueda indicar visualmente si el ejercicio cuenta con resolución modelo cargada.
 
-### 3.2. `GET /correcciones/ejercicios/:ejercicioId/entregas` — Lista de Entregas del Ejercicio
-* **Path Params:** `ejercicioId` (número entero).
+### 3.2. `GET /correcciones/filtros` — Opciones de Filtros para el Tablero
+* **Query/Path Params:** Ninguno (utiliza el docente autenticado `req.user`).
 * **Lógica:**
-  1. Valida que el ejercicio pertenezca al docente.
-  2. Retorna la lista de entregas de los alumnos con:
-     * Datos del alumno (nombre, apellido, iniciales/avatar).
-     * Fecha y hora de entrega (y badge si fue fuera de término).
-     * Estado de corrección individual (`PENDIENTE`, `EN_CORRECCION`, `CORREGIDA`).
-     * Cantidad de plantillas revisadas sobre el total (ej: `2/3`).
+  1. Identifica al docente autenticado.
+  2. Consulta los cursos asignados al docente (`docenteRepository.findCursosByDocente`).
+  3. Retorna la lista de cursos (`idCurso`, `nombreCurso`) y las opciones de estado de corrección (`clave`, `label`) para poblar los selects del frontend.
 
-### 3.3. `GET /correcciones/entregas/:entregaId` — Espacio de Trabajo de Corrección
+### 3.3. `GET /correcciones/ejercicios/:ejercicioId/entregas` — Lista de Entregas del Ejercicio
+* **Path Params:** `ejercicioId` (número entero).
+* **Query Params:** `page` (default 1), `pageSize` (default 10), `busqueda` (opcional), `estado` (`TODAS | SIN_ENTREGAR | PENDIENTE | EN_CORRECCION | CORREGIDA`).
+* **Lógica:**
+  1. Valida que el ejercicio pertenezca al docente autenticado.
+  2. Retorna la información de cabecera del ejercicio:
+     * Datos generales: `idEjercicio`, `titulo`, `fechaLimite`, `curso` (`idCurso`, `nombreCurso`), `tieneResolucionDocente` (boolean).
+     * `plantillasHabilitadas`: Listado de nombres legibles (ej: `["Libro diario", "Libro IVA"]`).
+     * Métricas de avance: `totalAlumnos`, `totalEntregasRecibidas`, `entregasCorregidas`, `entregasPendientes`, `cantidadSinEntregar`.
+  3. Retorna el listado paginado de todos los alumnos inscriptos en el curso con su estado individual:
+     * Datos del alumno: `idAlumno`, `nombre`, `apellido`, `email`, `fotoPerfilUrl` (o `null`).
+     * Datos de la entrega: `idEntrega` (o `null`), `fechaEntrega` (o `null`), `fueraDeTermino` (boolean).
+     * Estado individual: `'SIN_ENTREGAR' | 'PENDIENTE' | 'EN_CORRECCION' | 'CORREGIDA'`.
+     * Progreso de plantillas: `totalPlantillas`, `plantillasResueltas` (cuántas completó el alumno, ej: `3 de 4`) y `plantillasCorregidas` (cuántas revisó el docente).
+     * `tieneRetroalimentacion`: boolean.
+  4. Retorna el bloque `filtros` con la lista de opciones de estado (`clave`, `label`) para que el frontend pueble directamente el dropdown de filtro sin necesidad de llamadas HTTP adicionales.
+
+### 3.4. `GET /correcciones/entregas/:entregaId` — Espacio de Trabajo de Corrección
 * **Path Params:** `entregaId` (número entero).
 * **Lógica y Principio Pedagógico:**
   1. Carga la resolución del alumno (`ResolucionAlumnoPlantilla[]`) y la solución modelo del docente (`EjercicioPlantilla.contenido`).
@@ -97,23 +113,45 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * `puedeSugerirIa: boolean` (`true` si `totalErrores >= 3`, `false` en caso contrario).
      * `motivoDeshabilitadoIa: string | null` (ej: *"Se requieren al menos 3 errores detectados para habilitar la sugerencia pedagógica con IA"*, o `null` si está habilitado).
   5. Retorna la estructura lista para renderizar:
-     * Cabecera del alumno y entrega (nombre, curso, fecha entrega, plantillas resueltas).
+     * Cabecera del alumno y ejercicio (nombre, curso, fecha entrega, plantillas resueltas, `tieneResolucionDocente`).
      * KPIs de corrección con `totalErrores`.
      * Control del botón: `{ puedeSugerirIa, motivoDeshabilitadoIa }`.
      * Plantillas del alumno con celdas observadas en rojo/alerta y comentarios puntuales.
      * Borrador actual de la retroalimentación docente (si existe).
 
-### 3.4. `PATCH /correcciones/entregas/:entregaId/plantillas/:plantillaId` — Revisión de Plantilla
-* **Path Params:** `entregaId`, `plantillaId`.
+### 3.5. `PATCH /correcciones/entregas/:entregaId/plantillas/:plantillaId` — Revisión de Plantilla
+* **Path Params:** `entregaId`, `plantillaId` (ID de la plantilla del ejercicio `ejercicioPlantillaId`).
 * **Body:** `{ estado: 'PENDIENTE' | 'CORREGIDA' }`.
-* **Lógica:** Permite al docente marcar como revisada una plantilla puntual (ej. finalizó Libro Diario pero deja Libro Mayor para después). Actualiza `CorreccionPlantilla`.
+* **Lógica y Comportamiento UI (Toggle):**
+  * Gobierna el control interactivo **"Estado de la corrección: Marcar como corregido"** ubicado en el pie de la resolución de cada pestaña/plantilla.
+  * **Al tildar / marcar:** Envía `{ estado: 'CORREGIDA' }` (se traduce y persiste internamente en Prisma como `EstadoCorreccionPlantilla.COMPLETADA`).
+  * **Al destildar / desmarcar:** Envía `{ estado: 'PENDIENTE' }` (permite al docente deshacer la acción si necesita seguir revisando antes del cierre definitivo).
+  * **Impacto en el flujo de corrección:** Conforme a `docs/ejercicios/Decisiones Ejercicios y correcciones.md`, el botón **"Enviar corrección"** solo debe habilitarse en el frontend cuando el 100% de las plantillas habilitadas del ejercicio se encuentren marcadas como `CORREGIDA`. Actualiza la tabla `correcciones_plantillas`.
 
-### 3.5. `PATCH /correcciones/entregas/:entregaId/borrador` — Guardar Borrador
+### 3.6. `PATCH /correcciones/entregas/:entregaId/errores/comentario` — Guardar Comentario en Error Puntual (Modal)
+* **Path Params:** `entregaId` (número entero).
+* **Body:**
+  ```json
+  {
+    "idError": 1,
+    "ejercicioPlantillaId": 3,
+    "tipoError": "TIPO_MOVIMIENTO_INCORRECTO",
+    "detalle": { "numeroAsiento": 3, "idCuenta": 5, "celda": "movimiento" },
+    "comentario": "Revisar la clasificación de Compras."
+  }
+  ```
+  *(El campo `comentario` está limitado a máx. 255 caracteres, conforme a `ErrorCorreccion.comentarioDocente` y al diseño UX del modal)*.
+* **Lógica:**
+  1. Permite guardar la observación puntual escrita por el docente en el modal de detalle del error al presionar **`[ Guardar cambios ]`**.
+  2. Si el error aún no tenía ID en la BD, se persiste bajo demanda en `ErrorCorreccion` con su comentario sin afectar la idempotencia del `GET`.
+  3. Si ya existía, actualiza su `comentarioDocente` (o lo limpia si se envía vacío/null).
+
+### 3.7. `PATCH /correcciones/entregas/:entregaId/borrador` — Guardar Borrador
 * **Path Params:** `entregaId`.
 * **Body:** `{ retroalimentacion?: string }` (validado a máx. 500 caracteres).
 * **Lógica:** Guarda el avance de la retroalimentación sin cerrar la entrega ni notificar al alumno.
 
-### 3.6. `POST /correcciones/entregas/:entregaId/finalizar` — Enviar Corrección
+### 3.8. `POST /correcciones/entregas/:entregaId/finalizar` — Enviar Corrección
 * **Path Params:** `entregaId`.
 * **Body:** `{ retroalimentacion?: string }` (opcional, máx. 500 caracteres).
 * **Lógica y Reglas de Negocio:**
@@ -122,7 +160,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
   3. Persiste definitivamente los errores detectados en `ErrorCorreccion`.
   4. Dispara una notificación al alumno (en base de datos y vía Socket.IO en tiempo real): *"Tu ejercicio [Título] ha sido corregido"*.
 
-### 3.7. `GET /correcciones/cursos/:cursoId/analisis-errores` — Panel Global de Análisis de Errores
+### 3.8. `GET /correcciones/cursos/:cursoId/analisis-errores` — Panel Global de Análisis de Errores
 * **Path Params:** `cursoId` (número entero).
 * **Lógica y Respuesta:**
   1. Valida que el docente tenga asignado el curso solicitado.
@@ -152,7 +190,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * Si no hay diagnóstico previo ni suficientes datos:
        `diagnosticoIa: null`, `puedeGenerar: false`, `motivoDeshabilitado: "Aún no hay suficiente información analizada para generar el resumen."`
 
-### 3.8. `POST /correcciones/cursos/:cursoId/sugerir-refuerzo` — Generar / Actualizar Diagnóstico de Curso
+### 3.9. `POST /correcciones/cursos/:cursoId/sugerir-refuerzo` — Generar / Actualizar Diagnóstico de Curso
 * **Path Params:** `cursoId` (número entero).
 * **Lógica y Reglas de Negocio:**
   1. Valida permisos del docente sobre el curso.
@@ -164,7 +202,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * Realiza un `upsert` en `DiagnosticoCurso` actualizando el contenido y la nueva foto del snapshot (`totalErroresEnSnapshot`, `distribucionEnSnapshot`, etc.).
      * Retorna el diagnóstico generado.
 
-### 3.9. `GET /entregas/:ejercicioId/correccion` — Consulta de Corrección (Alumno)
+### 3.10. `GET /entregas/:ejercicioId/correccion` — Consulta de Corrección (Alumno)
 * **Path Params:** `ejercicioId` (número entero).
 * **Lógica:**
   1. Valida que el alumno pertenezca al curso del ejercicio y que la entrega esté en estado `CORREGIDA` (`fechaCorreccion != null`).
@@ -175,14 +213,14 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 
 ---
 
-## 4. Estrategia Integral de Asistencia con IA (Google Gemini)
+## 4. Estrategia Integral de Asistencia con IA (Groq / Gemini)
 
 La utilización de Inteligencia Artificial en Abacontex sigue un criterio estricto de **optimización de costos, control docente (*human-in-the-loop*) y cero fallos bloqueantes**.
 
 ```
                            MATRIZ DE RESPONSABILIDADES
 ┌───────────────────────────────────────┬───────────────────────────────────────┐
-│     MOTOR DETERMINISTA (TypeScript)   │         ASISTENTE IA (Gemini)         │
+│     MOTOR DETERMINISTA (TypeScript)   │         ASISTENTE IA (Groq / Gemini)  │
 ├───────────────────────────────────────┼───────────────────────────────────────┤
 │ • Detección de errores contables      │ • Redacción de devolución individual  │
 │ • Comparación Debe / Haber / Saldos   │   pedagógica (< 500 caracteres).      │

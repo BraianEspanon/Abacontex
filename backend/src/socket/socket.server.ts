@@ -24,8 +24,23 @@ export interface NotificacionNuevoEjercicioPayload {
   createdAt: string | Date;
 }
 
+export interface NotificacionEjercicioCorregidoPayload {
+  idEjercicio: number;
+  idEntrega: number;
+  titulo: string;
+  docenteNombre: string;
+  fechaCorreccion: string | Date;
+  mensaje: string;
+}
+
 export interface NotificacionGenericaPayload {
-  tipo: 'EJERCICIO_NUEVO' | 'PEDIDO_NUEVO' | 'ORDEN_PRODUCCION' | 'SISTEMA';
+  tipo:
+    | 'EJERCICIO_NUEVO'
+    | 'VENCIMIENTO_PROXIMO'
+    | 'EJERCICIO_CORREGIDO'
+    | 'PEDIDO_NUEVO'
+    | 'ORDEN_PRODUCCION'
+    | 'SISTEMA';
   titulo: string;
   mensaje: string;
   data?: unknown;
@@ -154,6 +169,30 @@ export function notificarNuevoEjercicio(payload: NotificacionNuevoEjercicioPaylo
     mensaje: payload.mensaje,
     data: payload,
     createdAt: payload.createdAt,
+  } satisfies NotificacionGenericaPayload);
+}
+
+/**
+ * Emite una notificación privada al alumno cuando su entrega es corregida y finalizada por el docente.
+ */
+export function notificarEjercicioCorregido(
+  usuarioId: string,
+  payload: NotificacionEjercicioCorregidoPayload
+): void {
+  if (!io) return;
+
+  const room = `user_${usuarioId}`;
+
+  // Evento específico para actualizar reactivamente la vista de entregas/ejercicios del alumno
+  io.to(room).emit('ejercicio:corregido', payload);
+
+  // Evento genérico para la barra de notificaciones / toasts en el frontend
+  io.to(room).emit('notificacion:nueva', {
+    tipo: 'EJERCICIO_CORREGIDO',
+    titulo: 'Ejercicio corregido',
+    mensaje: payload.mensaje,
+    data: payload,
+    createdAt: payload.fechaCorreccion,
   } satisfies NotificacionGenericaPayload);
 }
 

@@ -253,4 +253,42 @@
  *         description: El ejercicio no existe o no está publicado.
  *       409:
  *         description: El ejercicio ya fue entregado previamente.
+ *
+ * /entregas/{ejercicioId}/correccion:
+ *   get:
+ *     summary: Consultar corrección finalizada del ejercicio (Vista Alumno)
+ *     description: |
+ *       Permite al alumno consultar la corrección realizada y finalizada por el docente sobre su entrega.
+ *       Retorna en modo solo lectura: la retroalimentación global, la resolución del alumno y el desglose
+ *       de errores contables detectados con los comentarios puntuales que el profesor haya registrado.
+ *       La solución modelo del docente permanece oculta por motivos de seguridad pedagógica.
+ *       Requiere rol ALUMNO y que la corrección se encuentre en estado finalizado (fechaCorreccion != null).
+ *     tags:
+ *       - Entregas
+ *     security:
+ *       - oauth2: []
+ *     parameters:
+ *       - in: path
+ *         name: ejercicioId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID numérico del ejercicio corregido.
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Corrección del alumno obtenida exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ConsultaCorreccionAlumnoResponse'
+ *       400:
+ *         description: Parámetro ejercicioId inválido.
+ *       401:
+ *         description: Token inválido o inexistente.
+ *       403:
+ *         description: Requiere rol ALUMNO o el ejercicio pertenece a otro curso.
+ *       404:
+ *         description: Ejercicio no encontrado o corrección aún no disponible.
  */

@@ -530,4 +530,152 @@
  *           type: boolean
  *           example: false
  *           description: Indica si la entrega se produjo después de la fecha límite establecida.
+ *
+ *     ErrorCorreccionAlumno:
+ *       type: object
+ *       required:
+ *         - idError
+ *         - ejercicioPlantillaId
+ *         - tipoError
+ *         - detalle
+ *         - comentarioDocente
+ *       properties:
+ *         idError:
+ *           type: integer
+ *           example: 12
+ *           description: ID único del error contable detectado.
+ *         ejercicioPlantillaId:
+ *           type: integer
+ *           example: 2
+ *           description: ID de la plantilla a la que pertenece el error.
+ *         tipoError:
+ *           type: string
+ *           example: "IMPORTE_INCORRECTO"
+ *           description: Código del error contable detectado.
+ *         detalle:
+ *           type: object
+ *           description: Detalle con coordenadas de la celda y valores.
+ *           example:
+ *             numeroAsiento: 1
+ *             celda: "debe"
+ *             valorEsperado: 1000
+ *             valorIngresado: 10001
+ *         comentarioDocente:
+ *           type: string
+ *           nullable: true
+ *           example: "Revisar la suma de la columna Debe."
+ *           description: Observación puntual escrita por el docente.
+ *
+ *     PlantillaCorreccionAlumno:
+ *       type: object
+ *       required:
+ *         - idEjercicioPlantilla
+ *         - tipo
+ *         - nombre
+ *         - estadoAlumno
+ *         - contenidoAlumno
+ *         - errores
+ *       properties:
+ *         idEjercicioPlantilla:
+ *           type: integer
+ *           example: 2
+ *         tipo:
+ *           type: string
+ *           example: "LIBRO_DIARIO"
+ *         nombre:
+ *           type: string
+ *           example: "Libro diario"
+ *         estadoAlumno:
+ *           type: string
+ *           example: "COMPLETADA"
+ *         contenidoAlumno:
+ *           type: object
+ *           nullable: true
+ *           description: Resolución entregada por el alumno.
+ *         errores:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ErrorCorreccionAlumno'
+ *
+ *     DetalleCorreccionAlumno:
+ *       type: object
+ *       required:
+ *         - idCorreccion
+ *         - fechaCorreccion
+ *         - retroalimentacion
+ *         - totalErrores
+ *       properties:
+ *         idCorreccion:
+ *           type: integer
+ *           example: 4
+ *         fechaCorreccion:
+ *           type: string
+ *           format: date-time
+ *           example: "2026-10-26T20:43:18.000Z"
+ *         retroalimentacion:
+ *           type: string
+ *           nullable: true
+ *           example: "Revisá bien las sumas del Debe y del Haber..."
+ *         totalErrores:
+ *           type: integer
+ *           example: 3
+ *
+ *     ConsultaCorreccionAlumnoResponse:
+ *       type: object
+ *       required:
+ *         - idEjercicio
+ *         - titulo
+ *         - enunciado
+ *         - fechaLimite
+ *         - docente
+ *         - curso
+ *         - entrega
+ *         - correccion
+ *         - plantillas
+ *       properties:
+ *         idEjercicio:
+ *           type: integer
+ *           example: 1
+ *         titulo:
+ *           type: string
+ *           example: "Comercializadora Norte"
+ *         enunciado:
+ *           type: string
+ *           example: "Registrar las siguientes operaciones..."
+ *         indicaciones:
+ *           type: string
+ *           nullable: true
+ *           example: "Prestar especial atención a la determinación del IVA."
+ *         fechaLimite:
+ *           type: string
+ *           format: date-time
+ *           example: "2026-10-20T23:59:59.000Z"
+ *         docente:
+ *           $ref: '#/components/schemas/DocenteResumenEntrega'
+ *         curso:
+ *           $ref: '#/components/schemas/CursoResumenEntrega'
+ *         entrega:
+ *           type: object
+ *           required:
+ *             - idEntrega
+ *             - fechaEntrega
+ *             - fueraDeTermino
+ *           properties:
+ *             idEntrega:
+ *               type: integer
+ *               example: 5
+ *             fechaEntrega:
+ *               type: string
+ *               format: date-time
+ *               nullable: true
+ *               example: "2026-10-18T10:30:00.000Z"
+ *             fueraDeTermino:
+ *               type: boolean
+ *               example: false
+ *         correccion:
+ *           $ref: '#/components/schemas/DetalleCorreccionAlumno'
+ *         plantillas:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/PlantillaCorreccionAlumno'
  */

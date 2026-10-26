@@ -68,3 +68,13 @@ export async function finalizarEntrega(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function consultarCorreccion(req: Request, res: Response) {
+  const { params } = ejercicioIdParamSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await entregaService.consultarCorreccionAlumno(req.user!, params.ejercicioId);
+
+  res.status(200).json(resultado);
+}

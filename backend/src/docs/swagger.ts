@@ -102,6 +102,11 @@ export const swaggerSpec = swaggerJsdoc({
         name: 'Entregas',
         description: 'Gestión y resolución de ejercicios prácticos por parte del alumno.',
       },
+      {
+        name: 'Correcciones',
+        description:
+          'Gestión y corrección docente de entregas, sugerencias con IA y revisión de plantillas.',
+      },
     ],
 
     components: {
