@@ -8,6 +8,7 @@ import * as docenteRepository from '../repositories/docente.repository';
 import * as correccionRepository from '../repositories/correccion.repository';
 
 import {
+  GuardarBorradorCorreccionBodyDTO,
   ObtenerEjerciciosACorregirQueryDTO,
   ObtenerEntregasEjercicioQueryDTO,
   RevisarPlantillaBodyDTO,
@@ -297,5 +298,50 @@ export async function actualizarRevisionPlantilla(
       body.estado === 'CORREGIDA'
         ? 'Plantilla marcada como revisada.'
         : 'Plantilla marcada como pendiente de revisión.',
+  };
+}
+
+export async function guardarBorradorCorreccion(
+  user: AuthUser,
+  entregaId: number,
+  body: GuardarBorradorCorreccionBodyDTO
+) {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Buscar entrega y verificar pertenencia al docente
+  const entrega = await correccionRepository.findEntregaParaRevisionPlantilla(entregaId);
+
+  if (!entrega || entrega.ejercicio.docenteId !== docente.id) {
+    throw new NotFoundError('Entrega no encontrada o no pertenece al docente.');
+  }
+
+  // 3. Validar que la entrega haya sido completada por el alumno
+  if (!entrega.fechaEntrega) {
+    throw new BadRequestError('La entrega aún no ha sido completada por el alumno.');
+  }
+
+  // 4. Validar que la corrección no haya sido finalizada previamente
+  if (entrega.correccion?.fechaCorreccion) {
+    throw new ConflictError(
+      'La corrección de esta entrega ya ha sido finalizada y no puede modificarse.'
+    );
+  }
+
+  // 5. Sanitizar texto de retroalimentación
+  const retroalimentacionLimpia = body.retroalimentacion?.trim() || null;
+
+  // 6. Persistir borrador de retroalimentación
+  const correccion = await correccionRepository.upsertBorradorCorreccion(
+    entregaId,
+    docente.id,
+    retroalimentacionLimpia
+  );
+
+  return {
+    idCorreccion: correccion.idCorreccion,
+    entregaId: correccion.entregaId,
+    retroalimentacion: correccion.retroalimentacion,
+    mensaje: 'Borrador de retroalimentación guardado correctamente.',
   };
 }

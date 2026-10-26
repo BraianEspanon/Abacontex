@@ -4,6 +4,7 @@ import * as correccionService from '../services/correccion.service';
 
 import {
   entregaIdParamSchema,
+  guardarBorradorCorreccionSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
   revisarPlantillaSchema,
@@ -63,6 +64,21 @@ export async function actualizarRevisionPlantilla(req: Request, res: Response) {
     req.user!,
     params.entregaId,
     params.plantillaId,
+    body
+  );
+
+  res.status(200).json(resultado);
+}
+
+export async function guardarBorradorCorreccion(req: Request, res: Response) {
+  const { params, body } = guardarBorradorCorreccionSchema.parse({
+    params: req.params,
+    body: req.body,
+  });
+
+  const resultado = await correccionService.guardarBorradorCorreccion(
+    req.user!,
+    params.entregaId,
     body
   );
 

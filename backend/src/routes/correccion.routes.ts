@@ -8,6 +8,7 @@ import { validate } from '../middleware/validate.middleware';
 
 import {
   entregaIdParamSchema,
+  guardarBorradorCorreccionSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
   revisarPlantillaSchema,
@@ -15,6 +16,7 @@ import {
 
 import {
   actualizarRevisionPlantilla,
+  guardarBorradorCorreccion,
   obtenerEjerciciosACorregir,
   obtenerEntregasEjercicio,
   obtenerEspacioTrabajoCorreccion,
@@ -55,6 +57,14 @@ router.patch(
   requireRole(ROLES.DOCENTE),
   validate(revisarPlantillaSchema),
   actualizarRevisionPlantilla
+);
+
+router.patch(
+  '/entregas/:entregaId/borrador',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(guardarBorradorCorreccionSchema),
+  guardarBorradorCorreccion
 );
 
 export default router;

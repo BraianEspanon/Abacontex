@@ -539,3 +539,31 @@ export async function upsertCorreccionPlantilla(
     },
   });
 }
+
+export async function upsertBorradorCorreccion(
+  entregaId: number,
+  docenteId: string,
+  retroalimentacion: string | null,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.correccionEntrega.upsert({
+    where: { entregaId },
+    create: {
+      entregaId,
+      docenteId,
+      retroalimentacion,
+    },
+    update: {
+      retroalimentacion,
+    },
+    select: {
+      idCorreccion: true,
+      entregaId: true,
+      docenteId: true,
+      retroalimentacion: true,
+      fechaCorreccion: true,
+    },
+  });
+}

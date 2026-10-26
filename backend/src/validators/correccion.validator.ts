@@ -81,3 +81,16 @@ export const revisarPlantillaSchema = z.object({
 
 export type RevisarPlantillaParamDTO = z.infer<typeof revisarPlantillaSchema>['params'];
 export type RevisarPlantillaBodyDTO = z.infer<typeof revisarPlantillaSchema>['body'];
+
+export const guardarBorradorCorreccionSchema = z.object({
+  params: z.object({
+    entregaId: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    retroalimentacion: z.string().trim().max(500).optional(),
+  }),
+});
+
+export type GuardarBorradorCorreccionBodyDTO = z.infer<
+  typeof guardarBorradorCorreccionSchema
+>['body'];
