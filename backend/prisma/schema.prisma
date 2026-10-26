@@ -49,6 +49,7 @@ model Usuario {
   ejerciciosCreados      Ejercicio[]
   notificaciones         Notificacion[]
   correccionesEjercicios CorreccionEntrega[]
+  diagnosticos           DiagnosticoCurso[]
 
   @@map("usuarios")
 }
@@ -84,10 +85,11 @@ model Curso {
   nombreCurso String @unique
   año        Int
 
-  alumnos    Alumno[]
-  profesores ProfesorCursos[]
-  empresas   Empresa[]
-  ejercicios Ejercicio[]
+  alumnos      Alumno[]
+  profesores   ProfesorCursos[]
+  empresas     Empresa[]
+  ejercicios   Ejercicio[]
+  diagnosticos DiagnosticoCurso[]
 
   @@index([año])
   @@map("cursos")
@@ -1189,4 +1191,29 @@ model ErrorCorreccion {
   @@index([ejercicioPlantillaId])
   @@index([tipoError])
   @@map("errores_correcciones")
+}
+
+model DiagnosticoCurso {
+  idDiagnostico Int @id @default(autoincrement())
+
+  cursoId Int
+  curso   Curso @relation(fields: [cursoId], references: [idCurso], onDelete: Cascade)
+
+  docenteId String
+  docente   Usuario @relation(fields: [docenteId], references: [id])
+
+  // Contenido pedagógico devuelto por Gemini
+  resumenGeneral String @db.Text
+  cosasAReforzar Json
+
+  // Snapshot de la tendencia al momento de generar
+  totalErroresEnSnapshot       Int
+  errorPrincipalEnSnapshot     String
+  plantillaPrincipalEnSnapshot String
+  distribucionEnSnapshot       Json
+
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([cursoId, docenteId])
+  @@map("diagnosticos_cursos")
 }
