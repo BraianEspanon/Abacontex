@@ -7,6 +7,7 @@ import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
 import {
+  entregaIdParamSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
 } from '../validators/correccion.validator';
@@ -14,6 +15,7 @@ import {
 import {
   obtenerEjerciciosACorregir,
   obtenerEntregasEjercicio,
+  obtenerEspacioTrabajoCorreccion,
   obtenerFiltrosTablero,
 } from '../controllers/correccion.controller';
 
@@ -35,6 +37,14 @@ router.get(
   requireRole(ROLES.DOCENTE),
   validate(obtenerEntregasEjercicioSchema),
   obtenerEntregasEjercicio
+);
+
+router.get(
+  '/entregas/:entregaId',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(entregaIdParamSchema),
+  obtenerEspacioTrabajoCorreccion
 );
 
 export default router;

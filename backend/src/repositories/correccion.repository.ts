@@ -231,3 +231,200 @@ export async function findEjercicioConEntregasYAlumnos(
     },
   });
 }
+
+export type EntregaEspacioTrabajoEntity = Prisma.EntregaEjercicioGetPayload<{
+  include: {
+    alumno: {
+      select: {
+        id: true;
+        usuario: {
+          select: {
+            nombre: true;
+            apellido: true;
+            email: true;
+            fotoPerfilUrl: true;
+          };
+        };
+        curso: {
+          select: {
+            idCurso: true;
+            nombreCurso: true;
+          };
+        };
+      };
+    };
+    ejercicio: {
+      select: {
+        idEjercicio: true;
+        titulo: true;
+        enunciado: true;
+        indicaciones: true;
+        fechaLimite: true;
+        curso: {
+          select: {
+            idCurso: true;
+            nombreCurso: true;
+          };
+        };
+        plantillas: {
+          select: {
+            idEjercicioPlantilla: true;
+            tipo: true;
+          };
+        };
+        resolucion: {
+          select: {
+            idResolucion: true;
+            estado: true;
+            plantillas: {
+              select: {
+                idResolucionPlantilla: true;
+                ejercicioPlantillaId: true;
+                estado: true;
+                contenido: true;
+              };
+            };
+          };
+        };
+      };
+    };
+    resoluciones: {
+      select: {
+        idResolucionPlantilla: true;
+        ejercicioPlantillaId: true;
+        estado: true;
+        contenido: true;
+      };
+    };
+    correccion: {
+      select: {
+        idCorreccion: true;
+        retroalimentacion: true;
+        fechaCorreccion: true;
+        plantillas: {
+          select: {
+            idCorreccionPlantilla: true;
+            ejercicioPlantillaId: true;
+            estado: true;
+          };
+        };
+        errores: {
+          select: {
+            idError: true;
+            ejercicioPlantillaId: true;
+            tipoError: true;
+            detalle: true;
+            comentarioDocente: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export async function findEntregaParaEspacioTrabajo(
+  entregaId: number,
+  docenteId: string,
+  tx?: Prisma.TransactionClient
+): Promise<EntregaEspacioTrabajoEntity | null> {
+  const db = getDbClient(tx);
+
+  return db.entregaEjercicio.findFirst({
+    where: {
+      idEntrega: entregaId,
+      ejercicio: {
+        docenteId,
+      },
+    },
+    include: {
+      alumno: {
+        select: {
+          id: true,
+          usuario: {
+            select: {
+              nombre: true,
+              apellido: true,
+              email: true,
+              fotoPerfilUrl: true,
+            },
+          },
+          curso: {
+            select: {
+              idCurso: true,
+              nombreCurso: true,
+            },
+          },
+        },
+      },
+      ejercicio: {
+        select: {
+          idEjercicio: true,
+          titulo: true,
+          enunciado: true,
+          indicaciones: true,
+          fechaLimite: true,
+          curso: {
+            select: {
+              idCurso: true,
+              nombreCurso: true,
+            },
+          },
+          plantillas: {
+            select: {
+              idEjercicioPlantilla: true,
+              tipo: true,
+            },
+            orderBy: {
+              idEjercicioPlantilla: 'asc',
+            },
+          },
+          resolucion: {
+            select: {
+              idResolucion: true,
+              estado: true,
+              plantillas: {
+                select: {
+                  idResolucionPlantilla: true,
+                  ejercicioPlantillaId: true,
+                  estado: true,
+                  contenido: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      resoluciones: {
+        select: {
+          idResolucionPlantilla: true,
+          ejercicioPlantillaId: true,
+          estado: true,
+          contenido: true,
+        },
+      },
+      correccion: {
+        select: {
+          idCorreccion: true,
+          retroalimentacion: true,
+          fechaCorreccion: true,
+          plantillas: {
+            select: {
+              idCorreccionPlantilla: true,
+              ejercicioPlantillaId: true,
+              estado: true,
+            },
+          },
+          errores: {
+            select: {
+              idError: true,
+              ejercicioPlantillaId: true,
+              tipoError: true,
+              detalle: true,
+              comentarioDocente: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}

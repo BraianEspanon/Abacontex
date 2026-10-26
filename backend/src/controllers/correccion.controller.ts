@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import * as correccionService from '../services/correccion.service';
 
 import {
+  entregaIdParamSchema,
   obtenerEjerciciosACorregirQuerySchema,
   obtenerEntregasEjercicioSchema,
 } from '../validators/correccion.validator';
@@ -33,6 +34,19 @@ export async function obtenerEntregasEjercicio(req: Request, res: Response) {
     req.user!,
     params.ejercicioId,
     query
+  );
+
+  res.status(200).json(resultado);
+}
+
+export async function obtenerEspacioTrabajoCorreccion(req: Request, res: Response) {
+  const { params } = entregaIdParamSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await correccionService.obtenerEspacioTrabajoCorreccion(
+    req.user!,
+    params.entregaId
   );
 
   res.status(200).json(resultado);

@@ -1,5 +1,11 @@
 import { PaginatedResponse } from '../paginated-response.dto';
 import {
+  EstadoCorreccionPlantilla,
+  EstadoResolucionAlumnoPlantilla,
+  TipoErrorCorreccion,
+  TipoPlantillaEjercicio,
+} from '@prisma/client';
+import {
   EstadoCorreccionAlumno,
   EstadoCorreccionEjercicio,
 } from '../../constants/correccion.constants';
@@ -90,4 +96,73 @@ export interface FiltrosEntregasEjercicioDTO {
 export interface ListadoEntregasEjercicioResponseDTO extends PaginatedResponse<ItemAlumnoEntregaDTO> {
   ejercicio: CabeceraEjercicioEntregasDTO;
   filtros: FiltrosEntregasEjercicioDTO;
+}
+
+export interface KpisCorreccionDTO {
+  aciertos: number;
+  diferenciasDetectadas: number;
+  asientosIncompletos: number;
+  totalErrores: number;
+}
+
+export interface ControlAsistenciaIaDTO {
+  puedeSugerirIa: boolean;
+  motivoDeshabilitadoIa: string | null;
+}
+
+export interface ErrorDetalleItemDTO {
+  idError: number | null;
+  ejercicioPlantillaId: number;
+  tipoError: TipoErrorCorreccion;
+  detalle: Record<string, unknown>;
+  comentarioDocente: string | null;
+}
+
+export interface PlantillaEspacioTrabajoDTO {
+  idEjercicioPlantilla: number;
+  tipo: TipoPlantillaEjercicio;
+  nombre: string;
+  estadoRevision: EstadoCorreccionPlantilla;
+  estadoAlumno: EstadoResolucionAlumnoPlantilla;
+  contenidoAlumno: unknown;
+  contenidoDocente: unknown;
+  errores: ErrorDetalleItemDTO[];
+}
+
+export interface AlumnoEspacioTrabajoDTO {
+  idAlumno: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  fotoPerfilUrl: string | null;
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+  };
+}
+
+export interface EntregaDetalleEspacioTrabajoDTO {
+  idEntrega: number;
+  fechaEntrega: string | null;
+  fueraDeTermino: boolean;
+}
+
+export interface EjercicioEspacioTrabajoDTO {
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  indicaciones: string | null;
+  fechaLimite: string;
+  totalPlantillas: number;
+  plantillasResueltas: number;
+}
+
+export interface EspacioTrabajoCorreccionResponseDTO {
+  alumno: AlumnoEspacioTrabajoDTO;
+  entrega: EntregaDetalleEspacioTrabajoDTO;
+  ejercicio: EjercicioEspacioTrabajoDTO;
+  kpis: KpisCorreccionDTO;
+  controlIa: ControlAsistenciaIaDTO;
+  retroalimentacionBorrador: string | null;
+  plantillas: PlantillaEspacioTrabajoDTO[];
 }

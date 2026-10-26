@@ -5,16 +5,20 @@ import {
 import {
   DetalleEjercicioEntregasEntity,
   EjercicioTableroCorreccionEntity,
+  EntregaEspacioTrabajoEntity,
 } from '../../repositories/correccion.repository';
 import {
   CabeceraEjercicioEntregasDTO,
+  EspacioTrabajoCorreccionResponseDTO,
   FiltrosEntregasEjercicioDTO,
   ItemAlumnoEntregaDTO,
   ItemTableroCorreccionDTO,
   ListadoEjerciciosACorregirResponseDTO,
   ListadoEntregasEjercicioResponseDTO,
+  PlantillaEspacioTrabajoDTO,
   ResumenTableroCorreccionesDTO,
 } from './correccion.dto';
+import { ResultadoComparacionEntrega } from '../../utils/comparadores-plantillas';
 
 export function toItemTableroCorreccion(
   ejercicio: EjercicioTableroCorreccionEntity
@@ -122,8 +126,7 @@ export function toItemAlumnoEntrega(
     };
   }
 
-  const plantillasResueltas =
-    entrega.resoluciones.filter((r) => r.estado === 'COMPLETADA').length;
+  const plantillasResueltas = entrega.resoluciones.filter((r) => r.estado === 'COMPLETADA').length;
 
   const plantillasCompletadas =
     entrega.correccion?.plantillas.filter((p) => p.estado === 'COMPLETADA').length ?? 0;
@@ -173,5 +176,85 @@ export function toListadoEntregasEjercicioResponse(
     totalPages,
     ejercicio,
     filtros,
+  };
+}
+
+export function toEspacioTrabajoCorreccionResponse(
+  entrega: EntregaEspacioTrabajoEntity,
+  comparacion: ResultadoComparacionEntrega
+): EspacioTrabajoCorreccionResponseDTO {
+  const plantillasResueltas = entrega.resoluciones.filter((r) => r.estado === 'COMPLETADA').length;
+
+  const totalErrores = comparacion.kpis.totalErrores;
+  const puedeSugerirIa = totalErrores >= 3;
+
+  let motivoDeshabilitadoIa: string | null = null;
+  if (!puedeSugerirIa) {
+    if (totalErrores === 0) {
+      motivoDeshabilitadoIa = 'El ejercicio no presenta errores contables detectados.';
+    } else {
+      motivoDeshabilitadoIa =
+        'Se requieren al menos 3 errores detectados para habilitar la sugerencia pedagógica con IA.';
+    }
+  }
+
+  const plantillas: PlantillaEspacioTrabajoDTO[] = entrega.ejercicio.plantillas.map((ep) => {
+    const revision = entrega.correccion?.plantillas.find(
+      (p) => p.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+    const resolucionAlumno = entrega.resoluciones.find(
+      (r) => r.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+    const resolucionDocente = entrega.ejercicio.resolucion?.plantillas.find(
+      (p) => p.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+
+    return {
+      idEjercicioPlantilla: ep.idEjercicioPlantilla,
+      tipo: ep.tipo,
+      nombre: NOMBRES_PLANTILLAS_LEGIBLES[ep.tipo] ?? ep.tipo,
+      estadoRevision: revision?.estado ?? 'PENDIENTE',
+      estadoAlumno: resolucionAlumno?.estado ?? 'PENDIENTE',
+      contenidoAlumno: resolucionAlumno?.contenido ?? null,
+      contenidoDocente: resolucionDocente?.contenido ?? null,
+      errores: comparacion.erroresPorPlantilla.get(ep.idEjercicioPlantilla) ?? [],
+    };
+  });
+
+  return {
+    alumno: {
+      idAlumno: entrega.alumno.id,
+      nombre: entrega.alumno.usuario.nombre,
+      apellido: entrega.alumno.usuario.apellido,
+      email: entrega.alumno.usuario.email,
+      fotoPerfilUrl: entrega.alumno.usuario.fotoPerfilUrl,
+      curso: {
+        idCurso: entrega.alumno.curso.idCurso,
+        nombreCurso: entrega.alumno.curso.nombreCurso,
+      },
+    },
+    entrega: {
+      idEntrega: entrega.idEntrega,
+      fechaEntrega: entrega.fechaEntrega ? entrega.fechaEntrega.toISOString() : null,
+      fueraDeTermino: entrega.fechaEntrega
+        ? entrega.fechaEntrega > entrega.ejercicio.fechaLimite
+        : false,
+    },
+    ejercicio: {
+      idEjercicio: entrega.ejercicio.idEjercicio,
+      titulo: entrega.ejercicio.titulo,
+      enunciado: entrega.ejercicio.enunciado,
+      indicaciones: entrega.ejercicio.indicaciones,
+      fechaLimite: entrega.ejercicio.fechaLimite.toISOString(),
+      totalPlantillas: entrega.ejercicio.plantillas.length,
+      plantillasResueltas,
+    },
+    kpis: comparacion.kpis,
+    controlIa: {
+      puedeSugerirIa,
+      motivoDeshabilitadoIa,
+    },
+    retroalimentacionBorrador: entrega.correccion?.retroalimentacion ?? null,
+    plantillas,
   };
 }

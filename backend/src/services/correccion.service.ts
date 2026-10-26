@@ -14,6 +14,7 @@ import {
 } from '../constants/correccion.constants';
 import {
   CabeceraEjercicioEntregasDTO,
+  EspacioTrabajoCorreccionResponseDTO,
   FiltrosEntregasEjercicioDTO,
   ListadoEjerciciosACorregirResponseDTO,
   ListadoEntregasEjercicioResponseDTO,
@@ -22,11 +23,13 @@ import {
 } from '../dto/correccion/correccion.dto';
 import {
   formatearNombresPlantillas,
+  toEspacioTrabajoCorreccionResponse,
   toItemAlumnoEntrega,
   toItemTableroCorreccion,
   toListadoEjerciciosACorregirResponse,
   toListadoEntregasEjercicioResponse,
 } from '../dto/correccion/correccion.mapper';
+import { compararResolucionConModelo } from '../utils/comparadores-plantillas';
 
 export async function obtenerEjerciciosACorregir(
   user: AuthUser,
@@ -182,4 +185,52 @@ export async function obtenerEntregasEjercicio(
     cabecera,
     filtros
   );
+}
+
+export async function obtenerEspacioTrabajoCorreccion(
+  user: AuthUser,
+  entregaId: number
+): Promise<EspacioTrabajoCorreccionResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar entrega para corrección verificando pertenencia
+  const entrega = await correccionRepository.findEntregaParaEspacioTrabajo(entregaId, docente.id);
+
+  if (!entrega) {
+    throw new NotFoundError('Entrega no encontrada o no pertenece al docente.');
+  }
+
+  // 3. Preparar datos de plantillas para la comparación determinista en memoria
+  const plantillasParaComparar = entrega.ejercicio.plantillas.map((ep) => {
+    const resDoc = entrega.ejercicio.resolucion?.plantillas.find(
+      (p) => p.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+    const resAlu = entrega.resoluciones.find(
+      (r) => r.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+    const erroresPrevios = entrega.correccion?.errores.filter(
+      (e) => e.ejercicioPlantillaId === ep.idEjercicioPlantilla
+    );
+
+    return {
+      ejercicioPlantillaId: ep.idEjercicioPlantilla,
+      tipo: ep.tipo,
+      contenidoDocente: resDoc?.contenido ?? null,
+      contenidoAlumno: resAlu?.contenido ?? null,
+      erroresPreviosDocente: (erroresPrevios ?? []).map((e) => ({
+        idError: e.idError,
+        ejercicioPlantillaId: e.ejercicioPlantillaId,
+        tipoError: e.tipoError,
+        detalle: e.detalle,
+        comentarioDocente: e.comentarioDocente,
+      })),
+    };
+  });
+
+  // 4. Ejecutar motor de comparación determinista (< 20 ms)
+  const resultadoComparacion = compararResolucionConModelo(plantillasParaComparar);
+
+  // 5. Mapear y retornar respuesta estructurada
+  return toEspacioTrabajoCorreccionResponse(entrega, resultadoComparacion);
 }

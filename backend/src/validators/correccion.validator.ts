@@ -57,3 +57,14 @@ export const obtenerEntregasEjercicioSchema = ejercicioIdParamSchema.extend({
 export type ObtenerEntregasEjercicioQueryDTO = z.infer<
   typeof obtenerEntregasEjercicioSchema
 >['query'];
+
+export const entregaIdParamSchema = z.object({
+  params: z.object({
+    entregaId: z.coerce
+      .number({ message: 'El ID de la entrega debe ser numérico.' })
+      .int('El ID de la entrega debe ser un número entero.')
+      .positive('El ID de la entrega debe ser mayor a 0.'),
+  }),
+});
+
+export type EntregaIdParamDTO = z.infer<typeof entregaIdParamSchema>['params'];
