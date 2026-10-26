@@ -64,6 +64,7 @@ export function toItemTableroCorreccion(
     entregasCorregidas,
     entregasEnCorreccion,
     entregasPendientes,
+    tieneResolucionDocente: ejercicio.resolucion?.estado === 'RESUELTO',
     createdAt: ejercicio.createdAt.toISOString(),
   };
 }
@@ -190,7 +191,16 @@ export function toEspacioTrabajoCorreccionResponse(
 
   let motivoDeshabilitadoIa: string | null = null;
   if (!puedeSugerirIa) {
-    if (totalErrores === 0) {
+    const tieneAlgunaResolucionDocente = entrega.ejercicio.plantillas.some((ep) => {
+      const resDoc = entrega.ejercicio.resolucion?.plantillas.find(
+        (p) => p.ejercicioPlantillaId === ep.idEjercicioPlantilla
+      );
+      return resDoc?.contenido !== null && resDoc?.contenido !== undefined;
+    });
+
+    if (!tieneAlgunaResolucionDocente) {
+      motivoDeshabilitadoIa = 'El ejercicio no cuenta con resolución modelo docente cargada.';
+    } else if (totalErrores === 0) {
       motivoDeshabilitadoIa = 'El ejercicio no presenta errores contables detectados.';
     } else {
       motivoDeshabilitadoIa =
@@ -248,6 +258,7 @@ export function toEspacioTrabajoCorreccionResponse(
       fechaLimite: entrega.ejercicio.fechaLimite.toISOString(),
       totalPlantillas: entrega.ejercicio.plantillas.length,
       plantillasResueltas,
+      tieneResolucionDocente: entrega.ejercicio.resolucion?.estado === 'RESUELTO',
     },
     kpis: comparacion.kpis,
     controlIa: {

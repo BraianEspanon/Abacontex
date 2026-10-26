@@ -15,6 +15,12 @@ export type EjercicioTableroCorreccionEntity = Prisma.EjercicioGetPayload<{
         };
       };
     };
+    resolucion: {
+      select: {
+        idResolucion: true;
+        estado: true;
+      };
+    };
     entregas: {
       where: {
         fechaEntrega: { not: null };
@@ -79,6 +85,12 @@ export async function findEjerciciosParaTableroCorreccion(
           },
         },
       },
+      resolucion: {
+        select: {
+          idResolucion: true,
+          estado: true,
+        },
+      },
       entregas: {
         where: {
           fechaEntrega: { not: null },
@@ -129,6 +141,12 @@ export type DetalleEjercicioEntregasEntity = Prisma.EjercicioGetPayload<{
       select: {
         idEjercicioPlantilla: true;
         tipo: true;
+      };
+    };
+    resolucion: {
+      select: {
+        idResolucion: true;
+        estado: true;
       };
     };
     entregas: {
@@ -198,6 +216,12 @@ export async function findEjercicioConEntregasYAlumnos(
         select: {
           idEjercicioPlantilla: true,
           tipo: true,
+        },
+      },
+      resolucion: {
+        select: {
+          idResolucion: true,
+          estado: true,
         },
       },
       entregas: {

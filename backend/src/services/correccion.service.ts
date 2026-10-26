@@ -152,6 +152,7 @@ export async function obtenerEntregasEjercicio(
     entregasCorregidas,
     entregasPendientes,
     cantidadSinEntregar,
+    tieneResolucionDocente: ejercicio.resolucion?.estado === 'RESUELTO',
   };
 
   // 5. Opciones para los filtros de la pantalla

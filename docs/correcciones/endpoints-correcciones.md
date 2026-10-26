@@ -71,7 +71,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * `EN_CORRECCION`: Al menos una entrega fue corregida o iniciada con borrador, pero quedan entregas pendientes de revisar.
      * `CORREGIDO`: El 100% de las entregas recibidas hasta el momento ya fueron finalizadas.
   3. Calcula contadores resumen para las tarjetas superiores (`total`, `sinEntregas`, `pendientes`, `enCorreccion`, `corregidos`).
-  4. Retorna paginación plana (`items`, `page`, `pageSize`, `totalItems`, `totalPages`) y contadores.
+  4. Retorna paginación plana (`items`, `page`, `pageSize`, `totalItems`, `totalPages`) y contadores. Cada item incluye `tieneResolucionDocente: boolean` (`true` si `resolucion.estado === 'RESUELTO'`) para que el frontend pueda indicar visualmente si el ejercicio cuenta con resolución modelo cargada.
 
 ### 3.2. `GET /correcciones/filtros` — Opciones de Filtros para el Tablero
 * **Query/Path Params:** Ninguno (utiliza el docente autenticado `req.user`).
@@ -86,7 +86,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 * **Lógica:**
   1. Valida que el ejercicio pertenezca al docente autenticado.
   2. Retorna la información de cabecera del ejercicio:
-     * Datos generales: `idEjercicio`, `titulo`, `fechaLimite`, `curso` (`idCurso`, `nombreCurso`).
+     * Datos generales: `idEjercicio`, `titulo`, `fechaLimite`, `curso` (`idCurso`, `nombreCurso`), `tieneResolucionDocente` (boolean).
      * `plantillasHabilitadas`: Listado de nombres legibles (ej: `["Libro diario", "Libro IVA"]`).
      * Métricas de avance: `totalAlumnos`, `totalEntregasRecibidas`, `entregasCorregidas`, `entregasPendientes`, `cantidadSinEntregar`.
   3. Retorna el listado paginado de todos los alumnos inscriptos en el curso con su estado individual:
@@ -113,7 +113,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * `puedeSugerirIa: boolean` (`true` si `totalErrores >= 3`, `false` en caso contrario).
      * `motivoDeshabilitadoIa: string | null` (ej: *"Se requieren al menos 3 errores detectados para habilitar la sugerencia pedagógica con IA"*, o `null` si está habilitado).
   5. Retorna la estructura lista para renderizar:
-     * Cabecera del alumno y entrega (nombre, curso, fecha entrega, plantillas resueltas).
+     * Cabecera del alumno y ejercicio (nombre, curso, fecha entrega, plantillas resueltas, `tieneResolucionDocente`).
      * KPIs de corrección con `totalErrores`.
      * Control del botón: `{ puedeSugerirIa, motivoDeshabilitadoIa }`.
      * Plantillas del alumno con celdas observadas en rojo/alerta y comentarios puntuales.

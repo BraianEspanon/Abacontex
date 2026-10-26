@@ -26,6 +26,7 @@ export interface ItemTableroCorreccionDTO {
   entregasCorregidas: number;
   entregasEnCorreccion: number;
   entregasPendientes: number;
+  tieneResolucionDocente: boolean;
   createdAt: string;
 }
 
@@ -70,6 +71,7 @@ export interface CabeceraEjercicioEntregasDTO {
   entregasCorregidas: number;
   entregasPendientes: number;
   cantidadSinEntregar: number;
+  tieneResolucionDocente: boolean;
 }
 
 export interface ItemAlumnoEntregaDTO {
@@ -156,6 +158,7 @@ export interface EjercicioEspacioTrabajoDTO {
   fechaLimite: string;
   totalPlantillas: number;
   plantillasResueltas: number;
+  tieneResolucionDocente: boolean;
 }
 
 export interface EspacioTrabajoCorreccionResponseDTO {

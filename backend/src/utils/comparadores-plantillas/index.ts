@@ -47,6 +47,13 @@ export function compararResolucionConModelo(
   let totalErrores = 0;
 
   for (const p of plantillasDocente) {
+    // Si la plantilla no cuenta con solución modelo cargada por el docente,
+    // no ejecutamos el comparador determinista ni validamos diferencias relativas.
+    if (!p.contenidoDocente) {
+      erroresPorPlantilla.set(p.ejercicioPlantillaId, []);
+      continue;
+    }
+
     let res: ResultadoComparacionPlantilla = {
       errores: [],
       aciertos: 0,
