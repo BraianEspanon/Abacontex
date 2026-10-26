@@ -26,13 +26,6 @@ export function validarLibroDiarioResuelto(
       });
     }
 
-    if (!asiento.concepto.trim()) {
-      errores.push({
-        asiento: asiento.numero,
-        mensaje: 'Debe ingresar el concepto.',
-      });
-    }
-
     if (asiento.lineas.length < 2) {
       errores.push({
         asiento: asiento.numero,

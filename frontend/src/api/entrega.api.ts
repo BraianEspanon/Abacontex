@@ -49,3 +49,9 @@ export async function guardarPlantillaAlumno(
 
   return data;
 }
+
+export async function finalizarEntregaAlumno(idEjercicio: number) {
+  const response = await clienteApi.post(`/entregas/${idEjercicio}/finalizar`);
+
+  return response.data;
+}

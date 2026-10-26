@@ -7,6 +7,7 @@ import {
   Home,
   Save,
   X,
+  CalendarDays,
 } from 'lucide-react';
 
 import { useState } from 'react';
@@ -153,24 +154,26 @@ function ContenidoResolucionAlumno({ resolucion }: ContenidoResolucionAlumnoProp
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <div className="flex h-10 items-center rounded-lg border border-gray-200 bg-white px-4">
-            <div>
-              <p className="text-xs text-abacontex-gray-text">Fecha límite</p>
+          <div className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3">
+            <CalendarDays size={16} className="shrink-0 text-gray-500" />
 
-              <p className="text-sm font-medium text-abacontex-dark">
+            <div className="leading-tight">
+              <p className="text-[10px] text-gray-500">Fecha límite</p>
+
+              <p className="text-xs font-medium text-gray-800">
                 {formatearFecha(resolucion.fechaLimite)}
               </p>
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            label="Ver enunciado completo"
+            icon={<ExternalLink size={14} />}
             onClick={() => setEnunciadoAbierto(true)}
-            className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-abacontex-dark transition hover:bg-abacontex-light"
-          >
-            Ver enunciado completo
-            <ExternalLink className="size-4" />
-          </button>
+            className="!h-10 !rounded-lg !border-gray-300 !bg-white !px-4 !py-0 !text-sm !font-medium !text-gray-700 hover:!border-gray-400 hover:!bg-gray-50 hover:!text-gray-900"
+          />
         </div>
       </div>
 
@@ -412,6 +415,7 @@ function ResolucionLibroDiarioAlumno({
   );
 
   const [hayCambios, setHayCambios] = useState(false);
+  const [errores, setErrores] = useState<string[]>([]);
 
   const puedeCompletar = contenido.asientos.some(
     (asiento) =>
@@ -421,9 +425,65 @@ function ResolucionLibroDiarioAlumno({
   const cambiarContenido = (nuevoContenido: ContenidoLibroDiario) => {
     setContenido(nuevoContenido);
     setHayCambios(true);
+
+    if (errores.length > 0) {
+      setErrores([]);
+    }
   };
 
   const guardarPlantilla = async (estado: 'EN_EDICION' | 'COMPLETADA') => {
+    if (estado === 'COMPLETADA') {
+      const erroresValidacion: string[] = [];
+
+      if (contenido.asientos.length === 0) {
+        erroresValidacion.push('Debe agregar al menos un asiento contable.');
+      }
+
+      contenido.asientos.forEach((asiento) => {
+        if (!asiento.fecha.trim()) {
+          erroresValidacion.push(`Asiento N° ${asiento.numero}: debe ingresar la fecha.`);
+        }
+
+        if (asiento.lineas.length < 2) {
+          erroresValidacion.push(
+            `Asiento N° ${asiento.numero}: debe contener al menos dos líneas contables.`
+          );
+        }
+
+        asiento.lineas.forEach((linea, indiceLinea) => {
+          const numeroLinea = indiceLinea + 1;
+
+          if (!linea.idCuenta || linea.idCuenta <= 0) {
+            erroresValidacion.push(
+              `Asiento N° ${asiento.numero}, línea ${numeroLinea}: debe seleccionar una cuenta.`
+            );
+          }
+
+          const debe = Number(linea.debe || 0);
+          const haber = Number(linea.haber || 0);
+
+          if (debe === 0 && haber === 0) {
+            erroresValidacion.push(
+              `Asiento N° ${asiento.numero}, línea ${numeroLinea}: debe ingresar un importe en Debe o Haber.`
+            );
+          }
+
+          if (debe > 0 && haber > 0) {
+            erroresValidacion.push(
+              `Asiento N° ${asiento.numero}, línea ${numeroLinea}: no puede tener importes en Debe y Haber al mismo tiempo.`
+            );
+          }
+        });
+      });
+
+      if (erroresValidacion.length > 0) {
+        setErrores(erroresValidacion);
+        return;
+      }
+    }
+
+    setErrores([]);
+
     await guardar.mutateAsync({
       idEjercicio,
       datos: {
@@ -445,12 +505,28 @@ function ResolucionLibroDiarioAlumno({
       estado={plantilla.estado}
       onGuardar={() => void guardarPlantilla('EN_EDICION')}
       onCompletar={() => void guardarPlantilla('COMPLETADA')}
+      mensajeIncompleto="Completá la fecha y al menos una línea con información antes de marcar el Libro Diario como resuelto."
     >
       <LibroDiarioEditor
         contenido={contenido}
         onChange={cambiarContenido}
         mostrarEstadoBalance={false}
+        soloLectura={bloqueado}
       />
+
+      {errores.length > 0 && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm font-semibold text-red-800">
+            No se puede guardar el Libro Diario como resuelto.
+          </p>
+
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+            {errores.map((error, index) => (
+              <li key={`${error}-${index}`}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </ContenedorEditor>
   );
 }
@@ -474,7 +550,23 @@ function ResolucionLibroMayorAlumno({
 
   const [hayCambios, setHayCambios] = useState(false);
 
-  const puedeCompletar = contenido.cuentas.length > 0;
+  const puedeCompletar = contenido.cuentas.some(
+    (cuenta) =>
+      cuenta.idCuenta > 0 ||
+      cuenta.cuenta.trim() !== '' ||
+      cuenta.debe.some(
+        (movimiento) =>
+          movimiento.idContraCuenta > 0 ||
+          movimiento.contraCuenta.trim() !== '' ||
+          movimiento.monto > 0
+      ) ||
+      cuenta.haber.some(
+        (movimiento) =>
+          movimiento.idContraCuenta > 0 ||
+          movimiento.contraCuenta.trim() !== '' ||
+          movimiento.monto > 0
+      )
+  );
 
   const cambiarContenido = (nuevoContenido: ContenidoLibroMayor) => {
     setContenido(nuevoContenido);
@@ -503,8 +595,9 @@ function ResolucionLibroMayorAlumno({
       estado={plantilla.estado}
       onGuardar={() => void guardarPlantilla('EN_EDICION')}
       onCompletar={() => void guardarPlantilla('COMPLETADA')}
+      mensajeIncompleto="Completá al menos una cuenta y un movimiento antes de marcar el Libro Mayor como resuelto."
     >
-      <LibroMayorEditor contenido={contenido} onChange={cambiarContenido} />
+      <LibroMayorEditor contenido={contenido} onChange={cambiarContenido} soloLectura={bloqueado} />
     </ContenedorEditor>
   );
 }
@@ -526,7 +619,15 @@ function ResolucionLibroIvaAlumno({ idEjercicio, plantilla, bloqueado }: Resoluc
 
   const [hayCambios, setHayCambios] = useState(false);
 
-  const puedeCompletar = contenido.compras.length > 0 || contenido.ventas.length > 0;
+  const puedeCompletar = [...contenido.compras, ...contenido.ventas].some(
+    (comprobante) =>
+      comprobante.fecha.trim() !== '' ||
+      comprobante.comprobante > 0 ||
+      comprobante.nombre.trim() !== '' ||
+      comprobante.netoGravado > 0 ||
+      comprobante.iva > 0 ||
+      comprobante.total > 0
+  );
 
   const cambiarContenido = (nuevoContenido: ContenidoLibroIva) => {
     setContenido(nuevoContenido);
@@ -555,8 +656,9 @@ function ResolucionLibroIvaAlumno({ idEjercicio, plantilla, bloqueado }: Resoluc
       estado={plantilla.estado}
       onGuardar={() => void guardarPlantilla('EN_EDICION')}
       onCompletar={() => void guardarPlantilla('COMPLETADA')}
+      mensajeIncompleto="Completá al menos un comprobante antes de marcar el Libro IVA como resuelto."
     >
-      <LibroIvaEditor contenido={contenido} onChange={cambiarContenido} />
+      <LibroIvaEditor contenido={contenido} onChange={cambiarContenido} soloLectura={bloqueado} />
     </ContenedorEditor>
   );
 }
@@ -580,7 +682,21 @@ function ResolucionHojaTrabajoAlumno({
 
   const [hayCambios, setHayCambios] = useState(false);
 
-  const puedeCompletar = contenido.filas.length > 0;
+  const puedeCompletar = contenido.filas.some(
+    (fila) =>
+      fila.idCuenta > 0 ||
+      fila.cuenta.trim() !== '' ||
+      fila.saldosSinAjustar.deudor > 0 ||
+      fila.saldosSinAjustar.acreedor > 0 ||
+      fila.ajustes.debe > 0 ||
+      fila.ajustes.haber > 0 ||
+      fila.saldosAjustados.deudor > 0 ||
+      fila.saldosAjustados.acreedor > 0 ||
+      fila.estadoPatrimonial.activo > 0 ||
+      fila.estadoPatrimonial.pasivoMasPn > 0 ||
+      fila.estadoResultados.negativo > 0 ||
+      fila.estadoResultados.positivo > 0
+  );
 
   const cambiarContenido = (nuevoContenido: ContenidoHojaTrabajo) => {
     setContenido(nuevoContenido);
@@ -609,8 +725,13 @@ function ResolucionHojaTrabajoAlumno({
       estado={plantilla.estado}
       onGuardar={() => void guardarPlantilla('EN_EDICION')}
       onCompletar={() => void guardarPlantilla('COMPLETADA')}
+      mensajeIncompleto="Completá al menos una fila con información antes de marcar la Hoja de Trabajo como resuelta."
     >
-      <HojaTrabajoEditor contenido={contenido} onChange={cambiarContenido} />
+      <HojaTrabajoEditor
+        contenido={contenido}
+        onChange={cambiarContenido}
+        soloLectura={bloqueado}
+      />
     </ContenedorEditor>
   );
 }
@@ -624,6 +745,7 @@ interface ContenedorEditorProps {
   hayCambios: boolean;
   guardando: boolean;
   puedeCompletar: boolean;
+  mensajeIncompleto?: string;
   estado: PlantillaResolucionAlumno['estado'];
   onGuardar: () => void;
   onCompletar: () => void;
@@ -636,17 +758,36 @@ function ContenedorEditor({
   guardando,
   puedeCompletar,
   estado,
+  mensajeIncompleto,
   onGuardar,
   onCompletar,
   children,
 }: ContenedorEditorProps) {
   const puedeGuardarBorrador = hayCambios && !guardando;
+  const [mostrarIncompleto, setMostrarIncompleto] = useState(false);
 
-  const puedeGuardarComoResuelto =
-    puedeCompletar && !guardando && (estado !== 'COMPLETADA' || hayCambios);
+  const puedeGuardarComoResuelto = hayCambios && !guardando;
 
   return (
     <div className="space-y-5">
+      {estado === 'COMPLETADA' && hayCambios && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-800">
+            Hay cambios sin guardar en esta plantilla.
+          </p>
+
+          <p className="mt-1 text-xs text-amber-700">
+            La versión guardada continúa marcada como resuelta hasta que guardes estos cambios.
+          </p>
+        </div>
+      )}
+      {mostrarIncompleto && mensajeIncompleto && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-800">Falta completar información.</p>
+
+          <p className="mt-1 text-xs text-amber-700">{mensajeIncompleto}</p>
+        </div>
+      )}
       <div>{children}</div>
 
       {!bloqueado && (
@@ -667,7 +808,15 @@ function ContenedorEditor({
             label={estado === 'COMPLETADA' ? 'Guardar como resuelto' : 'Marcar como resuelto'}
             icon={<Check size={16} />}
             disabled={!puedeGuardarComoResuelto}
-            onClick={onCompletar}
+            onClick={() => {
+              if (!puedeCompletar) {
+                setMostrarIncompleto(true);
+                return;
+              }
+
+              setMostrarIncompleto(false);
+              onCompletar();
+            }}
             className="h-10! rounded-lg! px-5! py-0! text-sm! font-semibold!"
           />
         </div>

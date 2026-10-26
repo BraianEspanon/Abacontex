@@ -1,4 +1,4 @@
-import { CalendarDays, ExternalLink, FileText, Save, X } from 'lucide-react';
+import { CalendarDays, ExternalLink, FileText, Save, Check } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -41,7 +41,7 @@ function formatearFecha(fecha: string) {
 
 function obtenerEstadoVisualPlantilla(estado: string) {
   if (estado === 'RESUELTO') {
-    return 'Terminado';
+    return 'Resuelto';
   }
 
   if (estado === 'EN_EDICION') {
@@ -60,8 +60,6 @@ export default function ResolucionEjercicioDocente() {
   const { data, isLoading, isError } = useResolucionEjercicio(idEjercicio);
 
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoPlantillaEjercicio | null>(null);
-
-  const [enunciadoAbierto, setEnunciadoAbierto] = useState(false);
 
   const progreso = useMemo(() => {
     if (!data) {
@@ -196,8 +194,10 @@ export default function ResolucionEjercicioDocente() {
             variant="outline"
             label="Ver enunciado completo"
             icon={<ExternalLink size={14} />}
-            onClick={() => setEnunciadoAbierto(true)}
-            className="!h-10 !rounded-lg !px-4 !py-0 !text-sm !font-medium"
+            onClick={() =>
+              window.open(`/docente/ejercicios/${idEjercicio}`, '_blank', 'noopener,noreferrer')
+            }
+            className="!h-10 !rounded-lg !border-gray-300 !bg-white !px-4 !py-0 !text-sm !font-medium !text-gray-700 hover:!border-gray-400 hover:!bg-gray-50 hover:!text-gray-900"
           />
         </div>
       </div>
@@ -240,25 +240,22 @@ export default function ResolucionEjercicioDocente() {
         </div>
 
         {/* Progreso */}
-        <div className="min-h-[92px] rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
-            <div className="flex h-5 w-5 items-center justify-center rounded border border-gray-300 text-gray-600">
-              <FileText size={12} />
-            </div>
+        <section className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex items-center gap-2 border-b border-gray-200 px-5 py-3">
+            <FileText className="size-5 text-abacontex-primary" />
 
-            <p className="text-sm font-semibold text-gray-900">Progreso de resolución</p>
+            <h2 className="font-semibold text-abacontex-dark">Progreso de resolución</h2>
           </div>
 
-          <div className="mt-2.5 flex flex-col gap-3 xl:flex-row xl:items-center">
-            {/* Barra */}
-            <div className="min-w-[180px] flex-1 xl:max-w-[260px]">
-              <p className="mb-1.5 text-[11px] text-gray-500">
+          <div className="flex flex-col gap-5 px-5 py-4 lg:flex-row lg:items-center">
+            <div className="min-w-56 lg:w-72">
+              <p className="mb-2 text-xs text-abacontex-gray-text">
                 {progreso.resueltas} de {progreso.total} plantillas completadas
               </p>
 
-              <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
+              <div className="h-2 overflow-hidden rounded-full bg-gray-200">
                 <div
-                  className="h-full rounded-full bg-green-700 transition-all"
+                  className="h-full rounded-full bg-abacontex-primary-three transition-all duration-300"
                   style={{
                     width: `${progreso.porcentaje}%`,
                   }}
@@ -266,41 +263,48 @@ export default function ResolucionEjercicioDocente() {
               </div>
             </div>
 
-            {/* Estado de cada plantilla */}
-            <div className="flex flex-1 flex-wrap items-start justify-start gap-x-5 gap-y-2 xl:justify-end">
+            <div className="flex flex-1 flex-wrap gap-x-7 gap-y-3">
               {data.plantillas.map((plantilla) => {
                 const resuelta = plantilla.estado === 'RESUELTO';
+
                 const enEdicion = plantilla.estado === 'EN_EDICION';
 
                 return (
-                  <div key={plantilla.idEjercicioPlantilla} className="flex items-start gap-1.5">
+                  <div
+                    key={plantilla.idEjercicioPlantilla}
+                    className="flex min-w-28 items-start gap-2"
+                  >
                     <span
-                      className={`mt-[3px] flex h-3 w-3 shrink-0 items-center justify-center rounded-full border ${
+                      className={[
+                        'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border',
                         resuelta
-                          ? 'border-green-700'
+                          ? 'border-abacontex-primary-three bg-abacontex-primary-three'
                           : enEdicion
-                            ? 'border-green-600'
-                            : 'border-gray-400'
-                      }`}
+                            ? 'border-abacontex-primary-three'
+                            : 'border-gray-400',
+                      ].join(' ')}
                     >
-                      {resuelta && <span className="h-1.5 w-1.5 rounded-full bg-green-700" />}
+                      {resuelta && <Check className="size-3 text-white" />}
 
-                      {enEdicion && <span className="h-1.5 w-1.5 rounded-full bg-green-500" />}
+                      {enEdicion && (
+                        <span className="size-2 rounded-full bg-abacontex-primary-three" />
+                      )}
                     </span>
 
-                    <div className="leading-tight">
-                      <p className="whitespace-nowrap text-[11px] font-medium text-gray-700">
+                    <div>
+                      <p className="whitespace-nowrap text-xs font-medium text-abacontex-dark">
                         {NOMBRES_PLANTILLAS[plantilla.tipo]}
                       </p>
 
                       <p
-                        className={`mt-0.5 whitespace-nowrap text-[10px] ${
+                        className={[
+                          'mt-1 text-xs',
                           resuelta
-                            ? 'text-green-700'
+                            ? 'text-abacontex-primary'
                             : enEdicion
-                              ? 'text-gray-600'
-                              : 'text-gray-400'
-                        }`}
+                              ? 'text-abacontex-gray-text'
+                              : 'text-gray-400',
+                        ].join(' ')}
                       >
                         {obtenerEstadoVisualPlantilla(plantilla.estado)}
                       </p>
@@ -310,12 +314,12 @@ export default function ResolucionEjercicioDocente() {
               })}
             </div>
           </div>
-        </div>
+        </section>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <div className="flex gap-5 overflow-x-auto">
+      <div className="border-b border-gray-300">
+        <div className="flex gap-6 overflow-x-auto">
           {data.plantillas.map((plantilla) => {
             const activa = tipoActivo === plantilla.tipo;
 
@@ -324,11 +328,12 @@ export default function ResolucionEjercicioDocente() {
                 key={plantilla.idEjercicioPlantilla}
                 type="button"
                 onClick={() => setTipoSeleccionado(plantilla.tipo)}
-                className={`border-b-2 px-1 pb-2 pt-0.5 text-sm font-medium ${
+                className={[
+                  'cursor-pointer whitespace-nowrap border-b-2 px-1 pb-2 text-sm font-medium transition',
                   activa
-                    ? 'border-green-700 text-green-700'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                    ? 'border-abacontex-primary-three font-semibold text-abacontex-primary'
+                    : 'border-transparent text-abacontex-gray-text hover:text-abacontex-dark',
+                ].join(' ')}
               >
                 {NOMBRES_PLANTILLAS[plantilla.tipo]}
               </button>
@@ -387,40 +392,6 @@ export default function ResolucionEjercicioDocente() {
           className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
         />
       </div>
-
-      {/* Modal del enunciado */}
-      {enunciadoAbierto && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => setEnunciadoAbierto(false)}
-        >
-          <div
-            className="max-h-[80vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Enunciado del ejercicio</p>
-
-                <h2 className="text-lg font-semibold text-gray-900">{data.titulo}</h2>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setEnunciadoAbierto(false)}
-                className="rounded-md p-2 text-gray-500 hover:bg-gray-100"
-                aria-label="Cerrar enunciado"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
-              {data.enunciado}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -521,48 +492,24 @@ function ResolucionLibroDiario({
       )}
 
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4">
-        {libroDiarioResuelto ? (
-          hayCambiosSinGuardar ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-amber-700">Cambios sin guardar</span>
+        <Button
+          type="button"
+          variant="outline"
+          label="Guardar borrador"
+          icon={<Save size={16} />}
+          disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+          onClick={() => void guardarLibroDiario('EN_EDICION')}
+          className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+        />
 
-              <Button
-                type="button"
-                variant="solid"
-                label="Guardar cambios"
-                icon={<Save size={16} />}
-                disabled={guardarResolucion.isPending}
-                onClick={() => void guardarLibroDiario('EN_EDICION')}
-                className="!rounded-lg !px-4 !py-2 !text-sm"
-              />
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
-              ✓ Libro Diario resuelto
-            </div>
-          )
-        ) : (
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              label="Guardar borrador"
-              icon={<Save size={16} />}
-              disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
-              onClick={() => void guardarLibroDiario('EN_EDICION')}
-              className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
-            />
-
-            <Button
-              type="button"
-              variant="solid"
-              label="✓ Marcar como resuelto"
-              disabled={guardarResolucion.isPending}
-              onClick={() => void guardarLibroDiario('RESUELTO')}
-              className="!rounded-lg !px-4 !py-2 !text-sm"
-            />
-          </div>
-        )}
+        <Button
+          type="button"
+          variant="solid"
+          label={libroDiarioResuelto ? 'Guardar como resuelto' : '✓ Marcar como resuelto'}
+          disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+          onClick={() => void guardarLibroDiario('RESUELTO')}
+          className="!rounded-lg !px-4 !py-2 !text-sm"
+        />
       </div>
     </>
   );
@@ -672,48 +619,24 @@ function ResolucionLibroMayor({
       )}
 
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4">
-        {libroMayorResuelto ? (
-          hayCambiosSinGuardar ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-amber-700">Cambios sin guardar</span>
+        <Button
+          type="button"
+          variant="outline"
+          label="Guardar borrador"
+          icon={<Save size={16} />}
+          disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+          onClick={() => void guardarLibroMayor('EN_EDICION')}
+          className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+        />
 
-              <Button
-                type="button"
-                variant="solid"
-                label="Guardar cambios"
-                icon={<Save size={16} />}
-                disabled={guardarResolucion.isPending}
-                onClick={() => void guardarLibroMayor('EN_EDICION')}
-                className="!rounded-lg !px-4 !py-2 !text-sm"
-              />
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
-              ✓ Libro Mayor resuelto
-            </div>
-          )
-        ) : (
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              label="Guardar borrador"
-              icon={<Save size={16} />}
-              disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
-              onClick={() => void guardarLibroMayor('EN_EDICION')}
-              className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
-            />
-
-            <Button
-              type="button"
-              variant="solid"
-              label="✓ Marcar como resuelto"
-              disabled={guardarResolucion.isPending}
-              onClick={() => void guardarLibroMayor('RESUELTO')}
-              className="!rounded-lg !px-4 !py-2 !text-sm"
-            />
-          </div>
-        )}
+        <Button
+          type="button"
+          variant="solid"
+          label={libroMayorResuelto ? 'Guardar como resuelto' : '✓ Marcar como resuelto'}
+          disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+          onClick={() => void guardarLibroMayor('RESUELTO')}
+          className="!rounded-lg !px-4 !py-2 !text-sm"
+        />
       </div>
     </>
   );
@@ -821,48 +744,24 @@ function ResolucionLibroIva({
       )}
 
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4">
-        {libroIvaResuelto ? (
-          hayCambiosSinGuardar ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-amber-700">Cambios sin guardar</span>
+        <Button
+          type="button"
+          variant="outline"
+          label="Guardar borrador"
+          icon={<Save size={16} />}
+          disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+          onClick={() => void guardarLibroIva('EN_EDICION')}
+          className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+        />
 
-              <Button
-                type="button"
-                variant="solid"
-                label="Guardar cambios"
-                icon={<Save size={16} />}
-                disabled={guardarResolucion.isPending}
-                onClick={() => void guardarLibroIva('EN_EDICION')}
-                className="!rounded-lg !px-4 !py-2 !text-sm"
-              />
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
-              ✓ Libro IVA resuelto
-            </div>
-          )
-        ) : (
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              label="Guardar borrador"
-              icon={<Save size={16} />}
-              disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
-              onClick={() => void guardarLibroIva('EN_EDICION')}
-              className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
-            />
-
-            <Button
-              type="button"
-              variant="solid"
-              label="✓ Marcar como resuelto"
-              disabled={guardarResolucion.isPending}
-              onClick={() => void guardarLibroIva('RESUELTO')}
-              className="!rounded-lg !px-4 !py-2 !text-sm"
-            />
-          </div>
-        )}
+        <Button
+          type="button"
+          variant="solid"
+          label={libroIvaResuelto ? 'Guardar como resuelto' : '✓ Marcar como resuelto'}
+          disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+          onClick={() => void guardarLibroIva('RESUELTO')}
+          className="!rounded-lg !px-4 !py-2 !text-sm"
+        />
       </div>
     </>
   );
@@ -965,48 +864,24 @@ function ResolucionHojaTrabajo({
       )}
 
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-4">
-        {hojaTrabajoResuelta ? (
-          hayCambiosSinGuardar ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-amber-700">Cambios sin guardar</span>
+        <Button
+          type="button"
+          variant="outline"
+          label="Guardar borrador"
+          icon={<Save size={16} />}
+          disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+          onClick={() => void guardarHojaTrabajo('EN_EDICION')}
+          className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
+        />
 
-              <Button
-                type="button"
-                variant="solid"
-                label="Guardar cambios"
-                icon={<Save size={16} />}
-                disabled={guardarResolucion.isPending}
-                onClick={() => void guardarHojaTrabajo('EN_EDICION')}
-                className="!rounded-lg !px-4 !py-2 !text-sm"
-              />
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
-              ✓ Hoja de Trabajo resuelta
-            </div>
-          )
-        ) : (
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              label="Guardar borrador"
-              icon={<Save size={16} />}
-              disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
-              onClick={() => void guardarHojaTrabajo('EN_EDICION')}
-              className="!rounded-lg !border-gray-300 !px-4 !py-2 !text-sm !font-medium !text-gray-700 hover:!bg-gray-50"
-            />
-
-            <Button
-              type="button"
-              variant="solid"
-              label="✓ Marcar como resuelto"
-              disabled={guardarResolucion.isPending}
-              onClick={() => void guardarHojaTrabajo('RESUELTO')}
-              className="!rounded-lg !px-4 !py-2 !text-sm"
-            />
-          </div>
-        )}
+        <Button
+          type="button"
+          variant="solid"
+          label={hojaTrabajoResuelta ? 'Guardar como resuelto' : '✓ Marcar como resuelto'}
+          disabled={guardarResolucion.isPending || !hayCambiosSinGuardar}
+          onClick={() => void guardarHojaTrabajo('RESUELTO')}
+          className="!rounded-lg !px-4 !py-2 !text-sm"
+        />
       </div>
     </>
   );

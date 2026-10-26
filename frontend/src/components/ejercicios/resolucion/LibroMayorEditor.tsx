@@ -6,6 +6,7 @@ import Button from '../../ui/Button';
 import { useCuentasContablesEjercicio } from '../../../hooks/useCuentasContablesEjercicio';
 
 import SelectorCuentaContable from './SelectorCuentaContable';
+import InputImporte from './InputImporte';
 
 import type {
   ContenidoLibroMayor,
@@ -18,6 +19,7 @@ import type {
 interface LibroMayorEditorProps {
   contenido: ContenidoLibroMayor;
   onChange: (contenido: ContenidoLibroMayor) => void;
+  soloLectura?: boolean;
 }
 
 type LadoMayor = 'DEBE' | 'HABER';
@@ -104,7 +106,11 @@ function crearCuentaVacia(cuenta: CuentaContableEjercicio): CuentaLibroMayor {
   };
 }
 
-export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEditorProps) {
+export default function LibroMayorEditor({
+  contenido,
+  onChange,
+  soloLectura = false,
+}: LibroMayorEditorProps) {
   const [mostrarNuevaCuenta, setMostrarNuevaCuenta] = useState(false);
 
   const { data: cuentasData, isLoading: cargandoCuentas } = useCuentasContablesEjercicio();
@@ -286,17 +292,19 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
   return (
     <div className="space-y-5">
       {/* Acción superior */}
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          label="Agregar cuenta"
-          icon={<CirclePlus size={15} />}
-          onClick={mostrarSelectorNuevaCuenta}
-          disabled={cargandoCuentas || cuentasDisponibles.length === 0}
-          className="!rounded-lg !px-4 !py-2 !text-xs"
-        />
-      </div>
+      {!soloLectura && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            label="Agregar cuenta"
+            icon={<CirclePlus size={15} />}
+            onClick={mostrarSelectorNuevaCuenta}
+            disabled={cargandoCuentas || cuentasDisponibles.length === 0}
+            className="rounded-lg! px-4! py-2! text-xs!"
+          />
+        </div>
+      )}
 
       {/* Estado vacío */}
       {contenido.cuentas.length === 0 && (
@@ -342,15 +350,17 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => eliminarCuenta(indiceCuenta)}
-                  className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                  aria-label={`Eliminar cuenta ${cuenta.cuenta}`}
-                  title="Eliminar cuenta"
-                >
-                  <Trash2 size={14} />
-                </button>
+                {!soloLectura && (
+                  <button
+                    type="button"
+                    onClick={() => eliminarCuenta(indiceCuenta)}
+                    className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                    aria-label={`Eliminar cuenta ${cuenta.cuenta}`}
+                    title="Eliminar cuenta"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
 
               {/* Cuenta T */}
@@ -371,6 +381,7 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                       linea={linea}
                       cuentaPrincipalId={cuenta.idCuenta}
                       cuentas={cuentasContables}
+                      soloLectura={soloLectura}
                       onChange={(cambios) =>
                         actualizarLinea(indiceCuenta, 'DEBE', indiceLinea, cambios)
                       }
@@ -381,14 +392,16 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                     />
                   ))}
 
-                  <button
-                    type="button"
-                    onClick={() => agregarLinea(indiceCuenta, 'DEBE')}
-                    className="flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[11px] font-medium text-gray-600 transition hover:text-abacontex-primary-three"
-                  >
-                    <CirclePlus size={12} />
-                    Agregar línea
-                  </button>
+                  {!soloLectura && (
+                    <button
+                      type="button"
+                      onClick={() => agregarLinea(indiceCuenta, 'DEBE')}
+                      className="flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[11px] font-medium text-gray-600 transition hover:text-abacontex-primary-three"
+                    >
+                      <CirclePlus size={12} />
+                      Agregar línea
+                    </button>
+                  )}
                 </div>
 
                 {/* HABER */}
@@ -407,6 +420,7 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                       linea={linea}
                       cuentaPrincipalId={cuenta.idCuenta}
                       cuentas={cuentasContables}
+                      soloLectura={soloLectura}
                       onChange={(cambios) =>
                         actualizarLinea(indiceCuenta, 'HABER', indiceLinea, cambios)
                       }
@@ -417,14 +431,16 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                     />
                   ))}
 
-                  <button
-                    type="button"
-                    onClick={() => agregarLinea(indiceCuenta, 'HABER')}
-                    className="flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[11px] font-medium text-gray-600 transition hover:text-abacontex-primary-three"
-                  >
-                    <CirclePlus size={12} />
-                    Agregar línea
-                  </button>
+                  {!soloLectura && (
+                    <button
+                      type="button"
+                      onClick={() => agregarLinea(indiceCuenta, 'HABER')}
+                      className="flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[11px] font-medium text-gray-600 transition hover:text-abacontex-primary-three"
+                    >
+                      <CirclePlus size={12} />
+                      Agregar línea
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -457,13 +473,14 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
                 <div className="flex min-w-0 items-center px-2 py-2">
                   <select
                     value={cuenta.tipoSaldo ?? ''}
+                    disabled={soloLectura}
                     onChange={(event) =>
                       cambiarTipoSaldo(
                         indiceCuenta,
                         event.target.value ? (event.target.value as TipoSaldoMayor) : null
                       )
                     }
-                    className="h-8 w-full min-w-0 rounded-md border border-gray-300 bg-white px-2 text-[11px] text-gray-600 outline-none transition focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
+                    className="h-8 w-full min-w-0 rounded-md border border-gray-300 bg-white px-2 text-[11px] text-gray-600 outline-none transition focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three disabled:cursor-default disabled:bg-gray-50"
                   >
                     <option value="">Seleccione saldo</option>
 
@@ -481,7 +498,7 @@ export default function LibroMayorEditor({ contenido, onChange }: LibroMayorEdit
       </div>
 
       {/* Nueva cuenta */}
-      {mostrarNuevaCuenta && (
+      {!soloLectura && mostrarNuevaCuenta && (
         <div className="w-full rounded-xl border border-dashed border-emerald-300 bg-white p-4 xl:max-w-[650px]">
           <div className="mb-3 flex items-center gap-2">
             <CirclePlus size={16} className="text-abacontex-primary-three" />
@@ -553,6 +570,7 @@ interface LineaMayorProps {
   linea: LineaLibroMayor;
   cuentaPrincipalId: number;
   cuentas: CuentaContableEjercicio[];
+  soloLectura?: boolean;
   onChange: (cambios: Partial<LineaLibroMayor>) => void;
   onCambiarContracuenta: (idContraCuenta: number) => void;
   onEliminar: () => void;
@@ -562,6 +580,7 @@ function LineaMayor({
   linea,
   cuentaPrincipalId,
   cuentas,
+  soloLectura = false,
   onChange,
   onCambiarContracuenta,
   onEliminar,
@@ -575,12 +594,13 @@ function LineaMayor({
         <input
           type="date"
           value={fechaApiAInput(linea.fecha)}
+          disabled={soloLectura}
           onChange={(event) =>
             onChange({
               fecha: fechaInputAApi(event.target.value),
             })
           }
-          className="h-9 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
+          className="h-9 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three disabled:cursor-default disabled:bg-gray-50"
         />
       </div>
 
@@ -590,43 +610,40 @@ function LineaMayor({
           cuentas={cuentasContrapartida}
           value={linea.idContraCuenta || null}
           placeholder="Buscar contracuenta..."
+          disabled={soloLectura}
           onSelect={onCambiarContracuenta}
         />
       </div>
 
       {/* Monto */}
       <div className="min-w-0 border-l border-gray-200 p-1">
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={linea.monto === 0 ? '' : linea.monto}
-          onChange={(event) =>
+        <InputImporte
+          value={linea.monto}
+          onChange={(valor) =>
             onChange({
-              monto: event.target.value === '' ? 0 : Number(event.target.value),
+              monto: valor,
             })
           }
-          onKeyDown={(event) => {
-            if (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
-              event.preventDefault();
-            }
-          }}
           placeholder="0,00"
+          ariaLabel="Monto del movimiento"
+          disabled={soloLectura}
           className="h-9 w-full min-w-0 rounded-md border border-gray-300 bg-white px-1.5 text-right text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
         />
       </div>
 
       {/* Eliminar */}
       <div className="flex h-full min-w-0 items-center justify-center border-l border-gray-200">
-        <button
-          type="button"
-          onClick={onEliminar}
-          className="flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-          aria-label="Eliminar movimiento"
-          title="Eliminar movimiento"
-        >
-          <Trash2 size={14} />
-        </button>
+        {!soloLectura && (
+          <button
+            type="button"
+            onClick={onEliminar}
+            className="flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+            aria-label="Eliminar movimiento"
+            title="Eliminar movimiento"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import Button from '../../ui/Button';
 
 import { useCuentasContablesEjercicio } from '../../../hooks/useCuentasContablesEjercicio';
 import SelectorCuentaContable from './SelectorCuentaContable';
+import InputImporte from './InputImporte';
 
 import type {
   AsientoLibroDiario,
@@ -15,6 +16,7 @@ interface LibroDiarioEditorProps {
   contenido: ContenidoLibroDiario;
   onChange: (contenido: ContenidoLibroDiario) => void;
   mostrarEstadoBalance?: boolean;
+  soloLectura?: boolean;
 }
 
 const MOVIMIENTOS: MovimientoContable[] = ['A+', 'A-', 'P+', 'P-', 'PN+', 'PN-', 'R+', 'R-'];
@@ -107,6 +109,7 @@ export default function LibroDiarioEditor({
   contenido,
   onChange,
   mostrarEstadoBalance = true,
+  soloLectura = false,
 }: LibroDiarioEditorProps) {
   const { data: cuentasData, isLoading: cargandoCuentas } = useCuentasContablesEjercicio();
 
@@ -270,6 +273,7 @@ export default function LibroDiarioEditor({
                       fecha: fechaInputAApi(event.target.value),
                     })
                   }
+                  disabled={soloLectura}
                   className="w-[150px] rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                 />
               </div>
@@ -286,6 +290,7 @@ export default function LibroDiarioEditor({
                     })
                   }
                   placeholder="Descripción del asiento"
+                  disabled={soloLectura}
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                 />
               </div>
@@ -314,36 +319,40 @@ export default function LibroDiarioEditor({
                 </>
               )}
 
-              <button
-                type="button"
-                onClick={() => eliminarAsiento(indiceAsiento)}
-                className="ml-auto mb-1 rounded-md p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
-                title="Eliminar asiento"
-                aria-label={`Eliminar asiento ${asiento.numero}`}
-              >
-                <Trash2 size={17} />
-              </button>
+              {!soloLectura && (
+                <button
+                  type="button"
+                  onClick={() => eliminarAsiento(indiceAsiento)}
+                  className="ml-auto mb-1 rounded-md p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
+                  title="Eliminar asiento"
+                  aria-label={`Eliminar asiento ${asiento.numero}`}
+                >
+                  <Trash2 size={17} />
+                </button>
+              )}
             </div>
 
             {/* ==============================================================
                 Agregar línea
             ============================================================== */}
             <div className="mx-auto mt-3 flex w-[92%] justify-end">
-              <button
-                type="button"
-                onClick={() => agregarLinea(indiceAsiento)}
-                className="flex items-center gap-1 text-sm font-medium text-green-700 transition-colors hover:text-green-800"
-              >
-                <Plus size={15} />
-                Agregar línea
-              </button>
+              {!soloLectura && (
+                <button
+                  type="button"
+                  onClick={() => agregarLinea(indiceAsiento)}
+                  className="flex items-center gap-1 text-sm font-medium text-green-700 transition-colors hover:text-green-800"
+                >
+                  <Plus size={15} />
+                  Agregar línea
+                </button>
+              )}
             </div>
 
             {/* ==============================================================
                 Tabla
             ============================================================== */}
-            <div className="mx-auto mt-2 w-[92%] max-w-full overflow-x-auto">
-              <table className="w-full min-w-[255 border-collapse text-sm">
+            <div className="mx-auto mt-2 w-[92%] overflow-x-auto pr-10">
+              <table className="w-full min-w-255 border-collapse text-sm">
                 <thead>
                   <tr className="bg-[#9db79c] text-gray-900">
                     <th className="w-31.25 border border-gray-300 px-3 py-2 text-center font-medium">
@@ -365,14 +374,12 @@ export default function LibroDiarioEditor({
                     <th className="w-45 border border-gray-300 px-3 py-2 text-center font-medium">
                       Haber
                     </th>
-
-                    <th className="w-12 bg-white" />
                   </tr>
                 </thead>
 
                 <tbody>
                   {asiento.lineas.map((linea, indiceLinea) => (
-                    <tr key={indiceLinea}>
+                    <tr key={indiceLinea} className="relative">
                       {/* Fecha del asiento */}
                       <td className="border border-gray-300 bg-white px-3 py-2 text-center text-gray-700">
                         {asiento.fecha || '—'}
@@ -384,7 +391,7 @@ export default function LibroDiarioEditor({
                           <SelectorCuentaContable
                             cuentas={cuentas}
                             value={linea.idCuenta || null}
-                            disabled={cargandoCuentas}
+                            disabled={soloLectura || cargandoCuentas}
                             placeholder={
                               cargandoCuentas ? 'Cargando cuentas...' : 'Buscar cuenta...'
                             }
@@ -404,6 +411,7 @@ export default function LibroDiarioEditor({
                               )
                             }
                             aria-label={`Movimiento de la línea ${indiceLinea + 1}`}
+                            disabled={soloLectura}
                             className="w-[78px] rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                           >
                             {MOVIMIENTOS.map((movimiento) => (
@@ -427,53 +435,42 @@ export default function LibroDiarioEditor({
 
                       {/* Debe */}
                       <td className="border border-gray-300 bg-white p-2">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={linea.debe || ''}
-                          onChange={(event) =>
-                            actualizarLinea(
-                              indiceAsiento,
-                              indiceLinea,
-                              'debe',
-                              Number(event.target.value)
-                            )
+                        <InputImporte
+                          value={linea.debe}
+                          onChange={(valor) =>
+                            actualizarLinea(indiceAsiento, indiceLinea, 'debe', valor)
                           }
+                          placeholder="0,00"
+                          ariaLabel={`Debe de la línea ${indiceLinea + 1}`}
+                          disabled={soloLectura}
                           className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                         />
                       </td>
 
                       {/* Haber */}
-                      <td className="border border-gray-300 bg-white p-2">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={linea.haber || ''}
-                          onChange={(event) =>
-                            actualizarLinea(
-                              indiceAsiento,
-                              indiceLinea,
-                              'haber',
-                              Number(event.target.value)
-                            )
+                      <td className="relative border border-gray-300 bg-white p-2">
+                        <InputImporte
+                          value={linea.haber}
+                          onChange={(valor) =>
+                            actualizarLinea(indiceAsiento, indiceLinea, 'haber', valor)
                           }
+                          placeholder="0,00"
+                          ariaLabel={`Haber de la línea ${indiceLinea + 1}`}
+                          disabled={soloLectura}
                           className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
                         />
-                      </td>
 
-                      {/* Eliminar línea */}
-                      <td className="bg-white px-2 text-center">
-                        <button
-                          type="button"
-                          onClick={() => eliminarLinea(indiceAsiento, indiceLinea)}
-                          className="rounded-md p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
-                          title="Eliminar línea"
-                          aria-label={`Eliminar línea ${indiceLinea + 1}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {!soloLectura && (
+                          <button
+                            type="button"
+                            onClick={() => eliminarLinea(indiceAsiento, indiceLinea)}
+                            className="absolute -right-9 top-1/2 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                            title="Eliminar línea"
+                            aria-label={`Eliminar línea ${indiceLinea + 1}`}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -481,7 +478,7 @@ export default function LibroDiarioEditor({
                   {asiento.lineas.length === 0 && (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={5}
                         className="border border-gray-300 px-4 py-6 text-center text-sm text-gray-400"
                       >
                         Agregá una línea para comenzar el asiento.
@@ -503,8 +500,6 @@ export default function LibroDiarioEditor({
                     <td className="border border-gray-300 px-3 py-2 text-right">
                       ${formatearImporte(totalHaber)}
                     </td>
-
-                    <td className="bg-white" />
                   </tr>
                 </tfoot>
               </table>
@@ -516,14 +511,16 @@ export default function LibroDiarioEditor({
       {/* ====================================================================
           Agregar nuevo asiento
       ==================================================================== */}
-      <Button
-        type="button"
-        label="Agregar nuevo asiento"
-        variant="outline"
-        icon={<Plus size={17} />}
-        onClick={agregarAsiento}
-        className="w-full"
-      />
+      {!soloLectura && (
+        <Button
+          type="button"
+          label="Agregar nuevo asiento"
+          variant="outline"
+          icon={<Plus size={17} />}
+          onClick={agregarAsiento}
+          className="w-full"
+        />
+      )}
     </div>
   );
 }

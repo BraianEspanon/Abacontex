@@ -13,6 +13,9 @@ import {
 } from 'lucide-react';
 
 import { Link, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useFinalizarEntregaAlumno } from '../../hooks/useFinalizarEntregaAlumno';
+import Button from '../../components/ui/Button';
 
 import MarkdownEjercicio from '../../components/ejercicios/MarkdownEjercicio';
 
@@ -62,6 +65,25 @@ export default function DetalleEjercicioAlumno() {
 
   const { data: ejercicio, isLoading, isError, refetch } = useDetalleEjercicioAlumno(idEjercicio);
 
+  const finalizarEntrega = useFinalizarEntregaAlumno();
+
+  const [errorEntrega, setErrorEntrega] = useState<string | null>(null);
+
+  const handleEntregarEjercicio = async () => {
+    if (!puedeEntregar) {
+      return;
+    }
+
+    setErrorEntrega(null);
+
+    try {
+      await finalizarEntrega.mutateAsync(idEjercicio);
+
+      await refetch();
+    } catch {
+      setErrorEntrega('No fue posible entregar el ejercicio. Intentá nuevamente.');
+    }
+  };
   if (isLoading) {
     return <p className="text-sm text-abacontex-gray-text">Cargando ejercicio...</p>;
   }
@@ -292,14 +314,21 @@ export default function DetalleEjercicioAlumno() {
                     </Link>
                   )}
 
-                  <button
+                  <Button
                     type="button"
-                    disabled={!puedeEntregar}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-abacontex-primary-three px-4 text-sm font-semibold text-white transition hover:bg-abacontex-primary disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <Send className="size-4" />
-                    Entregar ejercicio
-                  </button>
+                    variant="solid"
+                    label={finalizarEntrega.isPending ? 'Entregando...' : 'Entregar ejercicio'}
+                    icon={<Send size={16} />}
+                    disabled={!puedeEntregar || finalizarEntrega.isPending}
+                    onClick={() => void handleEntregarEjercicio()}
+                    className="h-10! rounded-lg! px-4! py-0! text-sm! font-semibold!"
+                  />
+
+                  {errorEntrega && (
+                    <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                      <p className="text-sm font-medium text-red-700">{errorEntrega}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </section>

@@ -312,6 +312,13 @@ export interface ParResultadosHojaTrabajo {
   positivo: number;
 }
 
+export interface ResultadoEjercicioHojaTrabajo {
+  activo: number;
+  pasivoMasPn: number;
+  negativo: number;
+  positivo: number;
+}
+
 export interface FilaHojaTrabajo {
   idCuenta: number;
   cuenta: string;
@@ -324,6 +331,7 @@ export interface FilaHojaTrabajo {
 
 export interface ContenidoHojaTrabajo {
   filas: FilaHojaTrabajo[];
+  resultadoDelEjercicio?: ResultadoEjercicioHojaTrabajo | null;
 }
 
 // ============================================================================

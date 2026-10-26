@@ -1,6 +1,7 @@
 import { Calculator, Info, Plus, Trash2 } from 'lucide-react';
 
 import Button from '../../ui/Button';
+import InputImporte from './InputImporte';
 
 import type {
   ComprobanteIva,
@@ -12,6 +13,7 @@ import type {
 interface LibroIvaEditorProps {
   contenido: ContenidoLibroIva;
   onChange: (contenido: ContenidoLibroIva) => void;
+  soloLectura?: boolean;
 }
 
 function crearComprobante(): ComprobanteIva {
@@ -117,7 +119,11 @@ function formatearImporte(valor: number): string {
   }).format(valor);
 }
 
-export default function LibroIvaEditor({ contenido, onChange }: LibroIvaEditorProps) {
+export default function LibroIvaEditor({
+  contenido,
+  onChange,
+  soloLectura = false,
+}: LibroIvaEditorProps) {
   const liquidacion = calcularLiquidacion(contenido);
 
   function agregarComprobante(tipo: 'compras' | 'ventas') {
@@ -156,16 +162,14 @@ export default function LibroIvaEditor({ contenido, onChange }: LibroIvaEditorPr
     tipo: 'compras' | 'ventas',
     indiceComprobante: number,
     campo: 'netoGravado' | 'iva' | 'total',
-    valor: string
+    valor: number
   ) {
-    const numero = valor === '' ? 0 : Number(valor);
-
-    if (!Number.isFinite(numero) || numero < 0) {
+    if (!Number.isFinite(valor) || valor < 0) {
       return;
     }
 
     actualizarComprobante(tipo, indiceComprobante, {
-      [campo]: numero,
+      [campo]: valor,
     });
   }
 
@@ -211,6 +215,7 @@ export default function LibroIvaEditor({ contenido, onChange }: LibroIvaEditorPr
         totalNeto={liquidacion.totalNetoCompras}
         totalIva={liquidacion.totalIvaCreditoFiscal}
         totalGeneral={liquidacion.totalCompras}
+        soloLectura={soloLectura}
       />
 
       <SeccionComprobantes
@@ -228,6 +233,7 @@ export default function LibroIvaEditor({ contenido, onChange }: LibroIvaEditorPr
         totalNeto={liquidacion.totalNetoVentas}
         totalIva={liquidacion.totalIvaDebitoFiscal}
         totalGeneral={liquidacion.totalVentas}
+        soloLectura={soloLectura}
       />
 
       {/* Cálculo del saldo de IVA */}
@@ -291,6 +297,7 @@ export default function LibroIvaEditor({ contenido, onChange }: LibroIvaEditorPr
             <select
               id="resultado-iva"
               value={contenido.resultado ?? ''}
+              disabled={soloLectura}
               onChange={(event) =>
                 actualizarResultado(
                   event.target.value ? (event.target.value as TipoResultadoIva) : null
@@ -324,6 +331,7 @@ interface SeccionComprobantesProps {
   descripcionNombre: string;
   tipo: 'compras' | 'ventas';
   comprobantes: ComprobanteIva[];
+  soloLectura?: boolean;
 
   onAgregar: () => void;
   onEliminar: (indice: number) => void;
@@ -332,7 +340,7 @@ interface SeccionComprobantesProps {
   onActualizarImporte: (
     indice: number,
     campo: 'netoGravado' | 'iva' | 'total',
-    valor: string
+    valor: number
   ) => void;
 
   onActualizarNumero: (indice: number, valor: string) => void;
@@ -355,20 +363,23 @@ function SeccionComprobantes({
   totalNeto,
   totalIva,
   totalGeneral,
+  soloLectura = false,
 }: SeccionComprobantesProps) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white px-4 py-2 shadow-sm">
       <div className="mb-1 flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-gray-900">{titulo}</h3>
 
-        <Button
-          type="button"
-          label="Agregar línea"
-          variant="outline"
-          icon={<Plus size={14} />}
-          onClick={onAgregar}
-          className="!rounded-lg !px-3 !py-1.5 !text-xs"
-        />
+        {!soloLectura && (
+          <Button
+            type="button"
+            label="Agregar línea"
+            variant="outline"
+            icon={<Plus size={14} />}
+            onClick={onAgregar}
+            className="!rounded-lg !px-3 !py-1.5 !text-xs"
+          />
+        )}
       </div>
 
       {comprobantes.length === 0 ? (
@@ -433,6 +444,7 @@ function SeccionComprobantes({
                           fecha: convertirFechaParaContenido(event.target.value),
                         })
                       }
+                      disabled={soloLectura}
                       className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
                     />
                   </td>
@@ -446,6 +458,7 @@ function SeccionComprobantes({
                       value={comprobante.comprobante === 0 ? '' : comprobante.comprobante}
                       placeholder="0"
                       onChange={(event) => onActualizarNumero(indice, event.target.value)}
+                      disabled={soloLectura}
                       className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-right text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
                     />
                   </td>
@@ -461,62 +474,60 @@ function SeccionComprobantes({
                           nombre: event.target.value,
                         })
                       }
+                      disabled={soloLectura}
                       className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
                     />
                   </td>
 
                   {/* Neto */}
                   <td className="px-1.5 py-0.5">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={comprobante.netoGravado === 0 ? '' : comprobante.netoGravado}
+                    <InputImporte
+                      value={comprobante.netoGravado}
+                      onChange={(valor) => onActualizarImporte(indice, 'netoGravado', valor)}
                       placeholder="0,00"
-                      onChange={(event) =>
-                        onActualizarImporte(indice, 'netoGravado', event.target.value)
-                      }
+                      ariaLabel={`Importe neto gravado del comprobante ${indice + 1}`}
+                      disabled={soloLectura}
                       className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-right text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
                     />
                   </td>
 
                   {/* IVA */}
                   <td className="px-1.5 py-0.5">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={comprobante.iva === 0 ? '' : comprobante.iva}
+                    <InputImporte
+                      value={comprobante.iva}
+                      onChange={(valor) => onActualizarImporte(indice, 'iva', valor)}
                       placeholder="0,00"
-                      onChange={(event) => onActualizarImporte(indice, 'iva', event.target.value)}
+                      ariaLabel={`IVA del comprobante ${indice + 1}`}
+                      disabled={soloLectura}
                       className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-right text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
                     />
                   </td>
 
                   {/* Total */}
                   <td className="px-1.5 py-0.5">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={comprobante.total === 0 ? '' : comprobante.total}
+                    <InputImporte
+                      value={comprobante.total}
+                      onChange={(valor) => onActualizarImporte(indice, 'total', valor)}
                       placeholder="0,00"
-                      onChange={(event) => onActualizarImporte(indice, 'total', event.target.value)}
+                      ariaLabel={`Importe total del comprobante ${indice + 1}`}
+                      disabled={soloLectura}
                       className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-right text-[11px] text-gray-700 outline-none focus:border-abacontex-primary-three focus:ring-1 focus:ring-abacontex-primary-three"
                     />
                   </td>
 
                   {/* Eliminar */}
                   <td className="px-1 py-0.5 text-center">
-                    <button
-                      type="button"
-                      onClick={() => onEliminar(indice)}
-                      className="inline-flex cursor-pointer items-center justify-center rounded-md p-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                      aria-label={`Eliminar comprobante ${indice + 1}`}
-                      title="Eliminar comprobante"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {!soloLectura && (
+                      <button
+                        type="button"
+                        onClick={() => onEliminar(indice)}
+                        className="inline-flex cursor-pointer items-center justify-center rounded-md p-1 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                        aria-label={`Eliminar comprobante ${indice + 1}`}
+                        title="Eliminar comprobante"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
