@@ -945,3 +945,151 @@ export async function upsertComentarioError(
     },
   });
 }
+
+export interface DiagnosticoCursoEntity {
+  idDiagnostico: number;
+  cursoId: number;
+  docenteId: string;
+  resumenGeneral: string;
+  cosasAReforzar: unknown;
+  totalErroresEnSnapshot: number;
+  errorPrincipalEnSnapshot: string;
+  plantillaPrincipalEnSnapshot: string;
+  distribucionEnSnapshot: unknown;
+  updatedAt: Date;
+}
+
+export type ErrorAnalisisCursoEntity = Prisma.ErrorCorreccionGetPayload<{
+  select: {
+    idError: true;
+    tipoError: true;
+    ejercicioPlantillaId: true;
+    ejercicioPlantilla: {
+      select: {
+        tipo: true;
+      };
+    };
+    correccion: {
+      select: {
+        idCorreccion: true;
+        entrega: {
+          select: {
+            idEntrega: true;
+            ejercicioId: true;
+            alumnoId: true;
+            alumno: {
+              select: {
+                id: true;
+                usuario: {
+                  select: {
+                    nombre: true;
+                    apellido: true;
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export interface DatosAnalisisErroresCursoEntity {
+  totalEntregasAnalizadas: number;
+  errores: ErrorAnalisisCursoEntity[];
+  diagnosticoPrevio: DiagnosticoCursoEntity | null;
+}
+
+export async function findDatosAnalisisErroresCurso(
+  cursoId: number,
+  docenteId: string,
+  tx?: Prisma.TransactionClient
+): Promise<DatosAnalisisErroresCursoEntity> {
+  const db = getDbClient(tx);
+
+  // 1. Total de entregas corregidas y finalizadas del curso para este docente
+  const totalEntregasAnalizadas = await db.entregaEjercicio.count({
+    where: {
+      ejercicio: {
+        cursoId,
+        docenteId,
+      },
+      correccion: {
+        fechaCorreccion: { not: null },
+      },
+    },
+  });
+
+  // 2. Errores contables persistidos de esas entregas con sus relaciones
+  const errores = await db.errorCorreccion.findMany({
+    where: {
+      correccion: {
+        fechaCorreccion: { not: null },
+        entrega: {
+          ejercicio: {
+            cursoId,
+            docenteId,
+          },
+        },
+      },
+    },
+    select: {
+      idError: true,
+      tipoError: true,
+      ejercicioPlantillaId: true,
+      ejercicioPlantilla: {
+        select: {
+          tipo: true,
+        },
+      },
+      correccion: {
+        select: {
+          idCorreccion: true,
+          entrega: {
+            select: {
+              idEntrega: true,
+              ejercicioId: true,
+              alumnoId: true,
+              alumno: {
+                select: {
+                  id: true,
+                  usuario: {
+                    select: {
+                      nombre: true,
+                      apellido: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // 3. Último diagnóstico pedagógico guardado con IA para el curso
+  const dbDelegate = db as unknown as {
+    diagnosticoCurso?: {
+      findUnique: (args: unknown) => Promise<DiagnosticoCursoEntity | null>;
+    };
+  };
+
+  const diagnosticoPrevio = dbDelegate.diagnosticoCurso
+    ? await dbDelegate.diagnosticoCurso.findUnique({
+        where: {
+          cursoId_docenteId: {
+            cursoId,
+            docenteId,
+          },
+        },
+      })
+    : null;
+
+  return {
+    totalEntregasAnalizadas,
+    errores,
+    diagnosticoPrevio,
+  };
+}

@@ -170,3 +170,68 @@ export interface EspacioTrabajoCorreccionResponseDTO {
   retroalimentacionBorrador: string | null;
   plantillas: PlantillaEspacioTrabajoDTO[];
 }
+
+export interface KpisAnalisisErroresCursoDTO {
+  entregasAnalizadas: number;
+  errorMasFrecuente: string;
+  alumnosAfectados: number;
+  plantillaConMasErrores: string;
+}
+
+export interface ErrorFrecuenteCursoDTO {
+  tipoError: string;
+  label: string;
+  porcentaje: number;
+  cantidadEntregasAfectadas: number;
+}
+
+export interface PatronDetectadoCursoDTO {
+  tipoError: string;
+  label: string;
+  ejerciciosAfectados: number;
+  alumnosAfectados: number;
+}
+
+export interface AlumnoMasAfectadoCursoDTO {
+  idAlumno: string;
+  nombre: string;
+  apellido: string;
+  totalErrores: number;
+  ejerciciosConErrores: number;
+}
+
+export interface DistribucionPlantillaCursoDTO {
+  categoria: 'LIBRO_DIARIO' | 'LIBRO_MAYOR' | 'HOJA_TRABAJO' | 'IVA';
+  label: string;
+  cantidadErrores: number;
+  porcentaje: number;
+}
+
+export interface DiagnosticoIaCursoDTO {
+  resumen: string;
+  cosasAReforzar: string[];
+  fechaGeneracion: string;
+  puedeGenerar: boolean;
+  motivoDeshabilitado: string | null;
+}
+
+export interface DiagnosticoIaControlDTO {
+  puedeGenerar: boolean;
+  motivoDeshabilitado: string | null;
+}
+
+export interface AnalisisErroresCursoResponseDTO {
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+    año: number;
+  };
+  kpis: KpisAnalisisErroresCursoDTO;
+  erroresFrecuentes: ErrorFrecuenteCursoDTO[];
+  patronesDetectados: PatronDetectadoCursoDTO[];
+  alumnosMasAfectados: AlumnoMasAfectadoCursoDTO[];
+  distribucionPlantillas: DistribucionPlantillaCursoDTO[];
+  diagnosticoIa: DiagnosticoIaCursoDTO | null;
+  controlIa: DiagnosticoIaControlDTO;
+}
+

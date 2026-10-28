@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import * as correccionService from '../services/correccion.service';
 
 import {
+  cursoIdParamSchema,
   entregaIdParamSchema,
   finalizarCorreccionSchema,
   guardarBorradorCorreccionSchema,
@@ -119,6 +120,16 @@ export async function sugerirRetroalimentacionIa(req: Request, res: Response) {
   });
 
   const resultado = await correccionService.sugerirRetroalimentacionIa(req.user!, params.entregaId);
+
+  res.status(200).json(resultado);
+}
+
+export async function obtenerAnalisisErroresCurso(req: Request, res: Response) {
+  const { params } = cursoIdParamSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await correccionService.obtenerAnalisisErroresCurso(req.user!, params.cursoId);
 
   res.status(200).json(resultado);
 }

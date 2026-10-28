@@ -414,4 +414,41 @@
  *         description: Entrega no encontrada.
  *       409:
  *         description: Conflicto de estado. Debe marcar todas las plantillas como corregidas antes de enviar.
+ *
+ * /correcciones/cursos/{cursoId}/analisis-errores:
+ *   get:
+ *     summary: Obtener análisis estadístico y patrones de errores del curso
+ *     description: |
+ *       Calcula en tiempo real métricas analíticas consolidadas de errores para todas las entregas
+ *       corregidas del curso seleccionado. Incluye KPIs, errores frecuentes, patrones entre ejercicios,
+ *       alumnos más afectados, distribución por plantillas contables y estado del diagnóstico pedagógico con IA
+ *       (evaluando si hay cambios de tendencia estadísticamente significativos según la política Zero Trust).
+ *       Requiere rol DOCENTE.
+ *     tags:
+ *       - Correcciones
+ *     security:
+ *       - oauth2: []
+ *     parameters:
+ *       - in: path
+ *         name: cursoId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Análisis consolidado de errores del curso calculado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AnalisisErroresCursoResponse'
+ *       400:
+ *         description: Parámetro de cursoId inválido.
+ *       401:
+ *         description: Token inválido o inexistente.
+ *       403:
+ *         description: Requiere rol DOCENTE o el curso no pertenece al docente autenticado.
+ *       404:
+ *         description: Curso no encontrado.
  */

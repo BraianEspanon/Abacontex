@@ -3,10 +3,12 @@ import { AuthUser } from '../types/express';
 import { NotFoundError } from '../errors/not-found.error';
 import { BadRequestError } from '../errors/bad-request-error';
 import { ConflictError } from '../errors/conflict.error';
+import { ForbiddenError } from '../errors/forbidden.error';
 import { notificarEjercicioCorregido } from '../socket/socket.server';
 
 import * as docenteRepository from '../repositories/docente.repository';
 import * as correccionRepository from '../repositories/correccion.repository';
+import * as cursoRepository from '../repositories/curso.repository';
 
 import {
   FinalizarCorreccionBodyDTO,
@@ -24,6 +26,7 @@ import {
 import { correccionIaService } from '../integrations/correccion-ia/correccion-ia.service';
 import { ErrorResumenIa } from '../integrations/correccion-ia/correccion-ia.types';
 import {
+  AnalisisErroresCursoResponseDTO,
   CabeceraEjercicioEntregasDTO,
   EspacioTrabajoCorreccionResponseDTO,
   FiltrosEntregasEjercicioDTO,
@@ -34,6 +37,7 @@ import {
 } from '../dto/correccion/correccion.dto';
 import {
   formatearNombresPlantillas,
+  toAnalisisErroresCursoResponse,
   toEspacioTrabajoCorreccionResponse,
   toItemAlumnoEntrega,
   toItemTableroCorreccion,
@@ -623,4 +627,34 @@ export async function sugerirRetroalimentacionIa(
   return {
     sugerencia,
   };
+}
+
+export async function obtenerAnalisisErroresCurso(
+  user: AuthUser,
+  cursoId: number
+): Promise<AnalisisErroresCursoResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Validar que el docente tenga asignado el curso solicitado
+  const cursosAsignados = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosAsignados.includes(cursoId)) {
+    throw new ForbiddenError('No tienes permisos para acceder a las correcciones de este curso.');
+  }
+
+  // 3. Obtener entidad de curso
+  const curso = await cursoRepository.findByIdOrThrow(cursoId);
+
+  // 4. Consultar datos deterministas de errores y diagnóstico previo en el repository
+  const datos = await correccionRepository.findDatosAnalisisErroresCurso(cursoId, docente.id);
+
+  // 5. Mapear y calcular métricas matemáticas deterministas (< 20 ms)
+  return toAnalisisErroresCursoResponse(
+    {
+      idCurso: curso.idCurso,
+      nombreCurso: curso.nombreCurso,
+      año: curso.año,
+    },
+    datos
+  );
 }
