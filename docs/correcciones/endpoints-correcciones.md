@@ -47,9 +47,14 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
 
 | Método | Endpoint | Responsabilidad Principal |
 | :--- | :--- | :--- |
-| **`GET`** | `/correcciones/analisis-errores/cursos` | Lista los cursos a los que el docente tiene acceso para poblar los selectores superiores (`6° II`, `6° III`). |
+| **`GET`** | `/cursos/me` *(Soporte transversal)* | Lista liviana de cursos asignados al usuario autenticado (`idCurso`, `nombreCurso`, `año`). Sirve de soporte unificado para selectores y filtros en toda la plataforma (incluyendo el selector superior de Análisis de Errores). |
 | **`GET`** | `/correcciones/cursos/:cursoId/analisis-errores` | Métricas y analíticas globales del curso calculadas en vivo en < 20 ms (KPIs, gráfico de barras, patrones, alumnos más afectados, distribución por plantilla) + último diagnóstico IA guardado. |
 | **`POST`** | `/correcciones/cursos/:cursoId/sugerir-refuerzo` | **Asistencia IA (Bajo Demanda Inteligente):** Genera o actualiza el diagnóstico pedagógico y temas a reforzar del curso. Protegido contra spam por regla de cambio de tendencia. |
+
+> [!NOTE]
+> **Decisión Arquitectónica (Endpoint Transversal de Cursos):**
+> Originalmente se contempló un endpoint específico `GET /correcciones/analisis-errores/cursos`. Para evitar la proliferación de endpoints idénticos de cursos en cada submódulo y evitar la sobrecarga de `GET /docentes/me/cursos` (que computa métricas complejas de simulación como empresas y alumnos), se implementó `GET /cursos/me` en el módulo de cursos. Este endpoint actúa como servicio transversal ultrarrápido ($< 5\text{ ms}$) para poblar dropdowns y selectores de cursos en cualquier vista del sistema.
+
 
 ### 2.4. Vista Alumno: Consulta de Corrección
 
@@ -160,7 +165,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
   3. Persiste definitivamente los errores detectados en `ErrorCorreccion`.
   4. Dispara una notificación al alumno (en base de datos y vía Socket.IO en tiempo real): *"Tu ejercicio [Título] ha sido corregido"*.
 
-### 3.8. `GET /correcciones/cursos/:cursoId/analisis-errores` — Panel Global de Análisis de Errores
+### 3.9. `GET /correcciones/cursos/:cursoId/analisis-errores` — Panel Global de Análisis de Errores
 * **Path Params:** `cursoId` (número entero).
 * **Lógica y Respuesta:**
   1. Valida que el docente tenga asignado el curso solicitado.
@@ -190,7 +195,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * Si no hay diagnóstico previo ni suficientes datos:
        `diagnosticoIa: null`, `puedeGenerar: false`, `motivoDeshabilitado: "Aún no hay suficiente información analizada para generar el resumen."`
 
-### 3.9. `POST /correcciones/cursos/:cursoId/sugerir-refuerzo` — Generar / Actualizar Diagnóstico de Curso
+### 3.10. `POST /correcciones/cursos/:cursoId/sugerir-refuerzo` — Generar / Actualizar Diagnóstico de Curso
 * **Path Params:** `cursoId` (número entero).
 * **Lógica y Reglas de Negocio:**
   1. Valida permisos del docente sobre el curso.
@@ -202,7 +207,7 @@ Este documento define el diseño arquitectónico, el mapa de endpoints REST, las
      * Realiza un `upsert` en `DiagnosticoCurso` actualizando el contenido y la nueva foto del snapshot (`totalErroresEnSnapshot`, `distribucionEnSnapshot`, etc.).
      * Retorna el diagnóstico generado.
 
-### 3.10. `GET /entregas/:ejercicioId/correccion` — Consulta de Corrección (Alumno)
+### 3.11. `GET /entregas/:ejercicioId/correccion` — Consulta de Corrección (Alumno)
 * **Path Params:** `ejercicioId` (número entero).
 * **Lógica:**
   1. Valida que el alumno pertenezca al curso del ejercicio y que la entrega esté en estado `CORREGIDA` (`fechaCorreccion != null`).

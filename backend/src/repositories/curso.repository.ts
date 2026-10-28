@@ -58,3 +58,59 @@ export async function findByIdsOrThrow(ids: number[]) {
 
   return cursos;
 }
+
+export async function findCursosConAño() {
+  return prisma.curso.findMany({
+    orderBy: {
+      nombreCurso: 'asc',
+    },
+    select: {
+      idCurso: true,
+      nombreCurso: true,
+      año: true,
+    },
+  });
+}
+
+export async function findCursosByDocente(keycloakId: string) {
+  return prisma.curso.findMany({
+    where: {
+      profesores: {
+        some: {
+          profesor: {
+            keycloakId,
+          },
+        },
+      },
+    },
+    orderBy: {
+      nombreCurso: 'asc',
+    },
+    select: {
+      idCurso: true,
+      nombreCurso: true,
+      año: true,
+    },
+  });
+}
+
+export async function findCursoByAlumno(keycloakId: string) {
+  const alumno = await prisma.alumno.findFirst({
+    where: {
+      usuario: {
+        keycloakId,
+      },
+    },
+    select: {
+      curso: {
+        select: {
+          idCurso: true,
+          nombreCurso: true,
+          año: true,
+        },
+      },
+    },
+  });
+
+  return alumno?.curso ? [alumno.curso] : [];
+}
