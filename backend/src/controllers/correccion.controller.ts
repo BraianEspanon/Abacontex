@@ -133,3 +133,13 @@ export async function obtenerAnalisisErroresCurso(req: Request, res: Response) {
 
   res.status(200).json(resultado);
 }
+
+export async function sugerirRefuerzoCurso(req: Request, res: Response) {
+  const { params } = cursoIdParamSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await correccionService.sugerirRefuerzoCurso(req.user!, params.cursoId);
+
+  res.status(201).json(resultado);
+}

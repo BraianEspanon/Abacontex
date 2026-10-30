@@ -1,4 +1,9 @@
-import { EstadoCorreccionPlantilla, Prisma, TipoErrorCorreccion } from '@prisma/client';
+import {
+  DiagnosticoCurso,
+  EstadoCorreccionPlantilla,
+  Prisma,
+  TipoErrorCorreccion,
+} from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 import { ObtenerEjerciciosACorregirQueryDTO } from '../validators/correccion.validator';
 
@@ -1070,26 +1075,62 @@ export async function findDatosAnalisisErroresCurso(
   });
 
   // 3. Último diagnóstico pedagógico guardado con IA para el curso
-  const dbDelegate = db as unknown as {
-    diagnosticoCurso?: {
-      findUnique: (args: unknown) => Promise<DiagnosticoCursoEntity | null>;
-    };
-  };
-
-  const diagnosticoPrevio = dbDelegate.diagnosticoCurso
-    ? await dbDelegate.diagnosticoCurso.findUnique({
-        where: {
-          cursoId_docenteId: {
-            cursoId,
-            docenteId,
-          },
-        },
-      })
-    : null;
+  const diagnosticoPrevio = await db.diagnosticoCurso.findUnique({
+    where: {
+      cursoId_docenteId: {
+        cursoId,
+        docenteId,
+      },
+    },
+  });
 
   return {
     totalEntregasAnalizadas,
     errores,
     diagnosticoPrevio,
   };
+}
+
+export interface UpsertDiagnosticoCursoData {
+  resumenGeneral: string;
+  cosasAReforzar: Prisma.InputJsonValue;
+  totalErroresEnSnapshot: number;
+  errorPrincipalEnSnapshot: string;
+  plantillaPrincipalEnSnapshot: string;
+  distribucionEnSnapshot: Prisma.InputJsonValue;
+}
+
+export async function upsertDiagnosticoCurso(
+  cursoId: number,
+  docenteId: string,
+  data: UpsertDiagnosticoCursoData,
+  tx?: Prisma.TransactionClient
+): Promise<DiagnosticoCurso> {
+  const db = getDbClient(tx);
+  return db.diagnosticoCurso.upsert({
+    where: {
+      cursoId_docenteId: {
+        cursoId,
+        docenteId,
+      },
+    },
+    create: {
+      cursoId,
+      docenteId,
+      resumenGeneral: data.resumenGeneral,
+      cosasAReforzar: data.cosasAReforzar,
+      totalErroresEnSnapshot: data.totalErroresEnSnapshot,
+      errorPrincipalEnSnapshot: data.errorPrincipalEnSnapshot,
+      plantillaPrincipalEnSnapshot: data.plantillaPrincipalEnSnapshot,
+      distribucionEnSnapshot: data.distribucionEnSnapshot,
+    },
+    update: {
+      resumenGeneral: data.resumenGeneral,
+      cosasAReforzar: data.cosasAReforzar,
+      totalErroresEnSnapshot: data.totalErroresEnSnapshot,
+      errorPrincipalEnSnapshot: data.errorPrincipalEnSnapshot,
+      plantillaPrincipalEnSnapshot: data.plantillaPrincipalEnSnapshot,
+      distribucionEnSnapshot: data.distribucionEnSnapshot,
+    },
+  });
 }

@@ -322,14 +322,22 @@ export function hayCambioDeTendencia(
   return false;
 }
 
-export function toAnalisisErroresCursoResponse(
-  curso: {
-    idCurso: number;
-    nombreCurso: string;
-    año: number;
-  },
+export interface MetricasAnalisisCurso {
+  totalErrores: number;
+  totalEntregasAnalizadas: number;
+  erroresFrecuentes: ErrorFrecuenteCursoDTO[];
+  patronesDetectados: PatronDetectadoCursoDTO[];
+  alumnosMasAfectados: AlumnoMasAfectadoCursoDTO[];
+  distribucionPlantillas: DistribucionPlantillaCursoDTO[];
+  kpis: KpisAnalisisErroresCursoDTO;
+  errorPrincipal: string;
+  plantillaPrincipal: string;
+  distribucionPorcentajes: Record<string, number>;
+}
+
+export function calcularMetricasAnalisisCurso(
   datos: DatosAnalisisErroresCursoEntity
-): AnalisisErroresCursoResponseDTO {
+): MetricasAnalisisCurso {
   const totalErrores = datos.errores.length;
   const totalEntregasAnalizadas = datos.totalEntregasAnalizadas;
 
@@ -507,16 +515,40 @@ export function toAnalisisErroresCursoResponse(
   const plantillaPrincipal =
     plantillaLider && plantillaLider.cantidadErrores > 0 ? plantillaLider.categoria : 'NINGUNA';
 
-  // 7. Evaluación de Diagnóstico IA y Control del botón
+  return {
+    totalErrores,
+    totalEntregasAnalizadas,
+    erroresFrecuentes,
+    patronesDetectados,
+    alumnosMasAfectados,
+    distribucionPlantillas,
+    kpis,
+    errorPrincipal,
+    plantillaPrincipal,
+    distribucionPorcentajes,
+  };
+}
+
+export function toAnalisisErroresCursoResponse(
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+    año: number;
+  },
+  datos: DatosAnalisisErroresCursoEntity
+): AnalisisErroresCursoResponseDTO {
+  const metricas = calcularMetricasAnalisisCurso(datos);
+
+  // Evaluación de Diagnóstico IA y Control del botón
   let diagnosticoIa: DiagnosticoIaCursoDTO | null = null;
   let controlIa: DiagnosticoIaControlDTO;
 
   if (datos.diagnosticoPrevio) {
     const hayCambio = hayCambioDeTendencia(datos.diagnosticoPrevio, {
-      totalErrores,
-      errorPrincipal,
-      plantillaPrincipal,
-      distribucionPorcentajes,
+      totalErrores: metricas.totalErrores,
+      errorPrincipal: metricas.errorPrincipal,
+      plantillaPrincipal: metricas.plantillaPrincipal,
+      distribucionPorcentajes: metricas.distribucionPorcentajes,
     });
 
     const motivoDeshabilitado = hayCambio
@@ -539,7 +571,7 @@ export function toAnalisisErroresCursoResponse(
     };
   } else {
     // Si todavía no hay diagnóstico previo generado
-    if (totalErrores < 10) {
+    if (metricas.totalErrores < 10) {
       controlIa = {
         puedeGenerar: false,
         motivoDeshabilitado:
@@ -555,11 +587,11 @@ export function toAnalisisErroresCursoResponse(
 
   return {
     curso,
-    kpis,
-    erroresFrecuentes,
-    patronesDetectados,
-    alumnosMasAfectados,
-    distribucionPlantillas,
+    kpis: metricas.kpis,
+    erroresFrecuentes: metricas.erroresFrecuentes,
+    patronesDetectados: metricas.patronesDetectados,
+    alumnosMasAfectados: metricas.alumnosMasAfectados,
+    distribucionPlantillas: metricas.distribucionPlantillas,
     diagnosticoIa,
     controlIa,
   };

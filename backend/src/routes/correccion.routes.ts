@@ -27,6 +27,7 @@ import {
   obtenerEntregasEjercicio,
   obtenerEspacioTrabajoCorreccion,
   obtenerFiltrosTablero,
+  sugerirRefuerzoCurso,
   sugerirRetroalimentacionIa,
 } from '../controllers/correccion.controller';
 
@@ -104,6 +105,14 @@ router.get(
   requireRole(ROLES.DOCENTE),
   validate(cursoIdParamSchema),
   obtenerAnalisisErroresCurso
+);
+
+router.post(
+  '/cursos/:cursoId/sugerir-refuerzo',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(cursoIdParamSchema),
+  sugerirRefuerzoCurso
 );
 
 export default router;

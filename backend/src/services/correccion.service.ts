@@ -28,6 +28,7 @@ import { ErrorResumenIa } from '../integrations/correccion-ia/correccion-ia.type
 import {
   AnalisisErroresCursoResponseDTO,
   CabeceraEjercicioEntregasDTO,
+  DiagnosticoIaCursoDTO,
   EspacioTrabajoCorreccionResponseDTO,
   FiltrosEntregasEjercicioDTO,
   ListadoEjerciciosACorregirResponseDTO,
@@ -36,7 +37,9 @@ import {
   ResumenTableroCorreccionesDTO,
 } from '../dto/correccion/correccion.dto';
 import {
+  calcularMetricasAnalisisCurso,
   formatearNombresPlantillas,
+  hayCambioDeTendencia,
   toAnalisisErroresCursoResponse,
   toEspacioTrabajoCorreccionResponse,
   toItemAlumnoEntrega,
@@ -657,4 +660,94 @@ export async function obtenerAnalisisErroresCurso(
     },
     datos
   );
+}
+
+export async function sugerirRefuerzoCurso(
+  user: AuthUser,
+  cursoId: number
+): Promise<DiagnosticoIaCursoDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Validar que el docente tenga asignado el curso solicitado
+  const cursosAsignados = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosAsignados.includes(cursoId)) {
+    throw new ForbiddenError('No tienes permisos para acceder a las correcciones de este curso.');
+  }
+
+  // 3. Obtener entidad de curso
+  const curso = await cursoRepository.findByIdOrThrow(cursoId);
+
+  // 4. Consultar datos deterministas de errores y diagnóstico previo en el repository
+  const datos = await correccionRepository.findDatosAnalisisErroresCurso(cursoId, docente.id);
+
+  // 5. Calcular métricas matemáticas deterministas en memoria
+  const metricas = calcularMetricasAnalisisCurso(datos);
+
+  // 6. Guardia de volumen mínimo de datos para diagnóstico grupal: al menos 10 errores
+  if (metricas.totalErrores < 10) {
+    throw new BadRequestError(
+      'Aún no hay suficiente información analizada para generar el resumen (se requieren al menos 10 errores analizados).'
+    );
+  }
+
+  // 7. Guardia Zero Trust: si ya existe diagnóstico previo, debe existir cambio de tendencia estadística
+  if (datos.diagnosticoPrevio) {
+    const hayCambio = hayCambioDeTendencia(datos.diagnosticoPrevio, {
+      totalErrores: metricas.totalErrores,
+      errorPrincipal: metricas.errorPrincipal,
+      plantillaPrincipal: metricas.plantillaPrincipal,
+      distribucionPorcentajes: metricas.distribucionPorcentajes,
+    });
+    /*
+    if (!hayCambio) {
+      throw new BadRequestError(
+        'No se detectaron variaciones en la tendencia de errores que justifiquen una nueva generación.'
+      );
+    }
+      */
+  }
+
+  // 8. Consultar proveedor de IA para generar el diagnóstico pedagógico sintético
+  const distribucionParaIa = metricas.erroresFrecuentes.map((ef) => ({
+    tipoError: ef.tipoError,
+    label: ef.label,
+    porcentaje: ef.porcentaje,
+    cantidadEntregasAfectadas: ef.cantidadEntregasAfectadas,
+  }));
+
+  const diagnosticoGenerado = await correccionIaService.generarDiagnosticoCurso({
+    nombreCurso: curso.nombreCurso,
+    totalErrores: metricas.totalErrores,
+    totalEntregas: metricas.totalEntregasAnalizadas,
+    errorPrincipal: metricas.errorPrincipal,
+    plantillaPrincipal: metricas.plantillaPrincipal,
+    distribucionErrores: distribucionParaIa,
+  });
+
+  // 9. Persistir snapshot en base de datos
+  const diagnosticoGuardado = await correccionRepository.upsertDiagnosticoCurso(
+    cursoId,
+    docente.id,
+    {
+      resumenGeneral: diagnosticoGenerado.resumenGeneral,
+      cosasAReforzar: diagnosticoGenerado.cosasAReforzar,
+      totalErroresEnSnapshot: metricas.totalErrores,
+      errorPrincipalEnSnapshot: metricas.errorPrincipal,
+      plantillaPrincipalEnSnapshot: metricas.plantillaPrincipal,
+      distribucionEnSnapshot: metricas.distribucionPorcentajes,
+    }
+  );
+
+  // 10. Devolver DTO del diagnóstico generado (actualmente vigente, deshabilita regeneración inmediata)
+  return {
+    resumen: diagnosticoGuardado.resumenGeneral,
+    cosasAReforzar: Array.isArray(diagnosticoGuardado.cosasAReforzar)
+      ? (diagnosticoGuardado.cosasAReforzar as string[])
+      : [],
+    fechaGeneracion: diagnosticoGuardado.updatedAt.toISOString(),
+    puedeGenerar: false,
+    motivoDeshabilitado:
+      'El diagnóstico actual se encuentra vigente. No se detectaron cambios en la tendencia de errores del curso.',
+  };
 }
