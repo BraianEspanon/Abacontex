@@ -7,6 +7,7 @@ import { requireRole } from '../middleware/role.middleware';
 import { validate } from '../middleware/validate.middleware';
 
 import {
+  cursoIdParamSchema,
   entregaIdParamSchema,
   finalizarCorreccionSchema,
   guardarBorradorCorreccionSchema,
@@ -21,10 +22,12 @@ import {
   finalizarCorreccion,
   guardarBorradorCorreccion,
   guardarComentarioError,
+  obtenerAnalisisErroresCurso,
   obtenerEjerciciosACorregir,
   obtenerEntregasEjercicio,
   obtenerEspacioTrabajoCorreccion,
   obtenerFiltrosTablero,
+  sugerirRefuerzoCurso,
   sugerirRetroalimentacionIa,
 } from '../controllers/correccion.controller';
 
@@ -94,6 +97,22 @@ router.post(
   requireRole(ROLES.DOCENTE),
   validate(finalizarCorreccionSchema),
   finalizarCorreccion
+);
+
+router.get(
+  '/cursos/:cursoId/analisis-errores',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(cursoIdParamSchema),
+  obtenerAnalisisErroresCurso
+);
+
+router.post(
+  '/cursos/:cursoId/sugerir-refuerzo',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(cursoIdParamSchema),
+  sugerirRefuerzoCurso
 );
 
 export default router;

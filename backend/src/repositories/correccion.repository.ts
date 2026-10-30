@@ -1,4 +1,9 @@
-import { EstadoCorreccionPlantilla, Prisma, TipoErrorCorreccion } from '@prisma/client';
+import {
+  DiagnosticoCurso,
+  EstadoCorreccionPlantilla,
+  Prisma,
+  TipoErrorCorreccion,
+} from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 import { ObtenerEjerciciosACorregirQueryDTO } from '../validators/correccion.validator';
 
@@ -944,4 +949,226 @@ export async function upsertComentarioError(
       comentarioDocente: comentarioLimpio,
     },
   });
+}
+
+export interface DiagnosticoCursoEntity {
+  idDiagnostico: number;
+  cursoId: number;
+  docenteId: string;
+  resumenGeneral: string;
+  cosasAReforzar: unknown;
+  totalErroresEnSnapshot: number;
+  errorPrincipalEnSnapshot: string;
+  plantillaPrincipalEnSnapshot: string;
+  distribucionEnSnapshot: unknown;
+  updatedAt: Date;
+}
+
+export type ErrorAnalisisCursoEntity = Prisma.ErrorCorreccionGetPayload<{
+  select: {
+    idError: true;
+    tipoError: true;
+    ejercicioPlantillaId: true;
+    ejercicioPlantilla: {
+      select: {
+        tipo: true;
+      };
+    };
+    correccion: {
+      select: {
+        idCorreccion: true;
+        entrega: {
+          select: {
+            idEntrega: true;
+            ejercicioId: true;
+            alumnoId: true;
+            alumno: {
+              select: {
+                id: true;
+                usuario: {
+                  select: {
+                    nombre: true;
+                    apellido: true;
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export interface DatosAnalisisErroresCursoEntity {
+  totalEntregasAnalizadas: number;
+  errores: ErrorAnalisisCursoEntity[];
+  diagnosticoPrevio: DiagnosticoCursoEntity | null;
+}
+
+export async function findDatosAnalisisErroresCurso(
+  cursoId: number,
+  docenteId: string,
+  tx?: Prisma.TransactionClient
+): Promise<DatosAnalisisErroresCursoEntity> {
+  const db = getDbClient(tx);
+
+  // 1. Total de entregas corregidas y finalizadas del curso para este docente
+  const totalEntregasAnalizadas = await db.entregaEjercicio.count({
+    where: {
+      ejercicio: {
+        cursoId,
+        docenteId,
+      },
+      correccion: {
+        fechaCorreccion: { not: null },
+      },
+    },
+  });
+
+  // 2. Errores contables persistidos de esas entregas con sus relaciones
+  const errores = await db.errorCorreccion.findMany({
+    where: {
+      correccion: {
+        fechaCorreccion: { not: null },
+        entrega: {
+          ejercicio: {
+            cursoId,
+            docenteId,
+          },
+        },
+      },
+    },
+    select: {
+      idError: true,
+      tipoError: true,
+      ejercicioPlantillaId: true,
+      ejercicioPlantilla: {
+        select: {
+          tipo: true,
+        },
+      },
+      correccion: {
+        select: {
+          idCorreccion: true,
+          entrega: {
+            select: {
+              idEntrega: true,
+              ejercicioId: true,
+              alumnoId: true,
+              alumno: {
+                select: {
+                  id: true,
+                  usuario: {
+                    select: {
+                      nombre: true,
+                      apellido: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // 3. Último diagnóstico pedagógico guardado con IA para el curso
+  const diagnosticoPrevio = await db.diagnosticoCurso.findUnique({
+    where: {
+      cursoId_docenteId: {
+        cursoId,
+        docenteId,
+      },
+    },
+  });
+
+  return {
+    totalEntregasAnalizadas,
+    errores,
+    diagnosticoPrevio,
+  };
+}
+
+export interface UpsertDiagnosticoCursoData {
+  resumenGeneral: string;
+  cosasAReforzar: Prisma.InputJsonValue;
+  totalErroresEnSnapshot: number;
+  errorPrincipalEnSnapshot: string;
+  plantillaPrincipalEnSnapshot: string;
+  distribucionEnSnapshot: Prisma.InputJsonValue;
+}
+
+export async function upsertDiagnosticoCurso(
+  cursoId: number,
+  docenteId: string,
+  data: UpsertDiagnosticoCursoData,
+  tx?: Prisma.TransactionClient
+): Promise<DiagnosticoCurso> {
+  const db = getDbClient(tx);
+  return db.diagnosticoCurso.upsert({
+    where: {
+      cursoId_docenteId: {
+        cursoId,
+        docenteId,
+      },
+    },
+    create: {
+      cursoId,
+      docenteId,
+      resumenGeneral: data.resumenGeneral,
+      cosasAReforzar: data.cosasAReforzar,
+      totalErroresEnSnapshot: data.totalErroresEnSnapshot,
+      errorPrincipalEnSnapshot: data.errorPrincipalEnSnapshot,
+      plantillaPrincipalEnSnapshot: data.plantillaPrincipalEnSnapshot,
+      distribucionEnSnapshot: data.distribucionEnSnapshot,
+    },
+    update: {
+      resumenGeneral: data.resumenGeneral,
+      cosasAReforzar: data.cosasAReforzar,
+      totalErroresEnSnapshot: data.totalErroresEnSnapshot,
+      errorPrincipalEnSnapshot: data.errorPrincipalEnSnapshot,
+      plantillaPrincipalEnSnapshot: data.plantillaPrincipalEnSnapshot,
+      distribucionEnSnapshot: data.distribucionEnSnapshot,
+    },
+  });
+}
+
+export interface ParCursoDocenteDiagnosticoEntity {
+  cursoId: number;
+  nombreCurso: string;
+  docenteId: string;
+  docenteNombre: string;
+}
+
+export async function findParesCursoDocenteParaDiagnostico(
+  tx?: Prisma.TransactionClient
+): Promise<ParCursoDocenteDiagnosticoEntity[]> {
+  const db = getDbClient(tx);
+
+  const asignaciones = await db.profesorCursos.findMany({
+    select: {
+      idCurso: true,
+      idUsuario: true,
+      curso: {
+        select: {
+          nombreCurso: true,
+        },
+      },
+      profesor: {
+        select: {
+          nombre: true,
+          apellido: true,
+        },
+      },
+    },
+  });
+
+  return asignaciones.map((a) => ({
+    cursoId: a.idCurso,
+    nombreCurso: a.curso.nombreCurso,
+    docenteId: a.idUsuario,
+    docenteNombre: `${a.profesor.nombre} ${a.profesor.apellido}`.trim(),
+  }));
 }

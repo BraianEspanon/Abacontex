@@ -414,4 +414,81 @@
  *         description: Entrega no encontrada.
  *       409:
  *         description: Conflicto de estado. Debe marcar todas las plantillas como corregidas antes de enviar.
+ *
+ * /correcciones/cursos/{cursoId}/analisis-errores:
+ *   get:
+ *     summary: Obtener análisis estadístico y patrones de errores del curso
+ *     description: |
+ *       Calcula en tiempo real métricas analíticas consolidadas de errores para todas las entregas
+ *       corregidas del curso seleccionado. Incluye KPIs, errores frecuentes, patrones entre ejercicios,
+ *       alumnos más afectados, distribución por plantillas contables y estado del diagnóstico pedagógico con IA
+ *       (evaluando si hay cambios de tendencia estadísticamente significativos según la política Zero Trust).
+ *       Requiere rol DOCENTE.
+ *     tags:
+ *       - Correcciones
+ *     security:
+ *       - oauth2: []
+ *     parameters:
+ *       - in: path
+ *         name: cursoId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Análisis consolidado de errores del curso calculado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AnalisisErroresCursoResponse'
+ *       400:
+ *         description: Parámetro de cursoId inválido.
+ *       401:
+ *         description: Token inválido o inexistente.
+ *       403:
+ *         description: Requiere rol DOCENTE o el curso no pertenece al docente autenticado.
+ *       404:
+ *         description: Curso no encontrado.
+ *
+ * /correcciones/cursos/{cursoId}/sugerir-refuerzo:
+ *   post:
+ *     summary: Generar o actualizar diagnóstico pedagógico del curso con IA
+ *     description: |
+ *       Solicita a la IA (Groq / LLaMA) la generación o actualización del diagnóstico grupal formativo
+ *       y sugerencias pedagógicas para el curso.
+ *       Aplica política Zero Trust: se requieren al menos 10 errores analizados y, si ya existe un diagnóstico
+ *       previo, exige que se haya detectado un cambio de tendencia estadísticamente significativo.
+ *       Persiste el nuevo snapshot de control en base de datos.
+ *       Requiere rol DOCENTE.
+ *     tags:
+ *       - Correcciones
+ *     security:
+ *       - oauth2: []
+ *     parameters:
+ *       - in: path
+ *         name: cursoId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         example: 1
+ *     responses:
+ *       201:
+ *         description: Diagnóstico pedagógico generado y persistido exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DiagnosticoIaCurso'
+ *       400:
+ *         description: Solicitud rechazada. Muestra insuficiente (< 10 errores) o diagnóstico vigente sin variación estadística en la tendencia de errores.
+ *       401:
+ *         description: Token inválido o inexistente.
+ *       403:
+ *         description: Requiere rol DOCENTE o el curso no pertenece al docente autenticado.
+ *       404:
+ *         description: Curso no encontrado.
+ *       503:
+ *         description: El servicio de asistencia con IA no se encuentra disponible temporalmente.
  */

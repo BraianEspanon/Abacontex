@@ -740,4 +740,216 @@
  *         mensaje:
  *           type: string
  *           example: "La corrección ha sido enviada y notificada al alumno exitosamente."
+ *
+ *     KpisAnalisisErroresCurso:
+ *       type: object
+ *       required:
+ *         - entregasAnalizadas
+ *         - errorMasFrecuente
+ *         - alumnosAfectados
+ *         - plantillaConMasErrores
+ *       properties:
+ *         entregasAnalizadas:
+ *           type: integer
+ *           example: 24
+ *         errorMasFrecuente:
+ *           type: string
+ *           example: "Desbalance Debe / Haber"
+ *         alumnosAfectados:
+ *           type: integer
+ *           example: 15
+ *         plantillaConMasErrores:
+ *           type: string
+ *           example: "Libro Diario"
+ *
+ *     ErrorFrecuenteCurso:
+ *       type: object
+ *       required:
+ *         - tipoError
+ *         - label
+ *         - porcentaje
+ *         - cantidadEntregasAfectadas
+ *       properties:
+ *         tipoError:
+ *           type: string
+ *           example: "DESBALANCE_ASIENTO"
+ *         label:
+ *           type: string
+ *           example: "Desbalance Debe / Haber"
+ *         porcentaje:
+ *           type: number
+ *           example: 45.5
+ *         cantidadEntregasAfectadas:
+ *           type: integer
+ *           example: 12
+ *
+ *     PatronDetectadoCurso:
+ *       type: object
+ *       required:
+ *         - tipoError
+ *         - label
+ *         - ejerciciosAfectados
+ *         - alumnosAfectados
+ *       properties:
+ *         tipoError:
+ *           type: string
+ *           example: "CALCULO_MONTO_INCORRECTO"
+ *         label:
+ *           type: string
+ *           example: "Cálculo incorrecto de importes"
+ *         ejerciciosAfectados:
+ *           type: integer
+ *           example: 3
+ *         alumnosAfectados:
+ *           type: integer
+ *           example: 9
+ *
+ *     AlumnoMasAfectadoCurso:
+ *       type: object
+ *       required:
+ *         - idAlumno
+ *         - nombre
+ *         - apellido
+ *         - totalErrores
+ *         - ejerciciosConErrores
+ *       properties:
+ *         idAlumno:
+ *           type: string
+ *           example: "clx98234jksd9283"
+ *         nombre:
+ *           type: string
+ *           example: "Lucía"
+ *         apellido:
+ *           type: string
+ *           example: "Gómez"
+ *         totalErrores:
+ *           type: integer
+ *           example: 14
+ *         ejerciciosConErrores:
+ *           type: integer
+ *           example: 4
+ *
+ *     DistribucionPlantillaCurso:
+ *       type: object
+ *       required:
+ *         - categoria
+ *         - label
+ *         - cantidadErrores
+ *         - porcentaje
+ *       properties:
+ *         categoria:
+ *           type: string
+ *           enum:
+ *             - LIBRO_DIARIO
+ *             - LIBRO_MAYOR
+ *             - HOJA_TRABAJO
+ *             - IVA
+ *           example: "LIBRO_DIARIO"
+ *         label:
+ *           type: string
+ *           example: "Libro Diario"
+ *         cantidadErrores:
+ *           type: integer
+ *           example: 28
+ *         porcentaje:
+ *           type: number
+ *           example: 65.2
+ *
+ *     DiagnosticoIaCurso:
+ *       type: object
+ *       required:
+ *         - resumen
+ *         - cosasAReforzar
+ *         - fechaGeneracion
+ *         - puedeGenerar
+ *         - motivoDeshabilitado
+ *       properties:
+ *         resumen:
+ *           type: string
+ *           example: "El curso muestra buen dominio de las cuentas de activo pero presenta dificultades recurrentes en la partida doble..."
+ *         cosasAReforzar:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example:
+ *             - "Reforzar la regla de partida doble en asientos de compras con descuentos."
+ *             - "Repasar cálculo y saldo de IVA Débito y Crédito Fiscal."
+ *         fechaGeneracion:
+ *           type: string
+ *           format: date-time
+ *           example: "2026-10-26T18:30:00.000Z"
+ *         puedeGenerar:
+ *           type: boolean
+ *           example: false
+ *         motivoDeshabilitado:
+ *           type: string
+ *           nullable: true
+ *           example: "El diagnóstico actual se encuentra vigente. No se detectaron cambios en la tendencia de errores del curso."
+ *
+ *     DiagnosticoIaControl:
+ *       type: object
+ *       required:
+ *         - puedeGenerar
+ *         - motivoDeshabilitado
+ *       properties:
+ *         puedeGenerar:
+ *           type: boolean
+ *           example: true
+ *         motivoDeshabilitado:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *
+ *     AnalisisErroresCursoResponse:
+ *       type: object
+ *       required:
+ *         - curso
+ *         - kpis
+ *         - erroresFrecuentes
+ *         - patronesDetectados
+ *         - alumnosMasAfectados
+ *         - distribucionPlantillas
+ *         - diagnosticoIa
+ *         - controlIa
+ *       properties:
+ *         curso:
+ *           type: object
+ *           required:
+ *             - idCurso
+ *             - nombreCurso
+ *             - año
+ *           properties:
+ *             idCurso:
+ *               type: integer
+ *               example: 1
+ *             nombreCurso:
+ *               type: string
+ *               example: "5° I"
+ *             año:
+ *               type: integer
+ *               example: 2026
+ *         kpis:
+ *           $ref: '#/components/schemas/KpisAnalisisErroresCurso'
+ *         erroresFrecuentes:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ErrorFrecuenteCurso'
+ *         patronesDetectados:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/PatronDetectadoCurso'
+ *         alumnosMasAfectados:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/AlumnoMasAfectadoCurso'
+ *         distribucionPlantillas:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/DistribucionPlantillaCurso'
+ *         diagnosticoIa:
+ *           allOf:
+ *             - $ref: '#/components/schemas/DiagnosticoIaCurso'
+ *           nullable: true
+ *         controlIa:
+ *           $ref: '#/components/schemas/DiagnosticoIaControl'
  */

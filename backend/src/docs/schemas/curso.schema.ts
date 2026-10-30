@@ -10,7 +10,10 @@
  *           example: 1
  *         nombreCurso:
  *           type: string
- *           example: "5to Año - Div III"
+ *           example: "6° II"
+ *         año:
+ *           type: integer
+ *           example: 2026
  *       required:
  *         - idCurso
  *         - nombreCurso

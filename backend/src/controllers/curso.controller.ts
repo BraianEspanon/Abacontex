@@ -6,3 +6,9 @@ export async function getCursos(req: Request, res: Response) {
 
   res.json(cursos);
 }
+
+export async function getMisCursos(req: Request, res: Response) {
+  const cursos = await cursoService.getMisCursos(req.user!);
+
+  res.status(200).json(cursos);
+}

@@ -64,3 +64,21 @@ export const NOMBRES_PLANTILLAS_LEGIBLES: Record<string, string> = {
   LIBRO_IVA: 'Libro IVA',
   HOJA_TRABAJO: 'Hoja de trabajo',
 };
+
+export const NOMBRES_ERRORES_LEGIBLES: Record<string, string> = {
+  CUENTA_INCORRECTA: 'Cuenta incorrecta',
+  TIPO_MOVIMIENTO_INCORRECTO: 'Tipo de movimiento incorrecto',
+  IMPORTE_INCORRECTO: 'Importe incorrecto',
+  DEBE_HABER_INVERTIDO: 'Debe / Haber invertido',
+  CUENTA_OMITIDA: 'Cuenta omitida / Asiento incompleto',
+  CUENTA_ADICIONAL: 'Cuenta adicional',
+  CUENTA_MAYORIZAR_OMITIDA: 'Cuenta a mayorizar omitida',
+  SALDO_FINAL_INCORRECTO: 'Saldo final incorrecto',
+  TIPO_SALDO_INCORRECTO: 'Tipo de saldo incorrecto',
+  COMPROBANTE_OMITIDO: 'Comprobante omitido',
+  COMPROBANTE_ADICIONAL: 'Comprobante adicional',
+  FECHA_INCORRECTA: 'Fecha incorrecta',
+  CLASIFICACION_SALDO_INCORRECTA: 'Clasificación de saldo incorrecta',
+  RESULTADO_EJERCICIO_INCORRECTO: 'Resultado del ejercicio incorrecto',
+  RESULTADO_EJERCICIO_INCOMPLETO: 'Resultado del ejercicio incompleto',
+};

@@ -70,6 +70,17 @@ export const entregaIdParamSchema = z.object({
 
 export type EntregaIdParamDTO = z.infer<typeof entregaIdParamSchema>['params'];
 
+export const cursoIdParamSchema = z.object({
+  params: z.object({
+    cursoId: z.coerce
+      .number({ message: 'El ID del curso debe ser numérico.' })
+      .int('El ID del curso debe ser un número entero.')
+      .positive('El ID del curso debe ser mayor a 0.'),
+  }),
+});
+
+export type CursoIdParamDTO = z.infer<typeof cursoIdParamSchema>['params'];
+
 export const revisarPlantillaSchema = z.object({
   params: z.object({
     entregaId: z.coerce.number().int().positive(),
