@@ -751,3 +751,96 @@ export async function sugerirRefuerzoCurso(
       'El diagnóstico actual se encuentra vigente. No se detectaron cambios en la tendencia de errores del curso.',
   };
 }
+
+export interface ResultadoProcesamientoDiagnosticosSemanales {
+  evaluados: number;
+  actualizados: number;
+  omitidosSinCambio: number;
+  omitidosPorDatosInsuficientes: number;
+}
+
+export async function procesarDiagnosticosSemanalesCursos(): Promise<ResultadoProcesamientoDiagnosticosSemanales> {
+  const pares = await correccionRepository.findParesCursoDocenteParaDiagnostico();
+
+  let actualizados = 0;
+  let omitidosSinCambio = 0;
+  let omitidosPorDatosInsuficientes = 0;
+
+  for (const par of pares) {
+    try {
+      // 1. Obtener datos deterministas de errores para este curso y docente
+      const datos = await correccionRepository.findDatosAnalisisErroresCurso(
+        par.cursoId,
+        par.docenteId
+      );
+
+      // 2. Calcular métricas en memoria
+      const metricas = calcularMetricasAnalisisCurso(datos);
+
+      // 3. Regla de significancia estadística: se requieren al menos 10 errores analizados
+      if (metricas.totalErrores < 10) {
+        omitidosPorDatosInsuficientes++;
+        continue;
+      }
+
+      // 4. Regla Zero Trust: si ya existe diagnóstico, evaluar si hubo cambio de tendencia
+      if (datos.diagnosticoPrevio) {
+        const hayCambio = hayCambioDeTendencia(datos.diagnosticoPrevio, {
+          totalErrores: metricas.totalErrores,
+          errorPrincipal: metricas.errorPrincipal,
+          plantillaPrincipal: metricas.plantillaPrincipal,
+          distribucionPorcentajes: metricas.distribucionPorcentajes,
+        });
+
+        if (!hayCambio) {
+          omitidosSinCambio++;
+          continue;
+        }
+      }
+
+      // 5. Si hay cambio (o es la primera vez que supera 10 errores), consultar IA
+      const distribucionParaIa = metricas.erroresFrecuentes.map((ef) => ({
+        tipoError: ef.tipoError,
+        label: ef.label,
+        porcentaje: ef.porcentaje,
+        cantidadEntregasAfectadas: ef.cantidadEntregasAfectadas,
+      }));
+
+      const diagnosticoGenerado = await correccionIaService.generarDiagnosticoCurso({
+        nombreCurso: par.nombreCurso,
+        totalErrores: metricas.totalErrores,
+        totalEntregas: metricas.totalEntregasAnalizadas,
+        errorPrincipal: metricas.errorPrincipal,
+        plantillaPrincipal: metricas.plantillaPrincipal,
+        distribucionErrores: distribucionParaIa,
+      });
+
+      // 6. Persistir el nuevo snapshot en BD
+      await correccionRepository.upsertDiagnosticoCurso(par.cursoId, par.docenteId, {
+        resumenGeneral: diagnosticoGenerado.resumenGeneral,
+        cosasAReforzar: diagnosticoGenerado.cosasAReforzar,
+        totalErroresEnSnapshot: metricas.totalErrores,
+        errorPrincipalEnSnapshot: metricas.errorPrincipal,
+        plantillaPrincipalEnSnapshot: metricas.plantillaPrincipal,
+        distribucionEnSnapshot: metricas.distribucionPorcentajes,
+      });
+
+      actualizados++;
+      console.log(
+        `[Scheduler Diagnóstico] Diagnóstico actualizado para curso "${par.nombreCurso}" (Docente: ${par.docenteNombre})`
+      );
+    } catch (error) {
+      console.error(
+        `[Scheduler Diagnóstico] Error al procesar curso ${par.nombreCurso} (Docente: ${par.docenteNombre}):`,
+        error
+      );
+    }
+  }
+
+  return {
+    evaluados: pares.length,
+    actualizados,
+    omitidosSinCambio,
+    omitidosPorDatosInsuficientes,
+  };
+}

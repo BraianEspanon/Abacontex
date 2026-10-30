@@ -1134,3 +1134,41 @@ export async function upsertDiagnosticoCurso(
     },
   });
 }
+
+export interface ParCursoDocenteDiagnosticoEntity {
+  cursoId: number;
+  nombreCurso: string;
+  docenteId: string;
+  docenteNombre: string;
+}
+
+export async function findParesCursoDocenteParaDiagnostico(
+  tx?: Prisma.TransactionClient
+): Promise<ParCursoDocenteDiagnosticoEntity[]> {
+  const db = getDbClient(tx);
+
+  const asignaciones = await db.profesorCursos.findMany({
+    select: {
+      idCurso: true,
+      idUsuario: true,
+      curso: {
+        select: {
+          nombreCurso: true,
+        },
+      },
+      profesor: {
+        select: {
+          nombre: true,
+          apellido: true,
+        },
+      },
+    },
+  });
+
+  return asignaciones.map((a) => ({
+    cursoId: a.idCurso,
+    nombreCurso: a.curso.nombreCurso,
+    docenteId: a.idUsuario,
+    docenteNombre: `${a.profesor.nombre} ${a.profesor.apellido}`.trim(),
+  }));
+}
