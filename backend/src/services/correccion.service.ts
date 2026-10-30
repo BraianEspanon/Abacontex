@@ -699,13 +699,11 @@ export async function sugerirRefuerzoCurso(
       plantillaPrincipal: metricas.plantillaPrincipal,
       distribucionPorcentajes: metricas.distribucionPorcentajes,
     });
-    /*
     if (!hayCambio) {
       throw new BadRequestError(
         'No se detectaron variaciones en la tendencia de errores que justifiquen una nueva generación.'
       );
     }
-      */
   }
 
   // 8. Consultar proveedor de IA para generar el diagnóstico pedagógico sintético
