@@ -82,4 +82,3 @@ export const NOMBRES_ERRORES_LEGIBLES: Record<string, string> = {
   RESULTADO_EJERCICIO_INCORRECTO: 'Resultado del ejercicio incorrecto',
   RESULTADO_EJERCICIO_INCOMPLETO: 'Resultado del ejercicio incompleto',
 };
-

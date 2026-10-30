@@ -234,4 +234,3 @@ export interface AnalisisErroresCursoResponseDTO {
   diagnosticoIa: DiagnosticoIaCursoDTO | null;
   controlIa: DiagnosticoIaControlDTO;
 }
-
