@@ -1,6 +1,9 @@
+export type TipoNotificacion = 'EJERCICIO_NUEVO' | 'VENCIMIENTO_PROXIMO' | 'EJERCICIO_CORREGIDO';
+
 export interface NotificacionItem {
   idNotificacion: number;
   ejercicioId: number | null;
+  tipo: TipoNotificacion;
   titulo: string;
   mensaje: string;
   leida: boolean;
@@ -32,7 +35,7 @@ export interface MarcarTodasLeidasResponse {
 }
 
 export interface NotificacionSocketEvento {
-  tipo: string;
+  tipo: TipoNotificacion;
   titulo: string;
   mensaje: string;
   data?: {

@@ -39,3 +39,26 @@ export interface DocenteCreado {
   fotoPerfilUrl: string | null;
   fechaAlta: string;
 }
+
+export interface DashboardResumenDocente {
+  cursosActivos: number;
+  empresasActivas: number;
+  alumnos: number;
+  ejerciciosPendientes: number;
+  puntajePromedio: number | null;
+}
+
+export interface DashboardItemPendiente {
+  id: string;
+}
+
+export interface DashboardDocente {
+  resumen: DashboardResumenDocente;
+  evolucionPuntaje: DashboardItemPendiente[];
+  actividadReciente: DashboardItemPendiente[];
+  alumnosRiesgo: DashboardItemPendiente[];
+  ranking: DashboardItemPendiente[];
+  participacion: DashboardItemPendiente[];
+  correcciones: DashboardItemPendiente[];
+  alertas: DashboardItemPendiente[];
+}
