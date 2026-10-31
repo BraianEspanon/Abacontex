@@ -65,6 +65,7 @@ import ResolucionEjercicioDocente from '../pages/docente/ResolucionEjercicioDoce
 import EjerciciosAlumno from '../pages/alumnos/EjerciciosAlumno';
 import DetalleEjercicioAlumno from '../pages/alumnos/DetalleEjercicioAlumno';
 import ResolucionEjercicioAlumno from '../pages/alumnos/ResolucionEjercicioAlumno';
+import InicioAlumno from '../pages/alumnos/InicioAlumno';
 
 export default function AppRouter() {
   return (
@@ -161,6 +162,8 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       >
+        <Route index element={<InicioAlumno />} />
+
         {/* Perfil */}
         <Route path="perfil" element={<PerfilAlumno />} />
         <Route path="perfil/editar" element={<EditarPerfilAlumno />} />
