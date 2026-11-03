@@ -1,4 +1,4 @@
-# **Abacontex**
+﻿# **Abacontex**
 Abacontex es una plataforma ERP educativa. El sistema integra funcionalidades de gestión académica y administrativa junto con herramientas de asistencia pedagógica potenciadas mediante Inteligencia Artificial.
 
 El proyecto se desarrolla bajo una arquitectura web distribuida basada en contenedores, utilizando tecnologías modernas tanto para frontend como backend, priorizando escalabilidad, mantenibilidad y desacoplamiento entre componentes.
@@ -65,11 +65,15 @@ La solución se organiza bajo una estrategia Monorepo, centralizando código fue
 └── README.md
 ```
 
-# Instalación
-A definir
+# Instalación y Operación
 
-# Variables de entorno
-A definir
+- **Entorno de Producción y Operación DevOps**: Consultar el [Manual de Instalación y Operación](docs/manual_instalacion_operacion.md), que detalla requisitos de hardware/software, procedimiento de despliegue paso a paso con Docker Compose Release, configuración de variables de entorno y secretos, gestión de backups, restauración y monitoreo continuo.
+- **Entorno de Desarrollo Local**: Consultar la guía de [Primeros Pasos e Instrucciones](docs/instrucciones.md).
+
+# Variables de Entorno
+
+El proyecto se configura mediante variables de entorno centralizadas en un archivo .env.
+Se provee una plantilla de referencia en [.env.example](.env.example). Para más detalles sobre cada variable, sus valores por entorno y políticas de seguridad, consultar la [Sección de Variables de Entorno del Manual de Instalación y Operación](docs/manual_instalacion_operacion.md#3-configuración-de-variables-de-entorno-y-secretos).
 
 # Política de ramas
 El proyecto utiliza una estrategia de ramas basada en integración progresiva:

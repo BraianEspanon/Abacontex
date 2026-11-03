@@ -5,9 +5,6 @@ services:
 
     container_name: abacontex-backend
 
-    ports:
-      - "${BACKEND_PORT}:3000"
-
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -62,8 +59,6 @@ services:
 
     container_name: abacontex-frontend
 
-    ports:
-      - "${FRONTEND_PORT}:5173"
     environment:
       VITE_API_URL: ${VITE_API_URL}
       VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL}
@@ -94,7 +89,7 @@ services:
       retries: 10
 
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -119,7 +114,7 @@ services:
       GOOGLE_HOSTED_DOMAIN: ${GOOGLE_HOSTED_DOMAIN}
 
       SMTP_DEBUG: ${SMTP_DEBUG}
-      SMTP_STARTTLS: $SMTP_STARTTLS
+      SMTP_STARTTLS: ${SMTP_STARTTLS}
       SMTP_AUTH: ${SMTP_AUTH}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_HOST: ${SMTP_HOST}
@@ -128,9 +123,6 @@ services:
       SMTP_SSL: ${SMTP_SSL}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
-
-    ports:
-      - "${KEYCLOAK_PORT}:8080"
 
     volumes:
       - ./keycloak/themes:/opt/keycloak/themes
@@ -145,6 +137,21 @@ services:
     ports:
       - "${SMTP_PORT}:1025" # SMTP
       - "${MAILPIT_PORT}:8025" # Web UI
+
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: abacontex-proxy-dev
+    restart: always
+    ports:
+      - "${PROXY_HTTP_PORT:-80}:80"
+      - "${PROXY_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./proxy/conf.d/dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./proxy/certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+      - frontend
+      - keycloak
 
 volumes:
   postgres_data:

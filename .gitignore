@@ -1,3 +1,9 @@
 .env
 /generated/prisma
 backend/src/integrations/ocr/prueba.md
+
+# Proxy SSL Certificates & Secrets
+proxy/certs/*.pem
+proxy/certs/*.key
+proxy/certs/*.crt
+!proxy/certs/.gitkeep
