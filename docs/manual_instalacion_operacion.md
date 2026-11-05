@@ -456,6 +456,7 @@ La configuración del proxy se encuentra versionada bajo [`proxy/conf.d/`](../pr
   - `https://abacontex.institucion.edu.ar` $\rightarrow$ Frontend SPA (`frontend:80`)
   - `https://api.abacontex.institucion.edu.ar` $\rightarrow$ Backend API y WebSockets (`backend:3000`)
   - `https://auth.abacontex.institucion.edu.ar` $\rightarrow$ Keycloak IAM (`keycloak:8080`)
+  - **Aislamiento de la Consola de Administración (`/admin`)**: La consola web de Keycloak y sus APIs administrativas (`/admin`) se encuentran **estrictamente restringidas a la red privada VPN (Tailscale: `100.64.0.0/10`) y localhost**. Peticiones provenientes de Internet público son rechazadas de inmediato con código HTTP `403 Forbidden`, mitigando ataques de fuerza bruta o explotación de credenciales superadministradoras.
   - **Redirección Global (Puerto 80)**: Redirige automáticamente todo el tráfico entrante HTTP hacia HTTPS mediante código de estado `301`, reservando la ruta `/.well-known/acme-challenge/` para validaciones automáticas de Certbot / Let's Encrypt.
   - **Hardening de Seguridad**: Peticiones directas a la IP cruda o con dominios no reconocidos son rechazadas inmediatamente (`return 444`) para mitigar escaneos de bots y ataques automatizados.
 
@@ -865,6 +866,7 @@ Antes de habilitar el acceso a los usuarios finales de la institución, complete
 - [ ] **Permisos del `.env`**: El archivo tiene permisos `600` (`chmod 600 .env`) y pertenece a un usuario no privilegiado.
 - [ ] **Entorno fijado**: La variable `ENVIRONMENT` y `VITE_ENVIRONMENT` está establecida en `production`.
 - [ ] **Firewall y Puertos**: Solo los puertos 80 y 443 (HTTP/HTTPS) están expuestos públicamente en el firewall perimetral (Cloud Security Group / Hosting). El puerto 22 (SSH) se encuentra completamente cerrado a Internet público y restringido a la red privada o VPN de administración (ej. Tailscale/WireGuard). PostgreSQL (5432) **no** es accesible desde el exterior.
+- [ ] **Consola Admin de Keycloak restringida**: La ruta `/admin` de Keycloak está bloqueada para el tráfico público en Nginx (HTTP 403 Forbidden) y solo es accesible a través de la red privada VPN (Tailscale) o localhost.
 - [ ] **Certificados SSL/TLS**: Los certificados de Let's Encrypt o corporativos están instalados, activos y con renovación automática comprobada (`certbot renew --dry-run`).
 - [ ] **Cabeceras de Proxy Reverso**: Nginx tiene configurado el pase de cabeceras de proxy (`Host`, `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`).
 - [ ] **WebSockets**: La ruta `/socket.io/` en Nginx tiene configuradas las cabeceras `Upgrade` y `Connection "Upgrade"`.
