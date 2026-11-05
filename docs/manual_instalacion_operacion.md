@@ -902,6 +902,15 @@ docker image prune -a --filter "until=168h" -f
   2. Recree los contenedores para regenerar el archivo `config.js`: `docker compose -f docker-compose.release.yml up -d --force-recreate frontend keycloak`.
   3. Pruebe en una pestaña de incógnito o fuerce el refresco sin caché en el navegador (`Ctrl + Shift + R`).
 
+#### 8. Fallo en WebSockets / Notificaciones: "[Socket.IO] Error de conexión: Invalid namespace"
+- **Causa**:
+  1. La variable `VITE_SOCKET_URL` contiene un subpath REST (ej. `https://abacontex.../api`), provocando que la librería cliente de Socket.IO interprete `/api` como un Namespace en lugar del host base del servidor.
+  2. La variable `CORS_ORIGIN` no incluye el dominio HTTPS público del frontend.
+- **Solución**:
+  1. En `.env`, asegúrese de que `VITE_SOCKET_URL` apunte al origen raíz sin subrutas (`https://abacontex.institucion.edu.ar`) y que `CORS_ORIGIN` coincida con el dominio del frontend.
+  2. Aplique los cambios recreando los contenedores: `docker compose -f docker-compose.release.yml up -d --force-recreate backend frontend`.
+  3. Verifique en la consola del navegador que se emita el mensaje `[Socket.IO] Conectado exitosamente al servidor`.
+
 ---
 
 ## 7. Checklist de Puesta en Producción
@@ -915,7 +924,7 @@ Antes de habilitar el acceso a los usuarios finales de la institución, complete
 - [ ] **Administración y Realm Master de Keycloak restringidos**: Las rutas `/admin` y `/realms/master` están bloqueadas para el tráfico público en Nginx (HTTP 403 / 404 en modo sigilo) y solo son accesibles a través de la red privada VPN (Tailscale) o localhost.
 - [ ] **Certificados SSL/TLS**: Los certificados de Let's Encrypt o corporativos están instalados, activos y con renovación automática comprobada (`certbot renew --dry-run`).
 - [ ] **Cabeceras de Proxy Reverso**: Nginx tiene configurado el pase de cabeceras de proxy (`Host`, `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`).
-- [ ] **WebSockets**: La ruta `/socket.io/` en Nginx tiene configuradas las cabeceras `Upgrade` y `Connection "Upgrade"`.
+- [ ] **WebSockets**: La ruta `/socket.io/` en Nginx tiene configuradas las cabeceras `Upgrade` y `Connection "Upgrade"`, y las variables `VITE_SOCKET_URL` y `CORS_ORIGIN` apuntan al dominio público oficial.
 - [ ] **Tags inmutables**: Se utilizan versiones etiquetadas (ej. `v1.0.0`) y no `staging` o `latest` no controlado en producción.
 - [ ] **Google OAuth**: Las credenciales de Google OAuth están activas y el Hosted Domain está restringido a la institución (`ipgsanmartin.edu.ar`).
 - [ ] **Servicio SMTP**: Se verificó el envío real de un correo de prueba de invitación o reseteo de clave.
