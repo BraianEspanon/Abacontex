@@ -146,12 +146,20 @@ Los requerimientos de hardware dependen de la concurrencia de alumnos, cursos si
 ### 2.3. Requisitos de Red, Dominios y Puertos
 
 #### Dominios y DNS requeridos
-Para un despliegue en producción con SSL/TLS se recomienda disponer de un dominio o subdominios que apunten a la IP pública del servidor:
-- **Frontend / Portal**: `https://abacontex.institucion.edu.ar`
-- **Backend API**: `https://api.abacontex.institucion.edu.ar`
-- **Keycloak IAM**: `https://auth.abacontex.institucion.edu.ar`
+Para un despliegue en producción con SSL/TLS, la arquitectura soporta de forma nativa dos modelos de resolución:
 
-*(Alternativamente, puede utilizarse un único dominio con enrutamiento por rutas: `/`, `/api` y `/auth`).*
+1. **Modelo Unificado por Rutas (Recomendado para servidores individuales / FQDN Cloud como Azure):**
+   Un único nombre de dominio centraliza todos los servicios bajo el mismo origen HTTPS, eliminando problemas de CORS entre dominios y simplificando la gestión de certificados a un único archivo SSL:
+   - **Plataforma Integral**: `https://abacontex.institucion.edu.ar` (o FQDN provisto por el proveedor cloud, ej. `abacontex.region.cloudapp.azure.com`).
+   - Rutas enrutadas internamente: `/` (Frontend), `/api/` (Backend), `/socket.io/` (WebSockets) y `/realms/` (Keycloak IAM).
+
+2. **Modelo por Subdominios Dedicados (Arquitectura Enterprise):**
+   Si la institución delega su propia zona DNS y prefiere separar las fronteras de origen:
+   - **Frontend / Portal**: `https://abacontex.institucion.edu.ar`
+   - **Backend API**: `https://api.abacontex.institucion.edu.ar`
+   - **Keycloak IAM**: `https://auth.abacontex.institucion.edu.ar`
+
+*Ambos modelos se encuentran preconfigurados en el Reverse Proxy Nginx ([`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf)).*
 
 #### Matriz de Puertos
 
@@ -275,6 +283,17 @@ A continuación se detallan todas las variables agrupadas por subsistema:
 |---|---|---|---|
 | `BACKEND_TAG` | Tag Docker | `v1.0.0` (o `latest`) | Tag de la imagen del backend en GitHub Container Registry (`ghcr.io/braianespanon/abacontex-backend`). |
 | `FRONTEND_TAG` | Tag Docker | `v1.0.0` (o `latest`) | Tag de la imagen del frontend en GitHub Container Registry (`ghcr.io/braianespanon/abacontex-frontend`). |
+
+> [!NOTE]
+> **Configuración en `.env` según el Modelo de Dominio Elegido:**
+> - **Modelo Unificado por Rutas (Recomendado para VPS / Azure VM con un solo FQDN):**
+>   - `KEYCLOAK_HOSTNAME=abacontex.institucion.edu.ar` (o `abacontex.region.cloudapp.azure.com`)
+>   - `FRONTEND_URL=https://abacontex.institucion.edu.ar`
+>   - `VITE_API_URL=https://abacontex.institucion.edu.ar/api`
+>   - `VITE_KEYCLOAK_URL=https://abacontex.institucion.edu.ar`
+>   - `VITE_KEYCLOAK_REDIRECT_URI=https://abacontex.institucion.edu.ar/*`
+> - **Modelo por Subdominios Dedicados:**
+>   - Se definen las URLs separadas (`api.abacontex...`, `auth.abacontex...`) tal como se ilustra en las tablas 2, 3 y 4.
 
 ---
 
@@ -470,14 +489,29 @@ El archivo [`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf) ya se enc
    ```
    Esto creará `proxy/certs/fullchain.pem` y `proxy/certs/privkey.pem`, permitiendo que el contenedor Nginx arranque de inmediato con HTTPS.
 
-2. **Certificados Oficiales en Producción (Let's Encrypt / Corporativos):**
-   Al contar con el dominio institucional o gratuito (ej. DuckDNS), obtenga los certificados con Certbot y colóquelos en `proxy/certs/`:
-   - `proxy/certs/fullchain.pem`
-   - `proxy/certs/privkey.pem`
-   
-   Luego, recargue la configuración de Nginx en caliente sin interrumpir el servicio:
+2. **Certificados Oficiales en Producción (Let's Encrypt con Certbot):**
+   Al contar con el dominio apuntado a la IP del servidor, emita los certificados oficiales gratuitos:
    ```bash
-   docker exec abacontex-proxy-prod nginx -s reload
+   # 1. Detener momentáneamente el proxy para liberar el puerto 80:
+   docker compose -f docker-compose.release.yml stop reverse-proxy
+
+   # 2. Emitir certificados con Certbot en modo standalone:
+   sudo certbot certonly --standalone -d abacontex.institucion.edu.ar
+
+   # 3. Copiar los certificados emitidos al directorio proxy/certs/ del proyecto:
+   sudo cp /etc/letsencrypt/live/abacontex.institucion.edu.ar/fullchain.pem proxy/certs/
+   sudo cp /etc/letsencrypt/live/abacontex.institucion.edu.ar/privkey.pem proxy/certs/
+   sudo chown $(whoami):$(whoami) proxy/certs/*.pem
+
+   # 4. Iniciar nuevamente el proxy:
+   docker compose -f docker-compose.release.yml start reverse-proxy
+   ```
+
+   **Automatización de Renovación en Cron:**
+   Para renovar automáticamente antes de su vencimiento (cada 90 días) y recargar Nginx en caliente:
+   ```bash
+   # Añadir al crontab del host (crontab -e):
+   0 3 1 * * certbot renew --quiet --deploy-hook "cp /etc/letsencrypt/live/abacontex.institucion.edu.ar/*.pem /opt/abacontex/proxy/certs/ && docker exec abacontex-proxy-prod nginx -s reload"
    ```
 
 3. El archivo [`.gitignore`](../.gitignore) protege automáticamente el directorio `proxy/certs/` para asegurar que ninguna clave privada sea commiteada en el repositorio.
@@ -855,6 +889,13 @@ docker image prune -a --filter "until=168h" -f
 #### 6. Error en Keycloak: "Solo se permiten correos institucionales (@ipgsanmartin.edu.ar)"
 - **Causa**: El usuario intenta registrarse o iniciar sesión con una cuenta de correo cuyo dominio no coincide con la validación de expresión regular configurada en el User Profile del realm de producción.
 - **Solución**: Ingrese a la consola de Keycloak con el usuario administrador > Realm Settings > User Profile > seleccione el atributo `email` > pestaña Validations > edite la regla `pattern` para incorporar el dominio de la institución (o elimine la validación por regex si se desea permitir cualquier dominio de correo válido).
+
+#### 7. Redirección errónea hacia "https://localhost" al crear usuario o iniciar sesión
+- **Causa**: Las variables `VITE_KEYCLOAK_URL` y/o `KEYCLOAK_HOSTNAME` en el archivo `.env` del servidor conservan el valor por defecto `localhost` (o `http://localhost:8080`), o el navegador del cliente mantiene en caché la versión previa de `config.js`.
+- **Solución**:
+  1. En `.env`, configure `KEYCLOAK_HOSTNAME` con el FQDN del servidor (ej. `abacontex.institucion.edu.ar` o el dominio de Azure) y `VITE_KEYCLOAK_URL=https://abacontex.institucion.edu.ar`.
+  2. Recree los contenedores para regenerar el archivo `config.js`: `docker compose -f docker-compose.release.yml up -d --force-recreate frontend keycloak`.
+  3. Pruebe en una pestaña de incógnito o fuerce el refresco sin caché en el navegador (`Ctrl + Shift + R`).
 
 ---
 
