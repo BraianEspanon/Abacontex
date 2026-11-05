@@ -345,6 +345,8 @@ Estructura de archivos requerida en el servidor para producción:
 /opt/abacontex/
 ├── .env                              # Variables de producción (creado en el paso siguiente)
 ├── docker-compose.release.yml         # Archivo oficial de orquestación de producción
+├── scripts/
+│   └── backup.sh                     # Script ejecutable de respaldo automatizado
 ├── postgres/
 │   └── init/
 │       └── 01-init-keycloak-db.sql   # Inicialización de la base de datos de Keycloak
@@ -498,43 +500,53 @@ docker exec -t abacontex-postgres-prod pg_dump -U postgres -d keycloak | gzip > 
 
 ### 5.3. Automatización con Cron en el Host
 
-Cree un script automatizado que respalde ambas bases de datos con control de retención:
+El repositorio incluye el script automatizado [`scripts/backup.sh`](../scripts/backup.sh) que respalda ambas bases de datos con control de retención y verificación de integridad:
 
-`/opt/scripts/backup_abacontex.sh`:
 ```bash
 #!/bin/bash
 set -e
 
-BACKUP_DIR="/opt/backups/database"
+# ==============================================================================
+# Abacontex - Script de Respaldo Automatizado de Base de Datos PostgreSQL
+# ==============================================================================
+
+BACKUP_DIR="${BACKUP_DIR:-/opt/backups/database}"
 DATE=$(date +%Y%m%d_%H%M%S)
-CONTAINER_NAME="abacontex-postgres-prod"
-DB_USER="postgres"
-DAYS_TO_KEEP=7
+CONTAINER_NAME="${POSTGRES_CONTAINER:-abacontex-postgres-prod}"
+DB_USER="${POSTGRES_USER:-postgres}"
+DAYS_TO_KEEP="${BACKUP_DAYS_TO_KEEP:-7}"
 
-mkdir -p $BACKUP_DIR
+mkdir -p "$BACKUP_DIR"
 
+echo "[$(date)] === Iniciando proceso de respaldo de Abacontex ==="
+
+# Respaldo en caliente de ambas bases de datos: ERP (abacontex) e IAM (keycloak)
 for DB_NAME in "abacontex" "keycloak"; do
     BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_$DATE.sql.gz"
-    echo "[$(date)] Iniciando backup de la base de datos $DB_NAME..."
-    docker exec -t $CONTAINER_NAME pg_dump -U $DB_USER -d $DB_NAME | gzip > "$BACKUP_FILE"
+    echo "[$(date)] Generando volcado comprimido de la base '$DB_NAME'..."
 
-    # Verificar que el archivo no esté vacío
+    docker exec -t "$CONTAINER_NAME" pg_dump -U "$DB_USER" -d "$DB_NAME" | gzip > "$BACKUP_FILE"
+
+    # Verificación de integridad: el archivo no debe estar vacío
     if [ -s "$BACKUP_FILE" ]; then
-        echo "[$(date)] Backup exitoso de $DB_NAME: $BACKUP_FILE ($(du -sh $BACKUP_FILE | awk '{print $1}'))"
+        FILE_SIZE=$(du -sh "$BACKUP_FILE" | awk '{print $1}')
+        echo "[$(date)] [OK] Respaldo exitoso de '$DB_NAME': $BACKUP_FILE ($FILE_SIZE)"
     else
-        echo "[$(date)] ERROR: El archivo de backup de $DB_NAME está vacío."
+        echo "[$(date)] [ERROR] El archivo de respaldo de '$DB_NAME' está vacío."
         exit 1
     fi
 done
 
-# Eliminar respaldos con más de N días
-find $BACKUP_DIR -type f -name "*.sql.gz" -mtime +$DAYS_TO_KEEP -delete
-echo "[$(date)] Limpieza de backups anteriores a $DAYS_TO_KEEP días completada."
+# Política de rotación: eliminar respaldos con más de N días
+echo "[$(date)] Aplicando política de retención (conservar últimos $DAYS_TO_KEEP días)..."
+find "$BACKUP_DIR" -type f -name "*.sql.gz" -mtime +"$DAYS_TO_KEEP" -delete
+
+echo "[$(date)] === Respaldo finalizado exitosamente ==="
 ```
 
 Asignar permisos de ejecución:
 ```bash
-chmod +x /opt/scripts/backup_abacontex.sh
+chmod +x /opt/abacontex/scripts/backup.sh
 ```
 
 Programar la ejecución en el `crontab` del host (ejecutar todos los días a las 02:00 AM):
@@ -543,7 +555,7 @@ sudo crontab -e
 ```
 Agregar la siguiente línea:
 ```text
-0 2 * * * /opt/scripts/backup_abacontex.sh >> /var/log/abacontex_backup.log 2>&1
+0 2 * * * /opt/abacontex/scripts/backup.sh >> /var/log/abacontex_backup.log 2>&1
 ```
 
 ---
@@ -690,39 +702,64 @@ docker stats --no-stream
 
 ### 6.4. Procedimiento de Actualización de Versión (Upgrade / Rollback)
 
-Cuando el equipo de desarrollo publica una nueva versión etiquetada (ej. `v1.1.0`):
+La plataforma opera bajo un modelo de **Entrega Continua Híbrida (Continuous Delivery)**:
+- **Automatizado (CI):** El pipeline de GitHub Actions compila, valida y promueve de forma automática las imágenes probadas en staging hacia GitHub Container Registry (GHCR) etiquetadas con la versión inmutable (`vX.Y.Z`) y con el tag flotante `latest`.
+- **Controlado (CD en Producción):** La aplicación de una nueva versión en el servidor de producción se ejecuta de forma planificada durante una **ventana de mantenimiento** acordada con la institución, resguardando la concurrencia de alumnos y la integridad de las operaciones contables activas.
 
-1. **Editar el archivo `.env`** e indicar los nuevos tags:
+Cuando el equipo de desarrollo publica una nueva versión oficial (ej. `v1.1.0`), el mantenedor debe seguir este procedimiento:
+
+#### Paso 0: Respaldo Preventivo Inmediato
+Antes de alterar versiones o ejecutar migraciones de base de datos, genere una instantánea de resguardo de ambas bases:
+```bash
+/opt/abacontex/scripts/backup.sh
+```
+*(Garantiza un punto de restauración exacto e inmediato en caso de que las nuevas migraciones SQL requieran ser revertidas).*
+
+#### Paso 1: Parametrizar la nueva versión en `.env`
+Edite el archivo `.env` e indique las etiquetas de la nueva versión:
+```env
+BACKEND_TAG=v1.1.0
+FRONTEND_TAG=v1.1.0
+```
+
+#### Paso 2: Descargar las nuevas imágenes oficiales
+```bash
+docker compose -f docker-compose.release.yml pull
+```
+
+#### Paso 3: Recrear los contenedores con mínimo tiempo de inactividad
+```bash
+docker compose -f docker-compose.release.yml up -d --remove-orphans
+```
+
+#### Paso 4: Validar migraciones y estado de salud
+Al iniciar, el backend ejecutará automáticamente `npx prisma migrate deploy`. Verifique que no hayan ocurrido inconsistencias:
+```bash
+# Validar logs de migraciones en el backend
+docker compose -f docker-compose.release.yml logs backend | grep -i "migrate"
+
+# Validar que los contenedores vuelvan a figurar como healthy
+docker compose -f docker-compose.release.yml ps
+```
+
+#### Paso 5: Procedimiento de Rollback Inmediato
+En caso de detectar un fallo crítico en la nueva versión (errores 500 no contemplados o incompatibilidad):
+1. Restaure las etiquetas anteriores en `.env`:
    ```env
-   BACKEND_TAG=v1.1.0
-   FRONTEND_TAG=v1.1.0
+   BACKEND_TAG=v1.0.0
+   FRONTEND_TAG=v1.0.0
    ```
-
-2. **Descargar las nuevas imágenes**:
-   ```bash
-   docker compose -f docker-compose.release.yml pull
-   ```
-
-3. **Recrear los contenedores con mínimo tiempo de inactividad**:
-   ```bash
-   docker compose -f docker-compose.release.yml up -d --remove-orphans
-   ```
-
-4. **Verificar que las migraciones se hayan ejecutado**:
-   ```bash
-   docker compose -f docker-compose.release.yml logs backend | grep "migrations"
-   ```
-
-5. **Procedimiento de Rollback Inmediato**:
-   En caso de detectar un fallo crítico en la nueva versión, modifique nuevamente las etiquetas en `.env` hacia la versión anterior estable (ej. `v1.0.0`) y ejecute:
+2. Si la migración corrompió datos o no es retrocompatible, restaure el dump tomado en el Paso 0 (siguiendo la Sección 5.5).
+3. Recree los contenedores con la versión previa:
    ```bash
    docker compose -f docker-compose.release.yml up -d
    ```
 
-6. **Mantenimiento y limpieza periódica de imágenes huérfanas**:
-   ```bash
-   docker image prune -a --filter "until=168h" -f
-   ```
+#### Paso 6: Mantenimiento y limpieza periódica de imágenes huérfanas
+Una vez verificada la estabilidad del nuevo release, limpie imágenes antiguas del host:
+```bash
+docker image prune -a --filter "until=168h" -f
+```
 
 ---
 
