@@ -26,7 +26,14 @@ export function conectarSocket(initialToken?: string): Socket {
     socket.disconnect();
   }
 
-  socket = io(config.API_URL, {
+  // Determina la URL base para WebSockets (sin el subpath /api para evitar colisión de namespace):
+  const socketUrl =
+    config.SOCKET_URL ||
+    (config.API_URL && config.API_URL.startsWith('http')
+      ? new URL(config.API_URL).origin
+      : undefined);
+
+  socket = io(socketUrl, {
     auth: (cb: (data: { token?: string }) => void) => {
       // Siempre provee el token fresco de Keycloak (o el inicial) en cada intento de conexión
       cb({ token: keycloak.token || initialToken });

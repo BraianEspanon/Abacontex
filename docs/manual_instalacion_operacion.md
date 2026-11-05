@@ -235,6 +235,7 @@ A continuación se detallan todas las variables agrupadas por subsistema:
 | `BACKEND_PORT` | Número | `3000` | Puerto en el host donde escucha la API Express. |
 | `ENVIRONMENT` / `VITE_ENVIRONMENT` | Enum | `production` | Entorno de ejecución (`production`). Deshabilita Swagger/Scalar público y ejecuta únicamente seeds de sistema (`systemSeeds`), omitiendo datos demo. |
 | `FRONTEND_URL` | URL | `https://abacontex.institucion.edu.ar` | URL base del frontend para emisión de links y configuración de CORS. |
+| `CORS_ORIGIN` | Lista URLs | `https://abacontex.institucion.edu.ar` | Orígenes web autorizados explícitamente para peticiones CORS y conexiones WebSockets (Socket.IO). |
 | `KEYCLOAK_REALM` | Texto | `abacontex` | Nombre del Realm configurado en Keycloak. |
 | `KEYCLOAK_BASE_URL` | URL | `http://keycloak:8080` | URL de resolución interna dentro de la red Docker entre Backend y Keycloak. |
 | `KEYCLOAK_ISSUER` | URL | `https://auth.abacontex.institucion.edu.ar/realms/abacontex` | Emisor del token JWT esperado para validar firmas de autenticación. |
@@ -265,6 +266,7 @@ A continuación se detallan todas las variables agrupadas por subsistema:
 |---|---|---|---|
 | `FRONTEND_PORT` | Número | `80` (o `5173`) | Puerto del contenedor frontend en host (en release mapea al puerto 80 interno de Nginx). |
 | `VITE_API_URL` | URL | `https://api.abacontex.institucion.edu.ar` | URL accesible desde el navegador del cliente hacia la API Backend. |
+| `VITE_SOCKET_URL` | URL | `https://abacontex.institucion.edu.ar` (o `https://api.abacontex...`) | URL base accesible por el navegador para establecer la conexión persistente con WebSockets (Socket.IO). |
 | `VITE_KEYCLOAK_URL` | URL | `https://auth.abacontex.institucion.edu.ar` | URL accesible desde el navegador del cliente hacia Keycloak. |
 | `VITE_KEYCLOAK_REALM` | Texto | `abacontex` | Realm de Keycloak. |
 | `VITE_KEYCLOAK_CLIENT` | Texto | `frontend` | Cliente público configurado en Keycloak. |
@@ -289,7 +291,9 @@ A continuación se detallan todas las variables agrupadas por subsistema:
 > - **Modelo Unificado por Rutas (Recomendado para VPS / Azure VM con un solo FQDN):**
 >   - `KEYCLOAK_HOSTNAME=abacontex.institucion.edu.ar` (o `abacontex.region.cloudapp.azure.com`)
 >   - `FRONTEND_URL=https://abacontex.institucion.edu.ar`
+>   - `CORS_ORIGIN=https://abacontex.institucion.edu.ar`
 >   - `VITE_API_URL=https://abacontex.institucion.edu.ar/api`
+>   - `VITE_SOCKET_URL=https://abacontex.institucion.edu.ar`
 >   - `VITE_KEYCLOAK_URL=https://abacontex.institucion.edu.ar`
 >   - `VITE_KEYCLOAK_REDIRECT_URI=https://abacontex.institucion.edu.ar/*`
 > - **Modelo por Subdominios Dedicados:**

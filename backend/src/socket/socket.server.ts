@@ -1,5 +1,5 @@
 import { Server as HttpServer } from 'http';
-import { Server, ServerOptions } from 'socket.io';
+import { Server, ServerOptions, Socket } from 'socket.io';
 import { jwtVerify } from 'jose';
 import { JWKS, KEYCLOAK_ISSUER } from '../config/keycloak';
 import { findByKeycloakIdWithDetalles } from '../repositories/usuario.repository';
@@ -51,9 +51,14 @@ export interface NotificacionGenericaPayload {
  * Inicializa la instancia de Socket.IO vinculada al servidor HTTP con middleware de autenticación y CORS restrictivo.
  */
 export function initSocketServer(httpServer: HttpServer): Server {
+  const defaultOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost'];
+  if (process.env.FRONTEND_URL) {
+    defaultOrigins.push(process.env.FRONTEND_URL);
+  }
+
   const allowedOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost'];
+    : defaultOrigins;
 
   const options: Partial<ServerOptions> = {
     cors: {
@@ -66,7 +71,7 @@ export function initSocketServer(httpServer: HttpServer): Server {
   io = new Server(httpServer, options);
 
   // 1. Middleware de Handshake: valida el token ANTES de aceptar la conexión
-  io.use(async (socket, next) => {
+  const authMiddleware = async (socket: Socket, next: (err?: Error) => void) => {
     const rawAuthHeader =
       socket.handshake.headers?.authorization || (socket.handshake.headers?.token as string);
 
@@ -101,10 +106,10 @@ export function initSocketServer(httpServer: HttpServer): Server {
     } catch {
       next(new Error('AUTH_TOKEN_INVALID'));
     }
-  });
+  };
 
   // 2. Conexión autorizada: une automáticamente a las salas de negocio correspondientes
-  io.on('connection', (socket) => {
+  const connectionHandler = (socket: Socket) => {
     const usuario: UsuarioConDetalles | undefined = socket.data.usuario;
 
     if (!usuario) {
@@ -133,15 +138,33 @@ export function initSocketServer(httpServer: HttpServer): Server {
     }
 
     console.log(
-      `[Socket.IO] Conectado y autenticado: ${usuario.nombre} ${usuario.apellido} (${socket.id})`
+      `[Socket.IO] Conectado y autenticado en ${socket.nsp.name}: ${usuario.nombre} ${usuario.apellido} (${socket.id})`
     );
 
     socket.on('disconnect', () => {
       // Desconexión limpia
     });
-  });
+  };
+
+  // Registrar en el namespace raíz '/'
+  io.use(authMiddleware);
+  io.on('connection', connectionHandler);
+
+  // Fallback de compatibilidad: registrar también en el namespace '/api' para clientes con URL legacy
+  const apiNamespace = io.of('/api');
+  apiNamespace.use(authMiddleware);
+  apiNamespace.on('connection', connectionHandler);
 
   return io;
+}
+
+/**
+ * Función auxiliar para emitir a salas en el namespace raíz y en el fallback '/api'
+ */
+function emitirASalas(room: string, event: string, payload: unknown): void {
+  if (!io) return;
+  io.to(room).emit(event, payload);
+  io.of('/api').to(room).emit(event, payload);
 }
 
 /**
@@ -155,15 +178,13 @@ export function getSocketIO(): Server | null {
  * Emite una notificación a todos los alumnos conectados al curso cuando se crea/publica un ejercicio.
  */
 export function notificarNuevoEjercicio(payload: NotificacionNuevoEjercicioPayload): void {
-  if (!io) return;
-
   const room = `curso_${payload.cursoId}`;
 
   // Evento específico para actualizar listas o vistas de ejercicios
-  io.to(room).emit('ejercicio:creado', payload);
+  emitirASalas(room, 'ejercicio:creado', payload);
 
   // Evento genérico para la barra de notificaciones / toasts en el frontend
-  io.to(room).emit('notificacion:nueva', {
+  emitirASalas(room, 'notificacion:nueva', {
     tipo: 'EJERCICIO_NUEVO',
     titulo: 'Nuevo Ejercicio Publicado',
     mensaje: payload.mensaje,
@@ -179,15 +200,13 @@ export function notificarEjercicioCorregido(
   usuarioId: string,
   payload: NotificacionEjercicioCorregidoPayload
 ): void {
-  if (!io) return;
-
   const room = `user_${usuarioId}`;
 
   // Evento específico para actualizar reactivamente la vista de entregas/ejercicios del alumno
-  io.to(room).emit('ejercicio:corregido', payload);
+  emitirASalas(room, 'ejercicio:corregido', payload);
 
   // Evento genérico para la barra de notificaciones / toasts en el frontend
-  io.to(room).emit('notificacion:nueva', {
+  emitirASalas(room, 'notificacion:nueva', {
     tipo: 'EJERCICIO_CORREGIDO',
     titulo: 'Ejercicio corregido',
     mensaje: payload.mensaje,
@@ -200,22 +219,19 @@ export function notificarEjercicioCorregido(
  * Emite una notificación general a una sala de curso.
  */
 export function emitirACurso(cursoId: number | string, evento: string, payload: unknown): void {
-  if (!io) return;
-  io.to(`curso_${cursoId}`).emit(evento, payload);
+  emitirASalas(`curso_${cursoId}`, evento, payload);
 }
 
 /**
  * Emite una notificación general a una sala de empresa.
  */
 export function emitirAEmpresa(empresaId: number | string, evento: string, payload: unknown): void {
-  if (!io) return;
-  io.to(`empresa_${empresaId}`).emit(evento, payload);
+  emitirASalas(`empresa_${empresaId}`, evento, payload);
 }
 
 /**
  * Emite una notificación privada a un usuario específico.
  */
 export function emitirAUsuario(usuarioId: string, evento: string, payload: unknown): void {
-  if (!io) return;
-  io.to(`user_${usuarioId}`).emit(evento, payload);
+  emitirASalas(`user_${usuarioId}`, evento, payload);
 }

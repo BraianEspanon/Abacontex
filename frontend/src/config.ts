@@ -1,5 +1,6 @@
 export const config = window.APP_CONFIG ?? {
   API_URL: import.meta.env.VITE_API_URL,
+  SOCKET_URL: import.meta.env.VITE_SOCKET_URL,
 
   KEYCLOAK_URL: import.meta.env.VITE_KEYCLOAK_URL,
   KEYCLOAK_REALM: import.meta.env.VITE_KEYCLOAK_REALM,

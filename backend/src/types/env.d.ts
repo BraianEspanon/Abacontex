@@ -19,6 +19,7 @@ declare namespace NodeJS {
     SMTP_FROM_NAME: string;
 
     FRONTEND_URL: string;
+    CORS_ORIGIN?: string;
 
     CLOUDINARY_CLOUD_NAME: string;
     CLOUDINARY_API_KEY: string;
