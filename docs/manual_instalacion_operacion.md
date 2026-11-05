@@ -452,46 +452,34 @@ El proyecto incluye el **Reverse Proxy Nginx completamente contenerizado** como 
 La configuración del proxy se encuentra versionada bajo [`proxy/conf.d/`](../proxy/conf.d/) adaptada para cada entorno:
 
 - **Desarrollo (`proxy/conf.d/dev.conf`)**: Utilizado por `docker-compose.yml`. Centraliza el tráfico en `http://localhost`, enruta `/` hacia `frontend:5173` con soporte completo de WebSockets para recarga en vivo (Vite HMR), `/api/` y WebSockets `/socket.io/` hacia `backend:3000`, y `/realms/...` hacia Keycloak.
-- **Producción (`proxy/conf.d/default.conf`)**: Utilizado por `docker-compose.release.yml` y `docker-compose.test.yml`. Configuración optimizada para producción con subdominios institucionales:
-  - `http://abacontex.institucion.edu.ar` $\rightarrow$ Frontend SPA (`frontend:80`)
-  - `http://api.abacontex.institucion.edu.ar` $\rightarrow$ Backend API y WebSockets (`backend:3000`)
-  - `http://auth.abacontex.institucion.edu.ar` $\rightarrow$ Keycloak IAM (`keycloak:8080`)
+- **Producción (`proxy/conf.d/default.conf`)**: Utilizado por `docker-compose.release.yml` y `docker-compose.test.yml`. Configuración optimizada para producción con cifrado SSL/TLS nativo (puerto 443) y redirección obligatoria HTTP (puerto 80) hacia HTTPS:
+  - `https://abacontex.institucion.edu.ar` $\rightarrow$ Frontend SPA (`frontend:80`)
+  - `https://api.abacontex.institucion.edu.ar` $\rightarrow$ Backend API y WebSockets (`backend:3000`)
+  - `https://auth.abacontex.institucion.edu.ar` $\rightarrow$ Keycloak IAM (`keycloak:8080`)
+  - **Redirección Global (Puerto 80)**: Redirige automáticamente todo el tráfico entrante HTTP hacia HTTPS mediante código de estado `301`, reservando la ruta `/.well-known/acme-challenge/` para validaciones automáticas de Certbot / Let's Encrypt.
   - **Hardening de Seguridad**: Peticiones directas a la IP cruda o con dominios no reconocidos son rechazadas inmediatamente (`return 444`) para mitigar escaneos de bots y ataques automatizados.
 
 #### 2. Gestión de Certificados SSL/TLS en Producción
-Para habilitar HTTPS en el proxy contenerizado:
-1. Obtenga los certificados oficiales (por ejemplo, con Certbot standalone o certificados institucionales emitidos para los subdominios).
-2. Coloque los archivos en el directorio montado `proxy/certs/`:
+El archivo [`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf) ya se encuentra **preconfigurado con directivas SSL activas** en el puerto 443. Para que Nginx inicie correctamente requiere la presencia de los certificados en `proxy/certs/`:
+
+1. **Certificados iniciales o de desarrollo (Fallback / Pruebas iniciales):**
+   Si aún no cuenta con un dominio o certificados emitidos, ejecute el script automatizado provisto en el repositorio para generar certificados autofirmados:
+   ```bash
+   ./scripts/generate_ssl_certs.sh
+   ```
+   Esto creará `proxy/certs/fullchain.pem` y `proxy/certs/privkey.pem`, permitiendo que el contenedor Nginx arranque de inmediato con HTTPS.
+
+2. **Certificados Oficiales en Producción (Let's Encrypt / Corporativos):**
+   Al contar con el dominio institucional o gratuito (ej. DuckDNS), obtenga los certificados con Certbot y colóquelos en `proxy/certs/`:
    - `proxy/certs/fullchain.pem`
    - `proxy/certs/privkey.pem`
-3. El archivo [`.gitignore`](../.gitignore) protege automáticamente este directorio para asegurar que ninguna clave privada sea commiteada en el repositorio.
-4. Para activar el cifrado SSL en [`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf), agregue la directiva de escucha SSL y las rutas a los certificados montados:
-   ```nginx
-   server {
-       listen 443 ssl;
-       server_name abacontex.institucion.edu.ar;
-
-       ssl_certificate /etc/nginx/certs/fullchain.pem;
-       ssl_certificate_key /etc/nginx/certs/privkey.pem;
-       ssl_protocols TLSv1.2 TLSv1.3;
-       ssl_ciphers HIGH:!aNULL:!MD5;
-
-       location / {
-           proxy_pass http://frontend_service;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto https;
-       }
-   }
-
-   # Redirección forzosa de HTTP a HTTPS:
-   server {
-       listen 80;
-       server_name abacontex.institucion.edu.ar;
-       return 301 https://$host$request_uri;
-   }
+   
+   Luego, recargue la configuración de Nginx en caliente sin interrumpir el servicio:
+   ```bash
+   docker exec abacontex-proxy-prod nginx -s reload
    ```
+
+3. El archivo [`.gitignore`](../.gitignore) protege automáticamente el directorio `proxy/certs/` para asegurar que ninguna clave privada sea commiteada en el repositorio.
 
 #### 3. Alternativa: Nginx Nativo en el Host
 Si la institución prefiere administrar Nginx a nivel del sistema operativo del servidor (por ejemplo, mediante `apt install nginx certbot python3-certbot-nginx`):
