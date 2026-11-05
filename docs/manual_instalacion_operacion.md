@@ -168,7 +168,7 @@ Para un despliegue en producción con SSL/TLS, la arquitectura soporta de forma 
 | **80** | TCP | Público | Redirección obligatoria HTTP a HTTPS. |
 | **443** | TCP | Público | Tráfico HTTPS cifrado hacia el Reverse Proxy. |
 | **3000** | TCP | Interno / Docker | API Backend de Abacontex (comunicación interna dentro de la red Docker). |
-| **8080** | TCP | Interno / Docker | Interfaz de Keycloak (comunicación interna dentro de la red Docker). |
+| **8080** | TCP | Interno / Docker | Interfaz de Keycloak (comunicación interna dentro de la red Docker). Solo accesible a través del Reverse Proxy. |
 | **5432** | TCP | **Privado / Loopback (`127.0.0.1`)** | PostgreSQL. Enlazado exclusivamente a la interfaz local (`127.0.0.1:5432`) para administración y auditorías seguras mediante túneles SSH. Bloqueado para internet público. |
 | **22** | TCP | **Privado / Red de Gestión (VPN)** | Acceso SSH administrativo restringido a una red privada o VPN de gestión (ej. Tailscale, WireGuard o red interna de administración). El puerto 22 debe encontrarse **completamente bloqueado en el firewall perimetral (Security Group de la nube o firewall perimetral)** hacia Internet público, reduciendo la superficie pública de ataque estrictamente a los puertos web 80 y 443. |
 
@@ -475,7 +475,8 @@ La configuración del proxy se encuentra versionada bajo [`proxy/conf.d/`](../pr
   - `https://abacontex.institucion.edu.ar` $\rightarrow$ Frontend SPA (`frontend:80`)
   - `https://api.abacontex.institucion.edu.ar` $\rightarrow$ Backend API y WebSockets (`backend:3000`)
   - `https://auth.abacontex.institucion.edu.ar` $\rightarrow$ Keycloak IAM (`keycloak:8080`)
-  - **Aislamiento de la Consola de Administración (`/admin`)**: La consola web de Keycloak y sus APIs administrativas (`/admin`) se encuentran **estrictamente restringidas a la red privada VPN (Tailscale: `100.64.0.0/10`) y localhost**. Peticiones provenientes de Internet público son rechazadas de inmediato con código HTTP `403 Forbidden`, mitigando ataques de fuerza bruta o explotación de credenciales superadministradoras.
+  - **Aislamiento Estricto de Administración y Realm Master (`/admin` y `/realms/master`)**: La consola web de Keycloak, sus APIs administrativas (`/admin`) y el login del superadministrador raíz (`/realms/master`) se encuentran **estrictamente restringidos a la red privada VPN (Tailscale: `100.64.0.0/10`) y localhost**. Peticiones provenientes de Internet público son rechazadas de inmediato con código HTTP `403 Forbidden` (camufladas automáticamente con `404 Not Found` mediante la directiva `error_page 403 =404;` en modo sigilo), imposibilitando ataques de fuerza bruta o escaneo contra credenciales superadministradoras.
+  - **Lista Blanca de Rutas Públicas de Keycloak**: El tráfico público hacia Keycloak está limitado por lista blanca estricta a `/realms/abacontex` (login/registro del ERP educativo), `/resources/` (temas y estilos) y `/js/`. Cualquier otra ruta o realm desconocido devuelve un error o código 404.
   - **Redirección Global (Puerto 80)**: Redirige automáticamente todo el tráfico entrante HTTP hacia HTTPS mediante código de estado `301`, reservando la ruta `/.well-known/acme-challenge/` para validaciones automáticas de Certbot / Let's Encrypt.
   - **Hardening de Seguridad**: Peticiones directas a la IP cruda o con dominios no reconocidos son rechazadas inmediatamente (`return 444`) para mitigar escaneos de bots y ataques automatizados.
 
@@ -907,7 +908,7 @@ Antes de habilitar el acceso a los usuarios finales de la institución, complete
 - [ ] **Permisos del `.env`**: El archivo tiene permisos `600` (`chmod 600 .env`) y pertenece a un usuario no privilegiado.
 - [ ] **Entorno fijado**: La variable `ENVIRONMENT` y `VITE_ENVIRONMENT` está establecida en `production`.
 - [ ] **Firewall y Puertos**: Solo los puertos 80 y 443 (HTTP/HTTPS) están expuestos públicamente en el firewall perimetral (Cloud Security Group / Hosting). El puerto 22 (SSH) se encuentra completamente cerrado a Internet público y restringido a la red privada o VPN de administración (ej. Tailscale/WireGuard). PostgreSQL (5432) **no** es accesible desde el exterior.
-- [ ] **Consola Admin de Keycloak restringida**: La ruta `/admin` de Keycloak está bloqueada para el tráfico público en Nginx (HTTP 403 Forbidden) y solo es accesible a través de la red privada VPN (Tailscale) o localhost.
+- [ ] **Administración y Realm Master de Keycloak restringidos**: Las rutas `/admin` y `/realms/master` están bloqueadas para el tráfico público en Nginx (HTTP 403 / 404 en modo sigilo) y solo son accesibles a través de la red privada VPN (Tailscale) o localhost.
 - [ ] **Certificados SSL/TLS**: Los certificados de Let's Encrypt o corporativos están instalados, activos y con renovación automática comprobada (`certbot renew --dry-run`).
 - [ ] **Cabeceras de Proxy Reverso**: Nginx tiene configurado el pase de cabeceras de proxy (`Host`, `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`).
 - [ ] **WebSockets**: La ruta `/socket.io/` en Nginx tiene configuradas las cabeceras `Upgrade` y `Connection "Upgrade"`.
