@@ -47,6 +47,13 @@ services:
       mailpit:
         condition: service_started
 
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   frontend:
     image: ghcr.io/braianespanon/abacontex-frontend:${FRONTEND_TAG}
     container_name: abacontex-frontend-test
@@ -138,9 +145,12 @@ services:
       - ./proxy/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./proxy/certs:/etc/nginx/certs:ro
     depends_on:
-      - backend
-      - frontend
-      - keycloak
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+      keycloak:
+        condition: service_started
 
 volumes:
   postgres_test_data:

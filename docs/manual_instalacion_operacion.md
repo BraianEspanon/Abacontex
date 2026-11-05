@@ -181,7 +181,7 @@ El sistema lee su configuración desde un archivo `.env` ubicado en la raíz del
 
 ### 3.1. Estructura del archivo `.env`
 
-El repositorio incluye un archivo modelo [`/.env.example`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/.env.example) que sirve de base para el entorno productivo.
+El repositorio incluye un archivo modelo [`.env.example`](../.env.example) que sirve de base para el entorno productivo.
 
 ### 3.2. Matriz detallada de variables
 
@@ -296,7 +296,7 @@ chown deploy:deploy .env
 
 ## 4. Procedimiento de Instalación y Despliegue Paso a Paso
 
-El siguiente procedimiento detalla el despliegue estándar en un servidor Linux limpio utilizando el archivo de producción [`docker-compose.release.yml`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/docker-compose.release.yml).
+El siguiente procedimiento detalla el despliegue estándar en un servidor Linux limpio utilizando el archivo de producción [`docker-compose.release.yml`](../docker-compose.release.yml).
 
 ### 4.1. Paso 1: Preparación del Servidor Host
 
@@ -396,20 +396,20 @@ docker compose -f docker-compose.release.yml up -d
 
 #### ¿Qué sucede internamente durante el arranque automático?
 1. **PostgreSQL** arranca y ejecuta su proceso de inicialización en el volumen `postgres_prod_data`. El healthcheck (`pg_isready -U postgres`) verifica que esté aceptando conexiones.
-2. **Backend**: Al detectar que PostgreSQL está saludable, el contenedor inicia su script [`backend/entrypoint.release.sh`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/backend/entrypoint.release.sh):
+2. **Backend**: Al detectar que PostgreSQL está saludable, el contenedor inicia su script [`backend/entrypoint.release.sh`](../backend/entrypoint.release.sh):
    - Ejecuta `npx prisma migrate deploy` (aplica todas las migraciones SQL pendientes sin pérdida de datos).
    - Ejecuta `npx prisma db seed` (al detectar `ENVIRONMENT=production`, ejecuta solo las semillas del sistema `systemSeeds`: roles, planes de cuentas base y tipos de usuario, sin ensuciar la base con datos ficticios demo).
    - Inicia la aplicación con `npm start` (`node dist/server.js`) exponiendo el puerto 3000 y levantando los schedulers internos y servidor WebSockets.
-3. **Keycloak**: Inicia con `start --import-realm` y `KC_PROXY: edge`, consumiendo [`keycloak/realm-export.prod.json`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/keycloak/realm-export.prod.json) para precargar clientes, roles (`ADMIN`, `DOCENTE`, `ALUMNO`) y proveedores de identidad.
-4. **Frontend**: El contenedor Nginx inicia [`frontend/docker-entrypoint.sh`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/frontend/docker-entrypoint.sh), sustituye las variables de entorno en tiempo de ejecución en `config.js` y sirve la aplicación compilada en el puerto 80 del contenedor.
-5. **Reverse Proxy (Nginx)**: El contenedor `abacontex-proxy-prod` inicia utilizando la imagen `nginx:alpine`, monta la configuración de [`proxy/conf.d/default.conf`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/proxy/conf.d/default.conf) y centraliza todo el tráfico HTTP/HTTPS externo hacia los microservicios internos.
+3. **Keycloak**: Inicia con `start --import-realm` y `KC_PROXY_HEADERS: xforwarded`, consumiendo [`keycloak/realm-export.prod.json`](../keycloak/realm-export.prod.json) para precargar clientes, roles (`ADMIN`, `DOCENTE`, `ALUMNO`) y proveedores de identidad.
+4. **Frontend**: El contenedor Nginx inicia [`frontend/docker-entrypoint.sh`](../frontend/docker-entrypoint.sh), sustituye las variables de entorno en tiempo de ejecución en `config.js` y sirve la aplicación compilada en el puerto 80 del contenedor.
+5. **Reverse Proxy (Nginx)**: El contenedor `abacontex-proxy-prod` inicia utilizando la imagen `nginx:alpine`, monta la configuración de [`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf) y centraliza todo el tráfico HTTP/HTTPS externo hacia los microservicios internos.
 
 ### 4.6. Paso 6: Configuración del Reverse Proxy y Certificados SSL/TLS
 
-El proyecto incluye el **Reverse Proxy Nginx completamente contenerizado** como un servicio nativo dentro de [`docker-compose.release.yml`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/docker-compose.release.yml). Esto permite que el sistema sea 100% reproducible y portable tanto en entornos locales de prueba como en servidores de producción sin requerir instalación manual de software web en el sistema operativo host.
+El proyecto incluye el **Reverse Proxy Nginx completamente contenerizado** como un servicio nativo dentro de [`docker-compose.release.yml`](../docker-compose.release.yml). Esto permite que el sistema sea 100% reproducible y portable tanto en entornos locales de prueba como en servidores de producción sin requerir instalación manual de software web en el sistema operativo host.
 
 #### 1. Configuración Centralizada en el Repositorio
-La configuración del proxy se encuentra versionada bajo [`proxy/conf.d/`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/proxy/conf.d/) adaptada para cada entorno:
+La configuración del proxy se encuentra versionada bajo [`proxy/conf.d/`](../proxy/conf.d/) adaptada para cada entorno:
 
 - **Desarrollo (`proxy/conf.d/dev.conf`)**: Utilizado por `docker-compose.yml`. Centraliza el tráfico en `http://localhost`, enruta `/` hacia `frontend:5173` con soporte completo de WebSockets para recarga en vivo (Vite HMR), `/api/` y WebSockets `/socket.io/` hacia `backend:3000`, y `/realms/...` hacia Keycloak.
 - **Producción (`proxy/conf.d/default.conf`)**: Utilizado por `docker-compose.release.yml` y `docker-compose.test.yml`. Configuración optimizada para producción con subdominios institucionales:
@@ -424,11 +424,11 @@ Para habilitar HTTPS en el proxy contenerizado:
 2. Coloque los archivos en el directorio montado `proxy/certs/`:
    - `proxy/certs/fullchain.pem`
    - `proxy/certs/privkey.pem`
-3. El archivo [`.gitignore`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/.gitignore) protege automáticamente este directorio para asegurar que ninguna clave privada sea commiteada en el repositorio.
+3. El archivo [`.gitignore`](../.gitignore) protege automáticamente este directorio para asegurar que ninguna clave privada sea commiteada en el repositorio.
 
 #### 3. Alternativa: Nginx Nativo en el Host
 Si la institución prefiere administrar Nginx a nivel del sistema operativo del servidor (por ejemplo, mediante `apt install nginx certbot python3-certbot-nginx`):
-- Se puede copiar la plantilla desde [`proxy/conf.d/default.conf`](file:///c:/Users/braia/OneDrive/Documentos/GitHub/Abacontex/proxy/conf.d/default.conf) hacia `/etc/nginx/sites-available/abacontex.conf`.
+- Se puede copiar la plantilla desde [`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf) hacia `/etc/nginx/sites-available/abacontex.conf`.
 - En este caso, el servicio `reverse-proxy` de Docker Compose puede deshabilitarse o mapearse en puertos alternativos.
 
 ### 4.7. Paso 7: Verificación del Despliegue (Smoke Testing)
@@ -437,7 +437,7 @@ Si la institución prefiere administrar Nginx a nivel del sistema operativo del 
    ```bash
    docker compose -f docker-compose.release.yml ps
    ```
-   *Todos los servicios deben mostrar estado `Up` y `postgres` debe figurar como `(healthy)`.*
+   *Los servicios `postgres` y `backend` deben figurar en estado `Up (healthy)`. El resto de servicios (`frontend`, `keycloak`, `reverse-proxy`) deben figurar como `Up`.*
 
 2. Validar el endpoint de salud del Backend:
    ```bash
@@ -607,12 +607,19 @@ En caso de fallo crítico o necesidad de recuperación sobre un servidor nuevo:
 
 ### 6.1. Endpoints y Chequeos de Salud (Healthchecks)
 
-| Servicio | Tipo de Chequeo | Mecanismo | Respuesta Esperada |
-|---|---|---|---|
-| **PostgreSQL** | Docker Healthcheck | `CMD-SHELL pg_isready -U postgres` | Exit code `0` |
-| **Backend API** | HTTP GET | `https://api.abacontex.institucion.edu.ar/health` | `HTTP 200` con `{"status":"ok"}` |
-| **Keycloak** | HTTP GET | `https://auth.abacontex.institucion.edu.ar/realms/abacontex` | `HTTP 200` |
-| **Frontend Web** | HTTP GET | `https://abacontex.institucion.edu.ar` | `HTTP 200` |
+La plataforma implementa chequeos de salud automatizados a nivel de orquestación (Docker Compose) y a nivel de capa de aplicación:
+
+| Servicio | Tipo de Chequeo | Mecanismo | Respuesta Esperada | Propósito en Producción |
+|---|---|---|---|---|
+| **PostgreSQL** | Docker Healthcheck | `CMD-SHELL pg_isready -U postgres` | Exit code `0` | El backend espera a que la base acepte queries antes de migrar. |
+| **Backend API** | Docker Healthcheck & HTTP GET | `wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health`<br/>(o `GET /health` externo) | Exit code `0` / `HTTP 200` con `{"status":"ok"}` | El Reverse Proxy espera a que finalicen las migraciones y seeds antes de recibir tráfico público (evita 502). |
+| **Keycloak** | HTTP GET | `https://auth.abacontex.institucion.edu.ar/realms/abacontex` | `HTTP 200` | Verificación de disponibilidad del servicio IAM. |
+| **Frontend Web** | HTTP GET | `https://abacontex.institucion.edu.ar` | `HTTP 200` | Verificación de entrega de la Single Page Application. |
+
+#### Orquestación de dependencias por salud:
+En [`docker-compose.release.yml`](../docker-compose.release.yml):
+1. **`backend`** depende de `postgres` con `condition: service_healthy`: garantiza que no se ejecuten `prisma migrate deploy` ni `prisma db seed` si la base de datos aún no terminó de inicializarse.
+2. **`reverse-proxy`** depende de `backend` con `condition: service_healthy`: garantiza que Nginx no comience a enrutar peticiones de usuarios hasta que el backend haya finalizado sus migraciones y su servidor HTTP esté respondiendo en el puerto 3000.
 
 Se recomienda configurar una herramienta de monitoreo sintético externo (ej. **Uptime Kuma**, **Prometheus Blackbox Exporter** o **Zabbix**) que consulte el endpoint `/health` cada 60 segundos y envíe alertas por Telegram/Email ante caídas de servicio.
 
@@ -719,8 +726,8 @@ Cuando el equipo de desarrollo publica una nueva versión etiquetada (ej. `v1.1.
 - **Solución**: Ingrese a la consola de Keycloak > Clients > `frontend` > Valid Redirect URIs y asegúrese de que figure la URL pública completa o comodín `https://abacontex.institucion.edu.ar/*`.
 
 #### 3. Error en Keycloak: "HTTPS required" o bucle infinito de redirecciones
-- **Causa**: El Reverse Proxy no está enviando las cabeceras `X-Forwarded-Proto https` o falta la variable `KC_PROXY: edge`.
-- **Solución**: Asegúrese de que el bloque Nginx incluya `proxy_set_header X-Forwarded-Proto https;` y que `docker-compose.release.yml` defina `KC_PROXY: edge` (o `KC_PROXY_HEADERS: xforwarded`).
+- **Causa**: El Reverse Proxy no está enviando las cabeceras `X-Forwarded-Proto https` o falta la variable de proxy en Keycloak (`KC_PROXY_HEADERS: xforwarded`).
+- **Solución**: Asegúrese de que el bloque Nginx incluya `proxy_set_header X-Forwarded-Proto $scheme;` (o `https`) y que `docker-compose.release.yml` defina `KC_PROXY_HEADERS: xforwarded` (estándar nativo a partir de Keycloak 26).
 
 #### 4. Fallos en digitalización OCR o correcciones con IA (Error 500)
 - **Causa**: La clave `GEMINI_API_KEY` o `GROQ_API_KEY` ha alcanzado su límite de cuota o es inválida.
