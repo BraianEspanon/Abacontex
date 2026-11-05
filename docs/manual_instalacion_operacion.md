@@ -77,8 +77,7 @@ flowchart TD
         end
 
         subgraph Storage ["Almacenamiento Persistente (Volúmenes)"]
-            VolPG[("postgres_prod_data")]
-            VolKC[("keycloak_prod_data")]
+            VolPG[("postgres_prod_data<br/>(Bases 'abacontex' y 'keycloak')")]
         end
     end
 
@@ -89,8 +88,8 @@ flowchart TD
 
     FrontendCont -.->|Config JS Runtime| Client
     BackendCont -->|Prisma ORM| PostgresCont
+    KeycloakCont -->|JDBC / Driver Postgres| PostgresCont
     PostgresCont --- VolPG
-    KeycloakCont --- VolKC
 
     KeycloakCont <-->|OpenID Connect / OAuth| ExtGoogle
     BackendCont -->|Validación JWT| KeycloakCont
@@ -104,8 +103,8 @@ flowchart TD
 
 1. **Frontend (`abacontex-frontend-prod`)**: Aplicación Single Page Application (SPA) en React + TypeScript servida por Nginx Alpine. La configuración de variables de entorno públicas se inyecta dinámicamente en tiempo de inicio mediante `docker-entrypoint.sh` y `envsubst`.
 2. **Backend API (`abacontex-backend-prod`)**: Servidor API RESTful y WebSockets (Socket.IO) sobre Node.js 22, Express y Prisma ORM. En su arranque (`entrypoint.release.sh`) ejecuta automáticamente migraciones de base de datos (`prisma migrate deploy`) y semillas de datos del sistema (`prisma db seed`).
-3. **IAM / Autenticación (`abacontex-keycloak-prod`)**: Servidor Keycloak 26.2 encargado del control de acceso basado en roles (RBAC) y federación de identidades mediante Google Workspace (restringido al dominio institucional `ipgsanmartin.edu.ar`).
-4. **Base de Datos (`abacontex-postgres-prod`)**: Motor relacional PostgreSQL 17 optimizado con volúmenes persistentes dedicados y healthchecks nativos.
+3. **IAM / Autenticación (`abacontex-keycloak-prod`)**: Servidor Keycloak 26.2 encargado del control de acceso basado en roles (RBAC) y federación de identidades mediante Google Workspace (restringido al dominio institucional `ipgsanmartin.edu.ar`). Opera desacoplado y sin almacenamiento local de base de datos H2: persiste todas sus identidades, credenciales, sesiones y eventos en PostgreSQL en su propia base `keycloak`.
+4. **Base de Datos (`abacontex-postgres-prod`)**: Motor relacional PostgreSQL 17 optimizado con inicialización automatizada (`01-init-keycloak-db.sql`), volumen persistente dedicado y healthchecks nativos. Centraliza la totalidad de los datos del ecosistema en dos bases independientes: `abacontex` (ERP) y `keycloak` (IAM).
 
 ---
 
@@ -201,6 +200,7 @@ A continuación se detallan todas las variables agrupadas por subsistema:
 
 | Variable | Tipo | Ejemplo en Producción | Descripción |
 |---|---|---|---|
+| `KEYCLOAK_DB` | Texto | `keycloak` | Nombre de la base de datos relacional exclusiva para Keycloak dentro de PostgreSQL. |
 | `KEYCLOAK_ADMIN_USER` | Texto | `kcadmin` | Usuario administrador raíz de la consola Keycloak. |
 | `KEYCLOAK_ADMIN_PASSWORD` | Secreto | `Sup3rS3cur3_Admin2026!` | Contraseña maestra del administrador de Keycloak. |
 | `KEYCLOAK_HOSTNAME` | Dominio | `auth.abacontex.institucion.edu.ar` | Nombre de dominio completamente calificado (FQDN) público por el cual los clientes acceden a Keycloak. |
@@ -345,6 +345,9 @@ Estructura de archivos requerida en el servidor para producción:
 /opt/abacontex/
 ├── .env                              # Variables de producción (creado en el paso siguiente)
 ├── docker-compose.release.yml         # Archivo oficial de orquestación de producción
+├── postgres/
+│   └── init/
+│       └── 01-init-keycloak-db.sql   # Inicialización de la base de datos de Keycloak
 ├── proxy/
 │   ├── conf.d/                       # Configuración Nginx para producción
 │   └── certs/                        # Certificados SSL/TLS
@@ -395,14 +398,15 @@ docker compose -f docker-compose.release.yml up -d
 ```
 
 #### ¿Qué sucede internamente durante el arranque automático?
-1. **PostgreSQL** arranca y ejecuta su proceso de inicialización en el volumen `postgres_prod_data`. El healthcheck (`pg_isready -U postgres`) verifica que esté aceptando conexiones.
-2. **Backend**: Al detectar que PostgreSQL está saludable, el contenedor inicia su script [`backend/entrypoint.release.sh`](../backend/entrypoint.release.sh):
-   - Ejecuta `npx prisma migrate deploy` (aplica todas las migraciones SQL pendientes sin pérdida de datos).
+1. **PostgreSQL**: Arranca y ejecuta su proceso de inicialización en el volumen persistente `postgres_prod_data`. Ejecuta de forma automática los scripts en `/docker-entrypoint-initdb.d/`, ejecutando `01-init-keycloak-db.sql` para crear la base de datos `keycloak`. El healthcheck (`pg_isready -U postgres`) verifica periódicamente que el motor esté listo para recibir conexiones.
+2. **Keycloak**: Al verificar que PostgreSQL está saludable (`condition: service_healthy`), inicia con `start --import-realm` y `KC_PROXY_HEADERS: xforwarded`. Se conecta vía JDBC a la base `keycloak` en PostgreSQL, ejecuta sus migraciones de esquema internas y consume [`keycloak/realm-export.prod.json`](../keycloak/realm-export.prod.json) para precargar clientes, roles (`ADMIN`, `DOCENTE`, `ALUMNO`) y proveedores de identidad institucionales.
+3. **Backend**: Al detectar que PostgreSQL está saludable, el contenedor inicia su script [`backend/entrypoint.release.sh`](../backend/entrypoint.release.sh):
+   - Ejecuta `npx prisma migrate deploy` (aplica todas las migraciones SQL pendientes sobre la base `abacontex` sin pérdida de datos).
    - Ejecuta `npx prisma db seed` (al detectar `ENVIRONMENT=production`, ejecuta solo las semillas del sistema `systemSeeds`: roles, planes de cuentas base y tipos de usuario, sin ensuciar la base con datos ficticios demo).
    - Inicia la aplicación con `npm start` (`node dist/server.js`) exponiendo el puerto 3000 y levantando los schedulers internos y servidor WebSockets.
-3. **Keycloak**: Inicia con `start --import-realm` y `KC_PROXY_HEADERS: xforwarded`, consumiendo [`keycloak/realm-export.prod.json`](../keycloak/realm-export.prod.json) para precargar clientes, roles (`ADMIN`, `DOCENTE`, `ALUMNO`) y proveedores de identidad.
+   - Su healthcheck (`wget ... /health`) confirma que Express está activo.
 4. **Frontend**: El contenedor Nginx inicia [`frontend/docker-entrypoint.sh`](../frontend/docker-entrypoint.sh), sustituye las variables de entorno en tiempo de ejecución en `config.js` y sirve la aplicación compilada en el puerto 80 del contenedor.
-5. **Reverse Proxy (Nginx)**: El contenedor `abacontex-proxy-prod` inicia utilizando la imagen `nginx:alpine`, monta la configuración de [`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf) y centraliza todo el tráfico HTTP/HTTPS externo hacia los microservicios internos.
+5. **Reverse Proxy (Nginx)**: El contenedor `abacontex-proxy-prod` espera a que el Backend esté saludable (`condition: service_healthy`), monta la configuración de [`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf) y centraliza todo el tráfico HTTP/HTTPS externo hacia los microservicios internos.
 
 ### 4.6. Paso 6: Configuración del Reverse Proxy y Certificados SSL/TLS
 
@@ -474,22 +478,27 @@ Para garantizar la continuidad operativa del sistema ante fallos de hardware, co
 
 ### 5.2. Procedimiento de Respaldo de Base de Datos PostgreSQL
 
-El respaldo de la base de datos se realiza en caliente sin detener el contenedor mediante `pg_dump`.
+Dado que tanto el ERP (`abacontex`) como el IAM (`keycloak`) residen en PostgreSQL, el respaldo se realiza en caliente sin detener contenedores mediante `pg_dump`.
 
 #### Comando manual de respaldo:
 ```bash
 # Crear directorio de backups en el host
 mkdir -p /opt/backups/database
 
-# Ejecutar volcado comprimido
-docker exec -t abacontex-postgres-prod pg_dump -U postgres -d abacontex | gzip > /opt/backups/database/abacontex_backup_$(date +\%Y\%m\%d_\%H\%M\%S).sql.gz
+# 1. Respaldo de la base de datos de Abacontex (ERP)
+docker exec -t abacontex-postgres-prod pg_dump -U postgres -d abacontex | gzip > /opt/backups/database/abacontex_$(date +\%Y\%m\%d_\%H\%M\%S).sql.gz
+
+# 2. Respaldo de la base de datos de Keycloak (Identidades, credenciales y sesiones)
+docker exec -t abacontex-postgres-prod pg_dump -U postgres -d keycloak | gzip > /opt/backups/database/keycloak_$(date +\%Y\%m\%d_\%H\%M\%S).sql.gz
 ```
+
+*(Opcional: puede utilizarse `pg_dumpall -U postgres` para un volcado atómico integral de ambas bases y roles en un solo archivo).*
 
 ---
 
 ### 5.3. Automatización con Cron en el Host
 
-Cree un script automatizado con control de retención:
+Cree un script automatizado que respalde ambas bases de datos con control de retención:
 
 `/opt/scripts/backup_abacontex.sh`:
 ```bash
@@ -498,27 +507,28 @@ set -e
 
 BACKUP_DIR="/opt/backups/database"
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="$BACKUP_DIR/abacontex_$DATE.sql.gz"
 CONTAINER_NAME="abacontex-postgres-prod"
 DB_USER="postgres"
-DB_NAME="abacontex"
 DAYS_TO_KEEP=7
 
 mkdir -p $BACKUP_DIR
 
-echo "[$(date)] Iniciando backup de la base de datos $DB_NAME..."
-docker exec -t $CONTAINER_NAME pg_dump -U $DB_USER -d $DB_NAME | gzip > "$BACKUP_FILE"
+for DB_NAME in "abacontex" "keycloak"; do
+    BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_$DATE.sql.gz"
+    echo "[$(date)] Iniciando backup de la base de datos $DB_NAME..."
+    docker exec -t $CONTAINER_NAME pg_dump -U $DB_USER -d $DB_NAME | gzip > "$BACKUP_FILE"
 
-# Verificar que el archivo no esté vacío
-if [ -s "$BACKUP_FILE" ]; then
-    echo "[$(date)] Backup exitoso: $BACKUP_FILE ($(du -sh $BACKUP_FILE | awk '{print $1}'))"
-else
-    echo "[$(date)] ERROR: El archivo de backup está vacío."
-    exit 1
-fi
+    # Verificar que el archivo no esté vacío
+    if [ -s "$BACKUP_FILE" ]; then
+        echo "[$(date)] Backup exitoso de $DB_NAME: $BACKUP_FILE ($(du -sh $BACKUP_FILE | awk '{print $1}'))"
+    else
+        echo "[$(date)] ERROR: El archivo de backup de $DB_NAME está vacío."
+        exit 1
+    fi
+done
 
 # Eliminar respaldos con más de N días
-find $BACKUP_DIR -type f -name "abacontex_*.sql.gz" -mtime +$DAYS_TO_KEEP -delete
+find $BACKUP_DIR -type f -name "*.sql.gz" -mtime +$DAYS_TO_KEEP -delete
 echo "[$(date)] Limpieza de backups anteriores a $DAYS_TO_KEEP días completada."
 ```
 
@@ -538,20 +548,19 @@ Agregar la siguiente línea:
 
 ---
 
-### 5.4. Respaldo de Datos de Keycloak y Secretos
+### 5.4. Respaldo de Archivos de Configuración y Secretos
 
-1. **Configuración y Secretos**: Realice una copia cifrada del archivo `.env` y de los certificados SSL del host:
-   ```bash
-   tar -czf /opt/backups/config_$(date +%Y%m%d).tar.gz /opt/abacontex/.env /opt/abacontex/keycloak
-   ```
-2. **Export de Realm Keycloak con Usuarios** (en caso de migración completa de identidades):
-   ```bash
-   docker run --rm \
-     -v abacontex_keycloak_prod_data:/opt/keycloak/data \
-     -v /opt/backups/keycloak:/tmp/export \
-     quay.io/keycloak/keycloak:26.2 \
-     export --dir /tmp/export --realm abacontex --users realm_file
-   ```
+Al delegar toda la persistencia de Keycloak en PostgreSQL, ya no se requiere exportar volúmenes locales opacos. El respaldo de identidades queda 100% cubierto por el volcado SQL de la base `keycloak`.
+
+Para la configuración y secretos del host, realice una copia cifrada comprimida:
+```bash
+# Respaldar variables de entorno, plantillas de proxy y certificados SSL
+tar -czf /opt/backups/config_$(date +%Y%m%d).tar.gz \
+  /opt/abacontex/.env \
+  /opt/abacontex/postgres \
+  /opt/abacontex/proxy \
+  /opt/abacontex/keycloak
+```
 
 ---
 
@@ -559,41 +568,46 @@ Agregar la siguiente línea:
 
 En caso de fallo crítico o necesidad de recuperación sobre un servidor nuevo:
 
-#### Caso A: Restauración de Base de Datos sobre servidor operativo
+#### Caso A: Restauración sobre servidor operativo
 
-1. **Detener temporalmente el backend** para evitar escrituras concurrentes durante la restauración:
+1. **Detener temporalmente backend y keycloak** para evitar escrituras concurrentes durante la restauración:
    ```bash
-   docker compose -f docker-compose.release.yml stop backend
+   docker compose -f docker-compose.release.yml stop backend keycloak
    ```
 
-2. **Restaurar el dump SQL sobre PostgreSQL**:
+2. **Restaurar los dumps SQL sobre PostgreSQL**:
    ```bash
-   # Descomprimir y aplicar el dump
-   gunzip -c /opt/backups/database/abacontex_backup_YYYYMMDD_HHMMSS.sql.gz | \
+   # Restaurar base de datos del ERP
+   gunzip -c /opt/backups/database/abacontex_YYYYMMDD_HHMMSS.sql.gz | \
      docker exec -i abacontex-postgres-prod psql -U postgres -d abacontex
+
+   # Restaurar base de datos de Keycloak
+   gunzip -c /opt/backups/database/keycloak_YYYYMMDD_HHMMSS.sql.gz | \
+     docker exec -i abacontex-postgres-prod psql -U postgres -d keycloak
    ```
 
-3. **Reiniciar el backend**:
+3. **Reiniciar backend y keycloak**:
    ```bash
-   docker compose -f docker-compose.release.yml start backend
+   docker compose -f docker-compose.release.yml start keycloak backend
    ```
 
 4. **Verificar la integridad del sistema**:
-   - Consultar los logs del backend: `docker compose -f docker-compose.release.yml logs -f backend`
-   - Ingresar a la aplicación web y verificar que las operaciones contables y cursos figuren actualizados.
+   - Consultar los logs de ambos servicios: `docker compose -f docker-compose.release.yml logs -f keycloak backend`
+   - Ingresar a la aplicación web, verificar login de usuarios y operaciones contables recientes.
 
 #### Caso B: Recuperación total ante desastre (Disaster Recovery en servidor nuevo)
 
 1. Instalar Docker y Docker Compose en la nueva máquina.
 2. Clonar la estructura de despliegue en `/opt/abacontex`.
-3. Restaurar el archivo `.env` verificado.
+3. Restaurar el archivo `.env` y certificados SSL desde la copia de seguridad.
 4. Iniciar únicamente PostgreSQL:
    ```bash
    docker compose -f docker-compose.release.yml up -d postgres
    ```
-5. Esperar a que PostgreSQL esté `healthy` y volcar el backup más reciente:
+5. Esperar a que PostgreSQL esté `healthy` y volcar los backups más recientes:
    ```bash
-   gunzip -c backup_reciente.sql.gz | docker exec -i abacontex-postgres-prod psql -U postgres -d abacontex
+   gunzip -c abacontex_reciente.sql.gz | docker exec -i abacontex-postgres-prod psql -U postgres -d abacontex
+   gunzip -c keycloak_reciente.sql.gz | docker exec -i abacontex-postgres-prod psql -U postgres -d keycloak
    ```
 6. Levantar el resto de los servicios:
    ```bash
@@ -753,7 +767,7 @@ Antes de habilitar el acceso a los usuarios finales de la institución, complete
 - [ ] **Tags inmutables**: Se utilizan versiones etiquetadas (ej. `v1.0.0`) y no `staging` o `latest` no controlado en producción.
 - [ ] **Google OAuth**: Las credenciales de Google OAuth están activas y el Hosted Domain está restringido a la institución (`ipgsanmartin.edu.ar`).
 - [ ] **Servicio SMTP**: Se verificó el envío real de un correo de prueba de invitación o reseteo de clave.
-- [ ] **Backup Automatizado**: El script de backup diario de PostgreSQL está configurado en el `cron` del host y se validó la generación correcta del archivo `.sql.gz`.
+- [ ] **Backup Automatizado**: El script de backup diario de PostgreSQL está configurado en el `cron` del host y se validó la generación correcta de los archivos `.sql.gz` (bases `abacontex` y `keycloak`).
 - [ ] **Rotación de Logs**: El demonio de Docker tiene configurado el límite de logs (`max-size: 50m`, `max-file: 5`) en `/etc/docker/daemon.json`.
 - [ ] **Endpoint `/health`**: Responde exitosamente con código 200 al ser consultado de forma externa.
 - [ ] **Simulación de Restauración**: Se probó exitosamente la restauración de un backup en un entorno de prueba antes del lanzamiento oficial.
