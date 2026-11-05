@@ -37,14 +37,15 @@
    - 5.1. [Estrategia y Política de Respaldos](#51-estrategia-y-política-de-respaldos)
    - 5.2. [Procedimiento de Respaldo de Base de Datos PostgreSQL](#52-procedimiento-de-respaldo-de-base-de-datos-postgresql)
    - 5.3. [Automatización con Cron en el Host](#53-automatización-con-cron-en-el-host)
-   - 5.4. [Respaldo de Datos de Keycloak y Secretos](#54-respaldo-de-datos-de-keycloak-y-secretos)
+   - 5.4. [Respaldo de Archivos de Configuración y Secretos](#54-respaldo-de-archivos-de-configuración-y-secretos)
    - 5.5. [Procedimiento de Restauración Paso a Paso](#55-procedimiento-de-restauración-paso-a-paso)
 6. [Monitoreo, Operación Continua y Mantenimiento](#6-monitoreo-operación-continua-y-mantenimiento)
    - 6.1. [Endpoints y Chequeos de Salud (Healthchecks)](#61-endpoints-y-chequeos-de-salud-healthchecks)
    - 6.2. [Gestión y Rotación de Logs de Contenedores](#62-gestión-y-rotación-de-logs-de-contenedores)
    - 6.3. [Monitoreo de Recursos y Métricas](#63-monitoreo-de-recursos-y-métricas)
-   - 6.4. [Procedimiento de Actualización de Versión (Upgrade / Rollback)](#64-procedimiento-de-actualización-de-versión-upgrade--rollback)
-   - 6.5. [Resolución de Incidentes Frecuentes (Troubleshooting)](#65-resolución-de-incidentes-frecuentes-troubleshooting)
+   - 6.4. [Tareas Programadas Internas (Schedulers)](#64-tareas-programadas-internas-schedulers)
+   - 6.5. [Procedimiento de Actualización de Versión (Upgrade / Rollback)](#65-procedimiento-de-actualización-de-versión-upgrade--rollback)
+   - 6.6. [Resolución de Incidentes Frecuentes (Troubleshooting)](#66-resolución-de-incidentes-frecuentes-troubleshooting)
 7. [Checklist de Puesta en Producción](#7-checklist-de-puesta-en-producción)
 
 ---
@@ -64,10 +65,16 @@ flowchart TD
         ExtSMTP[Servidor SMTP Institucional]
     end
 
-    subgraph Host ["Servidor de Producción"]
+    subgraph VPN ["Red Privada Segura (VPN / Red de Gestión)"]
+        Admin[DevOps / Sysadmins]
+    end
+
+    subgraph Host ["Servidor de Producción (Linux Host / VM)"]
         subgraph Ingress ["Capa de Exposición / Proxy Reverso"]
             NginxProxy["Nginx / Reverse Proxy (SSL 443 / 80)"]
         end
+
+        SSHService["Servicio SSH (Puerto 22)<br/>Restringido a interfaz VPN / Red Privada"]
 
         subgraph DockerNet ["Red Interna Docker (abacontex-network)"]
             FrontendCont["Frontend Web (Nginx SPA)<br/>Puerto interno: 80"]
@@ -81,7 +88,8 @@ flowchart TD
         end
     end
 
-    Client -->|HTTPS :443| NginxProxy
+    Client -->|HTTPS :443 / :80| NginxProxy
+    Admin -->|Túnel Cifrado VPN / SSH :22| SSHService
     NginxProxy -->|HTTP| FrontendCont
     NginxProxy -->|HTTP / WS| BackendCont
     NginxProxy -->|HTTP| KeycloakCont
@@ -102,7 +110,7 @@ flowchart TD
 ### Componentes del Sistema:
 
 1. **Frontend (`abacontex-frontend-prod`)**: Aplicación Single Page Application (SPA) en React + TypeScript servida por Nginx Alpine. La configuración de variables de entorno públicas se inyecta dinámicamente en tiempo de inicio mediante `docker-entrypoint.sh` y `envsubst`.
-2. **Backend API (`abacontex-backend-prod`)**: Servidor API RESTful y WebSockets (Socket.IO) sobre Node.js 22, Express y Prisma ORM. En su arranque (`entrypoint.release.sh`) ejecuta automáticamente migraciones de base de datos (`prisma migrate deploy`) y semillas de datos del sistema (`prisma db seed`).
+2. **Backend API (`abacontex-backend-prod`)**: Servidor API RESTful y WebSockets (Socket.IO) sobre Node.js 22, Express y Prisma ORM. En su arranque (`entrypoint.release.sh`) ejecuta automáticamente migraciones de base de datos (`prisma migrate deploy`) y semillas de datos del sistema (`prisma db seed`). Su arquitectura es **completamente stateless (sin estado en disco)**: las cargas de comprobantes y documentos contables se procesan en memoria (`multer.memoryStorage()`) y se delegan directamente a Cloudinary, por lo que el contenedor no requiere volúmenes persistentes de almacenamiento para archivos multimedia.
 3. **IAM / Autenticación (`abacontex-keycloak-prod`)**: Servidor Keycloak 26.2 encargado del control de acceso basado en roles (RBAC) y federación de identidades mediante Google Workspace (restringido al dominio institucional `ipgsanmartin.edu.ar`). Opera desacoplado y sin almacenamiento local de base de datos H2: persiste todas sus identidades, credenciales, sesiones y eventos en PostgreSQL en su propia base `keycloak`.
 4. **Base de Datos (`abacontex-postgres-prod`)**: Motor relacional PostgreSQL 17 optimizado con inicialización automatizada (`01-init-keycloak-db.sql`), volumen persistente dedicado y healthchecks nativos. Centraliza la totalidad de los datos del ecosistema en dos bases independientes: `abacontex` (ERP) y `keycloak` (IAM).
 
@@ -154,7 +162,7 @@ Para un despliegue en producción con SSL/TLS se recomienda disponer de un domin
 | **3000** | TCP | Interno / Docker | API Backend de Abacontex (comunicación interna dentro de la red Docker). |
 | **8080** | TCP | Interno / Docker | Interfaz de Keycloak (comunicación interna dentro de la red Docker). |
 | **5432** | TCP | **Privado / Loopback (`127.0.0.1`)** | PostgreSQL. Enlazado exclusivamente a la interfaz local (`127.0.0.1:5432`) para administración y auditorías seguras mediante túneles SSH. Bloqueado para internet público. |
-| **22** | TCP | Restringido | Acceso SSH administrativo (protegido por llave SSH y Fail2ban). |
+| **22** | TCP | **Privado / Red de Gestión (VPN)** | Acceso SSH administrativo restringido a una red privada o VPN de gestión (ej. Tailscale, WireGuard o red interna de administración). El puerto 22 debe encontrarse **completamente bloqueado en el firewall perimetral (Security Group de la nube o firewall perimetral)** hacia Internet público, reduciendo la superficie pública de ataque estrictamente a los puertos web 80 y 443. |
 
 #### Conectividad de Salida (Egress Firewall)
 El servidor debe permitir conexiones salientes por los siguientes puertos:
@@ -167,6 +175,9 @@ Antes de iniciar el despliegue, el administrador debe asegurarse de contar con l
 1. **Google Cloud Console**: Proyecto configurado con OAuth 2.0 Web Application credentials.
    - Redirect URI autorizado: `https://<KEYCLOAK_HOSTNAME>/realms/abacontex/broker/google/endpoint`
    - Restricción de dominio: Configurado para permitir únicamente cuentas del dominio educativo asignado (ej. `ipgsanmartin.edu.ar`).
+
+> [!NOTE]
+> **Validación de correos en el Realm de Keycloak:** El archivo [`keycloak/realm-export.prod.json`](../keycloak/realm-export.prod.json) incluye una validación de formato mediante expresión regular en el perfil de usuario (`^[A-Za-z0-9._%+-]+@ipgsanmartin\.edu\.ar$`). Si se despliega para otra institución o dominio, debe actualizarse este patrón en la consola administrativa de Keycloak (*Realm Settings > User Profile > email > Validations > pattern*) o en el archivo JSON antes de la importación inicial.
 2. **Google Gemini API**: API Key para el servicio de OCR y extracción documental contable.
 3. **Groq Cloud API**: API Key con acceso a modelos Llama 3 / open-source (`openai/gpt-oss-120b`) para la generación didáctica de casos prácticos.
 4. **Cloudinary**: Cuenta corporativa para persistencia de activos multimedia (Cloud Name, API Key, API Secret).
@@ -329,6 +340,29 @@ El siguiente procedimiento detalla el despliegue estándar en un servidor Linux 
    sudo su - deploy
    ```
 
+4. Configurar Acceso Administrativo Seguro (Bastionado de Firewall y Red Privada / VPN):
+   Como buena práctica de bastionado (*hardening*) para mitigar ataques automatizados de fuerza bruta, el puerto 22 (SSH) **no debe exponerse a Internet público** en el firewall perimetral (Security Group de la nube o firewall perimetral del hosting). La administración remota debe realizarse a través de una red privada de gestión o VPN (por ejemplo, mediante una VPN mallada como **Tailscale / WireGuard** o una red local de administración).
+
+   *Implementación de referencia recomendada (ejemplo con Tailscale y UFW en Linux):*
+   ```bash
+   # 1. Instalar cliente VPN en el host Linux (ej. Tailscale)
+   curl -fsSL https://tailscale.com/install.sh | sh
+   sudo tailscale up
+
+   # 2. En el firewall perimetral del hosting / proveedor cloud (ej. Security Group / NSG):
+   # - Bloquear la regla de entrada pública hacia el puerto 22 (SSH).
+   # - Habilitar únicamente tráfico entrante público para puertos 80 (HTTP) y 443 (HTTPS).
+
+   # 3. Configurar Firewall UFW a nivel de sistema operativo (host Linux):
+   sudo ufw default deny incoming
+   sudo ufw default allow outgoing
+   sudo ufw allow 80/tcp
+   sudo ufw allow 443/tcp
+   # Permitir SSH únicamente a través de la interfaz de red privada / VPN (ej. tailscale0):
+   sudo ufw allow in on tailscale0 to any port 22 proto tcp
+   sudo ufw enable
+   ```
+
 ### 4.2. Paso 2: Obtención de los Artefactos de Despliegue
 
 Cree el directorio donde residirá la plataforma y clone el repositorio o copie los archivos esenciales de release:
@@ -426,11 +460,38 @@ La configuración del proxy se encuentra versionada bajo [`proxy/conf.d/`](../pr
 
 #### 2. Gestión de Certificados SSL/TLS en Producción
 Para habilitar HTTPS en el proxy contenerizado:
-1. Obtenga los certificados oficiales (por ejemplo, con Certbot standalone o certificados institucionales).
+1. Obtenga los certificados oficiales (por ejemplo, con Certbot standalone o certificados institucionales emitidos para los subdominios).
 2. Coloque los archivos en el directorio montado `proxy/certs/`:
    - `proxy/certs/fullchain.pem`
    - `proxy/certs/privkey.pem`
 3. El archivo [`.gitignore`](../.gitignore) protege automáticamente este directorio para asegurar que ninguna clave privada sea commiteada en el repositorio.
+4. Para activar el cifrado SSL en [`proxy/conf.d/default.conf`](../proxy/conf.d/default.conf), agregue la directiva de escucha SSL y las rutas a los certificados montados:
+   ```nginx
+   server {
+       listen 443 ssl;
+       server_name abacontex.institucion.edu.ar;
+
+       ssl_certificate /etc/nginx/certs/fullchain.pem;
+       ssl_certificate_key /etc/nginx/certs/privkey.pem;
+       ssl_protocols TLSv1.2 TLSv1.3;
+       ssl_ciphers HIGH:!aNULL:!MD5;
+
+       location / {
+           proxy_pass http://frontend_service;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto https;
+       }
+   }
+
+   # Redirección forzosa de HTTP a HTTPS:
+   server {
+       listen 80;
+       server_name abacontex.institucion.edu.ar;
+       return 301 https://$host$request_uri;
+   }
+   ```
 
 #### 3. Alternativa: Nginx Nativo en el Host
 Si la institución prefiere administrar Nginx a nivel del sistema operativo del servidor (por ejemplo, mediante `apt install nginx certbot python3-certbot-nginx`):
@@ -700,7 +761,21 @@ docker stats --no-stream
 
 ---
 
-### 6.4. Procedimiento de Actualización de Versión (Upgrade / Rollback)
+### 6.4. Tareas Programadas Internas (Schedulers)
+
+El contenedor del Backend ejecuta tareas automatizadas periódicas mediante `node-cron` gestionadas por el hilo de ejecución principal en Express:
+
+| Proceso Programado | Frecuencia / Expresión Cron | Servicios Externos Involucrados | Propósito Operativo |
+|---|---|---|---|
+| **Alerta de Vencimiento de Ejercicios** (`vencimiento.scheduler.ts`) | Horaria (`0 * * * *`) | Base de datos PostgreSQL, Servidor SMTP | Evalúa entregas de alumnos pendientes con fecha límite dentro de las próximas 24 horas y despacha correos automáticos de advertencia. |
+| **Diagnóstico Pedagógico de Cursos con IA** (`diagnostico.scheduler.ts`) | Semanal: Domingos a las 23:00 hs UTC (`0 23 * * 0`) | Base de datos PostgreSQL, Groq Cloud API (`GROQ_API_KEY`) | Evalúa el rendimiento de los cursos que acumulan más de 10 errores contables, consulta al modelo LLaMA 3 en Groq y genera sugerencias pedagógicas automatizadas para el docente antes del inicio de la semana lectiva. |
+
+> [!NOTE]
+> **Consideración de Zona Horaria (Timezone):** El contenedor del Backend opera internamente con zona horaria `UTC`. La ejecución semanal programada a las `23:00 UTC` equivale a las **20:00 hs de Argentina (UTC-3)**, asegurando que los diagnósticos estén listos el domingo por la noche. Si la institución requiere alterar los horarios de ejecución, los patrones cron pueden ajustarse en los archivos correspondientes dentro de `backend/src/schedulers/`.
+
+---
+
+### 6.5. Procedimiento de Actualización de Versión (Upgrade / Rollback)
 
 La plataforma opera bajo un modelo de **Entrega Continua Híbrida (Continuous Delivery)**:
 - **Automatizado (CI):** El pipeline de GitHub Actions compila, valida y promueve de forma automática las imágenes probadas en staging hacia GitHub Container Registry (GHCR) etiquetadas con la versión inmutable (`vX.Y.Z`) y con el tag flotante `latest`.
@@ -763,7 +838,7 @@ docker image prune -a --filter "until=168h" -f
 
 ---
 
-### 6.5. Resolución de Incidentes Frecuentes (Troubleshooting)
+### 6.6. Resolución de Incidentes Frecuentes (Troubleshooting)
 
 #### 1. El Backend no inicia: "Can't reach database server at postgres:5432"
 - **Causa**: El contenedor de PostgreSQL no ha completado su inicio o la variable `DATABASE_URL_DOCKER` contiene credenciales erróneas.
@@ -788,6 +863,10 @@ docker image prune -a --filter "until=168h" -f
 - **Causa**: Bloqueo del puerto SMTP saliente por parte del proveedor de hosting o credenciales inválidas.
 - **Solución**: Pruebe la conectividad manual desde el host con `nc -zv smtp.institucion.edu.ar 587` o `openssl s_client -connect smtp.institucion.edu.ar:587 -starttls smtp`.
 
+#### 6. Error en Keycloak: "Solo se permiten correos institucionales (@ipgsanmartin.edu.ar)"
+- **Causa**: El usuario intenta registrarse o iniciar sesión con una cuenta de correo cuyo dominio no coincide con la validación de expresión regular configurada en el User Profile del realm de producción.
+- **Solución**: Ingrese a la consola de Keycloak con el usuario administrador > Realm Settings > User Profile > seleccione el atributo `email` > pestaña Validations > edite la regla `pattern` para incorporar el dominio de la institución (o elimine la validación por regex si se desea permitir cualquier dominio de correo válido).
+
 ---
 
 ## 7. Checklist de Puesta en Producción
@@ -797,7 +876,7 @@ Antes de habilitar el acceso a los usuarios finales de la institución, complete
 - [ ] **Secretos cambiados**: Se reemplazaron todas las contraseñas por defecto en `.env` (`POSTGRES_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, etc.).
 - [ ] **Permisos del `.env`**: El archivo tiene permisos `600` (`chmod 600 .env`) y pertenece a un usuario no privilegiado.
 - [ ] **Entorno fijado**: La variable `ENVIRONMENT` y `VITE_ENVIRONMENT` está establecida en `production`.
-- [ ] **Firewall y Puertos**: Solo los puertos 80, 443 y 22 (SSH) están expuestos públicamente. El puerto 5432 de PostgreSQL **no** es accesible desde el exterior.
+- [ ] **Firewall y Puertos**: Solo los puertos 80 y 443 (HTTP/HTTPS) están expuestos públicamente en el firewall perimetral (Cloud Security Group / Hosting). El puerto 22 (SSH) se encuentra completamente cerrado a Internet público y restringido a la red privada o VPN de administración (ej. Tailscale/WireGuard). PostgreSQL (5432) **no** es accesible desde el exterior.
 - [ ] **Certificados SSL/TLS**: Los certificados de Let's Encrypt o corporativos están instalados, activos y con renovación automática comprobada (`certbot renew --dry-run`).
 - [ ] **Cabeceras de Proxy Reverso**: Nginx tiene configurado el pase de cabeceras de proxy (`Host`, `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`).
 - [ ] **WebSockets**: La ruta `/socket.io/` en Nginx tiene configuradas las cabeceras `Upgrade` y `Connection "Upgrade"`.
