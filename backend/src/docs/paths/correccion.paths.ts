@@ -332,7 +332,7 @@
  *
  * /correcciones/entregas/{entregaId}/sugerir-retroalimentacion:
  *   post:
- *     summary: Asistencia con IA: Sugerir retroalimentación pedagógica individual
+ *     summary: Asistencia con IA. Sugerir retroalimentación pedagógica individual
  *     description: |
  *       Genera una devolución orientativa con IA (Groq / Llama 3.3) formulada en tono docente argentino voseo
  *       con un límite estricto de hasta 500 caracteres.
