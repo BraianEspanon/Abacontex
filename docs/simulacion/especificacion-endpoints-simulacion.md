@@ -12,7 +12,7 @@
 | 1 | **ENDPOINT - GET Opciones para crear** | `GET` | `/simulaciones/opciones-crear` | Docente | **Listo** |
 | 2 | **ENDPOINT - GET Simulaciones (Docente)** | `GET` | `/simulaciones` | Docente | **Listo** |
 | 3 | **ENDPOINT - POST Simulación** | `POST` | `/simulaciones` | Docente | **Listo** |
-| 4 | **ENDPOINT - PATCH Editar titulo simulación** | `PATCH` | `/simulaciones/:id/titulo` | Docente | **Pendiente** |
+| 4 | **ENDPOINT - PATCH Editar titulo simulación** | `PATCH` | `/simulaciones/:id/titulo` | Docente | **Listo** |
 | 5 | **ENDPOINT - GET Entregas de simulación** | `GET` | `/simulaciones/:id/entregas` | Docente | **Pendiente** |
 | 6 | **ENDPOINT - GET Simulaciones (Alumno)** | `GET` | `/simulaciones/alumno` | Alumno | **Pendiente** |
 | 7 | **ENDPOINT - GET Conversación** | `GET` | `/simulaciones/conversacion/:id` | **Ambos** | **Pendiente** |

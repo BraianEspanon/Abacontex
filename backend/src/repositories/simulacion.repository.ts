@@ -9,6 +9,7 @@ import {
 } from '@prisma/client';
 import { getDbClient } from '../lib/prisma';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
+import { NotFoundError } from '../errors/not-found.error';
 import type { EstructuraSimulacionGeneradaIA } from '../integrations/simulacion-ia/simulacion-ia.types';
 import type { ObtenerSimulacionesDocenteQueryDTO } from '../validators/simulacion.validator';
 
@@ -514,4 +515,51 @@ export async function findSimulacionesDocentePaginadas(
       finalizadas: finalizadasDocente,
     },
   };
+}
+
+export async function findByIdAndDocenteOrThrow(
+  idSimulacion: number,
+  docenteId: string,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+  const simulacion = await db.simulacion.findFirst({
+    where: {
+      idSimulacion,
+      docenteId,
+    },
+    select: {
+      idSimulacion: true,
+      docenteId: true,
+      cursoId: true,
+      titulo: true,
+      fechaLimite: true,
+      estado: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!simulacion) {
+    throw new NotFoundError('Simulación no encontrada.');
+  }
+
+  return simulacion;
+}
+
+export async function updateTitulo(
+  idSimulacion: number,
+  titulo: string,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+  return db.simulacion.update({
+    where: { idSimulacion },
+    data: { titulo },
+    select: {
+      idSimulacion: true,
+      titulo: true,
+      updatedAt: true,
+    },
+  });
 }

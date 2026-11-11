@@ -10,6 +10,7 @@ import * as transactionRepository from '../repositories/transaction.repository';
 
 import {
   CrearSimulacionDTO,
+  EditarTituloSimulacionBodyDTO,
   ObtenerSimulacionesDocenteQueryDTO,
 } from '../validators/simulacion.validator';
 import {
@@ -19,6 +20,7 @@ import {
   OPCIONES_TIPOS_EVENTO_SORPRESA,
 } from '../constants/simulacion.constants';
 import {
+  EditarTituloSimulacionResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
   OpcionesCrearSimulacionResponseDTO,
   SimulacionCreadaResponseDTO,
@@ -154,4 +156,34 @@ export async function listarSimulacionesDocente(
     pageSize,
     resultado.resumen
   );
+}
+
+export async function editarTituloSimulacion(
+  user: AuthUser,
+  idSimulacion: number,
+  data: EditarTituloSimulacionBodyDTO
+): Promise<EditarTituloSimulacionResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Buscar simulación validando autoría (lanza NotFoundError si no existe o no le pertenece)
+  const simulacion = await simulacionRepository.findByIdAndDocenteOrThrow(
+    idSimulacion,
+    docente.id
+  );
+
+  // 3. Validar pertenencia al curso
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(simulacion.cursoId)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece esta simulación.');
+  }
+
+  // 4. Actualizar título en base de datos
+  const simulacionActualizada = await simulacionRepository.updateTitulo(idSimulacion, data.titulo);
+
+  return {
+    idSimulacion: simulacionActualizada.idSimulacion,
+    titulo: simulacionActualizada.titulo,
+    updatedAt: simulacionActualizada.updatedAt.toISOString(),
+  };
 }

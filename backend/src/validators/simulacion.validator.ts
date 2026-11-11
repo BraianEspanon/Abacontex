@@ -48,3 +48,25 @@ export const obtenerSimulacionesDocenteQuerySchema = z.object({
 export type ObtenerSimulacionesDocenteQueryDTO = z.infer<
   typeof obtenerSimulacionesDocenteQuerySchema
 >['query'];
+
+export const editarTituloSimulacionSchema = z.object({
+  params: z.object({
+    id: z.coerce
+      .number({ message: 'El ID de la simulación debe ser numérico.' })
+      .int('El ID de la simulación debe ser un número entero.')
+      .positive('El ID de la simulación debe ser mayor a cero.'),
+  }),
+  body: z.object({
+    titulo: z
+      .string()
+      .trim()
+      .min(1, 'El título no puede estar vacío.')
+      .max(100, 'El título no puede superar los 100 caracteres.'),
+  }),
+});
+
+export type EditarTituloSimulacionParamsDTO = z.infer<
+  typeof editarTituloSimulacionSchema
+>['params'];
+
+export type EditarTituloSimulacionBodyDTO = z.infer<typeof editarTituloSimulacionSchema>['body'];

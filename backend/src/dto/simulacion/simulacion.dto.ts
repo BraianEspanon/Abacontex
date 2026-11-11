@@ -59,3 +59,9 @@ export interface ResumenDashboardDocenteDTO {
 export interface ListarSimulacionesDocenteResponseDTO extends PaginatedResponse<SimulacionDocenteCardDTO> {
   resumen: ResumenDashboardDocenteDTO;
 }
+
+export interface EditarTituloSimulacionResponseDTO {
+  idSimulacion: number;
+  titulo: string;
+  updatedAt: string;
+}
