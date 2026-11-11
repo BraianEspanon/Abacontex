@@ -65,3 +65,40 @@ export interface EditarTituloSimulacionResponseDTO {
   titulo: string;
   updatedAt: string;
 }
+
+export interface CabeceraEntregasSimulacionDTO {
+  idSimulacion: number;
+  titulo: string;
+  estado: 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA';
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+  };
+  fechaLimite: string;
+  fechaFinalizacion: string | null;
+  tema: string;
+  cantEventosTotales: number;
+  empresasTotales: number;
+  empresasQueHanEmpezado: number;
+  puntajePromedio: number | null;
+}
+
+export interface EntregaSimulacionEmpresaItemDTO {
+  idSimulacionEmpresa: number;
+  empresaId: number;
+  nombreEmpresa: string;
+  logoUrl: string | null;
+  cantidadIntegrantes: number;
+  rolesInvolucrados: string[];
+  estado: string;
+  eventosCompletados: number;
+  eventosTotales: number;
+  porcentajeProgreso: number;
+  puntajeFinal: number | null;
+  ultimaActividad: string | null;
+  fechaFinalizacion: string | null;
+}
+
+export interface EntregasSimulacionResponseDTO extends PaginatedResponse<EntregaSimulacionEmpresaItemDTO> {
+  simulacion: CabeceraEntregasSimulacionDTO;
+}

@@ -11,7 +11,10 @@ import { getDbClient } from '../lib/prisma';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 import { NotFoundError } from '../errors/not-found.error';
 import type { EstructuraSimulacionGeneradaIA } from '../integrations/simulacion-ia/simulacion-ia.types';
-import type { ObtenerSimulacionesDocenteQueryDTO } from '../validators/simulacion.validator';
+import type {
+  ObtenerEntregasSimulacionQueryDTO,
+  ObtenerSimulacionesDocenteQueryDTO,
+} from '../validators/simulacion.validator';
 
 export interface CreateSimulacionInput {
   docenteId: string;
@@ -562,4 +565,192 @@ export async function updateTitulo(
       updatedAt: true,
     },
   });
+}
+
+export async function findEntregasSimulacion(
+  idSimulacion: number,
+  docenteId: string,
+  filtros: ObtenerEntregasSimulacionQueryDTO,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+  const page = filtros.page ?? 1;
+  const pageSize = filtros.pageSize ?? 6;
+
+  // 1. Obtener simulación con cabecera y progreso de todas las empresas participantes
+  const simulacion = await db.simulacion.findFirst({
+    where: {
+      idSimulacion,
+      docenteId,
+    },
+    select: {
+      idSimulacion: true,
+      docenteId: true,
+      cursoId: true,
+      titulo: true,
+      flujoEmpresarial: true,
+      fechaLimite: true,
+      curso: {
+        select: {
+          idCurso: true,
+          nombreCurso: true,
+        },
+      },
+      empresas: {
+        select: {
+          idSimulacionEmpresa: true,
+          estado: true,
+          puntajeFinal: true,
+          fechaFinalizacion: true,
+          _count: {
+            select: {
+              eventos: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!simulacion) {
+    throw new NotFoundError('Simulación no encontrada.');
+  }
+
+  // 2. Calcular métricas globales para la cabecera
+  const empresasTotales = simulacion.empresas.length;
+  const empresasQueHanEmpezado = simulacion.empresas.filter(
+    (e) =>
+      e.estado === EstadoParticipacionSimulacion.EN_CURSO ||
+      e.estado === EstadoParticipacionSimulacion.FINALIZADA
+  ).length;
+  const finalizadas = simulacion.empresas.filter(
+    (e) => e.estado === EstadoParticipacionSimulacion.FINALIZADA
+  );
+  const empresasFinalizadas = finalizadas.length;
+
+  let puntajePromedio: number | null = null;
+  if (empresasFinalizadas > 0) {
+    const totalPuntos = finalizadas.reduce((acc, e) => acc + (e.puntajeFinal ?? 0), 0);
+    puntajePromedio = Math.round(totalPuntos / empresasFinalizadas);
+  }
+
+  let estado: 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA' = 'PENDIENTE';
+  if (empresasTotales > 0 && empresasFinalizadas === empresasTotales) {
+    estado = 'FINALIZADA';
+  } else if (empresasQueHanEmpezado > 0) {
+    estado = 'EN_CURSO';
+  }
+
+  let fechaFinalizacion: Date | null = null;
+  if (finalizadas.length > 0) {
+    const fechas = finalizadas
+      .map((e) => e.fechaFinalizacion)
+      .filter((f): f is Date => f !== null)
+      .sort((a, b) => b.getTime() - a.getTime());
+    if (fechas.length > 0 && fechas[0]) {
+      fechaFinalizacion = fechas[0];
+    }
+  }
+
+  const cantEventosTotales = simulacion.empresas[0]?._count.eventos ?? 0;
+
+  const cabecera = {
+    idSimulacion: simulacion.idSimulacion,
+    titulo: simulacion.titulo,
+    estado,
+    curso: {
+      idCurso: simulacion.curso.idCurso,
+      nombreCurso: simulacion.curso.nombreCurso,
+    },
+    fechaLimite: simulacion.fechaLimite.toISOString(),
+    fechaFinalizacion: fechaFinalizacion?.toISOString() ?? null,
+    tema: simulacion.flujoEmpresarial,
+    cantEventosTotales,
+    empresasTotales,
+    empresasQueHanEmpezado,
+    puntajePromedio,
+  };
+
+  // 3. Filtros para la paginación de empresas
+  const where: Prisma.SimulacionEmpresaWhereInput = {
+    simulacionId: idSimulacion,
+  };
+
+  if (filtros.search) {
+    where.empresa = {
+      nombre: {
+        contains: filtros.search,
+        mode: 'insensitive',
+      },
+    };
+  }
+
+  if (filtros.estado && filtros.estado !== 'TODAS') {
+    where.estado = filtros.estado as EstadoParticipacionSimulacion;
+  }
+
+  // 4. Consulta paginada de empresas participantes
+  const [items, totalItems] = await Promise.all([
+    db.simulacionEmpresa.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: [{ estado: 'asc' }, { empresa: { nombre: 'asc' } }],
+      select: {
+        idSimulacionEmpresa: true,
+        empresaId: true,
+        estado: true,
+        puntajeFinal: true,
+        fechaInicio: true,
+        fechaFinalizacion: true,
+        empresa: {
+          select: {
+            id: true,
+            nombre: true,
+            logoUrl: true,
+            alumnos: {
+              select: {
+                id: true,
+                rolEmpresa: {
+                  select: {
+                    idRol: true,
+                    nombreRol: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            eventos: true,
+            decisiones: true,
+          },
+        },
+        decisiones: {
+          orderBy: {
+            fechaDecision: 'desc',
+          },
+          take: 1,
+          select: {
+            fechaDecision: true,
+            rolEmpresa: {
+              select: {
+                nombreRol: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    db.simulacionEmpresa.count({ where }),
+  ]);
+
+  return {
+    cabecera,
+    items,
+    totalItems,
+    page,
+    pageSize,
+  };
 }

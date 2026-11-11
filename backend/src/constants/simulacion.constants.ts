@@ -54,6 +54,15 @@ export const ESTADOS_DASHBOARD_SIMULACION = ['PENDIENTE', 'EN_CURSO', 'FINALIZAD
 
 export type EstadoDashboardSimulacion = (typeof ESTADOS_DASHBOARD_SIMULACION)[number];
 
+export const FILTROS_ESTADO_ENTREGA_SIMULACION = [
+  'TODAS',
+  EstadoParticipacionSimulacion.PENDIENTE,
+  EstadoParticipacionSimulacion.EN_CURSO,
+  EstadoParticipacionSimulacion.FINALIZADA,
+] as const;
+
+export type FiltroEstadoEntregaSimulacion = (typeof FILTROS_ESTADO_ENTREGA_SIMULACION)[number];
+
 export const TIPOS_EVENTO_SIMULACION = [
   TipoEventoSimulacion.DECISION,
   TipoEventoSimulacion.INFORMATIVO,

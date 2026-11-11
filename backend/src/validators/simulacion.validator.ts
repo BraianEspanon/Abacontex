@@ -3,6 +3,7 @@ import {
   DIFICULTADES_SIMULACION,
   DURACIONES_SIMULACION,
   ESTADOS_DASHBOARD_SIMULACION,
+  FILTROS_ESTADO_ENTREGA_SIMULACION,
   FLUJOS_EMPRESARIALES,
   TIPOS_EVENTO_SORPRESA,
 } from '../constants/simulacion.constants';
@@ -70,3 +71,32 @@ export type EditarTituloSimulacionParamsDTO = z.infer<
 >['params'];
 
 export type EditarTituloSimulacionBodyDTO = z.infer<typeof editarTituloSimulacionSchema>['body'];
+
+export const obtenerEntregasSimulacionSchema = z.object({
+  params: z.object({
+    id: z.coerce
+      .number({ message: 'El ID de la simulación debe ser numérico.' })
+      .int('El ID de la simulación debe ser un número entero.')
+      .positive('El ID de la simulación debe ser mayor a cero.'),
+  }),
+  query: z.object({
+    page: z.coerce.number().int().positive('La página debe ser mayor a 0.').optional().default(1),
+    pageSize: z.coerce
+      .number()
+      .int()
+      .positive('El tamaño de página debe ser mayor a 0.')
+      .max(50, 'El tamaño de página no puede exceder 50.')
+      .optional()
+      .default(6),
+    search: z.string().trim().optional(),
+    estado: z.enum(FILTROS_ESTADO_ENTREGA_SIMULACION).optional().default('TODAS'),
+  }),
+});
+
+export type ObtenerEntregasSimulacionParamsDTO = z.infer<
+  typeof obtenerEntregasSimulacionSchema
+>['params'];
+
+export type ObtenerEntregasSimulacionQueryDTO = z.infer<
+  typeof obtenerEntregasSimulacionSchema
+>['query'];

@@ -5,6 +5,7 @@ import * as simulacionService from '../services/simulacion.service';
 import {
   crearSimulacionSchema,
   editarTituloSimulacionSchema,
+  obtenerEntregasSimulacionSchema,
   obtenerSimulacionesDocenteQuerySchema,
 } from '../validators/simulacion.validator';
 
@@ -40,6 +41,17 @@ export async function editarTituloSimulacion(req: Request, res: Response) {
   });
 
   const resultado = await simulacionService.editarTituloSimulacion(req.user!, params.id, body);
+
+  res.json(resultado);
+}
+
+export async function obtenerEntregasSimulacion(req: Request, res: Response) {
+  const { params, query } = obtenerEntregasSimulacionSchema.parse({
+    params: req.params,
+    query: req.query,
+  });
+
+  const resultado = await simulacionService.obtenerEntregasSimulacion(req.user!, params.id, query);
 
   res.json(resultado);
 }

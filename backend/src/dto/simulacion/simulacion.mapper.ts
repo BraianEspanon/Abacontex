@@ -1,5 +1,8 @@
 import { SimulacionCreadaEntity } from '../../repositories/simulacion.repository';
 import {
+  CabeceraEntregasSimulacionDTO,
+  EntregaSimulacionEmpresaItemDTO,
+  EntregasSimulacionResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
   ResumenDashboardDocenteDTO,
   SimulacionCreadaResponseDTO,
@@ -102,5 +105,91 @@ export function toListarSimulacionesDocenteResponse(
     totalItems,
     totalPages: Math.ceil(totalItems / pageSize) || 1,
     resumen,
+  };
+}
+
+export interface SimulacionEmpresaEntregaEntity {
+  idSimulacionEmpresa: number;
+  empresaId: number;
+  estado: string;
+  puntajeFinal: number | null;
+  fechaInicio: Date | null;
+  fechaFinalizacion: Date | null;
+  empresa: {
+    id: number;
+    nombre: string;
+    logoUrl: string | null;
+    alumnos: {
+      id: string;
+      rolEmpresa: {
+        idRol: number;
+        nombreRol: string;
+      } | null;
+    }[];
+  };
+  _count: {
+    eventos: number;
+    decisiones: number;
+  };
+  decisiones: {
+    fechaDecision: Date;
+    rolEmpresa: {
+      nombreRol: string;
+    };
+  }[];
+}
+
+export function toEntregaSimulacionEmpresaItem(
+  entity: SimulacionEmpresaEntregaEntity
+): EntregaSimulacionEmpresaItemDTO {
+  const eventosTotales = entity._count.eventos;
+  const eventosCompletados =
+    entity.estado === 'FINALIZADA' ? eventosTotales : entity._count.decisiones;
+
+  const porcentajeProgreso =
+    eventosTotales > 0 ? Math.min(100, Math.round((eventosCompletados / eventosTotales) * 100)) : 0;
+
+  const rolesInvolucrados = Array.from(
+    new Set(
+      entity.empresa.alumnos
+        .map((a) => a.rolEmpresa?.nombreRol)
+        .filter((r): r is string => Boolean(r))
+    )
+  );
+
+  const ultimaActividad =
+    entity.decisiones[0]?.fechaDecision?.toISOString() ?? entity.fechaInicio?.toISOString() ?? null;
+
+  return {
+    idSimulacionEmpresa: entity.idSimulacionEmpresa,
+    empresaId: entity.empresa.id,
+    nombreEmpresa: entity.empresa.nombre,
+    logoUrl: entity.empresa.logoUrl,
+    cantidadIntegrantes: entity.empresa.alumnos.length,
+    rolesInvolucrados,
+    estado: entity.estado,
+    eventosCompletados,
+    eventosTotales,
+    porcentajeProgreso,
+    puntajeFinal: entity.puntajeFinal,
+    ultimaActividad,
+    fechaFinalizacion: entity.fechaFinalizacion?.toISOString() ?? null,
+  };
+}
+
+export function toEntregasSimulacionResponse(
+  simulacion: CabeceraEntregasSimulacionDTO,
+  items: SimulacionEmpresaEntregaEntity[],
+  totalItems: number,
+  page: number,
+  pageSize: number
+): EntregasSimulacionResponseDTO {
+  return {
+    simulacion,
+    items: items.map(toEntregaSimulacionEmpresaItem),
+    page,
+    pageSize,
+    totalItems,
+    totalPages: Math.ceil(totalItems / pageSize) || 1,
   };
 }

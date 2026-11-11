@@ -9,6 +9,7 @@ import { validate } from '../middleware/validate.middleware';
 import {
   crearSimulacionSchema,
   editarTituloSimulacionSchema,
+  obtenerEntregasSimulacionSchema,
   obtenerSimulacionesDocenteQuerySchema,
 } from '../validators/simulacion.validator';
 
@@ -16,6 +17,7 @@ import {
   crearSimulacion,
   editarTituloSimulacion,
   listarSimulacionesDocente,
+  obtenerEntregasSimulacion,
   obtenerOpcionesCrearSimulacion,
 } from '../controllers/simulacion.controller';
 
@@ -50,6 +52,14 @@ router.patch(
   requireRole(ROLES.DOCENTE),
   validate(editarTituloSimulacionSchema),
   editarTituloSimulacion
+);
+
+router.get(
+  '/:id/entregas',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  validate(obtenerEntregasSimulacionSchema),
+  obtenerEntregasSimulacion
 );
 
 export default router;

@@ -11,6 +11,7 @@ import * as transactionRepository from '../repositories/transaction.repository';
 import {
   CrearSimulacionDTO,
   EditarTituloSimulacionBodyDTO,
+  ObtenerEntregasSimulacionQueryDTO,
   ObtenerSimulacionesDocenteQueryDTO,
 } from '../validators/simulacion.validator';
 import {
@@ -21,11 +22,13 @@ import {
 } from '../constants/simulacion.constants';
 import {
   EditarTituloSimulacionResponseDTO,
+  EntregasSimulacionResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
   OpcionesCrearSimulacionResponseDTO,
   SimulacionCreadaResponseDTO,
 } from '../dto/simulacion/simulacion.dto';
 import {
+  toEntregasSimulacionResponse,
   toListarSimulacionesDocenteResponse,
   toSimulacionCreadaResponse,
 } from '../dto/simulacion/simulacion.mapper';
@@ -167,10 +170,7 @@ export async function editarTituloSimulacion(
   const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
 
   // 2. Buscar simulación validando autoría (lanza NotFoundError si no existe o no le pertenece)
-  const simulacion = await simulacionRepository.findByIdAndDocenteOrThrow(
-    idSimulacion,
-    docente.id
-  );
+  const simulacion = await simulacionRepository.findByIdAndDocenteOrThrow(idSimulacion, docente.id);
 
   // 3. Validar pertenencia al curso
   const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
@@ -186,4 +186,35 @@ export async function editarTituloSimulacion(
     titulo: simulacionActualizada.titulo,
     updatedAt: simulacionActualizada.updatedAt.toISOString(),
   };
+}
+
+export async function obtenerEntregasSimulacion(
+  user: AuthUser,
+  idSimulacion: number,
+  query: ObtenerEntregasSimulacionQueryDTO
+): Promise<EntregasSimulacionResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Consultar entregas y cabecera validando autoría (lanza NotFoundError si no existe o no le pertenece)
+  const resultado = await simulacionRepository.findEntregasSimulacion(
+    idSimulacion,
+    docente.id,
+    query
+  );
+
+  // 3. Validar permisos activos sobre el curso
+  const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+  if (!cursosDocente.includes(resultado.cabecera.curso.idCurso)) {
+    throw new ForbiddenError('No tienes permisos sobre el curso al que pertenece esta simulación.');
+  }
+
+  // 4. Mapear y retornar respuesta paginada con cabecera
+  return toEntregasSimulacionResponse(
+    resultado.cabecera,
+    resultado.items,
+    resultado.totalItems,
+    resultado.page,
+    resultado.pageSize
+  );
 }
