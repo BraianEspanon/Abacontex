@@ -9,7 +9,7 @@
 
 | # | Tarea en Jira | Método | Endpoint | Rol | Estado |
 |---|---|---|---|---|---|
-| 1 | **ENDPOINT - GET Opciones para crear** | `GET` | `/simulaciones/opciones-crear` | Docente | **Pendiente** |
+| 1 | **ENDPOINT - GET Opciones para crear** | `GET` | `/simulaciones/opciones-crear` | Docente | **Listo** |
 | 2 | **ENDPOINT - GET Simulaciones (Docente)** | `GET` | `/simulaciones` | Docente | **Pendiente** |
 | 3 | **ENDPOINT - POST Simulación** | `POST` | `/simulaciones` | Docente | **Listo** |
 | 4 | **ENDPOINT - PATCH Editar titulo simulación** | `PATCH` | `/simulaciones/:id/titulo` | Docente | **Pendiente** |

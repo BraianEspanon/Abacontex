@@ -78,6 +78,7 @@ export const CLASIFICACION_POR_PUNTOS: Record<number, ClasificacionOpcionSimulac
 };
 
 export const TIPOS_EVENTO_SORPRESA = [
+  'Cambio de cliente',
   'Cambio del cliente',
   'Problema con proveedor',
   'Faltante o diferencia de stock',
@@ -280,3 +281,71 @@ export const TEMAS_POR_FLUJO: Record<
     rolesOrientativos: ['CEO', 'CFO', 'COO', 'CMO', 'CTO', 'CIO', 'CCO'],
   },
 };
+
+export interface OpcionFlujoEmpresarial {
+  id: FlujoEmpresarial;
+  label: string;
+}
+
+export interface OpcionDificultadSimulacion {
+  id: DificultadSimulacion;
+  label: string;
+}
+
+export interface OpcionDuracionSimulacion {
+  id: DuracionSimulacion;
+  label: string;
+  subtitulo: string;
+}
+
+export interface OpcionTipoEventoSorpresa {
+  id: TipoEventoSorpresa;
+  label: string;
+}
+
+export const OPCIONES_DIFICULTADES_SIMULACION: readonly OpcionDificultadSimulacion[] = [
+  { id: DificultadSimulacion.BASICA, label: 'Básico' },
+  { id: DificultadSimulacion.INTERMEDIA, label: 'Intermedio' },
+  { id: DificultadSimulacion.AVANZADA, label: 'Avanzado' },
+] as const;
+
+export const OPCIONES_DURACIONES_SIMULACION: readonly OpcionDuracionSimulacion[] = [
+  {
+    id: DuracionSimulacion.CORTA,
+    label: 'Corta',
+    subtitulo: '4 a 6 eventos',
+  },
+  {
+    id: DuracionSimulacion.MEDIA,
+    label: 'Media',
+    subtitulo: '6 a 8 eventos',
+  },
+  {
+    id: DuracionSimulacion.LARGA,
+    label: 'Larga',
+    subtitulo: '8 a 10 eventos',
+  },
+] as const;
+
+export const OPCIONES_TIPOS_EVENTO_SORPRESA: readonly OpcionTipoEventoSorpresa[] = [
+  { id: 'Cambio de cliente', label: 'Cambio de cliente' },
+  { id: 'Problema con proveedor', label: 'Problema con proveedor' },
+  { id: 'Faltante o diferencia de stock', label: 'Faltante o diferencia de stock' },
+  { id: 'Costo inesperado', label: 'Costo inesperado' },
+  { id: 'Problema operativo o tecnológico', label: 'Problema operativo o tecnológico' },
+  { id: 'Problema de calidad', label: 'Problema de calidad' },
+  { id: 'Reclamo o situación con el cliente', label: 'Reclamo o situación con el cliente' },
+  { id: 'Oportunidad inesperada', label: 'Oportunidad inesperada' },
+] as const;
+
+export const OPCIONES_FLUJOS_EMPRESARIALES: readonly OpcionFlujoEmpresarial[] = [
+  { id: 'Venta y gestión de pedidos', label: 'Venta y gestión de pedidos' },
+  { id: 'Compras y abastecimiento', label: 'Compras y abastecimiento' },
+  { id: 'Producción y operaciones', label: 'Producción y operaciones' },
+  { id: 'Gestión financiera', label: 'Gestión financiera' },
+  { id: 'Contabilidad y cierre', label: 'Contabilidad y cierre' },
+  { id: 'Marketing y comunicación', label: 'Marketing y comunicación' },
+  { id: 'Reclamos y postventa', label: 'Reclamos y postventa' },
+  { id: 'Crisis empresarial', label: 'Crisis empresarial' },
+  { id: 'Crecimiento y expansión', label: 'Crecimiento y expansión' },
+] as const;

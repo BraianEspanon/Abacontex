@@ -13,3 +13,8 @@ export async function crearSimulacion(req: Request, res: Response) {
 
   res.status(201).json(resultado);
 }
+
+export function obtenerOpcionesCrearSimulacion(_req: Request, res: Response) {
+  const resultado = simulacionService.obtenerOpcionesCrearSimulacion();
+  res.json(resultado);
+}

@@ -1,3 +1,10 @@
+import {
+  OpcionDificultadSimulacion,
+  OpcionDuracionSimulacion,
+  OpcionFlujoEmpresarial,
+  OpcionTipoEventoSorpresa,
+} from '../../constants/simulacion.constants';
+
 export interface SimulacionCreadaResponseDTO {
   idSimulacion: number;
   titulo: string;
@@ -16,4 +23,11 @@ export interface SimulacionCreadaResponseDTO {
   empresasParticipantes: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OpcionesCrearSimulacionResponseDTO {
+  flujosEmpresariales: readonly OpcionFlujoEmpresarial[];
+  dificultades: readonly OpcionDificultadSimulacion[];
+  duraciones: readonly OpcionDuracionSimulacion[];
+  tiposEventoSorpresa: readonly OpcionTipoEventoSorpresa[];
 }

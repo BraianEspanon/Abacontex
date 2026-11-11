@@ -9,7 +9,16 @@ import * as docenteRepository from '../repositories/docente.repository';
 import * as transactionRepository from '../repositories/transaction.repository';
 
 import { CrearSimulacionDTO } from '../validators/simulacion.validator';
-import { SimulacionCreadaResponseDTO } from '../dto/simulacion/simulacion.dto';
+import {
+  OPCIONES_DIFICULTADES_SIMULACION,
+  OPCIONES_DURACIONES_SIMULACION,
+  OPCIONES_FLUJOS_EMPRESARIALES,
+  OPCIONES_TIPOS_EVENTO_SORPRESA,
+} from '../constants/simulacion.constants';
+import {
+  OpcionesCrearSimulacionResponseDTO,
+  SimulacionCreadaResponseDTO,
+} from '../dto/simulacion/simulacion.dto';
 import { toSimulacionCreadaResponse } from '../dto/simulacion/simulacion.mapper';
 
 import { BadRequestError } from '../errors/bad-request-error';
@@ -100,4 +109,13 @@ export async function crearSimulacion(
 
   // 8. Mapear y retornar respuesta DTO desacoplada
   return toSimulacionCreadaResponse(simulacionCreada, empresasValidas.length);
+}
+
+export function obtenerOpcionesCrearSimulacion(): OpcionesCrearSimulacionResponseDTO {
+  return {
+    flujosEmpresariales: OPCIONES_FLUJOS_EMPRESARIALES,
+    dificultades: OPCIONES_DIFICULTADES_SIMULACION,
+    duraciones: OPCIONES_DURACIONES_SIMULACION,
+    tiposEventoSorpresa: OPCIONES_TIPOS_EVENTO_SORPRESA,
+  };
 }

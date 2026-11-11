@@ -8,9 +8,19 @@ import { validate } from '../middleware/validate.middleware';
 
 import { crearSimulacionSchema } from '../validators/simulacion.validator';
 
-import { crearSimulacion } from '../controllers/simulacion.controller';
+import {
+  crearSimulacion,
+  obtenerOpcionesCrearSimulacion,
+} from '../controllers/simulacion.controller';
 
 const router = Router();
+
+router.get(
+  '/opciones-crear',
+  authenticate,
+  requireRole(ROLES.DOCENTE),
+  obtenerOpcionesCrearSimulacion
+);
 
 router.post(
   '/',
