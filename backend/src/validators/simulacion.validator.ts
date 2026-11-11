@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   DIFICULTADES_SIMULACION,
   DURACIONES_SIMULACION,
+  ESTADOS_DASHBOARD_SIMULACION,
   FLUJOS_EMPRESARIALES,
   TIPOS_EVENTO_SORPRESA,
 } from '../constants/simulacion.constants';
@@ -27,3 +28,23 @@ export const crearSimulacionSchema = z.object({
 });
 
 export type CrearSimulacionDTO = z.infer<typeof crearSimulacionSchema>['body'];
+
+export const obtenerSimulacionesDocenteQuerySchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().positive('La página debe ser mayor a 0.').optional().default(1),
+    pageSize: z.coerce
+      .number()
+      .int()
+      .positive('El tamaño de página debe ser mayor a 0.')
+      .max(50, 'El tamaño de página no puede exceder 50.')
+      .optional()
+      .default(6),
+    cursoId: z.coerce.number().int().positive('ID de curso inválido.').optional(),
+    titulo: z.string().trim().optional(),
+    estado: z.enum(ESTADOS_DASHBOARD_SIMULACION).optional(),
+  }),
+});
+
+export type ObtenerSimulacionesDocenteQueryDTO = z.infer<
+  typeof obtenerSimulacionesDocenteQuerySchema
+>['query'];

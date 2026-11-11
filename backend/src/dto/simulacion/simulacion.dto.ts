@@ -4,6 +4,7 @@ import {
   OpcionFlujoEmpresarial,
   OpcionTipoEventoSorpresa,
 } from '../../constants/simulacion.constants';
+import { PaginatedResponse } from '../paginated-response.dto';
 
 export interface SimulacionCreadaResponseDTO {
   idSimulacion: number;
@@ -30,4 +31,31 @@ export interface OpcionesCrearSimulacionResponseDTO {
   dificultades: readonly OpcionDificultadSimulacion[];
   duraciones: readonly OpcionDuracionSimulacion[];
   tiposEventoSorpresa: readonly OpcionTipoEventoSorpresa[];
+}
+
+export interface SimulacionDocenteCardDTO {
+  idSimulacion: number;
+  titulo: string;
+  estado: 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA';
+  fechaLimite: string;
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+  };
+  empresasQueHanEmpezado: number;
+  empresasTotales: number;
+  puntajePromedio: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResumenDashboardDocenteDTO {
+  total: number;
+  pendientes: number;
+  enCurso: number;
+  finalizadas: number;
+}
+
+export interface ListarSimulacionesDocenteResponseDTO extends PaginatedResponse<SimulacionDocenteCardDTO> {
+  resumen: ResumenDashboardDocenteDTO;
 }

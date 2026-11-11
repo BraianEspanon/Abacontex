@@ -10,7 +10,7 @@
 | # | Tarea en Jira | Método | Endpoint | Rol | Estado |
 |---|---|---|---|---|---|
 | 1 | **ENDPOINT - GET Opciones para crear** | `GET` | `/simulaciones/opciones-crear` | Docente | **Listo** |
-| 2 | **ENDPOINT - GET Simulaciones (Docente)** | `GET` | `/simulaciones` | Docente | **Pendiente** |
+| 2 | **ENDPOINT - GET Simulaciones (Docente)** | `GET` | `/simulaciones` | Docente | **Listo** |
 | 3 | **ENDPOINT - POST Simulación** | `POST` | `/simulaciones` | Docente | **Listo** |
 | 4 | **ENDPOINT - PATCH Editar titulo simulación** | `PATCH` | `/simulaciones/:id/titulo` | Docente | **Pendiente** |
 | 5 | **ENDPOINT - GET Entregas de simulación** | `GET` | `/simulaciones/:id/entregas` | Docente | **Pendiente** |
@@ -39,7 +39,7 @@
 #### `GET /simulaciones`
 *(Jira: ENDPOINT - GET Simulaciones (Docente))*
 * **Rol:** Docente.
-* **¿Qué hace?** Listado paginado de simulaciones creadas por el docente (6 por página), con filtros (`search`, `cursoId`, `estado`), avance de empresas que comenzaron y 4 cards de resumen cuantitativo (`total`, `pendientes`, `enCurso`, `finalizadas`).
+* **¿Qué hace?** Listado paginado de simulaciones creadas por el docente (`pageSize`: 6 por página), con filtros (`titulo`, `cursoId`, `estado`), avance de empresas que comenzaron y 4 cards de resumen cuantitativo (`total`, `pendientes`, `enCurso`, `finalizadas`).
 * **¿Por qué hace falta?** Es el dashboard principal del profesor (Mis Simulaciones) para monitorear el estado global de sus cursos.
 
 #### `POST /simulaciones` *(Ya implementado)*

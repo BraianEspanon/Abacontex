@@ -10,6 +10,7 @@ import {
 import { getDbClient } from '../lib/prisma';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 import type { EstructuraSimulacionGeneradaIA } from '../integrations/simulacion-ia/simulacion-ia.types';
+import type { ObtenerSimulacionesDocenteQueryDTO } from '../validators/simulacion.validator';
 
 export interface CreateSimulacionInput {
   docenteId: string;
@@ -330,4 +331,187 @@ export async function createSimulacionEmpresaConGrafo(
   );
 
   return simulacionEmpresa;
+}
+
+export async function findSimulacionesDocentePaginadas(
+  docenteId: string,
+  filtros: ObtenerSimulacionesDocenteQueryDTO,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const page = filtros.page ?? 1;
+  const pageSize = filtros.pageSize ?? 6;
+  const titulo = filtros.titulo?.trim();
+
+  const where: Prisma.SimulacionWhereInput = {
+    docenteId,
+  };
+
+  if (filtros.cursoId) {
+    where.cursoId = filtros.cursoId;
+  }
+
+  if (titulo) {
+    where.titulo = {
+      contains: titulo,
+      mode: 'insensitive',
+    };
+  }
+
+  if (filtros.estado) {
+    if (filtros.estado === 'PENDIENTE') {
+      where.empresas = {
+        none: {
+          estado: {
+            in: [EstadoParticipacionSimulacion.EN_CURSO, EstadoParticipacionSimulacion.FINALIZADA],
+          },
+        },
+      };
+    } else if (filtros.estado === 'FINALIZADA') {
+      where.empresas = {
+        some: {},
+        none: {
+          estado: {
+            not: EstadoParticipacionSimulacion.FINALIZADA,
+          },
+        },
+      };
+    } else if (filtros.estado === 'EN_CURSO') {
+      where.AND = [
+        {
+          empresas: {
+            some: {
+              estado: {
+                in: [
+                  EstadoParticipacionSimulacion.EN_CURSO,
+                  EstadoParticipacionSimulacion.FINALIZADA,
+                ],
+              },
+            },
+          },
+        },
+        {
+          empresas: {
+            some: {
+              estado: {
+                not: EstadoParticipacionSimulacion.FINALIZADA,
+              },
+            },
+          },
+        },
+      ];
+    }
+  }
+
+  const baseResumenWhere: Prisma.SimulacionWhereInput = {
+    docenteId,
+    ...(filtros.cursoId ? { cursoId: filtros.cursoId } : {}),
+  };
+
+  const [items, totalItems, totalDocente, pendientesDocente, enCursoDocente, finalizadasDocente] =
+    await Promise.all([
+      db.simulacion.findMany({
+        where,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          idSimulacion: true,
+          titulo: true,
+          fechaLimite: true,
+          createdAt: true,
+          updatedAt: true,
+          curso: {
+            select: {
+              idCurso: true,
+              nombreCurso: true,
+            },
+          },
+          empresas: {
+            select: {
+              idSimulacionEmpresa: true,
+              estado: true,
+              puntajeFinal: true,
+            },
+          },
+        },
+      }),
+
+      db.simulacion.count({ where }),
+
+      db.simulacion.count({ where: baseResumenWhere }),
+
+      db.simulacion.count({
+        where: {
+          ...baseResumenWhere,
+          empresas: {
+            none: {
+              estado: {
+                in: [
+                  EstadoParticipacionSimulacion.EN_CURSO,
+                  EstadoParticipacionSimulacion.FINALIZADA,
+                ],
+              },
+            },
+          },
+        },
+      }),
+
+      db.simulacion.count({
+        where: {
+          ...baseResumenWhere,
+          AND: [
+            {
+              empresas: {
+                some: {
+                  estado: {
+                    in: [
+                      EstadoParticipacionSimulacion.EN_CURSO,
+                      EstadoParticipacionSimulacion.FINALIZADA,
+                    ],
+                  },
+                },
+              },
+            },
+            {
+              empresas: {
+                some: {
+                  estado: {
+                    not: EstadoParticipacionSimulacion.FINALIZADA,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+
+      db.simulacion.count({
+        where: {
+          ...baseResumenWhere,
+          empresas: {
+            some: {},
+            none: {
+              estado: {
+                not: EstadoParticipacionSimulacion.FINALIZADA,
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+  return {
+    items,
+    totalItems,
+    resumen: {
+      total: totalDocente,
+      pendientes: pendientesDocente,
+      enCurso: enCursoDocente,
+      finalizadas: finalizadasDocente,
+    },
+  };
 }

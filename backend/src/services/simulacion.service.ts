@@ -8,7 +8,10 @@ import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
 import * as transactionRepository from '../repositories/transaction.repository';
 
-import { CrearSimulacionDTO } from '../validators/simulacion.validator';
+import {
+  CrearSimulacionDTO,
+  ObtenerSimulacionesDocenteQueryDTO,
+} from '../validators/simulacion.validator';
 import {
   OPCIONES_DIFICULTADES_SIMULACION,
   OPCIONES_DURACIONES_SIMULACION,
@@ -16,10 +19,14 @@ import {
   OPCIONES_TIPOS_EVENTO_SORPRESA,
 } from '../constants/simulacion.constants';
 import {
+  ListarSimulacionesDocenteResponseDTO,
   OpcionesCrearSimulacionResponseDTO,
   SimulacionCreadaResponseDTO,
 } from '../dto/simulacion/simulacion.dto';
-import { toSimulacionCreadaResponse } from '../dto/simulacion/simulacion.mapper';
+import {
+  toListarSimulacionesDocenteResponse,
+  toSimulacionCreadaResponse,
+} from '../dto/simulacion/simulacion.mapper';
 
 import { BadRequestError } from '../errors/bad-request-error';
 import { ForbiddenError } from '../errors/forbidden.error';
@@ -118,4 +125,33 @@ export function obtenerOpcionesCrearSimulacion(): OpcionesCrearSimulacionRespons
     duraciones: OPCIONES_DURACIONES_SIMULACION,
     tiposEventoSorpresa: OPCIONES_TIPOS_EVENTO_SORPRESA,
   };
+}
+
+export async function listarSimulacionesDocente(
+  user: AuthUser,
+  query: ObtenerSimulacionesDocenteQueryDTO
+): Promise<ListarSimulacionesDocenteResponseDTO> {
+  // 1. Obtener docente autenticado
+  const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+
+  // 2. Si se solicitó filtrar por curso, validar que el docente tenga acceso al mismo
+  if (query.cursoId) {
+    const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+    if (!cursosDocente.includes(query.cursoId)) {
+      throw new ForbiddenError('No tienes permisos sobre el curso especificado.');
+    }
+  }
+
+  // 3. Consultar simulaciones paginadas y métricas de resumen
+  const resultado = await simulacionRepository.findSimulacionesDocentePaginadas(docente.id, query);
+
+  // 4. Mapear y retornar respuesta
+  const pageSize = query.pageSize ?? 6;
+  return toListarSimulacionesDocenteResponse(
+    resultado.items,
+    resultado.totalItems,
+    query.page ?? 1,
+    pageSize,
+    resultado.resumen
+  );
 }

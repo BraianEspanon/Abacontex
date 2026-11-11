@@ -116,9 +116,7 @@ export class GroqSimulacionProvider implements ISimulacionGeneratorProvider {
 
           if (ev.opciones && Array.isArray(ev.opciones)) {
             ev.opciones = ev.opciones
-              .filter(
-                (op) => typeof op === 'object' && op !== null && typeof op.texto === 'string'
-              )
+              .filter((op) => typeof op === 'object' && op !== null && typeof op.texto === 'string')
               .map((op) => {
                 const opAny = op as unknown as Record<string, unknown>;
                 if (opAny.sig && !op.siguienteEventoId) {

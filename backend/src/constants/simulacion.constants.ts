@@ -50,6 +50,10 @@ export const ESTADOS_PARTICIPACION_SIMULACION = [
   EstadoParticipacionSimulacion.FINALIZADA,
 ] as const;
 
+export const ESTADOS_DASHBOARD_SIMULACION = ['PENDIENTE', 'EN_CURSO', 'FINALIZADA'] as const;
+
+export type EstadoDashboardSimulacion = (typeof ESTADOS_DASHBOARD_SIMULACION)[number];
+
 export const TIPOS_EVENTO_SIMULACION = [
   TipoEventoSimulacion.DECISION,
   TipoEventoSimulacion.INFORMATIVO,
