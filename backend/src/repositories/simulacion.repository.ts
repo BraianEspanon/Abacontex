@@ -1127,6 +1127,7 @@ export interface ActualizarProgresoSimulacionInput {
   fechaInicio?: Date | undefined;
   fechaFinalizacion?: Date | undefined;
   puntajeFinal?: number | undefined;
+  feedbackFinal?: unknown | undefined;
 }
 
 export async function findSimulacionEmpresaParaResponder(
@@ -1235,10 +1236,118 @@ export async function actualizarProgresoSimulacionEmpresa(
       ...(data.fechaInicio ? { fechaInicio: data.fechaInicio } : {}),
       ...(data.fechaFinalizacion ? { fechaFinalizacion: data.fechaFinalizacion } : {}),
       ...(data.puntajeFinal !== undefined ? { puntajeFinal: data.puntajeFinal } : {}),
+      ...(data.feedbackFinal !== undefined
+        ? { feedbackFinal: data.feedbackFinal as Prisma.InputJsonValue }
+        : {}),
+    },
+  });
+}
+
+export async function updateFeedbackFinalSimulacionEmpresa(
+  idSimulacionEmpresa: number,
+  feedbackFinal: unknown,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.simulacionEmpresa.update({
+    where: { idSimulacionEmpresa },
+    data: {
+      feedbackFinal: feedbackFinal as Prisma.InputJsonValue,
+    },
+  });
+}
+
+export async function findResumenSimulacionEmpresa(
+  idSimulacionEmpresa: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.simulacionEmpresa.findUnique({
+    where: { idSimulacionEmpresa },
+    select: {
+      idSimulacionEmpresa: true,
+      estado: true,
+      puntajeFinal: true,
+      feedbackFinal: true,
+      fechaInicio: true,
+      fechaFinalizacion: true,
+      empresaId: true,
+      simulacion: {
+        select: {
+          idSimulacion: true,
+          titulo: true,
+          flujoEmpresarial: true,
+          fechaLimite: true,
+          cursoId: true,
+          docenteId: true,
+        },
+      },
+      empresa: {
+        select: {
+          id: true,
+          nombre: true,
+        },
+      },
+      decisiones: {
+        orderBy: { fechaDecision: 'asc' },
+        select: {
+          idDecision: true,
+          puntosObtenidos: true,
+          fechaDecision: true,
+          opcion: {
+            select: {
+              idOpcion: true,
+              clasificacion: true,
+              texto: true,
+            },
+          },
+          evento: {
+            select: {
+              idEvento: true,
+              codigoEvento: true,
+              mensaje: true,
+              emisor: true,
+            },
+          },
+          rolEmpresa: {
+            select: {
+              idRol: true,
+              nombreRol: true,
+            },
+          },
+          alumno: {
+            select: {
+              id: true,
+              usuario: {
+                select: {
+                  nombre: true,
+                  apellido: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      estadoInterno: {
+        select: {
+          variables: true,
+        },
+      },
+      _count: {
+        select: {
+          eventos: true,
+        },
+      },
     },
   });
 }
 
 export type SimulacionEmpresaParaResponderEntity = NonNullable<
   Prisma.PromiseReturnType<typeof findSimulacionEmpresaParaResponder>
+>;
+
+export type ResumenSimulacionEmpresaEntity = NonNullable<
+  Prisma.PromiseReturnType<typeof findResumenSimulacionEmpresa>
 >;

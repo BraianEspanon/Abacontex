@@ -11,6 +11,7 @@ import {
   editarTituloSimulacionSchema,
   obtenerConversacionSimulacionSchema,
   obtenerEntregasSimulacionSchema,
+  obtenerResumenSimulacionSchema,
   obtenerSimulacionesAlumnoQuerySchema,
   obtenerSimulacionesDocenteQuerySchema,
   responderDecisionSimulacionSchema,
@@ -24,6 +25,7 @@ import {
   obtenerConversacionSimulacion,
   obtenerEntregasSimulacion,
   obtenerOpcionesCrearSimulacion,
+  obtenerResumenSimulacion,
   responderDecisionSimulacion,
 } from '../controllers/simulacion.controller';
 
@@ -90,6 +92,14 @@ router.post(
   requireRole(ROLES.ALUMNO),
   validate(responderDecisionSimulacionSchema),
   responderDecisionSimulacion
+);
+
+router.get(
+  '/conversacion/:id/resumen',
+  authenticate,
+  requireRole(ROLES.DOCENTE, ROLES.ALUMNO),
+  validate(obtenerResumenSimulacionSchema),
+  obtenerResumenSimulacion
 );
 
 export default router;

@@ -209,3 +209,39 @@ export interface ResponderDecisionSimulacionResponseDTO {
   mensaje: string;
   finalizada: boolean;
 }
+
+export interface FeedbackFinalSimulacionDTO {
+  resumenGeneral: string;
+  fortalezas: string[];
+  aspectosAMejorar: string[];
+  conclusion: string;
+}
+
+export interface DesgloseDecisionesDTO {
+  muyAdecuadas: number;
+  adecuadas: number;
+  pocoAdecuadas: number;
+  inadecuadas: number;
+  total: number;
+}
+
+export interface ResumenSimulacionResponseDTO {
+  idSimulacionEmpresa: number;
+  titulo: string;
+  estado: EstadoParticipacionSimulacion;
+  empresa: {
+    id: number;
+    nombre: string;
+  };
+  puntajeFinal: number;
+  eventosCompletados: number;
+  cantEventosTotales: number;
+  fechaInicio: string | null;
+  fechaLimite: string;
+  fechaFinalizacion: string | null;
+  flujoEmpresarial: string;
+  rolesIntervinieron: string[];
+  desgloseDecisiones: DesgloseDecisionesDTO;
+  feedbackFinal: FeedbackFinalSimulacionDTO;
+  variablesFinales: Record<string, unknown>;
+}

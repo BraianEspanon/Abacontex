@@ -17,7 +17,7 @@
 | 6 | **ENDPOINT - GET Simulaciones (Alumno)** | `GET` | `/simulaciones/alumno` | Alumno | **Listo** |
 | 7 | **ENDPOINT - GET Conversación** | `GET` | `/simulaciones/conversacion/:id` | **Ambos** | **Listo** |
 | 8 | **ENDPOINT - POST Responder** | `POST` | `/simulaciones/conversacion/:id/responder` | Alumno | **Listo** |
-| 9 | **ENDPOINT - GET Resumen** | `GET` | `/simulaciones/conversacion/:id/resumen` | **Ambos** | **Pendiente** |
+| 9 | **ENDPOINT - GET Resumen** | `GET` | `/simulaciones/conversacion/:id/resumen` | **Ambos** | **Listo** |
 
 ---
 
@@ -101,5 +101,6 @@
 #### `GET /simulaciones/conversacion/:id/resumen`
 *(Jira: ENDPOINT - GET Resumen)*
 * **Rol:** Alumno (de la empresa) o Docente (del curso).
+* **Estado:** **Listo**.
 * **¿Qué hace?** Devuelve el informe de cierre pedagógico una vez finalizada la simulación: calificación obtenida (0 a 100), desglose cualitativo de decisiones (muy adecuadas, adecuadas, etc.), balance final de recursos y feedback general para el equipo.
 * **¿Por qué hace falta?** Alimenta la pantalla de resultados finales tanto para los alumnos como para el docente cuando consulta el detalle de la entrega.

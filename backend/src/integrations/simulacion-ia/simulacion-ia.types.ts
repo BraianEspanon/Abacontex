@@ -44,4 +44,31 @@ export interface ISimulacionGeneratorProvider {
   generarEstructuraSimulacion(
     params: GenerarSimulacionParams
   ): Promise<EstructuraSimulacionGeneradaIA>;
+  generarFeedbackFinal(params: GenerarFeedbackFinalParams): Promise<FeedbackFinalGeneradoIA>;
+}
+
+export interface DecisionTomadaFeedbackParams {
+  orden: number;
+  eventoTitulo: string;
+  opcionElegida: string;
+  clasificacion: string;
+  puntos: number;
+  rol: string;
+  alumnoNombre: string;
+}
+
+export interface GenerarFeedbackFinalParams {
+  tituloSimulacion: string;
+  flujo: string;
+  empresaNombre: string;
+  puntajeFinal: number;
+  decisiones: DecisionTomadaFeedbackParams[];
+  variablesFinales?: Record<string, unknown> | undefined;
+}
+
+export interface FeedbackFinalGeneradoIA {
+  resumenGeneral: string;
+  fortalezas: string[];
+  aspectosAMejorar: string[];
+  conclusion: string;
 }

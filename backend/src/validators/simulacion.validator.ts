@@ -156,3 +156,16 @@ export type ResponderDecisionSimulacionParamsDTO = z.infer<
 export type ResponderDecisionSimulacionBodyDTO = z.infer<
   typeof responderDecisionSimulacionSchema
 >['body'];
+
+export const obtenerResumenSimulacionSchema = z.object({
+  params: z.object({
+    id: z.coerce
+      .number({ message: 'El ID de la conversación debe ser numérico.' })
+      .int('El ID de la conversación debe ser un número entero.')
+      .positive('El ID de la conversación debe ser mayor a cero.'),
+  }),
+});
+
+export type ObtenerResumenSimulacionParamsDTO = z.infer<
+  typeof obtenerResumenSimulacionSchema
+>['params'];

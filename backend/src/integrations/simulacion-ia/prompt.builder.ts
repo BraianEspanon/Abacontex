@@ -7,7 +7,7 @@ import {
   ROLES_POR_FLUJO,
   TEMAS_POR_FLUJO,
 } from '../../constants/simulacion.constants';
-import { GenerarSimulacionParams } from './simulacion-ia.types';
+import { GenerarFeedbackFinalParams, GenerarSimulacionParams } from './simulacion-ia.types';
 
 export function construirPromptGeneracionSimulacion(params: GenerarSimulacionParams): {
   systemInstruction: string;
@@ -228,6 +228,60 @@ Recordá que el grafo NO debe ser una lista lineal simple: usá bifurcaciones re
 Asegurate de que NINGÚN rol quede atrapado en una rama no elegida: en cualquier camino que recorra la empresa, todos los roles listados deben tener al menos una decisión asignada.
 Recordá usar libremente proporciones dinámicas como {{cantidad}}, {{cantidad:0.8}}, {{cantidad:1.2}}, {{monto}}, {{monto:0.15}}, {{plazo}}, {{plazo:1.5}} para que la situación sea 100% verosímil y los plazos estén expresados en días concretos.
 Devolvé ÚNICAMENTE el objeto JSON válido que cumpla con la estructura especificada, sin texto adicional ni bloques de markdown.`;
+
+  return { systemInstruction, userPrompt };
+}
+
+export function construirPromptFeedbackSimulacion(params: GenerarFeedbackFinalParams): {
+  systemInstruction: string;
+  userPrompt: string;
+} {
+  const { tituloSimulacion, flujo, empresaNombre, puntajeFinal, decisiones, variablesFinales } =
+    params;
+
+  const systemInstruction = `Sos Aba, el tutor inteligente y pedagógico de la plataforma de simulación empresarial Abacontex.
+Tu misión es generar una devolución formativa, constructiva y orientada al aprendizaje para un equipo de estudiantes que acaba de finalizar una simulación.
+
+REGLAS PEDAGÓGICAS:
+- El tono debe ser profesional, cercano, motivador y analítico.
+- Resaltá los aciertos en la toma de decisiones y el trabajo en equipo de las diferentes áreas.
+- Señalá con claridad las decisiones que implicaron riesgos innecesarios o costos evitables, explicando qué otro enfoque hubiera sido más conveniente.
+- No uses clichés vacíos: hacé referencia directa a las decisiones y acontecimientos que atravesó el equipo.
+- Devolvé ÚNICAMENTE un JSON válido con esta estructura estricta, sin bloques de markdown:
+{
+  "resumenGeneral": "Síntesis clara de 2 o 3 oraciones sobre el desempeño global de la empresa y su resultado.",
+  "fortalezas": [
+    "Fortaleza 1 con referencia a una decisión acertada...",
+    "Fortaleza 2..."
+  ],
+  "aspectosAMejorar": [
+    "Aspecto a mejorar o riesgo detectado 1...",
+    "Aspecto 2..."
+  ],
+  "conclusion": "Mensaje de cierre integrador que sintetice la principal lección aprendida y motive al equipo."
+}`;
+
+  const detalleDecisiones = decisiones
+    .map(
+      (d) =>
+        `- Evento #${d.orden} (${d.eventoTitulo}): Rol "${d.rol}" (${d.alumnoNombre}) eligió: "${d.opcionElegida}". Clasificación: ${d.clasificacion} (${d.puntos} pts).`
+    )
+    .join('\n');
+
+  const variablesStr = variablesFinales
+    ? `\n- Variables de cierre del ERP: ${JSON.stringify(variablesFinales)}`
+    : '';
+
+  const userPrompt = `Generá la devolución pedagógica final para la empresa con estos datos:
+- Empresa: ${empresaNombre}
+- Simulación: ${tituloSimulacion}
+- Flujo empresarial: ${flujo}
+- Puntuación final obtenida: ${puntajeFinal} sobre 100 puntos${variablesStr}
+
+Historial de decisiones tomadas por el equipo:
+${detalleDecisiones}
+
+Devolvé ÚNICAMENTE el objeto JSON válido.`;
 
   return { systemInstruction, userPrompt };
 }

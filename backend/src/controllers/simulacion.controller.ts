@@ -7,6 +7,7 @@ import {
   editarTituloSimulacionSchema,
   obtenerConversacionSimulacionSchema,
   obtenerEntregasSimulacionSchema,
+  obtenerResumenSimulacionSchema,
   obtenerSimulacionesAlumnoQuerySchema,
   obtenerSimulacionesDocenteQuerySchema,
   responderDecisionSimulacionSchema,
@@ -88,4 +89,14 @@ export async function responderDecisionSimulacion(req: Request, res: Response) {
   const resultado = await simulacionService.responderDecisionSimulacion(req.user!, params.id, body);
 
   res.json(resultado);
+}
+
+export async function obtenerResumenSimulacion(req: Request, res: Response) {
+  const { params } = obtenerResumenSimulacionSchema.parse({
+    params: req.params,
+  });
+
+  const resumen = await simulacionService.obtenerResumenSimulacion(req.user!, params.id);
+
+  res.json(resumen);
 }

@@ -1,6 +1,8 @@
 import { ROLES_POR_FLUJO } from '../../constants/simulacion.constants';
 import type {
   EstructuraSimulacionGeneradaIA,
+  FeedbackFinalGeneradoIA,
+  GenerarFeedbackFinalParams,
   GenerarSimulacionParams,
 } from './simulacion-ia.types';
 
@@ -145,5 +147,30 @@ export function crearMockEstructuraSimulacion(
           'La simulación ha concluido. El equipo ha completado todas las etapas y el resultado fue consolidado.',
       },
     ],
+  };
+}
+
+export function crearMockFeedbackFinalSimulacion(
+  params: GenerarFeedbackFinalParams
+): FeedbackFinalGeneradoIA {
+  const calificacionTexto =
+    params.puntajeFinal >= 80
+      ? 'sobresaliente'
+      : params.puntajeFinal >= 60
+        ? 'satisfactorio'
+        : 'con oportunidades de mejora';
+
+  return {
+    resumenGeneral: `El equipo de ${params.empresaNombre} completó la simulación sobre ${params.flujo} con un desempeño ${calificacionTexto}, alcanzando ${params.puntajeFinal} puntos sobre 100. Las decisiones mostraron coordinación entre áreas para resolver los desafíos planteados.`,
+    fortalezas: [
+      'Coordinación interdepartamental efectiva en los momentos de mayor exigencia.',
+      'Capacidad de respuesta oportuna ante los pedidos y compromisos asumidos.',
+    ],
+    aspectosAMejorar: [
+      'Evaluar con mayor detalle el impacto financiero y de caja a mediano plazo antes de confirmar pedidos extraordinarios.',
+      'Optimizar la distribución de costos operativos para proteger los márgenes comerciales.',
+    ],
+    conclusion:
+      'Gran trabajo en equipo. La experiencia consolidó criterios gerenciales clave para la gestión empresarial en situaciones de incertidumbre.',
   };
 }

@@ -1,5 +1,6 @@
 import {
   ConversacionSimulacionEmpresaEntity,
+  ResumenSimulacionEmpresaEntity,
   SimulacionAlumnoListItemEntity,
   SimulacionCreadaEntity,
 } from '../../repositories/simulacion.repository';
@@ -23,6 +24,8 @@ import {
   ModoConversacionSimulacion,
   ResumenDashboardAlumnoDTO,
   ResumenDashboardDocenteDTO,
+  ResumenSimulacionResponseDTO,
+  FeedbackFinalSimulacionDTO,
   SimulacionAlumnoCardDTO,
   SimulacionCreadaResponseDTO,
   SimulacionDocenteCardDTO,
@@ -514,5 +517,74 @@ export function toConversacionSimulacionResponse(
     integrantes,
     mensajes,
     decisionActiva,
+  };
+}
+
+export function toResumenSimulacionResponse(
+  entity: ResumenSimulacionEmpresaEntity,
+  feedbackFinalOverride?: FeedbackFinalSimulacionDTO
+): ResumenSimulacionResponseDTO {
+  const titulo = entity.simulacion.titulo
+    ? adaptarTituloSimulacion(entity.simulacion.titulo, entity.empresa.nombre)
+    : `Simulación: ${entity.simulacion.flujoEmpresarial}`;
+
+  const rolesSet = new Set<string>();
+  let muyAdecuadas = 0;
+  let adecuadas = 0;
+  let pocoAdecuadas = 0;
+  let inadecuadas = 0;
+
+  for (const decision of entity.decisiones) {
+    if (decision.rolEmpresa?.nombreRol) {
+      rolesSet.add(decision.rolEmpresa.nombreRol);
+    }
+    const clasificacion = decision.opcion?.clasificacion;
+    if (clasificacion === 'MUY_ADECUADA') muyAdecuadas++;
+    else if (clasificacion === 'ADECUADA') adecuadas++;
+    else if (clasificacion === 'POCO_ADECUADA') pocoAdecuadas++;
+    else if (clasificacion === 'INADECUADA') inadecuadas++;
+  }
+
+  const rawFeedback = (feedbackFinalOverride ?? entity.feedbackFinal) as Record<
+    string,
+    unknown
+  > | null;
+  const feedbackFinal: FeedbackFinalSimulacionDTO = {
+    resumenGeneral:
+      typeof rawFeedback?.resumenGeneral === 'string' ? rawFeedback.resumenGeneral : '',
+    fortalezas: Array.isArray(rawFeedback?.fortalezas) ? rawFeedback.fortalezas.map(String) : [],
+    aspectosAMejorar: Array.isArray(rawFeedback?.aspectosAMejorar)
+      ? rawFeedback.aspectosAMejorar.map(String)
+      : [],
+    conclusion: typeof rawFeedback?.conclusion === 'string' ? rawFeedback.conclusion : '',
+  };
+
+  const variablesFinales = (entity.estadoInterno?.variables as Record<string, unknown>) ?? {};
+
+  return {
+    idSimulacionEmpresa: entity.idSimulacionEmpresa,
+    titulo,
+    estado: entity.estado,
+    empresa: {
+      id: entity.empresa.id,
+      nombre: entity.empresa.nombre,
+    },
+    puntajeFinal: entity.puntajeFinal ?? 0,
+    eventosCompletados: entity.decisiones.length,
+    cantEventosTotales: entity._count.eventos,
+    fechaInicio: entity.fechaInicio?.toISOString() ?? null,
+    fechaLimite: entity.simulacion.fechaLimite.toISOString(),
+    fechaFinalizacion: entity.fechaFinalizacion?.toISOString() ?? null,
+    flujoEmpresarial: entity.simulacion.flujoEmpresarial,
+    rolesIntervinieron: Array.from(rolesSet),
+    desgloseDecisiones: {
+      muyAdecuadas,
+      adecuadas,
+      pocoAdecuadas,
+      inadecuadas,
+      total: entity.decisiones.length,
+    },
+    feedbackFinal,
+    variablesFinales,
   };
 }

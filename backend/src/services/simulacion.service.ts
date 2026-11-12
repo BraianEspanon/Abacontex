@@ -36,6 +36,8 @@ import {
   ListarSimulacionesDocenteResponseDTO,
   OpcionesCrearSimulacionResponseDTO,
   ResponderDecisionSimulacionResponseDTO,
+  ResumenSimulacionResponseDTO,
+  FeedbackFinalSimulacionDTO,
   SimulacionCreadaResponseDTO,
 } from '../dto/simulacion/simulacion.dto';
 import {
@@ -43,6 +45,7 @@ import {
   toEntregasSimulacionResponse,
   toListarSimulacionesAlumnoResponse,
   toListarSimulacionesDocenteResponse,
+  toResumenSimulacionResponse,
   toSimulacionCreadaResponse,
 } from '../dto/simulacion/simulacion.mapper';
 
@@ -453,9 +456,116 @@ export async function responderDecisionSimulacion(
     );
   });
 
-  // 12. Retornar confirmación de la decisión
+  // 12. Si finalizó, intentar generar y persistir el feedback final con IA
+  if (finalizada) {
+    try {
+      const resumenEntity =
+        await simulacionRepository.findResumenSimulacionEmpresa(idSimulacionEmpresa);
+      if (resumenEntity && !resumenEntity.feedbackFinal) {
+        await resolverFeedbackFinal(resumenEntity);
+      }
+    } catch (err) {
+      console.warn('No se pudo generar el feedback de IA al finalizar la simulación:', err);
+    }
+  }
+
+  // 13. Retornar confirmación de la decisión
   return {
     mensaje: 'Decisión registrada exitosamente.',
     finalizada,
   };
+}
+
+const promesasFeedbackEnVuelo = new Map<number, Promise<FeedbackFinalSimulacionDTO>>();
+
+async function resolverFeedbackFinal(
+  simEmpresa: simulacionRepository.ResumenSimulacionEmpresaEntity
+): Promise<FeedbackFinalSimulacionDTO> {
+  if (simEmpresa.feedbackFinal) {
+    return simEmpresa.feedbackFinal as unknown as FeedbackFinalSimulacionDTO;
+  }
+
+  const id = simEmpresa.idSimulacionEmpresa;
+  if (promesasFeedbackEnVuelo.has(id)) {
+    return promesasFeedbackEnVuelo.get(id)!;
+  }
+
+  const promesa = (async () => {
+    try {
+      const decisionesFormateadas = simEmpresa.decisiones.map((d, index) => ({
+        orden: index + 1,
+        eventoTitulo: d.evento.codigoEvento,
+        opcionElegida: d.opcion.texto,
+        clasificacion: d.opcion.clasificacion,
+        puntos: d.puntosObtenidos,
+        rol: d.rolEmpresa.nombreRol,
+        alumnoNombre: `${d.alumno.usuario.nombre} ${d.alumno.usuario.apellido}`.trim(),
+      }));
+
+      const variablesFinales =
+        (simEmpresa.estadoInterno?.variables as Record<string, unknown>) ?? {};
+
+      const feedback = await simulacionIaService.generarFeedbackFinal({
+        tituloSimulacion: simEmpresa.simulacion.titulo,
+        flujo: simEmpresa.simulacion.flujoEmpresarial,
+        empresaNombre: simEmpresa.empresa.nombre,
+        puntajeFinal: simEmpresa.puntajeFinal ?? 0,
+        decisiones: decisionesFormateadas,
+        variablesFinales,
+      });
+
+      await simulacionRepository.updateFeedbackFinalSimulacionEmpresa(id, feedback);
+      return feedback;
+    } finally {
+      promesasFeedbackEnVuelo.delete(id);
+    }
+  })();
+
+  promesasFeedbackEnVuelo.set(id, promesa);
+  return promesa;
+}
+
+export async function obtenerResumenSimulacion(
+  user: AuthUser,
+  idSimulacionEmpresa: number
+): Promise<ResumenSimulacionResponseDTO> {
+  // 1. Obtener datos de la simulación empresarial
+  const simEmpresa = await simulacionRepository.findResumenSimulacionEmpresa(idSimulacionEmpresa);
+
+  if (!simEmpresa) {
+    throw new NotFoundError('La simulación empresarial no fue encontrada.');
+  }
+
+  // 2. Validar pertenencia y permisos según rol (mitigación de enumeración de IDs)
+  const esDocente = user.roles.includes(ROLES.DOCENTE);
+
+  if (esDocente) {
+    const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+    const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+
+    const tienePermiso =
+      simEmpresa.simulacion.docenteId === docente.id ||
+      cursosDocente.includes(simEmpresa.simulacion.cursoId);
+
+    if (!tienePermiso) {
+      throw new NotFoundError('La simulación empresarial no fue encontrada.');
+    }
+  } else {
+    const usuario = await alumnoService.getAlumnoSimulacionOrThrow(user);
+
+    if (usuario.alumno.empresa.id !== simEmpresa.empresaId) {
+      throw new NotFoundError('La simulación empresarial no fue encontrada.');
+    }
+  }
+
+  // 3. Validar estado: sólo disponible cuando está FINALIZADA
+  if (simEmpresa.estado !== EstadoParticipacionSimulacion.FINALIZADA) {
+    throw new ConflictError('La simulación aún no ha finalizado.');
+  }
+
+  // 4. Resolver feedback final (utiliza el guardado o genera y persiste si faltaba)
+  const feedbackFinal = await resolverFeedbackFinal(simEmpresa);
+
+  // 5. Mapear y retornar respuesta
+  return toResumenSimulacionResponse(simEmpresa, feedbackFinal);
 }

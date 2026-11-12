@@ -4,10 +4,18 @@ import {
   CLASIFICACION_POR_PUNTOS,
   ClasificacionOpcionSimulacion,
 } from '../../constants/simulacion.constants';
-import { construirPromptGeneracionSimulacion } from './prompt.builder';
-import { crearMockEstructuraSimulacion } from './simulacion-ia.mock';
+import {
+  construirPromptFeedbackSimulacion,
+  construirPromptGeneracionSimulacion,
+} from './prompt.builder';
+import {
+  crearMockEstructuraSimulacion,
+  crearMockFeedbackFinalSimulacion,
+} from './simulacion-ia.mock';
 import type {
   EstructuraSimulacionGeneradaIA,
+  FeedbackFinalGeneradoIA,
+  GenerarFeedbackFinalParams,
   GenerarSimulacionParams,
   ISimulacionGeneratorProvider,
 } from './simulacion-ia.types';
@@ -162,6 +170,61 @@ export class GroqSimulacionProvider implements ISimulacionGeneratorProvider {
       );
     }
   }
+
+  async generarFeedbackFinal(params: GenerarFeedbackFinalParams): Promise<FeedbackFinalGeneradoIA> {
+    const client = this.getClient();
+    const modelo = process.env.GROQ_MODEL_SIMULACION || 'qwen/qwen3.8-27b';
+
+    const { systemInstruction, userPrompt } = construirPromptFeedbackSimulacion(params);
+    const supportsJsonMode = !modelo.toLowerCase().includes('gpt-oss');
+
+    try {
+      const completion = await client.chat.completions.create({
+        model: modelo,
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.3,
+        max_tokens: 1500,
+        ...(supportsJsonMode ? { response_format: { type: 'json_object' } } : {}),
+      });
+
+      const rawText = completion.choices[0]?.message?.content?.trim() ?? '';
+      if (!rawText) {
+        throw new BadRequestError('La IA no devolvió contenido para el feedback final.');
+      }
+
+      let jsonText = rawText;
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonText = jsonMatch[0];
+      }
+
+      let parsed: FeedbackFinalGeneradoIA;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch {
+        const reparado = repararJsonLlm(jsonText);
+        parsed = JSON.parse(reparado);
+      }
+
+      return {
+        resumenGeneral: typeof parsed.resumenGeneral === 'string' ? parsed.resumenGeneral : '',
+        fortalezas: Array.isArray(parsed.fortalezas) ? parsed.fortalezas.map(String) : [],
+        aspectosAMejorar: Array.isArray(parsed.aspectosAMejorar)
+          ? parsed.aspectosAMejorar.map(String)
+          : [],
+        conclusion: typeof parsed.conclusion === 'string' ? parsed.conclusion : '',
+      };
+    } catch (error: unknown) {
+      if (error instanceof BadRequestError) throw error;
+      console.error('Error al generar feedback final con IA:', error);
+      throw new BadRequestError(
+        'Ocurrió un error al generar el feedback final con inteligencia artificial.'
+      );
+    }
+  }
 }
 
 export class MockSimulacionProvider implements ISimulacionGeneratorProvider {
@@ -171,6 +234,10 @@ export class MockSimulacionProvider implements ISimulacionGeneratorProvider {
     const mock = crearMockEstructuraSimulacion(params);
     simulacionIaService.setUltimoJsonCrudo(JSON.stringify(mock, null, 2));
     return mock;
+  }
+
+  async generarFeedbackFinal(params: GenerarFeedbackFinalParams): Promise<FeedbackFinalGeneradoIA> {
+    return crearMockFeedbackFinalSimulacion(params);
   }
 }
 
@@ -192,6 +259,10 @@ export class SimulacionIaService {
     params: GenerarSimulacionParams
   ): Promise<EstructuraSimulacionGeneradaIA> {
     return this.provider.generarEstructuraSimulacion(params);
+  }
+
+  async generarFeedbackFinal(params: GenerarFeedbackFinalParams): Promise<FeedbackFinalGeneradoIA> {
+    return this.provider.generarFeedbackFinal(params);
   }
 
   getUltimoJsonCrudo(): string | undefined {
