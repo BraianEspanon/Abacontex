@@ -1,4 +1,5 @@
 import {
+  EstadoParticipacionSimulacion,
   OpcionDificultadSimulacion,
   OpcionDuracionSimulacion,
   OpcionFlujoEmpresarial,
@@ -36,7 +37,7 @@ export interface OpcionesCrearSimulacionResponseDTO {
 export interface SimulacionDocenteCardDTO {
   idSimulacion: number;
   titulo: string;
-  estado: 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA';
+  estado: EstadoParticipacionSimulacion;
   fechaLimite: string;
   curso: {
     idCurso: number;
@@ -69,7 +70,7 @@ export interface EditarTituloSimulacionResponseDTO {
 export interface CabeceraEntregasSimulacionDTO {
   idSimulacion: number;
   titulo: string;
-  estado: 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA';
+  estado: EstadoParticipacionSimulacion;
   curso: {
     idCurso: number;
     nombreCurso: string;
@@ -101,4 +102,29 @@ export interface EntregaSimulacionEmpresaItemDTO {
 
 export interface EntregasSimulacionResponseDTO extends PaginatedResponse<EntregaSimulacionEmpresaItemDTO> {
   simulacion: CabeceraEntregasSimulacionDTO;
+}
+
+export interface SimulacionAlumnoCardDTO {
+  idSimulacionEmpresa: number;
+  titulo: string;
+  estado: EstadoParticipacionSimulacion;
+  requiereMiDecision: boolean;
+  eventoActualNumero: number;
+  cantEventosTotales: number;
+  porcentajeProgreso: number;
+  fechaLimite: string;
+  ultimaActividad: string | null;
+}
+
+export interface ResumenDashboardAlumnoDTO {
+  total: number;
+  pendientes: number;
+  enCurso: number;
+  finalizadas: number;
+  decisionesPorResponder: number;
+}
+
+export interface ListarSimulacionesAlumnoResponseDTO
+  extends PaginatedResponse<SimulacionAlumnoCardDTO> {
+  resumen: ResumenDashboardAlumnoDTO;
 }

@@ -13,6 +13,7 @@ import { NotFoundError } from '../errors/not-found.error';
 import type { EstructuraSimulacionGeneradaIA } from '../integrations/simulacion-ia/simulacion-ia.types';
 import type {
   ObtenerEntregasSimulacionQueryDTO,
+  ObtenerSimulacionesAlumnoQueryDTO,
   ObtenerSimulacionesDocenteQueryDTO,
 } from '../validators/simulacion.validator';
 
@@ -752,5 +753,235 @@ export async function findEntregasSimulacion(
     totalItems,
     page,
     pageSize,
+  };
+}
+
+export interface SimulacionAlumnoListItemEntity {
+  idSimulacionEmpresa: number;
+  estado: EstadoParticipacionSimulacion;
+  fechaInicio: Date | null;
+  fechaFinalizacion: Date | null;
+  simulacion: {
+    titulo: string;
+    fechaLimite: Date;
+    usarDatosEmpresa: boolean;
+  };
+  empresa: {
+    nombre: string;
+  };
+  estadoInterno: {
+    variables: Prisma.JsonValue;
+  } | null;
+  eventoActual: {
+    idEvento: number;
+    tipo: TipoEventoSimulacion;
+    rolesHabilitados: Prisma.JsonValue | null;
+  } | null;
+  _count: {
+    eventos: number;
+    decisiones: number;
+  };
+  decisiones: {
+    fechaDecision: Date;
+  }[];
+}
+
+export interface ResumenDashboardAlumnoDTO {
+  total: number;
+  pendientes: number;
+  enCurso: number;
+  finalizadas: number;
+  decisionesPorResponder: number;
+}
+
+export async function findSimulacionesAlumnoPaginadas(
+  empresaId: number,
+  rolAlumno: string | null,
+  filtros: ObtenerSimulacionesAlumnoQueryDTO,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  const page = filtros.page ?? 1;
+  const pageSize = filtros.pageSize ?? 6;
+  const titulo = filtros.titulo?.trim();
+
+  const where: Prisma.SimulacionEmpresaWhereInput = {
+    empresaId,
+  };
+
+  if (titulo) {
+    where.simulacion = {
+      titulo: {
+        contains: titulo,
+        mode: 'insensitive',
+      },
+    };
+  }
+
+  if (filtros.estado) {
+    if (filtros.estado === 'PENDIENTE') {
+      where.estado = EstadoParticipacionSimulacion.PENDIENTE;
+    } else if (filtros.estado === 'FINALIZADA') {
+      where.estado = EstadoParticipacionSimulacion.FINALIZADA;
+    } else if (filtros.estado === 'EN_CURSO') {
+      where.estado = EstadoParticipacionSimulacion.EN_CURSO;
+    } else if (filtros.estado === 'REQUIERE_MI_DECISION') {
+      where.estado = EstadoParticipacionSimulacion.EN_CURSO;
+      where.eventoActual = {
+        tipo: TipoEventoSimulacion.DECISION,
+        OR: [
+          ...(rolAlumno
+            ? [
+                {
+                  rolesHabilitados: {
+                    array_contains: rolAlumno,
+                  },
+                },
+              ]
+            : []),
+          {
+            rolesHabilitados: {
+              array_contains: 'TODOS',
+            },
+          },
+        ],
+      };
+    }
+  }
+
+  const baseResumenWhere: Prisma.SimulacionEmpresaWhereInput = {
+    empresaId,
+  };
+
+  const decisionesPorResponderWhere: Prisma.SimulacionEmpresaWhereInput = {
+    ...baseResumenWhere,
+    estado: EstadoParticipacionSimulacion.EN_CURSO,
+    eventoActual: {
+      tipo: TipoEventoSimulacion.DECISION,
+      OR: [
+        ...(rolAlumno
+          ? [
+              {
+                rolesHabilitados: {
+                  array_contains: rolAlumno,
+                },
+              },
+            ]
+          : []),
+        {
+          rolesHabilitados: {
+            array_contains: 'TODOS',
+          },
+        },
+      ],
+    },
+  };
+
+  const [
+    items,
+    totalItems,
+    totalEmpresa,
+    pendientesEmpresa,
+    enCursoEmpresa,
+    finalizadasEmpresa,
+    decisionesPorResponderEmpresa,
+  ] = await Promise.all([
+    db.simulacionEmpresa.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        simulacion: {
+          createdAt: 'desc',
+        },
+      },
+      select: {
+        idSimulacionEmpresa: true,
+        estado: true,
+        fechaInicio: true,
+        fechaFinalizacion: true,
+        simulacion: {
+          select: {
+            titulo: true,
+            fechaLimite: true,
+            usarDatosEmpresa: true,
+          },
+        },
+        empresa: {
+          select: {
+            nombre: true,
+          },
+        },
+        estadoInterno: {
+          select: {
+            variables: true,
+          },
+        },
+        eventoActual: {
+          select: {
+            idEvento: true,
+            tipo: true,
+            rolesHabilitados: true,
+          },
+        },
+        _count: {
+          select: {
+            eventos: true,
+            decisiones: true,
+          },
+        },
+        decisiones: {
+          orderBy: {
+            fechaDecision: 'desc',
+          },
+          take: 1,
+          select: {
+            fechaDecision: true,
+          },
+        },
+      },
+    }),
+
+    db.simulacionEmpresa.count({ where }),
+
+    db.simulacionEmpresa.count({ where: baseResumenWhere }),
+
+    db.simulacionEmpresa.count({
+      where: {
+        ...baseResumenWhere,
+        estado: EstadoParticipacionSimulacion.PENDIENTE,
+      },
+    }),
+
+    db.simulacionEmpresa.count({
+      where: {
+        ...baseResumenWhere,
+        estado: EstadoParticipacionSimulacion.EN_CURSO,
+      },
+    }),
+
+    db.simulacionEmpresa.count({
+      where: {
+        ...baseResumenWhere,
+        estado: EstadoParticipacionSimulacion.FINALIZADA,
+      },
+    }),
+
+    db.simulacionEmpresa.count({
+      where: decisionesPorResponderWhere,
+    }),
+  ]);
+
+  return {
+    items: items as SimulacionAlumnoListItemEntity[],
+    totalItems,
+    resumen: {
+      total: totalEmpresa,
+      pendientes: pendientesEmpresa,
+      enCurso: enCursoEmpresa,
+      finalizadas: finalizadasEmpresa,
+      decisionesPorResponder: decisionesPorResponderEmpresa,
+    },
   };
 }

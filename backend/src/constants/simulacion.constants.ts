@@ -54,6 +54,15 @@ export const ESTADOS_DASHBOARD_SIMULACION = ['PENDIENTE', 'EN_CURSO', 'FINALIZAD
 
 export type EstadoDashboardSimulacion = (typeof ESTADOS_DASHBOARD_SIMULACION)[number];
 
+export const FILTROS_ESTADO_ALUMNO_SIMULACION = [
+  'PENDIENTE',
+  'EN_CURSO',
+  'FINALIZADA',
+  'REQUIERE_MI_DECISION',
+] as const;
+
+export type FiltroEstadoAlumnoSimulacion = (typeof FILTROS_ESTADO_ALUMNO_SIMULACION)[number];
+
 export const FILTROS_ESTADO_ENTREGA_SIMULACION = [
   'TODAS',
   EstadoParticipacionSimulacion.PENDIENTE,

@@ -3,6 +3,8 @@ import { AuthUser } from '../types/express';
 import { simulacionIaService } from '../integrations/simulacion-ia/simulacion-ia.service';
 import { instanciarEstructuraParaEmpresa } from '../utils/simulacion.util';
 
+import * as alumnoService from './alumno.service';
+
 import * as simulacionRepository from '../repositories/simulacion.repository';
 import * as cursoRepository from '../repositories/curso.repository';
 import * as docenteRepository from '../repositories/docente.repository';
@@ -12,6 +14,7 @@ import {
   CrearSimulacionDTO,
   EditarTituloSimulacionBodyDTO,
   ObtenerEntregasSimulacionQueryDTO,
+  ObtenerSimulacionesAlumnoQueryDTO,
   ObtenerSimulacionesDocenteQueryDTO,
 } from '../validators/simulacion.validator';
 import {
@@ -23,12 +26,14 @@ import {
 import {
   EditarTituloSimulacionResponseDTO,
   EntregasSimulacionResponseDTO,
+  ListarSimulacionesAlumnoResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
   OpcionesCrearSimulacionResponseDTO,
   SimulacionCreadaResponseDTO,
 } from '../dto/simulacion/simulacion.dto';
 import {
   toEntregasSimulacionResponse,
+  toListarSimulacionesAlumnoResponse,
   toListarSimulacionesDocenteResponse,
   toSimulacionCreadaResponse,
 } from '../dto/simulacion/simulacion.mapper';
@@ -216,5 +221,34 @@ export async function obtenerEntregasSimulacion(
     resultado.totalItems,
     resultado.page,
     resultado.pageSize
+  );
+}
+
+export async function listarSimulacionesAlumno(
+  user: AuthUser,
+  query: ObtenerSimulacionesAlumnoQueryDTO
+): Promise<ListarSimulacionesAlumnoResponseDTO> {
+  // 1. Obtener alumno autenticado con su empresa y rol
+  const usuario = await alumnoService.getAlumnoSimulacionOrThrow(user);
+
+  const empresaId = usuario.alumno.empresa.id;
+  const rolAlumno = usuario.alumno.rolEmpresa.nombreRol;
+
+  // 2. Consultar simulaciones paginadas y métricas globales para la empresa
+  const resultado = await simulacionRepository.findSimulacionesAlumnoPaginadas(
+    empresaId,
+    rolAlumno,
+    query
+  );
+
+  // 3. Mapear y retornar respuesta
+  const pageSize = query.pageSize ?? 6;
+  return toListarSimulacionesAlumnoResponse(
+    resultado.items,
+    resultado.totalItems,
+    query.page ?? 1,
+    pageSize,
+    resultado.resumen,
+    rolAlumno
   );
 }

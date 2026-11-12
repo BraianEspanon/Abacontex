@@ -34,6 +34,92 @@ export function calcularPlazoProduccionPromedio(cantidad = 50): number {
   return calcularPlazoProduccion(cantidad);
 }
 
+export function adaptarTituloSimulacion(
+  titulo: string,
+  nombreEmpresa?: string,
+  productoOVariables?: unknown,
+  usarDatosEmpresa = true
+): string {
+  let producto = 'Artículos de producción';
+
+  if (typeof productoOVariables === 'string') {
+    producto =
+      usarDatosEmpresa && productoOVariables ? productoOVariables : 'Artículos de producción';
+  } else if (productoOVariables && typeof productoOVariables === 'object') {
+    const vars = productoOVariables as Record<string, unknown>;
+    if (typeof vars.producto === 'string' && usarDatosEmpresa) {
+      producto = vars.producto;
+    }
+  }
+
+  const emp = nombreEmpresa || '';
+
+  return (titulo || '')
+    .split('{{producto}}')
+    .join(producto)
+    .split('{{empresa}}')
+    .join(emp);
+}
+
+export interface ProgresoSimulacionResult {
+  eventosCompletados: number;
+  eventoActualNumero: number;
+  porcentajeProgreso: number;
+}
+
+export function calcularProgresoSimulacion(
+  estado: string,
+  eventosTotales: number,
+  cantidadDecisiones: number
+): ProgresoSimulacionResult {
+  let eventosCompletados = 0;
+  let eventoActualNumero = 1;
+
+  if (estado === 'FINALIZADA') {
+    eventosCompletados = eventosTotales;
+    eventoActualNumero = eventosTotales;
+  } else if (estado === 'EN_CURSO') {
+    eventosCompletados = cantidadDecisiones;
+    eventoActualNumero = Math.min(eventosTotales, cantidadDecisiones + 1);
+  } else {
+    // PENDIENTE
+    eventosCompletados = 0;
+    eventoActualNumero = 1;
+  }
+
+  const porcentajeProgreso =
+    eventosTotales > 0 ? Math.min(100, Math.round((eventosCompletados / eventosTotales) * 100)) : 0;
+
+  return {
+    eventosCompletados,
+    eventoActualNumero,
+    porcentajeProgreso,
+  };
+}
+
+export function puedeRolResponderEvento(
+  rolesHabilitados: unknown,
+  rolAlumno: string | null
+): boolean {
+  if (!Array.isArray(rolesHabilitados)) return false;
+  if (rolesHabilitados.includes('TODOS')) return true;
+  if (rolAlumno !== null && rolesHabilitados.includes(rolAlumno)) return true;
+  return false;
+}
+
+export function resolverUltimaActividadSimulacion(
+  decisiones?: { fechaDecision: Date }[],
+  fechaFinalizacion?: Date | null,
+  fechaInicio?: Date | null
+): string | null {
+  return (
+    decisiones?.[0]?.fechaDecision?.toISOString() ??
+    fechaFinalizacion?.toISOString() ??
+    fechaInicio?.toISOString() ??
+    null
+  );
+}
+
 function evaluarValorDinamico(
   tipo: 'cantidad' | 'monto' | 'plazo',
   factorStr: string | undefined,
@@ -230,10 +316,12 @@ export function instanciarEstructuraParaEmpresa(
   _dificultad?: string
 ): EstructuraInstanciadaEmpresaResult {
   // 1. Obtener producto y datos base de la empresa
-  // Priorizar el producto activo con mayor stock
+  // Selección aleatoria entre los productos activos de la empresa
   const productosActivos = (empresa.productos ?? []).filter((p) => p.activo !== false);
   const prodReal =
-    productosActivos.slice().sort((a, b) => b.stock - a.stock)[0] ?? empresa.productos[0];
+    productosActivos.length > 0
+      ? productosActivos[Math.floor(Math.random() * productosActivos.length)]
+      : empresa.productos[0];
 
   const nombreProducto = usarDatosEmpresa && prodReal ? prodReal.nombre : 'Artículos de producción';
   const stockReal = usarDatosEmpresa && prodReal && prodReal.stock > 0 ? prodReal.stock : 0;

@@ -6,6 +6,7 @@ import {
   crearSimulacionSchema,
   editarTituloSimulacionSchema,
   obtenerEntregasSimulacionSchema,
+  obtenerSimulacionesAlumnoQuerySchema,
   obtenerSimulacionesDocenteQuerySchema,
 } from '../validators/simulacion.validator';
 
@@ -52,6 +53,16 @@ export async function obtenerEntregasSimulacion(req: Request, res: Response) {
   });
 
   const resultado = await simulacionService.obtenerEntregasSimulacion(req.user!, params.id, query);
+
+  res.json(resultado);
+}
+
+export async function listarSimulacionesAlumno(req: Request, res: Response) {
+  const { query } = obtenerSimulacionesAlumnoQuerySchema.parse({
+    query: req.query,
+  });
+
+  const resultado = await simulacionService.listarSimulacionesAlumno(req.user!, query);
 
   res.json(resultado);
 }

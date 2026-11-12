@@ -10,12 +10,14 @@ import {
   crearSimulacionSchema,
   editarTituloSimulacionSchema,
   obtenerEntregasSimulacionSchema,
+  obtenerSimulacionesAlumnoQuerySchema,
   obtenerSimulacionesDocenteQuerySchema,
 } from '../validators/simulacion.validator';
 
 import {
   crearSimulacion,
   editarTituloSimulacion,
+  listarSimulacionesAlumno,
   listarSimulacionesDocente,
   obtenerEntregasSimulacion,
   obtenerOpcionesCrearSimulacion,
@@ -36,6 +38,14 @@ router.get(
   authenticate,
   requireRole(ROLES.DOCENTE),
   obtenerOpcionesCrearSimulacion
+);
+
+router.get(
+  '/alumno',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(obtenerSimulacionesAlumnoQuerySchema),
+  listarSimulacionesAlumno
 );
 
 router.post(

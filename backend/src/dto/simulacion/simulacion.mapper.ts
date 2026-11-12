@@ -1,10 +1,23 @@
-import { SimulacionCreadaEntity } from '../../repositories/simulacion.repository';
+import {
+  SimulacionAlumnoListItemEntity,
+  SimulacionCreadaEntity,
+} from '../../repositories/simulacion.repository';
+import { EstadoParticipacionSimulacion } from '../../constants/simulacion.constants';
+import {
+  adaptarTituloSimulacion,
+  calcularProgresoSimulacion,
+  puedeRolResponderEvento,
+  resolverUltimaActividadSimulacion,
+} from '../../utils/simulacion.util';
 import {
   CabeceraEntregasSimulacionDTO,
   EntregaSimulacionEmpresaItemDTO,
   EntregasSimulacionResponseDTO,
+  ListarSimulacionesAlumnoResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
+  ResumenDashboardAlumnoDTO,
   ResumenDashboardDocenteDTO,
+  SimulacionAlumnoCardDTO,
   SimulacionCreadaResponseDTO,
   SimulacionDocenteCardDTO,
 } from './simulacion.dto';
@@ -67,11 +80,11 @@ export function toSimulacionDocenteCard(
     puntajePromedio = Math.round(totalPuntos / empresasFinalizadas);
   }
 
-  let estado: 'PENDIENTE' | 'EN_CURSO' | 'FINALIZADA' = 'PENDIENTE';
+  let estado: EstadoParticipacionSimulacion = EstadoParticipacionSimulacion.PENDIENTE;
   if (empresasTotales > 0 && empresasFinalizadas === empresasTotales) {
-    estado = 'FINALIZADA';
+    estado = EstadoParticipacionSimulacion.FINALIZADA;
   } else if (empresasQueHanEmpezado > 0) {
-    estado = 'EN_CURSO';
+    estado = EstadoParticipacionSimulacion.EN_CURSO;
   }
 
   return {
@@ -142,12 +155,11 @@ export interface SimulacionEmpresaEntregaEntity {
 export function toEntregaSimulacionEmpresaItem(
   entity: SimulacionEmpresaEntregaEntity
 ): EntregaSimulacionEmpresaItemDTO {
-  const eventosTotales = entity._count.eventos;
-  const eventosCompletados =
-    entity.estado === 'FINALIZADA' ? eventosTotales : entity._count.decisiones;
-
-  const porcentajeProgreso =
-    eventosTotales > 0 ? Math.min(100, Math.round((eventosCompletados / eventosTotales) * 100)) : 0;
+  const { eventosCompletados, porcentajeProgreso } = calcularProgresoSimulacion(
+    entity.estado,
+    entity._count.eventos,
+    entity._count.decisiones
+  );
 
   const rolesInvolucrados = Array.from(
     new Set(
@@ -157,8 +169,11 @@ export function toEntregaSimulacionEmpresaItem(
     )
   );
 
-  const ultimaActividad =
-    entity.decisiones[0]?.fechaDecision?.toISOString() ?? entity.fechaInicio?.toISOString() ?? null;
+  const ultimaActividad = resolverUltimaActividadSimulacion(
+    entity.decisiones,
+    entity.fechaFinalizacion,
+    entity.fechaInicio
+  );
 
   return {
     idSimulacionEmpresa: entity.idSimulacionEmpresa,
@@ -169,7 +184,7 @@ export function toEntregaSimulacionEmpresaItem(
     rolesInvolucrados,
     estado: entity.estado,
     eventosCompletados,
-    eventosTotales,
+    eventosTotales: entity._count.eventos,
     porcentajeProgreso,
     puntajeFinal: entity.puntajeFinal,
     ultimaActividad,
@@ -191,5 +206,64 @@ export function toEntregasSimulacionResponse(
     pageSize,
     totalItems,
     totalPages: Math.ceil(totalItems / pageSize) || 1,
+  };
+}
+
+export function toSimulacionAlumnoCard(
+  entity: SimulacionAlumnoListItemEntity,
+  rolAlumno: string | null
+): SimulacionAlumnoCardDTO {
+  const { eventoActualNumero, porcentajeProgreso } = calcularProgresoSimulacion(
+    entity.estado,
+    entity._count.eventos,
+    entity._count.decisiones
+  );
+
+  const requiereMiDecision =
+    entity.estado === 'EN_CURSO' &&
+    entity.eventoActual?.tipo === 'DECISION' &&
+    puedeRolResponderEvento(entity.eventoActual.rolesHabilitados, rolAlumno);
+
+  const titulo = adaptarTituloSimulacion(
+    entity.simulacion.titulo,
+    entity.empresa?.nombre,
+    entity.estadoInterno?.variables,
+    entity.simulacion.usarDatosEmpresa
+  );
+
+  const ultimaActividad = resolverUltimaActividadSimulacion(
+    entity.decisiones,
+    entity.fechaFinalizacion,
+    entity.fechaInicio
+  );
+
+  return {
+    idSimulacionEmpresa: entity.idSimulacionEmpresa,
+    titulo,
+    estado: entity.estado,
+    requiereMiDecision,
+    eventoActualNumero,
+    cantEventosTotales: entity._count.eventos,
+    porcentajeProgreso,
+    fechaLimite: entity.simulacion.fechaLimite.toISOString(),
+    ultimaActividad,
+  };
+}
+
+export function toListarSimulacionesAlumnoResponse(
+  items: SimulacionAlumnoListItemEntity[],
+  totalItems: number,
+  page: number,
+  pageSize: number,
+  resumen: ResumenDashboardAlumnoDTO,
+  rolAlumno: string | null
+): ListarSimulacionesAlumnoResponseDTO {
+  return {
+    items: items.map((item) => toSimulacionAlumnoCard(item, rolAlumno)),
+    page,
+    pageSize,
+    totalItems,
+    totalPages: Math.ceil(totalItems / pageSize) || 1,
+    resumen,
   };
 }

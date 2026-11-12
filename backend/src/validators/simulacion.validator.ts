@@ -3,6 +3,7 @@ import {
   DIFICULTADES_SIMULACION,
   DURACIONES_SIMULACION,
   ESTADOS_DASHBOARD_SIMULACION,
+  FILTROS_ESTADO_ALUMNO_SIMULACION,
   FILTROS_ESTADO_ENTREGA_SIMULACION,
   FLUJOS_EMPRESARIALES,
   TIPOS_EVENTO_SORPRESA,
@@ -99,4 +100,23 @@ export type ObtenerEntregasSimulacionParamsDTO = z.infer<
 
 export type ObtenerEntregasSimulacionQueryDTO = z.infer<
   typeof obtenerEntregasSimulacionSchema
+>['query'];
+
+export const obtenerSimulacionesAlumnoQuerySchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().positive('La página debe ser mayor a 0.').optional().default(1),
+    pageSize: z.coerce
+      .number()
+      .int()
+      .positive('El tamaño de página debe ser mayor a 0.')
+      .max(50, 'El tamaño de página no puede exceder 50.')
+      .optional()
+      .default(6),
+    titulo: z.string().trim().optional(),
+    estado: z.enum(FILTROS_ESTADO_ALUMNO_SIMULACION).optional(),
+  }),
+});
+
+export type ObtenerSimulacionesAlumnoQueryDTO = z.infer<
+  typeof obtenerSimulacionesAlumnoQuerySchema
 >['query'];
