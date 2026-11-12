@@ -1111,3 +1111,134 @@ export async function iniciarSimulacionEmpresa(
 export type ConversacionSimulacionEmpresaEntity = NonNullable<
   Prisma.PromiseReturnType<typeof findConversacionSimulacionEmpresa>
 >;
+
+export interface CreateDecisionSimulacionInput {
+  simulacionEmpresaId: number;
+  eventoId: number;
+  opcionId: number;
+  alumnoId: string;
+  rolEmpresaId: number;
+  puntosObtenidos: number;
+}
+
+export interface ActualizarProgresoSimulacionInput {
+  estado: EstadoParticipacionSimulacion;
+  eventoActualId: number | null;
+  fechaInicio?: Date | undefined;
+  fechaFinalizacion?: Date | undefined;
+  puntajeFinal?: number | undefined;
+}
+
+export async function findSimulacionEmpresaParaResponder(
+  idSimulacionEmpresa: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.simulacionEmpresa.findUnique({
+    where: { idSimulacionEmpresa },
+    select: {
+      idSimulacionEmpresa: true,
+      empresaId: true,
+      estado: true,
+      eventoActualId: true,
+      fechaInicio: true,
+      simulacion: {
+        select: {
+          idSimulacion: true,
+          fechaLimite: true,
+        },
+      },
+      eventoActual: {
+        include: {
+          opciones: true,
+        },
+      },
+      estadoInterno: {
+        select: {
+          idEstado: true,
+          variables: true,
+          historialEventos: true,
+        },
+      },
+      decisiones: {
+        select: {
+          idDecision: true,
+          eventoId: true,
+          puntosObtenidos: true,
+        },
+      },
+    },
+  });
+}
+
+export async function findEventoById(idEvento: number, tx?: Prisma.TransactionClient) {
+  const db = getDbClient(tx);
+
+  return db.eventoSimulacion.findUnique({
+    where: { idEvento },
+    select: {
+      idEvento: true,
+      tipo: true,
+      siguienteEventoId: true,
+    },
+  });
+}
+
+export async function createDecisionSimulacion(
+  data: CreateDecisionSimulacionInput,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.decisionSimulacion.create({
+    data: {
+      simulacionEmpresaId: data.simulacionEmpresaId,
+      eventoId: data.eventoId,
+      opcionId: data.opcionId,
+      alumnoId: data.alumnoId,
+      rolEmpresaId: data.rolEmpresaId,
+      puntosObtenidos: data.puntosObtenidos,
+    },
+  });
+}
+
+export async function updateEstadoSimulacionEmpresaVariables(
+  idSimulacionEmpresa: number,
+  variables: Record<string, unknown>,
+  historialEventos: unknown[],
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.estadoSimulacionEmpresa.update({
+    where: { simulacionEmpresaId: idSimulacionEmpresa },
+    data: {
+      variables: variables as Prisma.InputJsonValue,
+      historialEventos: historialEventos as Prisma.InputJsonValue,
+    },
+  });
+}
+
+export async function actualizarProgresoSimulacionEmpresa(
+  idSimulacionEmpresa: number,
+  data: ActualizarProgresoSimulacionInput,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.simulacionEmpresa.update({
+    where: { idSimulacionEmpresa },
+    data: {
+      estado: data.estado,
+      eventoActualId: data.eventoActualId,
+      ...(data.fechaInicio ? { fechaInicio: data.fechaInicio } : {}),
+      ...(data.fechaFinalizacion ? { fechaFinalizacion: data.fechaFinalizacion } : {}),
+      ...(data.puntajeFinal !== undefined ? { puntajeFinal: data.puntajeFinal } : {}),
+    },
+  });
+}
+
+export type SimulacionEmpresaParaResponderEntity = NonNullable<
+  Prisma.PromiseReturnType<typeof findSimulacionEmpresaParaResponder>
+>;

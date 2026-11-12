@@ -128,8 +128,7 @@ export interface ResumenDashboardAlumnoDTO {
   decisionesPorResponder: number;
 }
 
-export interface ListarSimulacionesAlumnoResponseDTO
-  extends PaginatedResponse<SimulacionAlumnoCardDTO> {
+export interface ListarSimulacionesAlumnoResponseDTO extends PaginatedResponse<SimulacionAlumnoCardDTO> {
   resumen: ResumenDashboardAlumnoDTO;
 }
 
@@ -206,3 +205,7 @@ export interface ConversacionSimulacionResponseDTO {
   decisionActiva?: DecisionActivaDTO | null | undefined;
 }
 
+export interface ResponderDecisionSimulacionResponseDTO {
+  mensaje: string;
+  finalizada: boolean;
+}

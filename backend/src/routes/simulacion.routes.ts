@@ -13,6 +13,7 @@ import {
   obtenerEntregasSimulacionSchema,
   obtenerSimulacionesAlumnoQuerySchema,
   obtenerSimulacionesDocenteQuerySchema,
+  responderDecisionSimulacionSchema,
 } from '../validators/simulacion.validator';
 
 import {
@@ -23,6 +24,7 @@ import {
   obtenerConversacionSimulacion,
   obtenerEntregasSimulacion,
   obtenerOpcionesCrearSimulacion,
+  responderDecisionSimulacion,
 } from '../controllers/simulacion.controller';
 
 const router = Router();
@@ -80,6 +82,14 @@ router.get(
   requireRole(ROLES.DOCENTE, ROLES.ALUMNO),
   validate(obtenerConversacionSimulacionSchema),
   obtenerConversacionSimulacion
+);
+
+router.post(
+  '/conversacion/:id/responder',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  validate(responderDecisionSimulacionSchema),
+  responderDecisionSimulacion
 );
 
 export default router;

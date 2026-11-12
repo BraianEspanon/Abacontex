@@ -16,7 +16,7 @@
 | 5 | **ENDPOINT - GET Entregas de simulación** | `GET` | `/simulaciones/:id/entregas` | Docente | **Listo** |
 | 6 | **ENDPOINT - GET Simulaciones (Alumno)** | `GET` | `/simulaciones/alumno` | Alumno | **Listo** |
 | 7 | **ENDPOINT - GET Conversación** | `GET` | `/simulaciones/conversacion/:id` | **Ambos** | **Listo** |
-| 8 | **ENDPOINT - POST Responder** | `POST` | `/simulaciones/conversacion/:id/responder` | Alumno | **Pendiente** |
+| 8 | **ENDPOINT - POST Responder** | `POST` | `/simulaciones/conversacion/:id/responder` | Alumno | **Listo** |
 | 9 | **ENDPOINT - GET Resumen** | `GET` | `/simulaciones/conversacion/:id/resumen` | **Ambos** | **Pendiente** |
 
 ---

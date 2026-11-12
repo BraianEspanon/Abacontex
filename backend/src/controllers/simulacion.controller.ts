@@ -9,6 +9,7 @@ import {
   obtenerEntregasSimulacionSchema,
   obtenerSimulacionesAlumnoQuerySchema,
   obtenerSimulacionesDocenteQuerySchema,
+  responderDecisionSimulacionSchema,
 } from '../validators/simulacion.validator';
 
 export async function crearSimulacion(req: Request, res: Response) {
@@ -74,6 +75,17 @@ export async function obtenerConversacionSimulacion(req: Request, res: Response)
   });
 
   const resultado = await simulacionService.obtenerConversacionSimulacion(req.user!, params.id);
+
+  res.json(resultado);
+}
+
+export async function responderDecisionSimulacion(req: Request, res: Response) {
+  const { params, body } = responderDecisionSimulacionSchema.parse({
+    params: req.params,
+    body: req.body,
+  });
+
+  const resultado = await simulacionService.responderDecisionSimulacion(req.user!, params.id, body);
 
   res.json(resultado);
 }

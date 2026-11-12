@@ -2,7 +2,7 @@ import { AuthUser } from '../types/express';
 import { ROLES } from '../constants/roles';
 
 import { simulacionIaService } from '../integrations/simulacion-ia/simulacion-ia.service';
-import { instanciarEstructuraParaEmpresa } from '../utils/simulacion.util';
+import { instanciarEstructuraParaEmpresa, puedeRolResponderEvento } from '../utils/simulacion.util';
 
 import * as alumnoService from './alumno.service';
 
@@ -17,6 +17,7 @@ import {
   ObtenerEntregasSimulacionQueryDTO,
   ObtenerSimulacionesAlumnoQueryDTO,
   ObtenerSimulacionesDocenteQueryDTO,
+  ResponderDecisionSimulacionBodyDTO,
 } from '../validators/simulacion.validator';
 import {
   EstadoParticipacionSimulacion,
@@ -24,6 +25,8 @@ import {
   OPCIONES_DURACIONES_SIMULACION,
   OPCIONES_FLUJOS_EMPRESARIALES,
   OPCIONES_TIPOS_EVENTO_SORPRESA,
+  PUNTOS_POR_CLASIFICACION,
+  TipoEventoSimulacion,
 } from '../constants/simulacion.constants';
 import {
   ConversacionSimulacionResponseDTO,
@@ -32,6 +35,7 @@ import {
   ListarSimulacionesAlumnoResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
   OpcionesCrearSimulacionResponseDTO,
+  ResponderDecisionSimulacionResponseDTO,
   SimulacionCreadaResponseDTO,
 } from '../dto/simulacion/simulacion.dto';
 import {
@@ -43,6 +47,7 @@ import {
 } from '../dto/simulacion/simulacion.mapper';
 
 import { BadRequestError } from '../errors/bad-request-error';
+import { ConflictError } from '../errors/conflict.error';
 import { ForbiddenError } from '../errors/forbidden.error';
 import { NotFoundError } from '../errors/not-found.error';
 
@@ -300,4 +305,157 @@ export async function obtenerConversacionSimulacion(
     esDocente,
     rolAlumno,
   });
+}
+
+export async function responderDecisionSimulacion(
+  user: AuthUser,
+  idSimulacionEmpresa: number,
+  body: ResponderDecisionSimulacionBodyDTO
+): Promise<ResponderDecisionSimulacionResponseDTO> {
+  // 1. Obtener alumno autenticado con su empresa y rol
+  const usuario = await alumnoService.getAlumnoSimulacionOrThrow(user);
+  const alumno = usuario.alumno;
+
+  // 2. Obtener estado actual de la simulación para responder
+  const simEmpresa =
+    await simulacionRepository.findSimulacionEmpresaParaResponder(idSimulacionEmpresa);
+
+  // Prevención de enumeración de IDs: NotFoundError si no existe o es de otra empresa
+  if (!simEmpresa || simEmpresa.empresaId !== alumno.empresa.id) {
+    throw new NotFoundError('La simulación empresarial no fue encontrada.');
+  }
+
+  // 3. Validar estado general y fecha límite
+  if (simEmpresa.estado === EstadoParticipacionSimulacion.FINALIZADA) {
+    throw new ConflictError('La simulación empresarial ya ha finalizado.');
+  }
+
+  if (new Date() > simEmpresa.simulacion.fechaLimite) {
+    throw new ConflictError('El plazo para responder la simulación ha vencido.');
+  }
+
+  // 4. Validar que exista una decisión activa pendiente
+  const eventoActivo = simEmpresa.eventoActual;
+  if (!eventoActivo || eventoActivo.tipo !== TipoEventoSimulacion.DECISION) {
+    throw new ConflictError('El evento actual no requiere una decisión.');
+  }
+
+  const yaRespondida = simEmpresa.decisiones.some((d) => d.eventoId === eventoActivo.idEvento);
+  if (yaRespondida) {
+    throw new ConflictError('Esta decisión ya ha sido respondida por otro integrante del equipo.');
+  }
+
+  // 5. Validar que el rol del alumno esté habilitado para responder
+  const puedeResponder = puedeRolResponderEvento(
+    eventoActivo.rolesHabilitados,
+    alumno.rolEmpresa.nombreRol
+  );
+  if (!puedeResponder) {
+    throw new ForbiddenError('Tu rol no está habilitado para tomar esta decisión.');
+  }
+
+  // 6. Validar que la opción elegida pertenezca al evento
+  const opcion = eventoActivo.opciones.find((op) => op.idOpcion === body.idOpcion);
+  if (!opcion) {
+    throw new BadRequestError('La opción seleccionada no es válida para el evento actual.');
+  }
+
+  // 7. Calcular puntos de la opción elegida
+  const puntosObtenidos = PUNTOS_POR_CLASIFICACION[opcion.clasificacion] ?? 0;
+
+  // 8. Determinar siguiente paso y si finaliza la simulación
+  let finalizada = false;
+  let nuevoEventoActualId: number | null = null;
+
+  if (opcion.siguienteEventoId) {
+    const siguienteEvento = await simulacionRepository.findEventoById(opcion.siguienteEventoId);
+    if (!siguienteEvento || siguienteEvento.tipo === TipoEventoSimulacion.FINAL) {
+      finalizada = true;
+      nuevoEventoActualId = siguienteEvento?.idEvento ?? null;
+    } else {
+      nuevoEventoActualId = siguienteEvento.idEvento;
+    }
+  } else {
+    finalizada = true;
+  }
+
+  // 9. Calcular puntaje final si finaliza (escala 0 a 100)
+  let puntajeFinal: number | undefined;
+  if (finalizada) {
+    const totalDecisiones = simEmpresa.decisiones.length + 1;
+    const totalPuntosObtenidos =
+      simEmpresa.decisiones.reduce((acc, d) => acc + d.puntosObtenidos, 0) + puntosObtenidos;
+    const maxPuntosPosibles = totalDecisiones * 3;
+    puntajeFinal = Math.min(
+      100,
+      Math.max(0, Math.round((totalPuntosObtenidos / maxPuntosPosibles) * 100))
+    );
+  }
+
+  // 10. Actualizar variables de estado simuladas si la opción incluye cambios
+  const variablesActuales = (simEmpresa.estadoInterno?.variables as Record<string, unknown>) ?? {};
+  const nuevasVariables: Record<string, unknown> = { ...variablesActuales };
+
+  if (opcion.cambiosSimulados && typeof opcion.cambiosSimulados === 'object') {
+    Object.assign(nuevasVariables, opcion.cambiosSimulados);
+  }
+
+  const historialActual = Array.isArray(simEmpresa.estadoInterno?.historialEventos)
+    ? (simEmpresa.estadoInterno.historialEventos as unknown[])
+    : [];
+
+  const nuevoHistorial: unknown[] = [
+    ...historialActual,
+    {
+      idEvento: eventoActivo.idEvento,
+      idOpcion: opcion.idOpcion,
+      alumnoId: alumno.id,
+      rol: alumno.rolEmpresa.nombreRol,
+      fecha: new Date().toISOString(),
+    },
+  ];
+
+  // 11. Ejecutar persistencia atómica en transacción
+  await transactionRepository.ejecutarTransaccion(async (tx) => {
+    // a) Crear decisión inmutable
+    await simulacionRepository.createDecisionSimulacion(
+      {
+        simulacionEmpresaId: idSimulacionEmpresa,
+        eventoId: eventoActivo.idEvento,
+        opcionId: opcion.idOpcion,
+        alumnoId: alumno.id,
+        rolEmpresaId: alumno.idRolEmpresa!,
+        puntosObtenidos,
+      },
+      tx
+    );
+
+    // b) Actualizar variables e historial interno
+    await simulacionRepository.updateEstadoSimulacionEmpresaVariables(
+      idSimulacionEmpresa,
+      nuevasVariables,
+      nuevoHistorial,
+      tx
+    );
+
+    // c) Actualizar progreso de la simulación
+    await simulacionRepository.actualizarProgresoSimulacionEmpresa(
+      idSimulacionEmpresa,
+      {
+        estado: finalizada
+          ? EstadoParticipacionSimulacion.FINALIZADA
+          : EstadoParticipacionSimulacion.EN_CURSO,
+        eventoActualId: nuevoEventoActualId,
+        fechaInicio: simEmpresa.fechaInicio ?? new Date(),
+        ...(finalizada ? { fechaFinalizacion: new Date(), puntajeFinal } : {}),
+      },
+      tx
+    );
+  });
+
+  // 12. Retornar confirmación de la decisión
+  return {
+    mensaje: 'Decisión registrada exitosamente.',
+    finalizada,
+  };
 }
