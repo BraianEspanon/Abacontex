@@ -9,6 +9,7 @@ import { validate } from '../middleware/validate.middleware';
 import {
   crearSimulacionSchema,
   editarTituloSimulacionSchema,
+  obtenerConversacionSimulacionSchema,
   obtenerEntregasSimulacionSchema,
   obtenerSimulacionesAlumnoQuerySchema,
   obtenerSimulacionesDocenteQuerySchema,
@@ -19,6 +20,7 @@ import {
   editarTituloSimulacion,
   listarSimulacionesAlumno,
   listarSimulacionesDocente,
+  obtenerConversacionSimulacion,
   obtenerEntregasSimulacion,
   obtenerOpcionesCrearSimulacion,
 } from '../controllers/simulacion.controller';
@@ -70,6 +72,14 @@ router.get(
   requireRole(ROLES.DOCENTE),
   validate(obtenerEntregasSimulacionSchema),
   obtenerEntregasSimulacion
+);
+
+router.get(
+  '/conversacion/:id',
+  authenticate,
+  requireRole(ROLES.DOCENTE, ROLES.ALUMNO),
+  validate(obtenerConversacionSimulacionSchema),
+  obtenerConversacionSimulacion
 );
 
 export default router;

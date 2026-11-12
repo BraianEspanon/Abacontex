@@ -1,4 +1,5 @@
 import {
+  ConversacionSimulacionEmpresaEntity,
   SimulacionAlumnoListItemEntity,
   SimulacionCreadaEntity,
 } from '../../repositories/simulacion.repository';
@@ -11,10 +12,15 @@ import {
 } from '../../utils/simulacion.util';
 import {
   CabeceraEntregasSimulacionDTO,
+  ConversacionSimulacionResponseDTO,
+  DecisionActivaDTO,
   EntregaSimulacionEmpresaItemDTO,
   EntregasSimulacionResponseDTO,
+  IntegranteEmpresaDTO,
   ListarSimulacionesAlumnoResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
+  MensajeConversacionDTO,
+  ModoConversacionSimulacion,
   ResumenDashboardAlumnoDTO,
   ResumenDashboardDocenteDTO,
   SimulacionAlumnoCardDTO,
@@ -265,5 +271,248 @@ export function toListarSimulacionesAlumnoResponse(
     totalItems,
     totalPages: Math.ceil(totalItems / pageSize) || 1,
     resumen,
+  };
+}
+
+export interface ToConversacionSimulacionOptions {
+  esDocente: boolean;
+  rolAlumno?: string | null;
+}
+
+export function toConversacionSimulacionResponse(
+  entity: ConversacionSimulacionEmpresaEntity,
+  options: ToConversacionSimulacionOptions
+): ConversacionSimulacionResponseDTO {
+  const modo: ModoConversacionSimulacion =
+    options.esDocente || entity.estado === 'FINALIZADA' ? 'LECTURA' : 'INTERACTIVO';
+
+  const titulo = adaptarTituloSimulacion(
+    entity.simulacion.titulo,
+    entity.empresa.nombre,
+    entity.estadoInterno?.variables,
+    entity.simulacion.usarDatosEmpresa
+  );
+
+  const { eventoActualNumero, porcentajeProgreso } = calcularProgresoSimulacion(
+    entity.estado,
+    entity._count.eventos,
+    entity._count.decisiones
+  );
+
+  const integrantes: IntegranteEmpresaDTO[] = entity.empresa.alumnos.map((a) => ({
+    idAlumno: a.id,
+    nombre: a.usuario.nombre,
+    apellido: a.usuario.apellido,
+    rol: a.rolEmpresa?.nombreRol ?? 'Sin rol',
+    fotoPerfilUrl: a.usuario.fotoPerfilUrl,
+  }));
+
+  const mensajes: MensajeConversacionDTO[] = [];
+  const fechaBaseIso = (entity.fechaInicio ?? new Date()).toISOString();
+
+  // 1. Mensaje de bienvenida / contexto inicial si existe
+  if (entity.situacionInicial?.trim()) {
+    mensajes.push({
+      id: 'msg-situacion-inicial',
+      tipoMensaje: 'SITUACION_INICIAL',
+      emisor: 'ABA',
+      mensaje: entity.situacionInicial.trim(),
+      fecha: fechaBaseIso,
+    });
+  }
+
+  // 2. Mapas para búsqueda rápida de eventos y decisiones
+  const eventosMap = new Map(entity.eventos.map((ev) => [ev.idEvento, ev]));
+  const decisionesMap = new Map(entity.decisiones.map((dec) => [dec.eventoId, dec]));
+
+  // 3. Recorrer el grafo histórico desde el evento inicial
+  const visitados = new Set<number>();
+  let currentEventoId: number | null =
+    entity.eventoInicialId ?? entity.eventos[0]?.idEvento ?? null;
+
+  while (currentEventoId && !visitados.has(currentEventoId)) {
+    visitados.add(currentEventoId);
+    const evento = eventosMap.get(currentEventoId);
+    if (!evento) break;
+
+    mensajes.push({
+      id: `ev-${evento.idEvento}`,
+      tipoMensaje: 'EVENTO',
+      tipoEvento: evento.tipo,
+      emisor: evento.emisor,
+      mensaje: evento.mensaje,
+      ...(evento.esSorpresa ? { esSorpresa: true } : {}),
+      rolesHabilitados: (evento.rolesHabilitados as string[]) ?? [],
+      fecha: fechaBaseIso,
+    });
+
+    if (evento.tipo === 'DECISION') {
+      const decision = decisionesMap.get(evento.idEvento);
+      if (decision) {
+        mensajes.push({
+          id: `dec-${decision.idDecision}`,
+          tipoMensaje: 'DECISION_TOMADA',
+          emisor: decision.rolEmpresa?.nombreRol ?? 'Equipo',
+          mensaje: decision.opcion.texto,
+          fecha: decision.fechaDecision.toISOString(),
+          decision: {
+            idDecision: decision.idDecision,
+            alumno: {
+              id: decision.alumno.id,
+              nombre: decision.alumno.usuario.nombre,
+              apellido: decision.alumno.usuario.apellido,
+              rol: decision.rolEmpresa?.nombreRol ?? 'Sin rol',
+              fotoPerfilUrl: decision.alumno.usuario.fotoPerfilUrl,
+            },
+            opcionElegida: {
+              idOpcion: decision.opcion.idOpcion,
+              codigoOpcion: decision.opcion.codigoOpcion,
+              texto: decision.opcion.texto,
+              ...(options.esDocente || entity.estado === 'FINALIZADA'
+                ? { clasificacion: decision.opcion.clasificacion }
+                : {}),
+              ...(decision.opcion.cambiosSimulados
+                ? { cambiosSimulados: decision.opcion.cambiosSimulados as Record<string, unknown> }
+                : {}),
+            },
+            ...(options.esDocente || entity.estado === 'FINALIZADA'
+              ? { puntosObtenidos: decision.puntosObtenidos }
+              : {}),
+            fechaDecision: decision.fechaDecision.toISOString(),
+          },
+        });
+
+        currentEventoId = decision.opcion.siguienteEventoId ?? null;
+      } else {
+        // Decisión activa aún pendiente de respuesta
+        break;
+      }
+    } else if (evento.tipo === 'INFORMATIVO') {
+      currentEventoId = evento.siguienteEventoId ?? null;
+    } else if (evento.tipo === 'FINAL') {
+      break;
+    } else {
+      break;
+    }
+  }
+
+  // Fallback de contingencia si no se pudo recorrer por grafo
+  if (visitados.size === 0 && entity.decisiones.length > 0) {
+    for (const dec of entity.decisiones) {
+      mensajes.push({
+        id: `ev-${dec.evento.idEvento}`,
+        tipoMensaje: 'EVENTO',
+        tipoEvento: dec.evento.tipo,
+        emisor: dec.evento.emisor,
+        mensaje: dec.evento.mensaje,
+        ...(dec.evento.esSorpresa ? { esSorpresa: true } : {}),
+        rolesHabilitados: (dec.evento.rolesHabilitados as string[]) ?? [],
+        fecha: dec.fechaDecision.toISOString(),
+      });
+
+      mensajes.push({
+        id: `dec-${dec.idDecision}`,
+        tipoMensaje: 'DECISION_TOMADA',
+        emisor: dec.rolEmpresa?.nombreRol ?? 'Equipo',
+        mensaje: dec.opcion.texto,
+        fecha: dec.fechaDecision.toISOString(),
+        decision: {
+          idDecision: dec.idDecision,
+          alumno: {
+            id: dec.alumno.id,
+            nombre: dec.alumno.usuario.nombre,
+            apellido: dec.alumno.usuario.apellido,
+            rol: dec.rolEmpresa?.nombreRol ?? 'Sin rol',
+            fotoPerfilUrl: dec.alumno.usuario.fotoPerfilUrl,
+          },
+          opcionElegida: {
+            idOpcion: dec.opcion.idOpcion,
+            codigoOpcion: dec.opcion.codigoOpcion,
+            texto: dec.opcion.texto,
+            ...(options.esDocente || entity.estado === 'FINALIZADA'
+              ? { clasificacion: dec.opcion.clasificacion }
+              : {}),
+            ...(dec.opcion.cambiosSimulados
+              ? { cambiosSimulados: dec.opcion.cambiosSimulados as Record<string, unknown> }
+              : {}),
+          },
+          ...(options.esDocente || entity.estado === 'FINALIZADA'
+            ? { puntosObtenidos: dec.puntosObtenidos }
+            : {}),
+          fechaDecision: dec.fechaDecision.toISOString(),
+        },
+      });
+    }
+
+    if (entity.eventoActual && !decisionesMap.has(entity.eventoActual.idEvento)) {
+      mensajes.push({
+        id: `ev-${entity.eventoActual.idEvento}`,
+        tipoMensaje: 'EVENTO',
+        tipoEvento: entity.eventoActual.tipo,
+        emisor: entity.eventoActual.emisor,
+        mensaje: entity.eventoActual.mensaje,
+        ...(entity.eventoActual.esSorpresa ? { esSorpresa: true } : {}),
+        rolesHabilitados: (entity.eventoActual.rolesHabilitados as string[]) ?? [],
+        fecha: fechaBaseIso,
+      });
+    }
+  }
+
+  // 4. Determinar si hay decisión activa
+  let decisionActiva: DecisionActivaDTO | null = null;
+  const eventoActivo = entity.eventoActual;
+
+  if (
+    entity.estado !== 'FINALIZADA' &&
+    eventoActivo &&
+    eventoActivo.tipo === 'DECISION' &&
+    !decisionesMap.has(eventoActivo.idEvento)
+  ) {
+    let puedeDecidir = false;
+
+    if (modo === 'INTERACTIVO') {
+      const fechaLimiteVencida = new Date() > entity.simulacion.fechaLimite;
+      if (!fechaLimiteVencida) {
+        puedeDecidir = puedeRolResponderEvento(
+          eventoActivo.rolesHabilitados,
+          options.rolAlumno ?? null
+        );
+      }
+    }
+
+    const roles = (eventoActivo.rolesHabilitados as string[]) ?? [];
+    let rolRequeridoTexto = 'Cualquier integrante';
+    if (roles.length === 1 && roles[0] !== 'TODOS') {
+      rolRequeridoTexto = roles[0] ?? 'Cualquier integrante';
+    } else if (roles.length > 1 && !roles.includes('TODOS')) {
+      rolRequeridoTexto = `${roles.slice(0, -1).join(', ')} o ${roles[roles.length - 1]}`;
+    }
+
+    decisionActiva = {
+      idEvento: eventoActivo.idEvento,
+      puedeDecidir,
+      rolRequeridoTexto,
+      rolesHabilitados: roles,
+      opciones: (eventoActivo.opciones ?? []).map((op) => ({
+        idOpcion: op.idOpcion,
+        texto: op.texto,
+        ...(options.esDocente ? { clasificacion: op.clasificacion } : {}),
+      })),
+    };
+  }
+
+  return {
+    idSimulacionEmpresa: entity.idSimulacionEmpresa,
+    titulo,
+    estado: entity.estado,
+    modo,
+    progreso: {
+      eventoActualNumero,
+      cantEventosTotales: entity._count.eventos,
+      porcentajeProgreso,
+    },
+    integrantes,
+    mensajes,
+    decisionActiva,
   };
 }

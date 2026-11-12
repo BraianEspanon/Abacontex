@@ -1,9 +1,13 @@
 import {
+  ClasificacionOpcionSimulacion,
+  DificultadSimulacion,
+  DuracionSimulacion,
   EstadoParticipacionSimulacion,
   OpcionDificultadSimulacion,
   OpcionDuracionSimulacion,
   OpcionFlujoEmpresarial,
   OpcionTipoEventoSorpresa,
+  TipoEventoSimulacion,
 } from '../../constants/simulacion.constants';
 import { PaginatedResponse } from '../paginated-response.dto';
 
@@ -128,3 +132,77 @@ export interface ListarSimulacionesAlumnoResponseDTO
   extends PaginatedResponse<SimulacionAlumnoCardDTO> {
   resumen: ResumenDashboardAlumnoDTO;
 }
+
+export type ModoConversacionSimulacion = 'INTERACTIVO' | 'LECTURA';
+
+export type TipoMensajeConversacion = 'SITUACION_INICIAL' | 'EVENTO' | 'DECISION_TOMADA';
+
+export interface MensajeConversacionDecisionDTO {
+  idDecision: number;
+  alumno: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    rol: string;
+    fotoPerfilUrl: string | null;
+  };
+  opcionElegida: {
+    idOpcion: number;
+    codigoOpcion: string;
+    texto: string;
+    clasificacion?: ClasificacionOpcionSimulacion | undefined;
+    cambiosSimulados?: Record<string, unknown> | null | undefined;
+  };
+  puntosObtenidos?: number | undefined;
+  fechaDecision: string;
+}
+
+export interface MensajeConversacionDTO {
+  id: string;
+  tipoMensaje: TipoMensajeConversacion;
+  tipoEvento?: TipoEventoSimulacion | undefined;
+  emisor: string;
+  mensaje: string;
+  esSorpresa?: boolean | undefined;
+  rolesHabilitados?: string[] | undefined;
+  fecha: string;
+  decision?: MensajeConversacionDecisionDTO | undefined;
+}
+
+export interface OpcionDecisionActivaDTO {
+  idOpcion: number;
+  texto: string;
+  clasificacion?: ClasificacionOpcionSimulacion | undefined;
+}
+
+export interface DecisionActivaDTO {
+  idEvento: number;
+  puedeDecidir: boolean;
+  rolRequeridoTexto: string;
+  rolesHabilitados: string[];
+  opciones: OpcionDecisionActivaDTO[];
+}
+
+export interface IntegranteEmpresaDTO {
+  idAlumno: string;
+  nombre: string;
+  apellido: string;
+  rol: string;
+  fotoPerfilUrl: string | null;
+}
+
+export interface ConversacionSimulacionResponseDTO {
+  idSimulacionEmpresa: number;
+  titulo: string;
+  estado: EstadoParticipacionSimulacion;
+  modo: ModoConversacionSimulacion;
+  progreso: {
+    eventoActualNumero: number;
+    cantEventosTotales: number;
+    porcentajeProgreso: number;
+  };
+  integrantes: IntegranteEmpresaDTO[];
+  mensajes: MensajeConversacionDTO[];
+  decisionActiva?: DecisionActivaDTO | null | undefined;
+}
+

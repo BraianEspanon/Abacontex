@@ -5,6 +5,7 @@ import * as simulacionService from '../services/simulacion.service';
 import {
   crearSimulacionSchema,
   editarTituloSimulacionSchema,
+  obtenerConversacionSimulacionSchema,
   obtenerEntregasSimulacionSchema,
   obtenerSimulacionesAlumnoQuerySchema,
   obtenerSimulacionesDocenteQuerySchema,
@@ -63,6 +64,16 @@ export async function listarSimulacionesAlumno(req: Request, res: Response) {
   });
 
   const resultado = await simulacionService.listarSimulacionesAlumno(req.user!, query);
+
+  res.json(resultado);
+}
+
+export async function obtenerConversacionSimulacion(req: Request, res: Response) {
+  const { params } = obtenerConversacionSimulacionSchema.parse({
+    params: req.params,
+  });
+
+  const resultado = await simulacionService.obtenerConversacionSimulacion(req.user!, params.id);
 
   res.json(resultado);
 }

@@ -985,3 +985,129 @@ export async function findSimulacionesAlumnoPaginadas(
     },
   };
 }
+
+export async function findConversacionSimulacionEmpresa(
+  idSimulacionEmpresa: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.simulacionEmpresa.findUnique({
+    where: { idSimulacionEmpresa },
+    include: {
+      simulacion: {
+        select: {
+          idSimulacion: true,
+          titulo: true,
+          flujoEmpresarial: true,
+          dificultad: true,
+          duracion: true,
+          fechaLimite: true,
+          usarDatosEmpresa: true,
+          cursoId: true,
+          docenteId: true,
+        },
+      },
+      empresa: {
+        select: {
+          id: true,
+          nombre: true,
+          logoUrl: true,
+          alumnos: {
+            select: {
+              id: true,
+              idRolEmpresa: true,
+              rolEmpresa: {
+                select: {
+                  idRol: true,
+                  nombreRol: true,
+                },
+              },
+              usuario: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  apellido: true,
+                  fotoPerfilUrl: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      estadoInterno: {
+        select: {
+          variables: true,
+          historialEventos: true,
+        },
+      },
+      eventoInicial: true,
+      eventoActual: {
+        include: {
+          opciones: {
+            orderBy: {
+              codigoOpcion: 'asc',
+            },
+          },
+        },
+      },
+      eventos: {
+        include: {
+          opciones: true,
+        },
+      },
+      decisiones: {
+        orderBy: {
+          fechaDecision: 'asc',
+        },
+        include: {
+          evento: true,
+          opcion: true,
+          alumno: {
+            include: {
+              usuario: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  apellido: true,
+                  fotoPerfilUrl: true,
+                },
+              },
+            },
+          },
+          rolEmpresa: {
+            select: {
+              idRol: true,
+              nombreRol: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: {
+          eventos: true,
+          decisiones: true,
+        },
+      },
+    },
+  });
+}
+
+export async function iniciarSimulacionEmpresa(
+  idSimulacionEmpresa: number,
+  tx?: Prisma.TransactionClient
+) {
+  const db = getDbClient(tx);
+
+  return db.simulacionEmpresa.update({
+    where: { idSimulacionEmpresa },
+    data: {
+      estado: EstadoParticipacionSimulacion.EN_CURSO,
+      fechaInicio: new Date(),
+    },
+  });
+}
+
+export type ConversacionSimulacionEmpresaEntity = NonNullable<
+  Prisma.PromiseReturnType<typeof findConversacionSimulacionEmpresa>
+>;

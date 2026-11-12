@@ -1,4 +1,5 @@
 import { AuthUser } from '../types/express';
+import { ROLES } from '../constants/roles';
 
 import { simulacionIaService } from '../integrations/simulacion-ia/simulacion-ia.service';
 import { instanciarEstructuraParaEmpresa } from '../utils/simulacion.util';
@@ -18,12 +19,14 @@ import {
   ObtenerSimulacionesDocenteQueryDTO,
 } from '../validators/simulacion.validator';
 import {
+  EstadoParticipacionSimulacion,
   OPCIONES_DIFICULTADES_SIMULACION,
   OPCIONES_DURACIONES_SIMULACION,
   OPCIONES_FLUJOS_EMPRESARIALES,
   OPCIONES_TIPOS_EVENTO_SORPRESA,
 } from '../constants/simulacion.constants';
 import {
+  ConversacionSimulacionResponseDTO,
   EditarTituloSimulacionResponseDTO,
   EntregasSimulacionResponseDTO,
   ListarSimulacionesAlumnoResponseDTO,
@@ -32,6 +35,7 @@ import {
   SimulacionCreadaResponseDTO,
 } from '../dto/simulacion/simulacion.dto';
 import {
+  toConversacionSimulacionResponse,
   toEntregasSimulacionResponse,
   toListarSimulacionesAlumnoResponse,
   toListarSimulacionesDocenteResponse,
@@ -40,6 +44,7 @@ import {
 
 import { BadRequestError } from '../errors/bad-request-error';
 import { ForbiddenError } from '../errors/forbidden.error';
+import { NotFoundError } from '../errors/not-found.error';
 
 export async function crearSimulacion(
   user: AuthUser,
@@ -251,4 +256,48 @@ export async function listarSimulacionesAlumno(
     resultado.resumen,
     rolAlumno
   );
+}
+
+export async function obtenerConversacionSimulacion(
+  user: AuthUser,
+  idSimulacionEmpresa: number
+): Promise<ConversacionSimulacionResponseDTO> {
+  // 1. Obtener la simulación de la empresa
+  const simulacionEmpresa =
+    await simulacionRepository.findConversacionSimulacionEmpresa(idSimulacionEmpresa);
+
+  if (!simulacionEmpresa) {
+    throw new NotFoundError('La simulación empresarial no fue encontrada.');
+  }
+
+  const esDocente = user.roles.includes(ROLES.DOCENTE);
+  let rolAlumno: string | null = null;
+
+  if (esDocente) {
+    // Validar que el docente tenga acceso al curso de la simulación
+    const docente = await docenteRepository.findByKeycloakIdOrThrow(user.keycloakId);
+    const cursosDocente = await docenteRepository.findCursoIdsByKeycloakId(user.keycloakId);
+
+    const tienePermiso =
+      simulacionEmpresa.simulacion.docenteId === docente.id ||
+      cursosDocente.includes(simulacionEmpresa.simulacion.cursoId);
+
+    if (!tienePermiso) {
+      throw new NotFoundError('La simulación empresarial no fue encontrada.');
+    }
+  } else {
+    // Validar que el alumno pertenezca a la empresa asignada
+    const usuario = await alumnoService.getAlumnoSimulacionOrThrow(user);
+
+    if (usuario.alumno.empresa.id !== simulacionEmpresa.empresaId) {
+      throw new NotFoundError('La simulación empresarial no fue encontrada.');
+    }
+
+    rolAlumno = usuario.alumno.rolEmpresa.nombreRol;
+  }
+
+  return toConversacionSimulacionResponse(simulacionEmpresa, {
+    esDocente,
+    rolAlumno,
+  });
 }

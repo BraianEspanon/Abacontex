@@ -120,3 +120,16 @@ export const obtenerSimulacionesAlumnoQuerySchema = z.object({
 export type ObtenerSimulacionesAlumnoQueryDTO = z.infer<
   typeof obtenerSimulacionesAlumnoQuerySchema
 >['query'];
+
+export const obtenerConversacionSimulacionSchema = z.object({
+  params: z.object({
+    id: z.coerce
+      .number({ message: 'El ID de la conversación debe ser numérico.' })
+      .int('El ID de la conversación debe ser un número entero.')
+      .positive('El ID de la conversación debe ser mayor a cero.'),
+  }),
+});
+
+export type ObtenerConversacionSimulacionParamsDTO = z.infer<
+  typeof obtenerConversacionSimulacionSchema
+>['params'];
