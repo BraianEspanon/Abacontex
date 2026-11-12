@@ -156,3 +156,54 @@ export interface GuardarPlantillaAlumnoResponse {
   estado: EstadoPlantillaAlumno;
   contenido: unknown | null;
 }
+
+export interface ErrorCorreccionAlumno {
+  idError: number;
+  ejercicioPlantillaId: number;
+  tipoError: string;
+  detalle: Record<string, unknown>;
+  comentarioDocente: string | null;
+}
+
+export interface PlantillaCorreccionAlumno {
+  idEjercicioPlantilla: number;
+  tipo: string;
+  nombre: string;
+  estadoAlumno: string;
+  contenidoAlumno: unknown | null;
+  errores: ErrorCorreccionAlumno[];
+}
+
+export interface ConsultaCorreccionAlumnoResponse {
+  idEjercicio: number;
+  titulo: string;
+  enunciado: string;
+  indicaciones: string | null;
+  fechaLimite: string;
+
+  docente: {
+    idDocente: string;
+    nombre: string;
+    apellido: string;
+  };
+
+  curso: {
+    idCurso: number;
+    nombreCurso: string;
+  };
+
+  entrega: {
+    idEntrega: number;
+    fechaEntrega: string | null;
+    fueraDeTermino: boolean;
+  };
+
+  correccion: {
+    idCorreccion: number;
+    fechaCorreccion: string;
+    retroalimentacion: string | null;
+    totalErrores: number;
+  };
+
+  plantillas: PlantillaCorreccionAlumno[];
+}

@@ -1,6 +1,7 @@
 import clienteApi from './clienteApi';
 
 import type {
+  ConsultaCorreccionAlumnoResponse,
   DetalleEjercicioAlumno,
   FiltrosDisponiblesEjerciciosAlumno,
   FiltrosEjerciciosAlumno,
@@ -54,4 +55,12 @@ export async function finalizarEntregaAlumno(idEjercicio: number) {
   const response = await clienteApi.post(`/entregas/${idEjercicio}/finalizar`);
 
   return response.data;
+}
+
+export async function obtenerCorreccionAlumno(idEjercicio: number) {
+  const { data } = await clienteApi.get<ConsultaCorreccionAlumnoResponse>(
+    `/entregas/${idEjercicio}/correccion`
+  );
+
+  return data;
 }
