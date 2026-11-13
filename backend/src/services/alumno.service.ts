@@ -278,3 +278,28 @@ export async function getAlumnoConCursoOrThrow(user: AuthUser) {
     },
   };
 }
+
+export async function getAlumnoSimulacionOrThrow(user: AuthUser) {
+  const usuario = await alumnoRepository.findByKeycloakIdWithAlumnoOrThrow(user.keycloakId);
+
+  if (!usuario.alumno) {
+    throw new ForbiddenError('El alumno no completó su registro.');
+  }
+
+  if (!usuario.alumno.empresa) {
+    throw new ForbiddenError('El usuario no pertenece a una empresa.');
+  }
+
+  if (!usuario.alumno.rolEmpresa) {
+    throw new ForbiddenError('El usuario no tiene un rol asignado en la empresa.');
+  }
+
+  return {
+    ...usuario,
+    alumno: {
+      ...usuario.alumno,
+      empresa: usuario.alumno.empresa,
+      rolEmpresa: usuario.alumno.rolEmpresa,
+    },
+  };
+}
