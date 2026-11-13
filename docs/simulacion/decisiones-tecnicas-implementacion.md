@@ -18,6 +18,7 @@
 8. [Algoritmo DFS de Cobertura Garantizada de Roles](#8-algoritmo-dfs-de-cobertura-garantizada-de-roles)
 9. [Cálculo del Plazo Base de Fabricación (Fórmula Acotada con Setup)](#9-cálculo-del-plazo-base-de-fabricación-fórmula-acotada-con-setup)
 10. [Valores de Contingencia cuando `usarDatosEmpresa = false`](#10-valores-de-contingencia-cuando-usardatosempresa--false)
+11. [Selección Aleatoria de Producto Activo para la Instanciación](#11-selección-aleatoria-de-producto-activo-para-la-instanciación)
 
 ---
 
@@ -174,6 +175,27 @@
   * Precio base: `$ 1.500`.
   * Plazo base: `5 días`.
   * Valuación base: `$ 75.000`.
+
+---
+
+### 11. Selección Aleatoria de Producto Activo para la Instanciación
+
+* **Problema detectado durante la integración:**  
+  Cuando una empresa del curso cuenta con múltiples productos en su catálogo del ERP (por ejemplo, una fábrica de muebles con *Silla ergonómica*, *Mesa ejecutiva* y *Escritorio nórdico*), tomar por defecto el primer elemento del arreglo (`productos[0]`) generaba monotonía y predecibilidad: simulaciones sucesivas o empresas con catálogos similares terminaban trabajando siempre sobre el mismo artículo. Por otro lado, tomar productos inactivos o archivados podía generar incongruencias con la operativa real de los alumnos.
+* **Decisión adoptada:**  
+  Se implementó un algoritmo de selección aleatoria acotado a productos vigentes en `instanciarEstructuraParaEmpresa`:
+  1. Se filtran únicamente los productos que se encuentren activos en el ERP de la empresa (`p.activo !== false`).
+  2. Si existen productos activos, se elige uno de forma aleatoria mediante selección uniforme:
+     ```typescript
+     const productosActivos = (empresa.productos ?? []).filter((p) => p.activo !== false);
+     const prodReal =
+       productosActivos.length > 0
+         ? productosActivos[Math.floor(Math.random() * productosActivos.length)]
+         : empresa.productos[0];
+     ```
+  3. A partir del producto seleccionado, se extraen su nombre (`prodReal.nombre`), stock físico real (`stockReal`) y precio unitario de lista (`precioBase`), los cuales alimentan los placeholders de la simulación.
+  4. En caso de que la empresa no cuente con productos o `usarDatosEmpresa` sea `false`, se realiza el fallback seguro a los valores de contingencia definidos en el punto anterior (*"Artículos de producción"*, stock 50, precio $ 1.500).
+* **Impacto:** Fomenta la rejugabilidad, aporta dinamismo entre diferentes empresas del mismo curso y garantiza que solo se utilicen productos que los alumnos reconocen como activos en su negocio.
 
 ---
 
