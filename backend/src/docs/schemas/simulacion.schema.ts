@@ -592,6 +592,47 @@
  *           items:
  *             $ref: '#/components/schemas/OpcionFiltroEstadoAlumno'
  *
+ *     CursoFiltroDocente:
+ *       type: object
+ *       required:
+ *         - idCurso
+ *         - nombreCurso
+ *       properties:
+ *         idCurso:
+ *           type: integer
+ *           example: 1
+ *         nombreCurso:
+ *           type: string
+ *           example: "6° II"
+ *
+ *     OpcionFiltroEstadoDocente:
+ *       type: object
+ *       required:
+ *         - clave
+ *         - label
+ *       properties:
+ *         clave:
+ *           type: string
+ *           example: "TODOS"
+ *         label:
+ *           type: string
+ *           example: "Todos"
+ *
+ *     FiltrosDashboardDocenteResponse:
+ *       type: object
+ *       required:
+ *         - cursos
+ *         - estados
+ *       properties:
+ *         cursos:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/CursoFiltroDocente'
+ *         estados:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/OpcionFiltroEstadoDocente'
+ *
  *     ListadoSimulacionesAlumnoResponse:
  *       type: object
  *       required:

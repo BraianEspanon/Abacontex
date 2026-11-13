@@ -33,6 +33,11 @@ export function obtenerFiltrosDashboardAlumno(_req: Request, res: Response) {
   res.json(resultado);
 }
 
+export async function obtenerFiltrosDashboardDocente(req: Request, res: Response) {
+  const resultado = await simulacionService.obtenerFiltrosDashboardDocente(req.user!);
+  res.json(resultado);
+}
+
 export async function listarSimulacionesDocente(req: Request, res: Response) {
   const { query } = obtenerSimulacionesDocenteQuerySchema.parse({
     query: req.query,

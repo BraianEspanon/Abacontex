@@ -241,3 +241,18 @@ export interface OpcionFiltroEstadoAlumnoDTO {
 export interface FiltrosDashboardAlumnoResponseDTO {
   estados: OpcionFiltroEstadoAlumnoDTO[];
 }
+
+export interface CursoFiltroDocenteDTO {
+  idCurso: number;
+  nombreCurso: string;
+}
+
+export interface OpcionFiltroEstadoDocenteDTO {
+  clave: string;
+  label: string;
+}
+
+export interface FiltrosDashboardDocenteResponseDTO {
+  cursos: CursoFiltroDocenteDTO[];
+  estados: OpcionFiltroEstadoDocenteDTO[];
+}

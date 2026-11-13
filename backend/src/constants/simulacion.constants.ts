@@ -50,9 +50,21 @@ export const ESTADOS_PARTICIPACION_SIMULACION = [
   EstadoParticipacionSimulacion.FINALIZADA,
 ] as const;
 
-export const ESTADOS_DASHBOARD_SIMULACION = ['PENDIENTE', 'EN_CURSO', 'FINALIZADA'] as const;
+export const ESTADOS_DASHBOARD_SIMULACION = [
+  'TODOS',
+  'PENDIENTE',
+  'EN_CURSO',
+  'FINALIZADA',
+] as const;
 
 export type EstadoDashboardSimulacion = (typeof ESTADOS_DASHBOARD_SIMULACION)[number];
+
+export const OPCIONES_FILTRO_ESTADO_DOCENTE_SIMULACION = [
+  { clave: 'TODOS', label: 'Todos' },
+  { clave: 'PENDIENTE', label: 'Pendientes' },
+  { clave: 'EN_CURSO', label: 'En curso' },
+  { clave: 'FINALIZADA', label: 'Finalizadas' },
+] as const;
 
 export const FILTROS_ESTADO_ALUMNO_SIMULACION = [
   'TODAS',
@@ -73,7 +85,7 @@ export const OPCIONES_FILTRO_ESTADO_ALUMNO_SIMULACION = [
 ] as const;
 
 export const FILTROS_ESTADO_ENTREGA_SIMULACION = [
-  'TODAS',
+  'TODOS',
   EstadoParticipacionSimulacion.PENDIENTE,
   EstadoParticipacionSimulacion.EN_CURSO,
   EstadoParticipacionSimulacion.FINALIZADA,

@@ -19,6 +19,7 @@
 | 8 | **ENDPOINT - POST Responder** | `POST` | `/simulaciones/conversacion/:id/responder` | Alumno | **Listo** |
 | 9 | **ENDPOINT - GET Resumen** | `GET` | `/simulaciones/conversacion/:id/resumen` | **Ambos** | **Listo** |
 | 10 | **ENDPOINT - GET Filtros Dashboard Alumno** | `GET` | `/simulaciones/alumno/filtros` | Alumno | **Listo** |
+| 11 | **ENDPOINT - GET Filtros Dashboard Docente** | `GET` | `/simulaciones/docente/filtros` | Docente | **Listo** |
 
 ---
 
@@ -39,6 +40,13 @@
 * **Estado:** **Listo**.
 * **¿Qué hace?** Devuelve las opciones de estado para los filtros del dashboard del alumno (Todas, Pendientes, En curso, Finalizadas, Requieren mi decisión) con su clave y label amigable.
 * **¿Por qué hace falta?** Permite que los tabs/chips de filtrado en el frontend se construyan dinámicamente sin hardcodear enums ni strings en el cliente, manteniendo consistencia con `GET /entregas/filtros`.
+
+#### `GET /simulaciones/docente/filtros`
+*(Jira: ENDPOINT - GET Filtros Dashboard Docente)*
+* **Rol:** Docente.
+* **Estado:** **Listo**.
+* **¿Qué hace?** Devuelve los cursos asignados al docente autenticado y las opciones de estado (`TODOS`, `PENDIENTE`, `EN_CURSO`, `FINALIZADA`) para los desplegables de filtrado del dashboard docente y de la pantalla de entregas.
+* **¿Por qué hace falta?** Permite alimentar en un único llamado los selectores de Curso y Estado en las pantallas docentes sin duplicar llamadas ni hardcodear constantes en el cliente, manteniendo consistencia con `GET /correcciones/filtros`.
 
 ---
 

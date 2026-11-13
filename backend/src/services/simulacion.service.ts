@@ -29,6 +29,7 @@ import {
   OPCIONES_DIFICULTADES_SIMULACION,
   OPCIONES_DURACIONES_SIMULACION,
   OPCIONES_FILTRO_ESTADO_ALUMNO_SIMULACION,
+  OPCIONES_FILTRO_ESTADO_DOCENTE_SIMULACION,
   OPCIONES_FLUJOS_EMPRESARIALES,
   OPCIONES_TIPOS_EVENTO_SORPRESA,
   PUNTOS_POR_CLASIFICACION,
@@ -39,6 +40,7 @@ import {
   EditarTituloSimulacionResponseDTO,
   EntregasSimulacionResponseDTO,
   FiltrosDashboardAlumnoResponseDTO,
+  FiltrosDashboardDocenteResponseDTO,
   ListarSimulacionesAlumnoResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
   OpcionesCrearSimulacionResponseDTO,
@@ -160,6 +162,20 @@ export function obtenerOpcionesCrearSimulacion(): OpcionesCrearSimulacionRespons
 export function obtenerFiltrosDashboardAlumno(): FiltrosDashboardAlumnoResponseDTO {
   return {
     estados: [...OPCIONES_FILTRO_ESTADO_ALUMNO_SIMULACION],
+  };
+}
+
+export async function obtenerFiltrosDashboardDocente(
+  user: AuthUser
+): Promise<FiltrosDashboardDocenteResponseDTO> {
+  const cursos = await docenteRepository.findCursosByDocente(user.keycloakId);
+
+  return {
+    cursos: cursos.map((c) => ({
+      idCurso: c.idCurso,
+      nombreCurso: c.nombreCurso,
+    })),
+    estados: [...OPCIONES_FILTRO_ESTADO_DOCENTE_SIMULACION],
   };
 }
 

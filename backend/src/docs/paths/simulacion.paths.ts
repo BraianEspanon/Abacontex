@@ -20,6 +20,26 @@
  *       403:
  *         description: Acceso denegado. Se requiere rol DOCENTE.
  *
+ * /simulaciones/docente/filtros:
+ *   get:
+ *     summary: Obtener opciones de filtro para las pantallas de docente (Mis simulaciones y Entregas)
+ *     description: Retorna los cursos asignados al docente autenticado y las opciones de estado para los desplegables de filtrado del dashboard docente y de la pantalla de entregas.
+ *     tags:
+ *       - Simulaciones
+ *     security:
+ *       - oauth2: []
+ *     responses:
+ *       200:
+ *         description: Opciones de filtrado obtenidas exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FiltrosDashboardDocenteResponse'
+ *       401:
+ *         description: No autenticado o token inválido/expirado.
+ *       403:
+ *         description: Acceso denegado. Se requiere rol DOCENTE.
+ *
  * /simulaciones:
  *   get:
  *     summary: Listar simulaciones del docente con métricas del dashboard

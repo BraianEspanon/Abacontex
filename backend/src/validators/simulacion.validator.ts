@@ -90,7 +90,7 @@ export const obtenerEntregasSimulacionSchema = z.object({
       .optional()
       .default(6),
     search: z.string().trim().optional(),
-    estado: z.enum(FILTROS_ESTADO_ENTREGA_SIMULACION).optional().default('TODAS'),
+    estado: z.enum(FILTROS_ESTADO_ENTREGA_SIMULACION).optional().default('TODOS'),
   }),
 });
 

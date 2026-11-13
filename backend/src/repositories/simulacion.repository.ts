@@ -367,7 +367,7 @@ export async function findSimulacionesDocentePaginadas(
     };
   }
 
-  if (filtros.estado) {
+  if (filtros.estado && filtros.estado !== 'TODOS') {
     if (filtros.estado === 'PENDIENTE') {
       where.empresas = {
         none: {
@@ -700,7 +700,7 @@ export async function findEntregasSimulacion(
     };
   }
 
-  if (filtros.estado && filtros.estado !== 'TODAS') {
+  if (filtros.estado && filtros.estado !== 'TODOS') {
     where.estado = filtros.estado as EstadoParticipacionSimulacion;
   }
 
