@@ -7,6 +7,7 @@ import {
 import { EstadoParticipacionSimulacion } from '../../constants/simulacion.constants';
 import {
   adaptarTituloSimulacion,
+  calcularLongitudCaminoGrafo,
   calcularProgresoSimulacion,
   puedeRolResponderEvento,
   resolverUltimaActividadSimulacion,
@@ -164,9 +165,12 @@ export interface SimulacionEmpresaEntregaEntity {
 export function toEntregaSimulacionEmpresaItem(
   entity: SimulacionEmpresaEntregaEntity
 ): EntregaSimulacionEmpresaItemDTO {
+  const eventosTotales =
+    entity.estado === 'FINALIZADA' ? entity._count.decisiones + 1 : entity._count.eventos;
+
   const { eventosCompletados, porcentajeProgreso } = calcularProgresoSimulacion(
     entity.estado,
-    entity._count.eventos,
+    eventosTotales,
     entity._count.decisiones
   );
 
@@ -193,7 +197,7 @@ export function toEntregaSimulacionEmpresaItem(
     rolesInvolucrados,
     estado: entity.estado,
     eventosCompletados,
-    eventosTotales: entity._count.eventos,
+    eventosTotales,
     porcentajeProgreso,
     puntajeFinal: entity.puntajeFinal,
     ultimaActividad,
@@ -222,9 +226,17 @@ export function toSimulacionAlumnoCard(
   entity: SimulacionAlumnoListItemEntity,
   rolAlumno: string | null
 ): SimulacionAlumnoCardDTO {
+  const variables = (entity.estadoInterno?.variables as Record<string, unknown>) ?? {};
+  const cantEventosTotales =
+    typeof variables.cantEventosTotales === 'number'
+      ? variables.cantEventosTotales
+      : entity.estado === 'FINALIZADA'
+        ? entity._count.decisiones + 1
+        : entity._count.eventos;
+
   const { eventoActualNumero, porcentajeProgreso } = calcularProgresoSimulacion(
     entity.estado,
-    entity._count.eventos,
+    cantEventosTotales,
     entity._count.decisiones
   );
 
@@ -252,7 +264,7 @@ export function toSimulacionAlumnoCard(
     estado: entity.estado,
     requiereMiDecision,
     eventoActualNumero,
-    cantEventosTotales: entity._count.eventos,
+    cantEventosTotales,
     porcentajeProgreso,
     fechaLimite: entity.simulacion.fechaLimite.toISOString(),
     ultimaActividad,
@@ -296,9 +308,15 @@ export function toConversacionSimulacionResponse(
     entity.simulacion.usarDatosEmpresa
   );
 
+  const variables = (entity.estadoInterno?.variables as Record<string, unknown>) ?? {};
+  const cantEventosTotales =
+    typeof variables.cantEventosTotales === 'number'
+      ? (variables.cantEventosTotales as number)
+      : calcularLongitudCaminoGrafo(entity.eventos, entity.eventoInicialId);
+
   const { eventoActualNumero, porcentajeProgreso } = calcularProgresoSimulacion(
     entity.estado,
-    entity._count.eventos,
+    cantEventosTotales,
     entity._count.decisiones
   );
 
@@ -511,7 +529,7 @@ export function toConversacionSimulacionResponse(
     modo,
     progreso: {
       eventoActualNumero,
-      cantEventosTotales: entity._count.eventos,
+      cantEventosTotales,
       porcentajeProgreso,
     },
     integrantes,
@@ -560,6 +578,15 @@ export function toResumenSimulacionResponse(
   };
 
   const variablesFinales = (entity.estadoInterno?.variables as Record<string, unknown>) ?? {};
+  const cantEventosTotales =
+    typeof variablesFinales.cantEventosTotales === 'number'
+      ? (variablesFinales.cantEventosTotales as number)
+      : entity.estado === 'FINALIZADA'
+        ? entity.decisiones.length + 1
+        : entity._count.eventos;
+
+  const eventosCompletados =
+    entity.estado === 'FINALIZADA' ? cantEventosTotales : entity.decisiones.length;
 
   return {
     idSimulacionEmpresa: entity.idSimulacionEmpresa,
@@ -570,8 +597,8 @@ export function toResumenSimulacionResponse(
       nombre: entity.empresa.nombre,
     },
     puntajeFinal: entity.puntajeFinal ?? 0,
-    eventosCompletados: entity.decisiones.length,
-    cantEventosTotales: entity._count.eventos,
+    eventosCompletados,
+    cantEventosTotales,
     fechaInicio: entity.fechaInicio?.toISOString() ?? null,
     fechaLimite: entity.simulacion.fechaLimite.toISOString(),
     fechaFinalizacion: entity.fechaFinalizacion?.toISOString() ?? null,

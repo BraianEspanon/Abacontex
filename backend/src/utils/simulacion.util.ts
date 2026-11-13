@@ -1,4 +1,8 @@
 import type { Prisma } from '@prisma/client';
+import {
+  ClasificacionOpcionSimulacion,
+  PUNTOS_POR_CLASIFICACION,
+} from '../constants/simulacion.constants';
 import type {
   EstructuraSimulacionGeneradaIA,
   EventoGeneradoIA,
@@ -63,34 +67,154 @@ export interface ProgresoSimulacionResult {
   porcentajeProgreso: number;
 }
 
+export interface NodoGrafoEvento {
+  idEvento: number | string;
+  tipo: string;
+  siguienteEventoId?: number | string | null | undefined;
+  opciones?:
+    | readonly {
+        siguienteEventoId?: number | string | null | undefined;
+      }[]
+    | undefined;
+}
+
+/**
+ * Calcula la longitud del camino jugable en un grafo de simulación (DAG)
+ * desde el evento inicial hasta el evento terminal (FINAL).
+ * En grafos con bifurcaciones y reconvergencias controladas, devuelve
+ * la cantidad exacta de eventos que una empresa experimentará en su recorrido.
+ */
+export function calcularLongitudCaminoGrafo(
+  eventos: readonly NodoGrafoEvento[],
+  eventoInicialId?: number | string | null | undefined
+): number {
+  if (!eventos || eventos.length === 0) return 0;
+
+  const eventosMap = new Map<number | string, NodoGrafoEvento>();
+  for (const ev of eventos) {
+    eventosMap.set(ev.idEvento, ev);
+  }
+
+  const inicioId = eventoInicialId ?? eventos[0]?.idEvento;
+  if (inicioId === undefined || inicioId === null || !eventosMap.has(inicioId)) {
+    return eventos.length;
+  }
+
+  const memo = new Map<number | string, number>();
+  const visitados = new Set<number | string>();
+
+  function calcularDistancia(actualId: number | string): number {
+    if (memo.has(actualId)) return memo.get(actualId)!;
+    if (visitados.has(actualId)) return 1;
+
+    const ev = eventosMap.get(actualId);
+    if (!ev || ev.tipo === 'FINAL') {
+      memo.set(actualId, 1);
+      return 1;
+    }
+
+    visitados.add(actualId);
+    let maxSubcamino = 0;
+
+    if (ev.opciones && ev.opciones.length > 0) {
+      for (const op of ev.opciones) {
+        if (
+          op.siguienteEventoId !== undefined &&
+          op.siguienteEventoId !== null &&
+          eventosMap.has(op.siguienteEventoId)
+        ) {
+          maxSubcamino = Math.max(maxSubcamino, calcularDistancia(op.siguienteEventoId));
+        }
+      }
+    } else if (
+      ev.siguienteEventoId !== undefined &&
+      ev.siguienteEventoId !== null &&
+      eventosMap.has(ev.siguienteEventoId)
+    ) {
+      maxSubcamino = Math.max(maxSubcamino, calcularDistancia(ev.siguienteEventoId));
+    }
+
+    visitados.delete(actualId);
+    const total = 1 + maxSubcamino;
+    memo.set(actualId, total);
+    return total;
+  }
+
+  return calcularDistancia(inicioId);
+}
+
 export function calcularProgresoSimulacion(
   estado: string,
   eventosTotales: number,
   cantidadDecisiones: number
 ): ProgresoSimulacionResult {
+  const total = Math.max(1, eventosTotales);
   let eventosCompletados: number;
   let eventoActualNumero: number;
 
   if (estado === 'FINALIZADA') {
-    eventosCompletados = eventosTotales;
-    eventoActualNumero = eventosTotales;
+    eventosCompletados = total;
+    // Al finalizar, el evento alcanzado en el camino es el evento de cierre
+    eventoActualNumero = Math.min(total, cantidadDecisiones + 1);
   } else if (estado === 'EN_CURSO') {
     eventosCompletados = cantidadDecisiones;
-    eventoActualNumero = Math.min(eventosTotales, cantidadDecisiones + 1);
+    eventoActualNumero = Math.min(total, cantidadDecisiones + 1);
   } else {
     // PENDIENTE
     eventosCompletados = 0;
     eventoActualNumero = 1;
   }
 
-  const porcentajeProgreso =
-    eventosTotales > 0 ? Math.min(100, Math.round((eventosCompletados / eventosTotales) * 100)) : 0;
+  let porcentajeProgreso: number;
+  if (estado === 'FINALIZADA') {
+    porcentajeProgreso = 100;
+  } else if (total > 1) {
+    const totalDecisionesCamino = total - 1;
+    porcentajeProgreso = Math.min(
+      100,
+      Math.max(0, Math.round((cantidadDecisiones / totalDecisionesCamino) * 100))
+    );
+  } else {
+    porcentajeProgreso = 0;
+  }
 
   return {
     eventosCompletados,
     eventoActualNumero,
     porcentajeProgreso,
   };
+}
+
+export interface DecisionPuntajeItem {
+  puntosObtenidos: number;
+  clasificacionesDisponibles: readonly string[];
+}
+
+/**
+ * Calcula el puntaje final de la simulación sobre 100 puntos,
+ * contrastando los puntos obtenidos contra el puntaje máximo que el alumno
+ * realmente podía alcanzar en cada una de las decisiones que enfrentó.
+ */
+export function calcularPuntajeFinalSimulacion(decisiones: readonly DecisionPuntajeItem[]): number {
+  if (!decisiones || decisiones.length === 0) return 0;
+
+  let totalObtenido = 0;
+  let maxPosible = 0;
+
+  for (const d of decisiones) {
+    totalObtenido += d.puntosObtenidos;
+    const maxEvento = Math.max(
+      ...d.clasificacionesDisponibles.map(
+        (c) => PUNTOS_POR_CLASIFICACION[c as ClasificacionOpcionSimulacion] ?? 0
+      ),
+      1
+    );
+    maxPosible += maxEvento;
+  }
+
+  if (maxPosible <= 0) return 0;
+
+  return Math.min(100, Math.max(0, Math.round((totalObtenido / maxPosible) * 100)));
 }
 
 export function puedeRolResponderEvento(
@@ -402,6 +526,18 @@ export function instanciarEstructuraParaEmpresa(
     rolesValidos
   );
 
+  const cantEventosTotales = calcularLongitudCaminoGrafo(
+    eventosConCoberturaGarantizada.map((ev) => ({
+      idEvento: ev.id,
+      tipo: ev.tipo,
+      siguienteEventoId: ev.siguienteEventoId,
+      opciones: ev.opciones?.map((op) => ({
+        siguienteEventoId: op.siguienteEventoId,
+      })),
+    })),
+    estructuraBase.eventoInicialId
+  );
+
   return {
     estructuraAdaptada: {
       ...estructuraBase,
@@ -432,6 +568,7 @@ export function instanciarEstructuraParaEmpresa(
       cantidadBase,
       montoBase,
       plazoBase,
+      cantEventosTotales,
     },
   };
 }

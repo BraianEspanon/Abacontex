@@ -234,8 +234,17 @@ export function construirPromptFeedbackSimulacion(params: GenerarFeedbackFinalPa
   systemInstruction: string;
   userPrompt: string;
 } {
-  const { tituloSimulacion, flujo, empresaNombre, puntajeFinal, decisiones, variablesFinales } =
-    params;
+  const {
+    tituloSimulacion,
+    flujo,
+    empresaNombre,
+    puntajeFinal,
+    puntosObtenidos,
+    puntosMaximosPosibles,
+    desglose,
+    decisiones,
+    variablesFinales,
+  } = params;
 
   const systemInstruction = `Sos Aba, el tutor inteligente y pedagógico de la plataforma de simulación empresarial Abacontex.
 Tu misión es generar una devolución formativa, constructiva y orientada al aprendizaje para un equipo de estudiantes que acaba de finalizar una simulación.
@@ -243,7 +252,8 @@ Tu misión es generar una devolución formativa, constructiva y orientada al apr
 REGLAS PEDAGÓGICAS:
 - El tono debe ser profesional, cercano, motivador y analítico.
 - Resaltá los aciertos en la toma de decisiones y el trabajo en equipo de las diferentes áreas.
-- Señalá con claridad las decisiones que implicaron riesgos innecesarios o costos evitables, explicando qué otro enfoque hubiera sido más conveniente.
+- Si el equipo obtuvo puntuación perfecta (100% o la totalidad de puntos posibles), felicitalos con entusiasmo y destaca su impecable visión gerencial sin inventar errores inexistentes.
+- Si hubo errores o decisiones subóptimas (poco adecuadas o inadecuadas), señalá con claridad las decisiones que implicaron riesgos innecesarios o costos evitables, explicando qué otro enfoque hubiera sido más conveniente.
 - No uses clichés vacíos: hacé referencia directa a las decisiones y acontecimientos que atravesó el equipo.
 - Devolvé ÚNICAMENTE un JSON válido con esta estructura estricta, sin bloques de markdown:
 {
@@ -270,13 +280,22 @@ REGLAS PEDAGÓGICAS:
     ? `\n- Variables de cierre del ERP: ${JSON.stringify(variablesFinales)}`
     : '';
 
+  const resumenPuntos =
+    puntosObtenidos !== undefined && puntosMaximosPosibles !== undefined
+      ? ` (${puntosObtenidos} de ${puntosMaximosPosibles} puntos posibles del recorrido)`
+      : '';
+
+  const resumenDesglose = desglose
+    ? `\n- Balance de decisiones: ${desglose.muyAdecuadas} muy adecuadas, ${desglose.adecuadas} adecuadas, ${desglose.pocoAdecuadas} poco adecuadas, ${desglose.inadecuadas} inadecuadas`
+    : '';
+
   const userPrompt = `Generá la devolución pedagógica final para la empresa con estos datos:
 - Empresa: ${empresaNombre}
 - Simulación: ${tituloSimulacion}
 - Flujo empresarial: ${flujo}
-- Puntuación final obtenida: ${puntajeFinal} sobre 100 puntos${variablesStr}
+- Puntuación final obtenida: ${puntajeFinal} sobre 100 puntos${resumenPuntos}${resumenDesglose}${variablesStr}
 
-Historial de decisiones tomadas por el equipo:
+Historial cronológico de decisiones tomadas por el equipo:
 ${detalleDecisiones}
 
 Devolvé ÚNICAMENTE el objeto JSON válido.`;

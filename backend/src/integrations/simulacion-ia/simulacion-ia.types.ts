@@ -62,6 +62,16 @@ export interface GenerarFeedbackFinalParams {
   flujo: string;
   empresaNombre: string;
   puntajeFinal: number;
+  puntosObtenidos?: number | undefined;
+  puntosMaximosPosibles?: number | undefined;
+  desglose?:
+    | {
+        muyAdecuadas: number;
+        adecuadas: number;
+        pocoAdecuadas: number;
+        inadecuadas: number;
+      }
+    | undefined;
   decisiones: DecisionTomadaFeedbackParams[];
   variablesFinales?: Record<string, unknown> | undefined;
 }

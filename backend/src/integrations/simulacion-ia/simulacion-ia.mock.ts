@@ -166,10 +166,15 @@ export function crearMockFeedbackFinalSimulacion(
       'Coordinación interdepartamental efectiva en los momentos de mayor exigencia.',
       'Capacidad de respuesta oportuna ante los pedidos y compromisos asumidos.',
     ],
-    aspectosAMejorar: [
-      'Evaluar con mayor detalle el impacto financiero y de caja a mediano plazo antes de confirmar pedidos extraordinarios.',
-      'Optimizar la distribución de costos operativos para proteger los márgenes comerciales.',
-    ],
+    aspectosAMejorar:
+      params.puntajeFinal === 100
+        ? [
+            'Mantener este alto estándar de coordinación y análisis riguroso en futuros desafíos operativos.',
+          ]
+        : [
+            'Evaluar con mayor detalle el impacto financiero y de caja a mediano plazo antes de confirmar pedidos extraordinarios.',
+            'Optimizar la distribución de costos operativos para proteger los márgenes comerciales.',
+          ],
     conclusion:
       'Gran trabajo en equipo. La experiencia consolidó criterios gerenciales clave para la gestión empresarial en situaciones de incertidumbre.',
   };

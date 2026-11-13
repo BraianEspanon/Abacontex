@@ -606,6 +606,11 @@ export async function findEntregasSimulacion(
           estado: true,
           puntajeFinal: true,
           fechaFinalizacion: true,
+          estadoInterno: {
+            select: {
+              variables: true,
+            },
+          },
           _count: {
             select: {
               eventos: true,
@@ -656,7 +661,13 @@ export async function findEntregasSimulacion(
     }
   }
 
-  const cantEventosTotales = simulacion.empresas[0]?._count.eventos ?? 0;
+  const primeraEmpresa = simulacion.empresas[0];
+  const variablesPrimera =
+    (primeraEmpresa?.estadoInterno?.variables as Record<string, unknown>) ?? {};
+  const cantEventosTotales =
+    typeof variablesPrimera.cantEventosTotales === 'number'
+      ? variablesPrimera.cantEventosTotales
+      : (primeraEmpresa?._count.eventos ?? 0);
 
   const cabecera = {
     idSimulacion: simulacion.idSimulacion,
@@ -1228,6 +1239,15 @@ export async function findSimulacionEmpresaParaResponder(
           idDecision: true,
           eventoId: true,
           puntosObtenidos: true,
+          evento: {
+            select: {
+              opciones: {
+                select: {
+                  clasificacion: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -1370,6 +1390,11 @@ export async function findResumenSimulacionEmpresa(
               codigoEvento: true,
               mensaje: true,
               emisor: true,
+              opciones: {
+                select: {
+                  clasificacion: true,
+                },
+              },
             },
           },
           rolEmpresa: {

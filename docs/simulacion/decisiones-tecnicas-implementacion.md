@@ -19,6 +19,7 @@
 9. [Cálculo del Plazo Base de Fabricación (Fórmula Acotada con Setup)](#9-cálculo-del-plazo-base-de-fabricación-fórmula-acotada-con-setup)
 10. [Valores de Contingencia cuando `usarDatosEmpresa = false`](#10-valores-de-contingencia-cuando-usardatosempresa--false)
 11. [Selección Aleatoria de Producto Activo para la Instanciación](#11-selección-aleatoria-de-producto-activo-para-la-instanciación)
+12. [Cálculo Dinámico de Puntos Máximos Posibles según el Recorrido](#12-cálculo-dinámico-de-puntos-máximos-posibles-según-el-recorrido)
 
 ---
 
@@ -196,6 +197,46 @@
   3. A partir del producto seleccionado, se extraen su nombre (`prodReal.nombre`), stock físico real (`stockReal`) y precio unitario de lista (`precioBase`), los cuales alimentan los placeholders de la simulación.
   4. En caso de que la empresa no cuente con productos o `usarDatosEmpresa` sea `false`, se realiza el fallback seguro a los valores de contingencia definidos en el punto anterior (*"Artículos de producción"*, stock 50, precio $ 1.500).
 * **Impacto:** Fomenta la rejugabilidad, aporta dinamismo entre diferentes empresas del mismo curso y garantiza que solo se utilicen productos que los alumnos reconocen como activos en su negocio.
+
+---
+
+### 12. Cálculo Dinámico de Puntos Máximos Posibles según el Recorrido
+
+* **Contexto:**
+  Al concluir la simulación, se calcula la calificación final de la empresa en escala de 0 a 100 según la fórmula del documento funcional:
+  $$\text{Puntaje final} = \left(\frac{\text{Puntos obtenidos}}{\text{Puntos máximos posibles}}\right) \times 100$$
+* **El desafío técnico:**
+  Inicialmente, el sistema asumía $\text{Puntos máximos posibles} = \text{totalDecisiones} \times 3$. Sin embargo, en acontecimientos de crisis o mitigación de daños (según la Decisión 4), una decisión puede plantear opciones de **2 vs 1** (Adecuada vs Poco adecuada), donde la mejor alternativa posible otorga únicamente **2 puntos**. Asumir 3 puntos por decisión penalizaba injustamente al equipo, imposibilitando alcanzar un 100/100 aunque hubieran tomado la mejor decisión disponible en todo momento.
+* **Decisión adoptada:**
+  Se implementó la función pura `calcularPuntajeFinalSimulacion` en `simulacion.util.ts`:
+  1. El puntaje máximo posible se calcula dinámicamente como la suma de la **mejor alternativa real** disponible en cada acontecimiento que el equipo atravesó en su camino:
+     $$\text{Puntos máximos posibles} = \sum_{d \in \text{decisiones}} \max(\text{puntos de las opciones del evento } d)$$
+  2. Si una decisión ofrecía alternativas con máximo de 2 puntos, el techo evaluativo de ese evento es 2.
+  3. Si el equipo seleccionó la mejor opción en cada una de las decisiones que enfrentó, su puntaje final alcanza exactamente **100 puntos**.
+* **Impacto:** Evaluación justa, pedagógicamente rigurosa y adaptada a la bifurcación real que transitó cada equipo.
+
+---
+
+### 13. Progreso Real en Grafos Ramificados (DAG) vs. Recuento Plano de Base de Datos
+
+* **Problema detectado durante la prueba real:**
+  Al jugar una simulación completa, un equipo se encontraba en el acontecimiento de decisión número 6 viendo en su interfaz:
+  `{ eventoActualNumero: 6, cantEventosTotales: 9, porcentajeProgreso: 56 }`.
+  Al responder esa última decisión, la simulación finalizaba exitosamente, pero el progreso saltaba bruscamente a:
+  `{ eventoActualNumero: 9, cantEventosTotales: 9, porcentajeProgreso: 100 }`.
+  Esto producía dos efectos confusos:
+  1. El número del evento saltaba de 6 a 9, omitiendo por completo los números 7 y 8 (que nunca existieron en la sala de conversación).
+  2. El porcentaje de avance saltaba de 56% a 100% en un único paso, dando la falsa impresión de haber dejado acontecimientos sin responder.
+* **Causa Raíz:**
+  1. **Bifurcaciones del Grafo (DAG):** El diseño pedagógico implementa bifurcaciones en el inicio y durante el desarrollo con reconvergencias controladas. Por ende, la base de datos almacena los 9 nodos generados en total (`_count.eventos = 9`), pero cualquier recorrido concreto atraviesa únicamente **7 eventos** (6 decisiones + 1 mensaje de cierre FINAL). Los dos nodos restantes pertenecían a ramas paralelas alternativas que no fueron elegidas.
+  2. **Asignación forzada en finalización:** `calcularProgresoSimulacion` asignaba `eventoActualNumero = eventosTotales` al entrar en estado `FINALIZADA`, forzando el 9 en lugar de la posición del evento final alcanzado (7).
+* **Decisión adoptada:**
+  1. **Algoritmo de longitud de camino en grafo (`calcularLongitudCaminoGrafo`):** Se introdujo una función en `simulacion.util.ts` que recorre el DAG desde el evento inicial calculando la longitud del camino jugable hasta el nodo `FINAL`. Para este tipo de estructuras con reconvergencia controlada, determina con precisión que la extensión de la partida es de **7 eventos**.
+  2. **Persistencia y resolución eficiente:** Al instanciar la simulación para la empresa, se precalcula la longitud del camino y se guarda en `variables.cantEventosTotales`. En la sala de conversación, se calcula dinámicamente si no existiera previamente.
+  3. **Cálculo suave y monótono de progreso:**
+     - `eventoActualNumero` avanza ordenadamente: $1 \to 2 \to 3 \to 4 \to 5 \to 6 \to 7$. Al finalizar, sitúa al alumno en el evento terminal real alcanzado (`Math.min(total, cantidadDecisiones + 1)`).
+     - `porcentajeProgreso` refleja el avance respecto al total de decisiones del camino: $0\% \to 17\% \to 33\% \to 50\% \to 67\% \to 83\% \to 100\%$.
+* **Impacto:** Experiencia de usuario coherente y predecible; elimina saltos fantasma en el contador de eventos y alinea las tarjetas del alumno, la vista de entregas docente y el resumen final con la historia real experimentada por el equipo.
 
 ---
 

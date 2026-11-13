@@ -2,7 +2,11 @@ import { AuthUser } from '../types/express';
 import { ROLES } from '../constants/roles';
 
 import { simulacionIaService } from '../integrations/simulacion-ia/simulacion-ia.service';
-import { instanciarEstructuraParaEmpresa, puedeRolResponderEvento } from '../utils/simulacion.util';
+import {
+  calcularPuntajeFinalSimulacion,
+  instanciarEstructuraParaEmpresa,
+  puedeRolResponderEvento,
+} from '../utils/simulacion.util';
 
 import * as alumnoService from './alumno.service';
 
@@ -20,6 +24,7 @@ import {
   ResponderDecisionSimulacionBodyDTO,
 } from '../validators/simulacion.validator';
 import {
+  ClasificacionOpcionSimulacion,
   EstadoParticipacionSimulacion,
   OPCIONES_DIFICULTADES_SIMULACION,
   OPCIONES_DURACIONES_SIMULACION,
@@ -393,14 +398,18 @@ export async function responderDecisionSimulacion(
   // 9. Calcular puntaje final si finaliza (escala 0 a 100)
   let puntajeFinal: number | undefined;
   if (finalizada) {
-    const totalDecisiones = simEmpresa.decisiones.length + 1;
-    const totalPuntosObtenidos =
-      simEmpresa.decisiones.reduce((acc, d) => acc + d.puntosObtenidos, 0) + puntosObtenidos;
-    const maxPuntosPosibles = totalDecisiones * 3;
-    puntajeFinal = Math.min(
-      100,
-      Math.max(0, Math.round((totalPuntosObtenidos / maxPuntosPosibles) * 100))
-    );
+    const decisionesParaPuntaje = [
+      ...simEmpresa.decisiones.map((d) => ({
+        puntosObtenidos: d.puntosObtenidos,
+        clasificacionesDisponibles: d.evento.opciones.map((o) => o.clasificacion),
+      })),
+      {
+        puntosObtenidos,
+        clasificacionesDisponibles: eventoActivo.opciones.map((o) => o.clasificacion),
+      },
+    ];
+
+    puntajeFinal = calcularPuntajeFinalSimulacion(decisionesParaPuntaje);
   }
 
   // 10. Actualizar variables de estado simuladas si la opción incluye cambios
@@ -513,11 +522,43 @@ async function resolverFeedbackFinal(
       const variablesFinales =
         (simEmpresa.estadoInterno?.variables as Record<string, unknown>) ?? {};
 
+      let puntosObtenidos = 0;
+      let puntosMaximosPosibles = 0;
+      let muyAdecuadas = 0;
+      let adecuadas = 0;
+      let pocoAdecuadas = 0;
+      let inadecuadas = 0;
+
+      for (const d of simEmpresa.decisiones) {
+        puntosObtenidos += d.puntosObtenidos;
+        const maxEvento = Math.max(
+          ...d.evento.opciones.map(
+            (o) => PUNTOS_POR_CLASIFICACION[o.clasificacion as ClasificacionOpcionSimulacion] ?? 0
+          ),
+          1
+        );
+        puntosMaximosPosibles += maxEvento;
+
+        const clasif = d.opcion.clasificacion;
+        if (clasif === 'MUY_ADECUADA') muyAdecuadas++;
+        else if (clasif === 'ADECUADA') adecuadas++;
+        else if (clasif === 'POCO_ADECUADA') pocoAdecuadas++;
+        else if (clasif === 'INADECUADA') inadecuadas++;
+      }
+
       const feedback = await simulacionIaService.generarFeedbackFinal({
         tituloSimulacion: simEmpresa.simulacion.titulo,
         flujo: simEmpresa.simulacion.flujoEmpresarial,
         empresaNombre: simEmpresa.empresa.nombre,
         puntajeFinal: simEmpresa.puntajeFinal ?? 0,
+        puntosObtenidos,
+        puntosMaximosPosibles,
+        desglose: {
+          muyAdecuadas,
+          adecuadas,
+          pocoAdecuadas,
+          inadecuadas,
+        },
         decisiones: decisionesFormateadas,
         variablesFinales,
       });
