@@ -258,7 +258,23 @@ export class SimulacionIaService {
   async generarEstructuraParaCurso(
     params: GenerarSimulacionParams
   ): Promise<EstructuraSimulacionGeneradaIA> {
-    return this.provider.generarEstructuraSimulacion(params);
+    const delays = [5000, 10000];
+
+    for (let intento = 0; intento <= delays.length; intento++) {
+      try {
+        return await this.provider.generarEstructuraSimulacion(params);
+      } catch (error) {
+        if (intento < delays.length) {
+          await new Promise((resolve) => setTimeout(resolve, delays[intento]));
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    throw new BadRequestError(
+      'Ocurrió un error al generar la simulación con inteligencia artificial luego de varios intentos. Intente nuevamente.'
+    );
   }
 
   async generarFeedbackFinal(params: GenerarFeedbackFinalParams): Promise<FeedbackFinalGeneradoIA> {
