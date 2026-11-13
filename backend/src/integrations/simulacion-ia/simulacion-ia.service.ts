@@ -186,7 +186,7 @@ export class GroqSimulacionProvider implements ISimulacionGeneratorProvider {
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.3,
-        max_tokens: 1500,
+        max_tokens: 800,
         ...(supportsJsonMode ? { response_format: { type: 'json_object' } } : {}),
       });
 

@@ -547,20 +547,10 @@ export function toResumenSimulacionResponse(
     : `Simulación: ${entity.simulacion.flujoEmpresarial}`;
 
   const rolesSet = new Set<string>();
-  let muyAdecuadas = 0;
-  let adecuadas = 0;
-  let pocoAdecuadas = 0;
-  let inadecuadas = 0;
-
   for (const decision of entity.decisiones) {
     if (decision.rolEmpresa?.nombreRol) {
       rolesSet.add(decision.rolEmpresa.nombreRol);
     }
-    const clasificacion = decision.opcion?.clasificacion;
-    if (clasificacion === 'MUY_ADECUADA') muyAdecuadas++;
-    else if (clasificacion === 'ADECUADA') adecuadas++;
-    else if (clasificacion === 'POCO_ADECUADA') pocoAdecuadas++;
-    else if (clasificacion === 'INADECUADA') inadecuadas++;
   }
 
   const rawFeedback = (feedbackFinalOverride ?? entity.feedbackFinal) as Record<
@@ -577,10 +567,10 @@ export function toResumenSimulacionResponse(
     conclusion: typeof rawFeedback?.conclusion === 'string' ? rawFeedback.conclusion : '',
   };
 
-  const variablesFinales = (entity.estadoInterno?.variables as Record<string, unknown>) ?? {};
+  const variables = (entity.estadoInterno?.variables as Record<string, unknown>) ?? {};
   const cantEventosTotales =
-    typeof variablesFinales.cantEventosTotales === 'number'
-      ? (variablesFinales.cantEventosTotales as number)
+    typeof variables.cantEventosTotales === 'number'
+      ? (variables.cantEventosTotales as number)
       : entity.estado === 'FINALIZADA'
         ? entity.decisiones.length + 1
         : entity._count.eventos;
@@ -599,19 +589,10 @@ export function toResumenSimulacionResponse(
     puntajeFinal: entity.puntajeFinal ?? 0,
     eventosCompletados,
     cantEventosTotales,
-    fechaInicio: entity.fechaInicio?.toISOString() ?? null,
     fechaLimite: entity.simulacion.fechaLimite.toISOString(),
     fechaFinalizacion: entity.fechaFinalizacion?.toISOString() ?? null,
     flujoEmpresarial: entity.simulacion.flujoEmpresarial,
     rolesIntervinieron: Array.from(rolesSet),
-    desgloseDecisiones: {
-      muyAdecuadas,
-      adecuadas,
-      pocoAdecuadas,
-      inadecuadas,
-      total: entity.decisiones.length,
-    },
     feedbackFinal,
-    variablesFinales,
   };
 }

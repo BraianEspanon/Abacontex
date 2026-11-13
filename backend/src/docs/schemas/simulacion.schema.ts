@@ -926,9 +926,7 @@
  *         - fechaLimite
  *         - flujoEmpresarial
  *         - rolesIntervinieron
- *         - desgloseDecisiones
  *         - feedbackFinal
- *         - variablesFinales
  *       properties:
  *         idSimulacionEmpresa:
  *           type: integer
@@ -963,11 +961,6 @@
  *         cantEventosTotales:
  *           type: integer
  *           example: 6
- *         fechaInicio:
- *           type: string
- *           format: date-time
- *           nullable: true
- *           example: "2026-11-12T22:30:00.000Z"
  *         fechaLimite:
  *           type: string
  *           format: date-time
@@ -985,14 +978,6 @@
  *           items:
  *             type: string
  *           example: ["Director Ejecutivo (CEO)", "Director de Operaciones (COO)", "Director Financiero (CFO)"]
- *         desgloseDecisiones:
- *           $ref: '#/components/schemas/DesgloseDecisiones'
  *         feedbackFinal:
  *           $ref: '#/components/schemas/FeedbackFinalSimulacion'
- *         variablesFinales:
- *           type: object
- *           example:
- *             stock: 45
- *             caja: 1850000
- *             reputacion: 92
  */

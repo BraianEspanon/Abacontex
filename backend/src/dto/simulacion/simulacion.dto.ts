@@ -215,14 +215,6 @@ export interface FeedbackFinalSimulacionDTO {
   conclusion: string;
 }
 
-export interface DesgloseDecisionesDTO {
-  muyAdecuadas: number;
-  adecuadas: number;
-  pocoAdecuadas: number;
-  inadecuadas: number;
-  total: number;
-}
-
 export interface ResumenSimulacionResponseDTO {
   idSimulacionEmpresa: number;
   titulo: string;
@@ -234,14 +226,11 @@ export interface ResumenSimulacionResponseDTO {
   puntajeFinal: number;
   eventosCompletados: number;
   cantEventosTotales: number;
-  fechaInicio: string | null;
   fechaLimite: string;
   fechaFinalizacion: string | null;
   flujoEmpresarial: string;
   rolesIntervinieron: string[];
-  desgloseDecisiones: DesgloseDecisionesDTO;
   feedbackFinal: FeedbackFinalSimulacionDTO;
-  variablesFinales: Record<string, unknown>;
 }
 
 export interface OpcionFiltroEstadoAlumnoDTO {
