@@ -10,6 +10,7 @@ import {
 import { getDbClient } from '../lib/prisma';
 import { ESTADOS_PRODUCCION } from '../constants/estados-produccion';
 import { NotFoundError } from '../errors/not-found.error';
+import { adaptarTituloSimulacion } from '../utils/simulacion.util';
 import type { EstructuraSimulacionGeneradaIA } from '../integrations/simulacion-ia/simulacion-ia.types';
 import type {
   ObtenerEntregasSimulacionQueryDTO,
@@ -794,6 +795,52 @@ export interface ResumenDashboardAlumnoDTO {
   decisionesPorResponder: number;
 }
 
+const selectSimulacionAlumnoItem = {
+  idSimulacionEmpresa: true,
+  estado: true,
+  fechaInicio: true,
+  fechaFinalizacion: true,
+  simulacion: {
+    select: {
+      titulo: true,
+      fechaLimite: true,
+      usarDatosEmpresa: true,
+    },
+  },
+  empresa: {
+    select: {
+      nombre: true,
+    },
+  },
+  estadoInterno: {
+    select: {
+      variables: true,
+    },
+  },
+  eventoActual: {
+    select: {
+      idEvento: true,
+      tipo: true,
+      rolesHabilitados: true,
+    },
+  },
+  _count: {
+    select: {
+      eventos: true,
+      decisiones: true,
+    },
+  },
+  decisiones: {
+    orderBy: {
+      fechaDecision: 'desc' as const,
+    },
+    take: 1,
+    select: {
+      fechaDecision: true,
+    },
+  },
+};
+
 export async function findSimulacionesAlumnoPaginadas(
   empresaId: number,
   rolAlumno: string | null,
@@ -809,15 +856,6 @@ export async function findSimulacionesAlumnoPaginadas(
   const where: Prisma.SimulacionEmpresaWhereInput = {
     empresaId,
   };
-
-  if (titulo) {
-    where.simulacion = {
-      titulo: {
-        contains: titulo,
-        mode: 'insensitive',
-      },
-    };
-  }
 
   if (filtros.estado && filtros.estado !== 'TODAS') {
     if (filtros.estado === 'PENDIENTE') {
@@ -878,6 +916,77 @@ export async function findSimulacionesAlumnoPaginadas(
     },
   };
 
+  // Si se busca por título, filtramos en memoria por el título adaptado visible para el alumno
+  if (titulo) {
+    const [
+      todasSimulaciones,
+      totalEmpresa,
+      pendientesEmpresa,
+      enCursoEmpresa,
+      finalizadasEmpresa,
+      decisionesPorResponderEmpresa,
+    ] = await Promise.all([
+      db.simulacionEmpresa.findMany({
+        where,
+        orderBy: {
+          simulacion: {
+            createdAt: 'desc',
+          },
+        },
+        select: selectSimulacionAlumnoItem,
+      }),
+      db.simulacionEmpresa.count({ where: baseResumenWhere }),
+      db.simulacionEmpresa.count({
+        where: {
+          ...baseResumenWhere,
+          estado: EstadoParticipacionSimulacion.PENDIENTE,
+        },
+      }),
+      db.simulacionEmpresa.count({
+        where: {
+          ...baseResumenWhere,
+          estado: EstadoParticipacionSimulacion.EN_CURSO,
+        },
+      }),
+      db.simulacionEmpresa.count({
+        where: {
+          ...baseResumenWhere,
+          estado: EstadoParticipacionSimulacion.FINALIZADA,
+        },
+      }),
+      db.simulacionEmpresa.count({
+        where: decisionesPorResponderWhere,
+      }),
+    ]);
+
+    const terminoLower = titulo.toLowerCase();
+    const filtradas = (todasSimulaciones as SimulacionAlumnoListItemEntity[]).filter((item) => {
+      const tituloAdaptado = adaptarTituloSimulacion(
+        item.simulacion.titulo,
+        item.empresa?.nombre,
+        item.estadoInterno?.variables,
+        item.simulacion.usarDatosEmpresa
+      );
+      return tituloAdaptado.toLowerCase().includes(terminoLower);
+    });
+
+    const totalItems = filtradas.length;
+    const items = filtradas.slice((page - 1) * pageSize, page * pageSize);
+
+    return {
+      items,
+      totalItems,
+      resumen: {
+        total: totalEmpresa,
+        pendientes: pendientesEmpresa,
+        enCurso: enCursoEmpresa,
+        finalizadas: finalizadasEmpresa,
+        decisionesPorResponder: decisionesPorResponderEmpresa,
+      },
+    };
+  }
+
+  // Paginación directa en base de datos si no hay filtro de texto
   const [
     items,
     totalItems,
@@ -896,78 +1005,28 @@ export async function findSimulacionesAlumnoPaginadas(
           createdAt: 'desc',
         },
       },
-      select: {
-        idSimulacionEmpresa: true,
-        estado: true,
-        fechaInicio: true,
-        fechaFinalizacion: true,
-        simulacion: {
-          select: {
-            titulo: true,
-            fechaLimite: true,
-            usarDatosEmpresa: true,
-          },
-        },
-        empresa: {
-          select: {
-            nombre: true,
-          },
-        },
-        estadoInterno: {
-          select: {
-            variables: true,
-          },
-        },
-        eventoActual: {
-          select: {
-            idEvento: true,
-            tipo: true,
-            rolesHabilitados: true,
-          },
-        },
-        _count: {
-          select: {
-            eventos: true,
-            decisiones: true,
-          },
-        },
-        decisiones: {
-          orderBy: {
-            fechaDecision: 'desc',
-          },
-          take: 1,
-          select: {
-            fechaDecision: true,
-          },
-        },
-      },
+      select: selectSimulacionAlumnoItem,
     }),
-
     db.simulacionEmpresa.count({ where }),
-
     db.simulacionEmpresa.count({ where: baseResumenWhere }),
-
     db.simulacionEmpresa.count({
       where: {
         ...baseResumenWhere,
         estado: EstadoParticipacionSimulacion.PENDIENTE,
       },
     }),
-
     db.simulacionEmpresa.count({
       where: {
         ...baseResumenWhere,
         estado: EstadoParticipacionSimulacion.EN_CURSO,
       },
     }),
-
     db.simulacionEmpresa.count({
       where: {
         ...baseResumenWhere,
         estado: EstadoParticipacionSimulacion.FINALIZADA,
       },
     }),
-
     db.simulacionEmpresa.count({
       where: decisionesPorResponderWhere,
     }),
