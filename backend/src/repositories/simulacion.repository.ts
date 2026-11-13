@@ -819,7 +819,7 @@ export async function findSimulacionesAlumnoPaginadas(
     };
   }
 
-  if (filtros.estado) {
+  if (filtros.estado && filtros.estado !== 'TODAS') {
     if (filtros.estado === 'PENDIENTE') {
       where.estado = EstadoParticipacionSimulacion.PENDIENTE;
     } else if (filtros.estado === 'FINALIZADA') {

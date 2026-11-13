@@ -24,6 +24,7 @@ import {
   listarSimulacionesDocente,
   obtenerConversacionSimulacion,
   obtenerEntregasSimulacion,
+  obtenerFiltrosDashboardAlumno,
   obtenerOpcionesCrearSimulacion,
   obtenerResumenSimulacion,
   responderDecisionSimulacion,
@@ -44,6 +45,13 @@ router.get(
   authenticate,
   requireRole(ROLES.DOCENTE),
   obtenerOpcionesCrearSimulacion
+);
+
+router.get(
+  '/alumno/filtros',
+  authenticate,
+  requireRole(ROLES.ALUMNO),
+  obtenerFiltrosDashboardAlumno
 );
 
 router.get(

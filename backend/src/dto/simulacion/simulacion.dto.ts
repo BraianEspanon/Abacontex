@@ -245,3 +245,12 @@ export interface ResumenSimulacionResponseDTO {
   feedbackFinal: FeedbackFinalSimulacionDTO;
   variablesFinales: Record<string, unknown>;
 }
+
+export interface OpcionFiltroEstadoAlumnoDTO {
+  clave: string;
+  label: string;
+}
+
+export interface FiltrosDashboardAlumnoResponseDTO {
+  estados: OpcionFiltroEstadoAlumnoDTO[];
+}

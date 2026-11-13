@@ -55,6 +55,7 @@ export const ESTADOS_DASHBOARD_SIMULACION = ['PENDIENTE', 'EN_CURSO', 'FINALIZAD
 export type EstadoDashboardSimulacion = (typeof ESTADOS_DASHBOARD_SIMULACION)[number];
 
 export const FILTROS_ESTADO_ALUMNO_SIMULACION = [
+  'TODAS',
   'PENDIENTE',
   'EN_CURSO',
   'FINALIZADA',
@@ -62,6 +63,14 @@ export const FILTROS_ESTADO_ALUMNO_SIMULACION = [
 ] as const;
 
 export type FiltroEstadoAlumnoSimulacion = (typeof FILTROS_ESTADO_ALUMNO_SIMULACION)[number];
+
+export const OPCIONES_FILTRO_ESTADO_ALUMNO_SIMULACION = [
+  { clave: 'TODAS', label: 'Todas' },
+  { clave: 'PENDIENTE', label: 'Pendientes' },
+  { clave: 'EN_CURSO', label: 'En curso' },
+  { clave: 'FINALIZADA', label: 'Finalizadas' },
+  { clave: 'REQUIERE_MI_DECISION', label: 'Requieren mi decisión' },
+] as const;
 
 export const FILTROS_ESTADO_ENTREGA_SIMULACION = [
   'TODAS',

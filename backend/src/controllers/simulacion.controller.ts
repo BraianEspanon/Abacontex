@@ -28,6 +28,11 @@ export function obtenerOpcionesCrearSimulacion(_req: Request, res: Response) {
   res.json(resultado);
 }
 
+export function obtenerFiltrosDashboardAlumno(_req: Request, res: Response) {
+  const resultado = simulacionService.obtenerFiltrosDashboardAlumno();
+  res.json(resultado);
+}
+
 export async function listarSimulacionesDocente(req: Request, res: Response) {
   const { query } = obtenerSimulacionesDocenteQuerySchema.parse({
     query: req.query,

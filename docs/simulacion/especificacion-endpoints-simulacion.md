@@ -18,6 +18,7 @@
 | 7 | **ENDPOINT - GET Conversación** | `GET` | `/simulaciones/conversacion/:id` | **Ambos** | **Listo** |
 | 8 | **ENDPOINT - POST Responder** | `POST` | `/simulaciones/conversacion/:id/responder` | Alumno | **Listo** |
 | 9 | **ENDPOINT - GET Resumen** | `GET` | `/simulaciones/conversacion/:id/resumen` | **Ambos** | **Listo** |
+| 10 | **ENDPOINT - GET Filtros Dashboard Alumno** | `GET` | `/simulaciones/alumno/filtros` | Alumno | **Listo** |
 
 ---
 
@@ -31,6 +32,13 @@
   * Evita hardcodear strings en el frontend que puedan fallar en la validación estricta de Zod (`z.enum`).
   * Sigue el mismo patrón arquitectónico de `GET /ejercicios/generar/opciones`.
   * Si se modifica o agrega un flujo en el backend, la UI se actualiza sola sin desplegar frontend.
+
+#### `GET /simulaciones/alumno/filtros`
+*(Jira: ENDPOINT - GET Filtros Dashboard Alumno)*
+* **Rol:** Alumno.
+* **Estado:** **Listo**.
+* **¿Qué hace?** Devuelve las opciones de estado para los filtros del dashboard del alumno (Todas, Pendientes, En curso, Finalizadas, Requieren mi decisión) con su clave y label amigable.
+* **¿Por qué hace falta?** Permite que los tabs/chips de filtrado en el frontend se construyan dinámicamente sin hardcodear enums ni strings en el cliente, manteniendo consistencia con `GET /entregas/filtros`.
 
 ---
 

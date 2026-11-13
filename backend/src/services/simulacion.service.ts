@@ -23,6 +23,7 @@ import {
   EstadoParticipacionSimulacion,
   OPCIONES_DIFICULTADES_SIMULACION,
   OPCIONES_DURACIONES_SIMULACION,
+  OPCIONES_FILTRO_ESTADO_ALUMNO_SIMULACION,
   OPCIONES_FLUJOS_EMPRESARIALES,
   OPCIONES_TIPOS_EVENTO_SORPRESA,
   PUNTOS_POR_CLASIFICACION,
@@ -32,6 +33,7 @@ import {
   ConversacionSimulacionResponseDTO,
   EditarTituloSimulacionResponseDTO,
   EntregasSimulacionResponseDTO,
+  FiltrosDashboardAlumnoResponseDTO,
   ListarSimulacionesAlumnoResponseDTO,
   ListarSimulacionesDocenteResponseDTO,
   OpcionesCrearSimulacionResponseDTO,
@@ -147,6 +149,12 @@ export function obtenerOpcionesCrearSimulacion(): OpcionesCrearSimulacionRespons
     dificultades: OPCIONES_DIFICULTADES_SIMULACION,
     duraciones: OPCIONES_DURACIONES_SIMULACION,
     tiposEventoSorpresa: OPCIONES_TIPOS_EVENTO_SORPRESA,
+  };
+}
+
+export function obtenerFiltrosDashboardAlumno(): FiltrosDashboardAlumnoResponseDTO {
+  return {
+    estados: [...OPCIONES_FILTRO_ESTADO_ALUMNO_SIMULACION],
   };
 }
 
