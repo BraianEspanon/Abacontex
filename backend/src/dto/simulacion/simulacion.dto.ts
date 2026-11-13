@@ -1,7 +1,5 @@
 import {
   ClasificacionOpcionSimulacion,
-  DificultadSimulacion,
-  DuracionSimulacion,
   EstadoParticipacionSimulacion,
   OpcionDificultadSimulacion,
   OpcionDuracionSimulacion,

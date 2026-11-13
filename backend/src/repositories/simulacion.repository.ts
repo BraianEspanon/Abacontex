@@ -314,7 +314,9 @@ export async function createSimulacionEmpresaConGrafo(
               (op.clasificacion as ClasificacionOpcionSimulacion) ||
               ClasificacionOpcionSimulacion.ADECUADA,
             siguienteEventoId: destinoId,
-            cambiosSimulados: op.cambiosSimulados ? (op.cambiosSimulados as any) : undefined,
+            ...(op.cambiosSimulados
+              ? { cambiosSimulados: op.cambiosSimulados as Prisma.InputJsonValue }
+              : {}),
           },
           tx
         );

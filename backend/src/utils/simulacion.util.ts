@@ -54,11 +54,7 @@ export function adaptarTituloSimulacion(
 
   const emp = nombreEmpresa || '';
 
-  return (titulo || '')
-    .split('{{producto}}')
-    .join(producto)
-    .split('{{empresa}}')
-    .join(emp);
+  return (titulo || '').split('{{producto}}').join(producto).split('{{empresa}}').join(emp);
 }
 
 export interface ProgresoSimulacionResult {
@@ -72,8 +68,8 @@ export function calcularProgresoSimulacion(
   eventosTotales: number,
   cantidadDecisiones: number
 ): ProgresoSimulacionResult {
-  let eventosCompletados = 0;
-  let eventoActualNumero = 1;
+  let eventosCompletados: number;
+  let eventoActualNumero: number;
 
   if (estado === 'FINALIZADA') {
     eventosCompletados = eventosTotales;

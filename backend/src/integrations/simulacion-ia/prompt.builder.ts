@@ -1,5 +1,4 @@
 import {
-  CLASIFICACIONES_OPCION,
   DESCRIPCION_ROLES_EMPRESA,
   EMISORES_EVENTO,
   NOMBRES_ROLES_EMPRESA,
@@ -25,7 +24,6 @@ export function construirPromptGeneracionSimulacion(params: GenerarSimulacionPar
     .join('\n');
 
   const temasSugeridos = TEMAS_POR_FLUJO[flujo]?.temas?.join(', ') ?? '';
-  const clasificacionesStr = CLASIFICACIONES_OPCION.map((c) => `"${c}"`).join(' | ');
   const emisoresStr = EMISORES_EVENTO.join(', ');
 
   const instruccionesDificultad = {
