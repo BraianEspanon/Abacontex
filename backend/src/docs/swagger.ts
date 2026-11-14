@@ -107,6 +107,11 @@ export const swaggerSpec = swaggerJsdoc({
         description:
           'Gestión y corrección docente de entregas, sugerencias con IA y revisión de plantillas.',
       },
+      {
+        name: 'Simulaciones',
+        description:
+          'Gestión, toma de decisiones y seguimiento de simulaciones empresariales gamificadas.',
+      },
     ],
 
     components: {
