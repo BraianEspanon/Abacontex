@@ -46,6 +46,7 @@ export default function EditarProductoPage() {
   const navigate = useNavigate();
 
   const [imagenSeleccionada, setImagenSeleccionada] = useState<File | null>(null);
+
   const [eliminarImagen, setEliminarImagen] = useState(false);
 
   const productoId = Number(id);

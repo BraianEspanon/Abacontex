@@ -2,9 +2,8 @@ import { ImagePlus, Trash2, UploadCloud } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react';
-import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 
-import { IVA } from '../../constants/iva';
+import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 
 export interface RegistrarProductoFormData {
   nombre: string;
@@ -24,22 +23,22 @@ interface RegistrarProductoFormProps {
 
   nombreProducto: string;
   descripcionProducto: string;
-  precioProducto: number;
-  margenProducto: number;
-  stockProducto: number;
+  precioProducto: number | undefined;
+  margenProducto: number | undefined;
+  stockProducto: number | undefined;
 
   onImagenChange: (imagen: File | null) => void;
   onCancelar: () => void;
 }
 
+const IVA = 0.21;
+
 const TIPOS_IMAGEN_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
 
 const TAMANIO_MAXIMO_IMAGEN = 5 * 1024 * 1024;
 
-const TECLAS_NO_PERMITIDAS_NUMERO = ['e', 'E', '+', '-'];
-
-function formatearPrecio(precio: number) {
-  if (!Number.isFinite(precio)) {
+function formatearPrecio(precio: number | undefined) {
+  if (precio === undefined || !Number.isFinite(precio)) {
     return '$ 0,00';
   }
 
@@ -51,35 +50,31 @@ function formatearPrecio(precio: number) {
   }).format(precio);
 }
 
-function calcularPrecios(precioUnitario: number, margenGanancia: number) {
-  if (!Number.isFinite(precioUnitario) || !Number.isFinite(margenGanancia)) {
-    return {
-      precioVenta: 0,
-      precioConsumidorFinal: 0,
-    };
+function calcularPrecioVenta(
+  precioUnitario: number | undefined,
+  margenGanancia: number | undefined
+) {
+  if (
+    precioUnitario === undefined ||
+    margenGanancia === undefined ||
+    !Number.isFinite(precioUnitario) ||
+    !Number.isFinite(margenGanancia)
+  ) {
+    return 0;
   }
 
-  const precioVenta = precioUnitario * (1 + margenGanancia / 100);
-  const precioConsumidorFinal = precioVenta * (1 + IVA);
-
-  return {
-    precioVenta,
-    precioConsumidorFinal,
-  };
+  return precioUnitario * (1 + margenGanancia / 100);
 }
 
-function bloquearCaracteresNoPermitidos(event: KeyboardEvent<HTMLInputElement>) {
-  if (TECLAS_NO_PERMITIDAS_NUMERO.includes(event.key)) {
-    event.preventDefault();
-  }
-}
+function bloquearCaracteresInvalidos(
+  event: KeyboardEvent<HTMLInputElement>,
+  permitirDecimales: boolean
+) {
+  const caracteresInvalidos = permitirDecimales
+    ? ['e', 'E', '+', '-']
+    : ['e', 'E', '+', '-', '.', ','];
 
-function bloquearPegadoInvalido(event: React.ClipboardEvent<HTMLInputElement>) {
-  const textoPegado = event.clipboardData.getData('text').trim();
-
-  const formatoValido = /^\d+(\.\d{0,2})?$/.test(textoPegado);
-
-  if (!formatoValido) {
+  if (caracteresInvalidos.includes(event.key)) {
     event.preventDefault();
   }
 }
@@ -100,6 +95,9 @@ export default function RegistrarProductoForm({
 }: RegistrarProductoFormProps) {
   const inputArchivoRef = useRef<HTMLInputElement | null>(null);
 
+  const [imagenError, setImagenError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   const imagenPreviewUrl = useMemo(() => {
     if (!imagenSeleccionada) {
       return null;
@@ -107,9 +105,6 @@ export default function RegistrarProductoForm({
 
     return URL.createObjectURL(imagenSeleccionada);
   }, [imagenSeleccionada]);
-
-  const [imagenError, setImagenError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -122,19 +117,17 @@ export default function RegistrarProductoForm({
   const validarYSeleccionarImagen = (archivo?: File) => {
     setImagenError(null);
 
-    if (!archivo) {
+    if (!archivo || isPending) {
       return;
     }
 
     if (!TIPOS_IMAGEN_PERMITIDOS.includes(archivo.type)) {
       setImagenError('El archivo debe ser una imagen JPG, PNG o WebP.');
-
       return;
     }
 
     if (archivo.size > TAMANIO_MAXIMO_IMAGEN) {
       setImagenError('La imagen no puede superar los 5 MB.');
-
       return;
     }
 
@@ -142,16 +135,16 @@ export default function RegistrarProductoForm({
   };
 
   const handleInputArchivoChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const archivo = event.target.files?.[0];
-
-    validarYSeleccionarImagen(archivo);
-
+    validarYSeleccionarImagen(event.target.files?.[0]);
     event.target.value = '';
   };
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    setIsDragging(true);
+
+    if (!isPending) {
+      setIsDragging(true);
+    }
   };
 
   const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
@@ -184,15 +177,18 @@ export default function RegistrarProductoForm({
     onImagenChange(null);
   };
 
-  const cantidadCaracteresNombre = nombreProducto?.length ?? 0;
-  const cantidadCaracteresDescripcion = descripcionProducto?.length ?? 0;
+  const cantidadCaracteresNombre = nombreProducto.length;
+  const cantidadCaracteresDescripcion = descripcionProducto.length;
 
-  const { precioVenta, precioConsumidorFinal } = calcularPrecios(precioProducto, margenProducto);
+  const precioVenta = calcularPrecioVenta(precioProducto, margenProducto);
+
+  const precioConsumidorFinal = precioVenta * (1 + IVA);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="rounded-2xl bg-white p-5 shadow-sm">
         <div className="space-y-6">
+          {/* NOMBRE */}
           <div>
             <label htmlFor="nombre" className="mb-1 block text-sm font-semibold text-gray-800">
               Nombre <span className="text-red-500">*</span>
@@ -225,6 +221,7 @@ export default function RegistrarProductoForm({
             </div>
           </div>
 
+          {/* STOCK Y PRECIO */}
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label
@@ -243,11 +240,10 @@ export default function RegistrarProductoForm({
                 step="1"
                 placeholder="0"
                 disabled={isPending}
-                onKeyDown={bloquearCaracteresNoPermitidos}
-                onPaste={bloquearPegadoInvalido}
                 {...register('stockInicial', {
                   valueAsNumber: true,
                 })}
+                onKeyDown={(event) => bloquearCaracteresInvalidos(event, false)}
                 className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
                   errors.stockInicial
                     ? 'border-red-500 focus:border-red-500'
@@ -282,11 +278,10 @@ export default function RegistrarProductoForm({
                   step="0.01"
                   placeholder="0,00"
                   disabled={isPending}
-                  onKeyDown={bloquearCaracteresNoPermitidos}
-                  onPaste={bloquearPegadoInvalido}
                   {...register('precioUnitario', {
                     valueAsNumber: true,
                   })}
+                  onKeyDown={(event) => bloquearCaracteresInvalidos(event, true)}
                   className={`w-full rounded-lg border py-2.5 pr-3 pl-7 text-sm outline-none transition ${
                     errors.precioUnitario
                       ? 'border-red-500 focus:border-red-500'
@@ -301,6 +296,7 @@ export default function RegistrarProductoForm({
             </div>
           </div>
 
+          {/* MARGEN Y PRECIO ESTIMADO */}
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label
@@ -311,7 +307,7 @@ export default function RegistrarProductoForm({
               </label>
 
               <p className="mb-2 text-xs text-gray-500">
-                Indicá el porcentaje de ganancia sobre el precio unitario. Debe ser mayor a cero.
+                Indicá el porcentaje de ganancia sobre el precio unitario.
               </p>
 
               <div className="relative">
@@ -322,11 +318,10 @@ export default function RegistrarProductoForm({
                   step="0.01"
                   placeholder="0"
                   disabled={isPending}
-                  onKeyDown={bloquearCaracteresNoPermitidos}
-                  onPaste={bloquearPegadoInvalido}
                   {...register('margenGanancia', {
                     valueAsNumber: true,
                   })}
+                  onKeyDown={(event) => bloquearCaracteresInvalidos(event, true)}
                   className={`w-full rounded-lg border py-2.5 pr-9 pl-3 text-sm outline-none transition ${
                     errors.margenGanancia
                       ? 'border-red-500 focus:border-red-500'
@@ -359,6 +354,7 @@ export default function RegistrarProductoForm({
             </div>
           </div>
 
+          {/* DESCRIPCIÓN */}
           <div>
             <label htmlFor="descripcion" className="mb-1 block text-sm font-semibold text-gray-800">
               Descripción <span className="text-red-500">*</span>
@@ -393,6 +389,7 @@ export default function RegistrarProductoForm({
             </div>
           </div>
 
+          {/* IMAGEN */}
           <div>
             <div className="mb-2 flex items-center justify-between gap-4">
               <label className="block text-sm font-semibold text-gray-800">
@@ -405,7 +402,7 @@ export default function RegistrarProductoForm({
                   type="button"
                   onClick={handleQuitarImagen}
                   disabled={isPending}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 transition hover:text-red-700 disabled:opacity-60"
                 >
                   <Trash2 size={14} />
                   Quitar
@@ -419,18 +416,22 @@ export default function RegistrarProductoForm({
               type="file"
               accept="image/jpeg,image/png,image/webp"
               onChange={handleInputArchivoChange}
+              disabled={isPending}
               className="hidden"
             />
 
             <div
               role="button"
-              tabIndex={0}
+              tabIndex={isPending ? -1 : 0}
+              aria-disabled={isPending}
               onClick={handleAbrirSelector}
               onKeyDown={handleSelectorKeyDown}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-5 text-center outline-none transition ${
+              className={`flex min-h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-5 text-center outline-none transition ${
+                isPending ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+              } ${
                 isDragging
                   ? 'border-[#4f6f52] bg-[#f3f7f3]'
                   : imagenError
@@ -477,7 +478,7 @@ export default function RegistrarProductoForm({
             type="button"
             onClick={onCancelar}
             disabled={isPending}
-            className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
           >
             Cancelar
           </button>
@@ -485,14 +486,15 @@ export default function RegistrarProductoForm({
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-lg bg-[#6f966f] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5d825f] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-[#6f966f] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5d825f] disabled:opacity-60"
           >
             {isPending ? 'Registrando...' : 'Guardar producto'}
           </button>
         </div>
       </section>
 
-      <aside className="rounded-2xl bg-white p-5 shadow-sm lg:sticky lg:top-6">
+      {/* VISTA PREVIA */}
+      <aside className="self-start rounded-2xl bg-white p-5 shadow-sm lg:sticky lg:top-6">
         <h2 className="text-base font-semibold text-gray-900">Vista previa del producto</h2>
 
         <div className="mt-5 overflow-hidden">
@@ -504,9 +506,7 @@ export default function RegistrarProductoForm({
                 className="h-full w-full object-contain p-4"
               />
             ) : (
-              <div className="flex flex-col items-center text-gray-300">
-                <ImagePlus size={72} strokeWidth={1.2} />
-              </div>
+              <ImagePlus size={72} strokeWidth={1.2} className="text-gray-300" />
             )}
           </div>
 
@@ -514,7 +514,7 @@ export default function RegistrarProductoForm({
             <p className="text-sm font-semibold text-gray-800">Nombre del producto</p>
 
             <p className="mt-2 min-h-5 text-sm text-gray-600">
-              {nombreProducto?.trim() || 'Producto sin nombre'}
+              {nombreProducto.trim() || 'Producto sin nombre'}
             </p>
 
             <div className="my-4 border-t border-gray-200" />

@@ -95,17 +95,6 @@ export default function RegistrarPedidoForm({
     setProductos((actuales) => actuales.filter((producto) => producto.id !== productoId));
   };
 
-  const cargarDatosDemo = () => {
-    setClienteNombre('Lionel Andrés Messi Cuccittini');
-    setClienteMail('leomessi10@gmail.com');
-
-    setErrores((actuales) => ({
-      ...actuales,
-      clienteNombre: undefined,
-      clienteMail: undefined,
-    }));
-  };
-
   const validar = () => {
     const nuevosErrores: ErroresFormulario = {};
 
@@ -156,10 +145,7 @@ export default function RegistrarPedidoForm({
       onSubmit={handleSubmit}
       className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
     >
-      {/* =====================================================
-          DATOS DEL CLIENTE
-      ====================================================== */}
-
+      {/* DATOS DEL CLIENTE */}
       <section className="px-5 py-4">
         <h2 className="text-lg font-semibold text-[#496647]">Datos del cliente</h2>
 
@@ -244,24 +230,9 @@ export default function RegistrarPedidoForm({
             )}
           </div>
         </div>
-
-        {/* Botón auxiliar para la demo */}
-        <div className="mt-1 flex justify-end">
-          <button
-            type="button"
-            onClick={cargarDatosDemo}
-            title="Cargar datos para la demostración"
-            className="rounded-md px-2.5 py-1 text-[11px] font-medium text-[#496647]/60 transition-all hover:bg-[#6f9468]/10 hover:text-[#496647]"
-          >
-            Demo
-          </button>
-        </div>
       </section>
 
-      {/* =====================================================
-          PRODUCTOS
-      ====================================================== */}
-
+      {/* PRODUCTOS */}
       <section className="border-t border-gray-200 px-5 py-4">
         <h2 className="text-lg font-semibold text-[#496647]">Productos del pedido</h2>
 
@@ -311,10 +282,7 @@ export default function RegistrarPedidoForm({
         </div>
       </section>
 
-      {/* =====================================================
-          ACCIONES
-      ====================================================== */}
-
+      {/* ACCIONES */}
       <footer className="flex flex-col-reverse gap-3 border-t border-gray-200 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           type="button"
