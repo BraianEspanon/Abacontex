@@ -50,6 +50,7 @@ model Usuario {
   notificaciones         Notificacion[]
   correccionesEjercicios CorreccionEntrega[]
   diagnosticos           DiagnosticoCurso[]
+  simulacionesCreadas    Simulacion[]
 
   @@map("usuarios")
 }
@@ -72,6 +73,7 @@ model Alumno {
   asientosContables         AsientoContable[]
   conciliacionesFinancieras ConciliacionFinanciera[]
   entregasEjercicios        EntregaEjercicio[]
+  decisionesSimulacion      DecisionSimulacion[]
 
   @@index([idCurso])
   @@index([idEmpresa])
@@ -90,6 +92,7 @@ model Curso {
   empresas     Empresa[]
   ejercicios   Ejercicio[]
   diagnosticos DiagnosticoCurso[]
+  simulaciones Simulacion[]
 
   @@index([año])
   @@map("cursos")
@@ -151,6 +154,7 @@ model Empresa {
   ordenesProduccion         OrdenProduccion[]
   ventas                    Venta[]
   planificacionesAnuales    PlanificacionAnual[]
+  simulacionesEmpresa       SimulacionEmpresa[]
 
   @@index([idCurso])
   @@index([idCicloLectivo])
@@ -166,7 +170,8 @@ model RolesEmpresa {
 
   descripcion String?
 
-  alumnos Alumno[]
+  alumnos              Alumno[]
+  decisionesSimulacion DecisionSimulacion[]
 
   @@map("roles_empresa")
 }
@@ -1216,4 +1221,212 @@ model DiagnosticoCurso {
 
   @@unique([cursoId, docenteId])
   @@map("diagnosticos_cursos")
+}
+
+enum EstadoSimulacion {
+  BORRADOR
+  PUBLICADA
+}
+
+enum EstadoParticipacionSimulacion {
+  PENDIENTE
+  EN_CURSO
+  FINALIZADA
+}
+
+enum DificultadSimulacion {
+  BASICA
+  INTERMEDIA
+  AVANZADA
+}
+
+enum DuracionSimulacion {
+  CORTA
+  MEDIA
+  LARGA
+}
+
+enum TipoEventoSimulacion {
+  DECISION
+  INFORMATIVO
+  FINAL
+}
+
+enum ClasificacionOpcionSimulacion {
+  MUY_ADECUADA
+  ADECUADA
+  POCO_ADECUADA
+  INADECUADA
+}
+
+model Simulacion {
+  idSimulacion Int @id @default(autoincrement())
+
+  docenteId String
+  docente   Usuario @relation(fields: [docenteId], references: [id])
+
+  cursoId Int
+  curso   Curso @relation(fields: [cursoId], references: [idCurso])
+
+  titulo String @db.VarChar(100)
+
+  flujoEmpresarial String               @db.VarChar(100)
+  dificultad       DificultadSimulacion
+  duracion         DuracionSimulacion
+
+  eventosSorpresa  Boolean
+  usarDatosEmpresa Boolean
+
+  fechaLimite DateTime @db.Timestamptz(3)
+
+  estado EstadoSimulacion @default(BORRADOR)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  empresas SimulacionEmpresa[]
+
+  @@index([docenteId])
+  @@index([cursoId])
+  @@index([estado])
+  @@index([fechaLimite])
+  @@map("simulaciones")
+}
+
+model SimulacionEmpresa {
+  idSimulacionEmpresa Int @id @default(autoincrement())
+
+  simulacionId Int
+  simulacion   Simulacion @relation(fields: [simulacionId], references: [idSimulacion], onDelete: Cascade)
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+
+  estado EstadoParticipacionSimulacion @default(PENDIENTE)
+
+  situacionInicial String @db.Text
+
+  eventoInicialId Int?              @unique
+  eventoInicial   EventoSimulacion? @relation("EventoInicialSimulacion", fields: [eventoInicialId], references: [idEvento], onDelete: SetNull)
+
+  eventoActualId Int?              @unique
+  eventoActual   EventoSimulacion? @relation("EventoActualSimulacion", fields: [eventoActualId], references: [idEvento], onDelete: SetNull)
+
+  fechaInicio       DateTime? @db.Timestamptz(3)
+  fechaFinalizacion DateTime? @db.Timestamptz(3)
+
+  puntajeFinal  Int?
+  feedbackFinal Json?
+
+  eventos       EventoSimulacion[]       @relation("EventosEmpresaSimulacion")
+  decisiones    DecisionSimulacion[]
+  estadoInterno EstadoSimulacionEmpresa?
+
+  @@unique([simulacionId, empresaId])
+  @@index([simulacionId])
+  @@index([empresaId])
+  @@index([estado])
+  @@map("simulaciones_empresas")
+}
+
+model EventoSimulacion {
+  idEvento Int @id @default(autoincrement())
+
+  simulacionEmpresaId Int
+  simulacionEmpresa   SimulacionEmpresa @relation("EventosEmpresaSimulacion", fields: [simulacionEmpresaId], references: [idSimulacionEmpresa], onDelete: Cascade)
+
+  codigoEvento String @db.VarChar(30)
+
+  tipo TipoEventoSimulacion
+
+  emisor  String @db.VarChar(50)
+  mensaje String @db.Text
+
+  esSorpresa Boolean @default(false)
+
+  rolesHabilitados Json?
+
+  siguienteEventoId Int?
+  siguienteEvento   EventoSimulacion?  @relation("ContinuacionEventoSimulacion", fields: [siguienteEventoId], references: [idEvento], onDelete: SetNull)
+  eventosAnteriores EventoSimulacion[] @relation("ContinuacionEventoSimulacion")
+
+  opciones        OpcionEvento[] @relation("OpcionesDelEvento")
+  opcionesDestino OpcionEvento[] @relation("DestinoOpcionSimulacion")
+
+  decisiones DecisionSimulacion[]
+
+  inicioDe SimulacionEmpresa? @relation("EventoInicialSimulacion")
+  actualDe SimulacionEmpresa? @relation("EventoActualSimulacion")
+
+  @@unique([simulacionEmpresaId, codigoEvento])
+  @@index([simulacionEmpresaId])
+  @@index([siguienteEventoId])
+  @@map("eventos_simulacion")
+}
+
+model OpcionEvento {
+  idOpcion Int @id @default(autoincrement())
+
+  eventoId Int
+  evento   EventoSimulacion @relation("OpcionesDelEvento", fields: [eventoId], references: [idEvento], onDelete: Cascade)
+
+  codigoOpcion String @db.VarChar(30)
+  texto        String @db.Text
+
+  clasificacion ClasificacionOpcionSimulacion
+
+  siguienteEventoId Int?
+  siguienteEvento   EventoSimulacion? @relation("DestinoOpcionSimulacion", fields: [siguienteEventoId], references: [idEvento], onDelete: SetNull)
+
+  cambiosSimulados Json?
+
+  decisiones DecisionSimulacion[]
+
+  @@unique([eventoId, codigoOpcion])
+  @@index([eventoId])
+  @@index([siguienteEventoId])
+  @@map("opciones_eventos_simulacion")
+}
+
+model DecisionSimulacion {
+  idDecision Int @id @default(autoincrement())
+
+  simulacionEmpresaId Int
+  simulacionEmpresa   SimulacionEmpresa @relation(fields: [simulacionEmpresaId], references: [idSimulacionEmpresa], onDelete: Cascade)
+
+  eventoId Int
+  evento   EventoSimulacion @relation(fields: [eventoId], references: [idEvento])
+
+  opcionId Int
+  opcion   OpcionEvento @relation(fields: [opcionId], references: [idOpcion])
+
+  alumnoId String
+  alumno   Alumno @relation(fields: [alumnoId], references: [id])
+
+  rolEmpresaId Int
+  rolEmpresa   RolesEmpresa @relation(fields: [rolEmpresaId], references: [idRol])
+
+  puntosObtenidos Int
+
+  fechaDecision DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([simulacionEmpresaId, eventoId])
+  @@index([simulacionEmpresaId])
+  @@index([eventoId])
+  @@index([opcionId])
+  @@index([alumnoId])
+  @@index([rolEmpresaId])
+  @@map("decisiones_simulacion")
+}
+
+model EstadoSimulacionEmpresa {
+  idEstado Int @id @default(autoincrement())
+
+  simulacionEmpresaId Int               @unique
+  simulacionEmpresa   SimulacionEmpresa @relation(fields: [simulacionEmpresaId], references: [idSimulacionEmpresa], onDelete: Cascade)
+
+  variables        Json
+  historialEventos Json
+
+  @@map("estados_simulacion_empresa")
 }

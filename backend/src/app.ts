@@ -23,6 +23,7 @@ import ejercicioRoutes from './routes/ejercicio.routes';
 import entregaRoutes from './routes/entrega.routes';
 import correccionRoutes from './routes/correccion.routes';
 import notificacionRoutes from './routes/notificacion.routes';
+import simulacionRoutes from './routes/simulacion.routes';
 
 import { errorMiddleware } from './middleware/error.middleware';
 
@@ -49,6 +50,7 @@ app.use('/ejercicios', ejercicioRoutes);
 app.use('/entregas', entregaRoutes);
 app.use('/correcciones', correccionRoutes);
 app.use('/notificaciones', notificacionRoutes);
+app.use('/simulaciones', simulacionRoutes);
 
 app.use('/cursos', cursoRoutes);
 app.use('/roles-empresa', rolEmpresaRoutes);
