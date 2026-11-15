@@ -37,6 +37,7 @@ import {
 } from 'recharts';
 
 import Button from '../../components/ui/Button';
+import { useAlumnoActual } from '../../hooks/useAlumnoActual';
 import { useEmpresaDashboard } from '../../hooks/useEmpresaDashboard';
 
 import type {
@@ -64,25 +65,18 @@ function obtenerClasesRol(nombreRol?: string) {
   switch (nombreRol?.toUpperCase()) {
     case 'CEO':
       return 'bg-emerald-50 text-emerald-700';
-
     case 'COO':
       return 'bg-blue-50 text-blue-700';
-
     case 'CFO':
       return 'bg-violet-50 text-violet-700';
-
     case 'CTO':
       return 'bg-cyan-50 text-cyan-700';
-
     case 'CCO':
       return 'bg-orange-50 text-orange-700';
-
     case 'CIO':
       return 'bg-indigo-50 text-indigo-700';
-
     case 'CMO':
       return 'bg-pink-50 text-pink-700';
-
     default:
       return 'bg-gray-100 text-gray-700';
   }
@@ -310,11 +304,7 @@ function GraficoEvolucionFinanciera({ ultimoMes, tresMeses, cicloLectivo }: Graf
 
               <Tooltip formatter={(valor) => formatearMoneda(Number(valor))} />
 
-              <Legend
-                wrapperStyle={{
-                  fontSize: '12px',
-                }}
-              />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
 
               <Line
                 type="monotone"
@@ -461,7 +451,92 @@ function MiembroEquipo({ miembro }: { miembro: MiembroEquipoDashboard }) {
 export default function MiEmpresaPage() {
   const navigate = useNavigate();
 
+  const {
+    data: alumno,
+    isLoading: cargandoAlumno,
+    isError: errorAlumno,
+    refetch: refetchAlumno,
+  } = useAlumnoActual();
+
+  const tieneEmpresa = Boolean(alumno?.empresa);
+
   const { data: dashboard, isLoading, isError, refetch } = useEmpresaDashboard();
+
+  if (cargandoAlumno) {
+    return (
+      <div className="flex min-h-[500px] items-center justify-center">
+        <p className="text-sm text-gray-500">Cargando información del alumno...</p>
+      </div>
+    );
+  }
+
+  if (errorAlumno || !alumno) {
+    return (
+      <div className="w-full max-w-[1600px]">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+          <h2 className="font-semibold text-red-800">No fue posible comprobar tus datos</h2>
+
+          <p className="mt-1 text-sm text-red-700">
+            Ocurrió un problema al consultar la información del alumno.
+          </p>
+
+          <div className="mt-4">
+            <Button type="button" label="Reintentar" onClick={() => void refetchAlumno()} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tieneEmpresa) {
+    return (
+      <div className="w-full space-y-5">
+        <nav className="flex items-center gap-2 text-sm">
+          <Link
+            to="/alumno"
+            className="inline-flex items-center gap-1.5 text-abacontex-gray-text transition hover:text-abacontex-black-text"
+          >
+            <Home className="size-4 shrink-0" />
+            <span>Inicio</span>
+          </Link>
+
+          <ChevronRight className="size-4 shrink-0 text-abacontex-gray-text" />
+
+          <span className="font-semibold text-abacontex-dark">Mi empresa</span>
+        </nav>
+
+        <header>
+          <h1 className="text-2xl font-bold text-gray-900">Mi empresa</h1>
+
+          <p className="mt-1 text-sm text-abacontex-gray-text">
+            Consultá la información general y la actividad de tu empresa.
+          </p>
+        </header>
+
+        <div className="flex justify-center pt-6">
+          <section className="flex min-h-80 w-full max-w-3xl flex-col items-center justify-center rounded-2xl bg-white px-8 py-12 text-center shadow-md">
+            <div className="flex size-20 items-center justify-center rounded-full bg-abacontex-primary/10">
+              <Building2 size={36} className="text-abacontex-primary" />
+            </div>
+
+            <h2 className="mt-6 font-heading text-2xl font-semibold text-abacontex-black-text">
+              Todavía no pertenecés a una empresa
+            </h2>
+
+            <p className="mt-4 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+              Para acceder a la información de tu empresa primero necesitás formar parte de una
+              empresa de tu curso.
+            </p>
+
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+              Cuando seas incorporado a una empresa, vas a poder consultar sus datos, conocer a sus
+              integrantes y realizar el seguimiento de su actividad.
+            </p>
+          </section>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -502,10 +577,7 @@ export default function MiEmpresaPage() {
 
   return (
     <div className="w-full max-w-[1600px] space-y-4">
-      {/* =====================================================
-          BREADCRUMB
-      ====================================================== */}
-
+      {/* BREADCRUMB */}
       <nav className="flex items-center gap-2 text-sm text-gray-500">
         <Link to="/alumno" className="flex items-center gap-1 transition hover:text-gray-700">
           <Home className="h-4 w-4" />
@@ -517,10 +589,7 @@ export default function MiEmpresaPage() {
         <span className="font-medium text-gray-700">Mi empresa</span>
       </nav>
 
-      {/* =====================================================
-          EMPRESA
-      ====================================================== */}
-
+      {/* EMPRESA */}
       <section className="rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           {empresa.logoUrl ? (
@@ -571,16 +640,10 @@ export default function MiEmpresaPage() {
         </div>
       </section>
 
-      {/* =====================================================
-          RESUMEN FINANCIERO
-      ====================================================== */}
-
+      {/* RESUMEN FINANCIERO */}
       <ResumenFinancieroDashboard finanzas={finanzas} />
 
-      {/* =====================================================
-          GRÁFICO + ACTIVIDAD
-      ====================================================== */}
-
+      {/* GRÁFICO + ACTIVIDAD */}
       <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(400px,1fr)]">
         <GraficoEvolucionFinanciera
           ultimoMes={graficoEvolucion.ultimoMes}
@@ -639,15 +702,9 @@ export default function MiEmpresaPage() {
         </section>
       </div>
 
-      {/* =====================================================
-          INDICADORES + EQUIPO
-      ====================================================== */}
-
+      {/* INDICADORES + EQUIPO */}
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,2.25fr)_minmax(340px,0.85fr)]">
-        {/* ===================================================
-            INDICADORES
-        ==================================================== */}
-
+        {/* INDICADORES */}
         <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-base font-semibold text-gray-900">Indicadores del negocio</h2>
 
@@ -694,10 +751,7 @@ export default function MiEmpresaPage() {
           </div>
         </section>
 
-        {/* ===================================================
-            MI EQUIPO
-        ==================================================== */}
-
+        {/* MI EQUIPO */}
         <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -719,7 +773,6 @@ export default function MiEmpresaPage() {
           </div>
 
           {/* Integrantes */}
-
           {equipo.miembros.length === 0 ? (
             <div className="flex min-h-[80px] items-center justify-center">
               <p className="text-sm text-gray-500">No hay datos disponibles en este momento</p>
@@ -733,7 +786,6 @@ export default function MiEmpresaPage() {
           )}
 
           {/* Invitaciones pendientes */}
-
           <div className="mt-3 border-t border-gray-100 pt-3">
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-semibold text-gray-700">Invitaciones pendientes</p>
@@ -780,7 +832,6 @@ export default function MiEmpresaPage() {
             )}
 
             {/* Agregar integrante - solo CEO */}
-
             {esCEO && (
               <button
                 type="button"

@@ -56,6 +56,7 @@ const opcionesMenu: OpcionMenu[] = [
   {
     etiqueta: 'Correcciones',
     icono: ClipboardCheck,
+    ruta: '/docente/correcciones',
   },
   {
     etiqueta: 'Gamificación',

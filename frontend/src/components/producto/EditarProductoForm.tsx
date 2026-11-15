@@ -1,12 +1,11 @@
 import { ImageOff, LockKeyhole, Save, Trash2, Upload, X } from 'lucide-react';
+
 import { useEffect, useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 
-import type { ClipboardEvent, KeyboardEvent } from 'react';
+import type { KeyboardEvent } from 'react';
 
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
-
-import { IVA } from '../../constants/iva';
 
 export interface EditarProductoFormData {
   nombre: string;
@@ -36,11 +35,11 @@ interface EditarProductoFormProps {
   onCancelar: () => void;
 }
 
+const IVA = 0.21;
+
 const TIPOS_IMAGEN_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
 
 const TAMANIO_MAXIMO_IMAGEN = 5 * 1024 * 1024;
-
-const TECLAS_NO_PERMITIDAS_NUMERO = ['e', 'E', '+', '-'];
 
 function formatearPrecio(precio: number) {
   if (!Number.isFinite(precio)) {
@@ -55,36 +54,16 @@ function formatearPrecio(precio: number) {
   }).format(precio);
 }
 
-function calcularPrecios(precioUnitario: number, margenGanancia: number) {
+function calcularPrecioVenta(precioUnitario: number, margenGanancia: number) {
   if (!Number.isFinite(precioUnitario) || !Number.isFinite(margenGanancia)) {
-    return {
-      precioVenta: 0,
-      precioConsumidorFinal: 0,
-    };
+    return 0;
   }
 
-  const precioVenta = precioUnitario * (1 + margenGanancia / 100);
-
-  const precioConsumidorFinal = precioVenta * (1 + IVA);
-
-  return {
-    precioVenta,
-    precioConsumidorFinal,
-  };
+  return precioUnitario * (1 + margenGanancia / 100);
 }
 
-function bloquearCaracteresNoPermitidos(event: KeyboardEvent<HTMLInputElement>) {
-  if (TECLAS_NO_PERMITIDAS_NUMERO.includes(event.key)) {
-    event.preventDefault();
-  }
-}
-
-function bloquearPegadoInvalido(event: ClipboardEvent<HTMLInputElement>) {
-  const textoPegado = event.clipboardData.getData('text').trim();
-
-  const formatoValido = /^\d+(\.\d{0,2})?$/.test(textoPegado);
-
-  if (!formatoValido) {
+function bloquearCaracteresInvalidos(event: KeyboardEvent<HTMLInputElement>) {
+  if (['e', 'E', '+', '-'].includes(event.key)) {
     event.preventDefault();
   }
 }
@@ -154,18 +133,15 @@ export default function EditarProductoForm({
   const validarImagen = (archivo: File) => {
     if (!TIPOS_IMAGEN_PERMITIDOS.includes(archivo.type)) {
       setErrorImagen('Seleccioná una imagen JPG, PNG o WebP.');
-
       return false;
     }
 
     if (archivo.size > TAMANIO_MAXIMO_IMAGEN) {
       setErrorImagen('La imagen no puede superar los 5 MB.');
-
       return false;
     }
 
     setErrorImagen(null);
-
     return true;
   };
 
@@ -197,18 +173,21 @@ export default function EditarProductoForm({
     onEliminarImagen(!eliminarImagen);
   };
 
-  const { precioVenta, precioConsumidorFinal } = calcularPrecios(precioUnitario, margenGanancia);
+  const precioVenta = calcularPrecioVenta(precioUnitario, margenGanancia);
+
+  const precioConsumidorFinal = precioVenta * (1 + IVA);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="rounded-2xl bg-white p-5 shadow-sm">
         <div className="space-y-6">
+          {/* NOMBRE */}
           <div>
-            <label htmlFor="nombre" className="mb-1 block text-sm font-semibold text-gray-800">
+            <label htmlFor="nombre" className="block text-sm font-semibold text-gray-900">
               Nombre <span className="text-red-500">*</span>
             </label>
 
-            <p className="mb-2 text-xs text-gray-500">Ingresá un nombre claro y descriptivo.</p>
+            <p className="mt-1 text-xs text-gray-500">Ingresá un nombre claro y descriptivo.</p>
 
             <input
               id="nombre"
@@ -216,29 +195,35 @@ export default function EditarProductoForm({
               maxLength={50}
               disabled={isPending}
               {...register('nombre')}
-              className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
+              className={`mt-2 w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-gray-800 outline-none transition ${
                 errors.nombre
-                  ? 'border-red-500 focus:border-red-500'
-                  : 'border-gray-300 focus:border-[#4f6f52]'
+                  ? 'border-red-400 focus:border-red-500'
+                  : 'border-gray-300 focus:border-[#769a75]'
               }`}
             />
 
-            {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre.message}</p>}
+            <div className="mt-1 flex items-start justify-between gap-4">
+              {errors.nombre ? (
+                <p className="text-xs text-red-600">{errors.nombre.message}</p>
+              ) : (
+                <p className="text-xs text-gray-400">Máx. 50 caracteres</p>
+              )}
+
+              <span className="shrink-0 text-xs text-gray-400">{nombre.length}/50</span>
+            </div>
           </div>
 
+          {/* PRECIO Y MARGEN */}
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label
-                htmlFor="precioUnitario"
-                className="mb-1 block text-sm font-semibold text-gray-800"
-              >
+              <label htmlFor="precioUnitario" className="block text-sm font-semibold text-gray-900">
                 Precio unitario <span className="text-red-500">*</span>
               </label>
 
-              <p className="mb-2 text-xs text-gray-500">Debe ser mayor a cero.</p>
+              <p className="mt-1 text-xs text-gray-500">Debe ser mayor que cero.</p>
 
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-medium text-gray-700">
+              <div className="relative mt-2">
+                <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm font-semibold text-gray-700">
                   $
                 </span>
 
@@ -248,102 +233,68 @@ export default function EditarProductoForm({
                   min="0"
                   step="0.01"
                   disabled={isPending}
-                  onKeyDown={bloquearCaracteresNoPermitidos}
-                  onPaste={bloquearPegadoInvalido}
                   {...register('precioUnitario', {
                     valueAsNumber: true,
                   })}
-                  className={`w-full rounded-lg border py-2.5 pr-3 pl-7 text-sm outline-none transition ${
+                  onKeyDown={bloquearCaracteresInvalidos}
+                  className={`w-full rounded-lg border bg-white py-2.5 pr-3 pl-8 text-sm text-gray-800 outline-none transition ${
                     errors.precioUnitario
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:border-[#4f6f52]'
+                      ? 'border-red-400 focus:border-red-500'
+                      : 'border-gray-300 focus:border-[#769a75]'
                   }`}
                 />
               </div>
 
               {errors.precioUnitario && (
-                <p className="mt-1 text-sm text-red-600">{errors.precioUnitario.message}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.precioUnitario.message}</p>
               )}
             </div>
 
             <div>
-              <label
-                htmlFor="margenGanancia"
-                className="mb-1 block text-sm font-semibold text-gray-800"
-              >
+              <label htmlFor="margenGanancia" className="block text-sm font-semibold text-gray-900">
                 Margen de ganancia <span className="text-red-500">*</span>
               </label>
 
-              <p className="mb-2 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-500">
                 Porcentaje de ganancia aplicado al precio unitario.
               </p>
 
-              <div className="relative">
+              <div className="relative mt-2">
                 <input
                   id="margenGanancia"
                   type="number"
                   min="0"
                   step="0.01"
                   disabled={isPending}
-                  onKeyDown={bloquearCaracteresNoPermitidos}
-                  onPaste={bloquearPegadoInvalido}
                   {...register('margenGanancia', {
                     valueAsNumber: true,
                   })}
-                  className={`w-full rounded-lg border py-2.5 pr-9 pl-3 text-sm outline-none transition ${
+                  onKeyDown={bloquearCaracteresInvalidos}
+                  className={`w-full rounded-lg border bg-white py-2.5 pr-8 pl-3 text-sm text-gray-800 outline-none transition ${
                     errors.margenGanancia
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:border-[#4f6f52]'
+                      ? 'border-red-400 focus:border-red-500'
+                      : 'border-gray-300 focus:border-[#769a75]'
                   }`}
                 />
 
-                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-600">
+                <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm font-medium text-gray-600">
                   %
                 </span>
               </div>
 
               {errors.margenGanancia && (
-                <p className="mt-1 text-sm text-red-600">{errors.margenGanancia.message}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.margenGanancia.message}</p>
               )}
             </div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-gray-800">
-                Precio de venta
-              </label>
-
-              <p className="mb-2 text-xs text-gray-500">
-                Se calcula automáticamente según el margen ingresado.
-              </p>
-
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700">
-                {formatearPrecio(precioVenta)}
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-gray-800">
-                Precio para consumidor final
-              </label>
-
-              <p className="mb-2 text-xs text-gray-500">
-                Incluye el IVA aplicado al precio de venta.
-              </p>
-
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700">
-                {formatearPrecio(precioConsumidorFinal)}
-              </div>
-            </div>
-          </div>
-
+          {/* DESCRIPCIÓN */}
           <div>
-            <label htmlFor="descripcion" className="mb-1 block text-sm font-semibold text-gray-800">
+            <label htmlFor="descripcion" className="block text-sm font-semibold text-gray-900">
               Descripción <span className="text-red-500">*</span>
             </label>
 
-            <p className="mb-2 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-500">
               Contá las características principales del producto.
             </p>
 
@@ -353,24 +304,25 @@ export default function EditarProductoForm({
               maxLength={250}
               disabled={isPending}
               {...register('descripcion')}
-              className={`w-full resize-none rounded-lg border px-3 py-2.5 text-sm outline-none transition ${
+              className={`mt-2 w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm leading-6 text-gray-800 outline-none transition ${
                 errors.descripcion
-                  ? 'border-red-500 focus:border-red-500'
-                  : 'border-gray-300 focus:border-[#4f6f52]'
+                  ? 'border-red-400 focus:border-red-500'
+                  : 'border-gray-300 focus:border-[#769a75]'
               }`}
             />
 
             <div className="mt-1 flex items-start justify-between gap-4">
-              <div>
-                {errors.descripcion && (
-                  <p className="text-sm text-red-600">{errors.descripcion.message}</p>
-                )}
-              </div>
+              {errors.descripcion ? (
+                <p className="text-xs text-red-600">{errors.descripcion.message}</p>
+              ) : (
+                <p className="text-xs text-gray-400">Máx. 250 caracteres</p>
+              )}
 
               <span className="shrink-0 text-xs text-gray-400">{descripcion.length}/250</span>
             </div>
           </div>
 
+          {/* FOTOGRAFÍA */}
           <div>
             <p className="text-sm font-semibold text-gray-900">
               Fotografía del producto
@@ -426,9 +378,9 @@ export default function EditarProductoForm({
 
                   handleArchivo(event.dataTransfer.files?.[0]);
                 }}
-                className={`flex h-36 ${
+                className={`flex h-36 flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition ${
                   isPending ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-                } flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center transition ${
+                } ${
                   isDragging
                     ? 'border-[#769a75] bg-[#eef5ed]'
                     : 'border-gray-300 bg-white hover:border-[#9caf9c] hover:bg-[#f8faf7]'
@@ -442,7 +394,7 @@ export default function EditarProductoForm({
 
                 <span className="mt-1 text-[11px] leading-4 text-gray-400">
                   JPG, PNG o WebP
-                  <br />
+                  {' — '}
                   Máximo 5 MB
                 </span>
 
@@ -451,7 +403,10 @@ export default function EditarProductoForm({
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   disabled={isPending}
-                  onChange={(event) => handleArchivo(event.target.files?.[0])}
+                  onChange={(event) => {
+                    handleArchivo(event.target.files?.[0]);
+                    event.target.value = '';
+                  }}
                   className="sr-only"
                 />
               </label>
@@ -465,7 +420,7 @@ export default function EditarProductoForm({
                   type="button"
                   onClick={handleQuitarNuevaImagen}
                   disabled={isPending}
-                  className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-red-500 transition hover:text-red-600 disabled:opacity-50"
+                  className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-red-500 hover:text-red-600 disabled:opacity-50"
                 >
                   <X size={14} />
                   Quitar
@@ -478,7 +433,7 @@ export default function EditarProductoForm({
                 type="button"
                 onClick={handleEliminarImagen}
                 disabled={isPending}
-                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-50"
               >
                 <Trash2 size={14} />
                 Eliminar imagen actual
@@ -490,7 +445,7 @@ export default function EditarProductoForm({
                 type="button"
                 onClick={handleEliminarImagen}
                 disabled={isPending}
-                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#4f6f52] transition hover:text-[#3e593f] disabled:opacity-50"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#4f6f52] hover:text-[#3e593f] disabled:opacity-50"
               >
                 <X size={14} />
                 Cancelar eliminación de imagen
@@ -500,16 +455,17 @@ export default function EditarProductoForm({
             {errorImagen && <p className="mt-2 text-xs text-red-600">{errorImagen}</p>}
           </div>
 
-          <div>
-            <label htmlFor="stock" className="mb-1 block text-sm font-semibold text-gray-800">
+          {/* STOCK NO EDITABLE */}
+          <div className="max-w-xs">
+            <label htmlFor="stock" className="block text-sm font-semibold text-gray-900">
               Stock disponible
             </label>
 
-            <p className="mb-2 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-500">
               El stock se modifica mediante los movimientos de inventario.
             </p>
 
-            <div className="relative">
+            <div className="relative mt-2">
               <input
                 id="stock"
                 type="text"
@@ -535,12 +491,13 @@ export default function EditarProductoForm({
           </div>
         )}
 
+        {/* ACCIONES */}
         <div className="mt-7 flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onCancelar}
             disabled={isPending}
-            className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
           >
             Cancelar
           </button>
@@ -548,16 +505,16 @@ export default function EditarProductoForm({
           <button
             type="submit"
             disabled={isPending || !hayCambios}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#769a75] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#638563] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#769a75] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#638563] disabled:opacity-50"
           >
             <Save size={16} />
-
             {isPending ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>
       </section>
 
-      <aside className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:sticky lg:top-6">
+      {/* VISTA PREVIA */}
+      <aside className="self-start rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:sticky lg:top-6">
         <h2 className="text-sm font-semibold text-gray-900">Vista previa del producto</h2>
 
         <div className="mt-5 flex aspect-[4/3] items-center justify-center overflow-hidden bg-[#f2f2ef]">

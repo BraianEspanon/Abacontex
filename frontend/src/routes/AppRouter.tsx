@@ -66,6 +66,11 @@ import EjerciciosAlumno from '../pages/alumnos/EjerciciosAlumno';
 import DetalleEjercicioAlumno from '../pages/alumnos/DetalleEjercicioAlumno';
 import ResolucionEjercicioAlumno from '../pages/alumnos/ResolucionEjercicioAlumno';
 import InicioAlumno from '../pages/alumnos/InicioAlumno';
+import CorreccionesDocente from '../pages/docente/CorreccionesDocente';
+import EntregasCorreccionPage from '../pages/docente/EntregasCorreccionPage';
+import CorregirEjercicioDocente from '../pages/docente/CorregirEjercicioDocente';
+import AnalisisErroresDocente from '../pages/docente/AnalisisErroresDocente';
+import CorreccionEjercicioAlumno from '../pages/alumnos/CorreccionEjercicioAlumno';
 
 export default function AppRouter() {
   return (
@@ -149,6 +154,13 @@ export default function AppRouter() {
         <Route path="ejercicios/nuevo/ia" element={<NuevoEjercicioIA />} />
         <Route path="ejercicios/:id/resolucion" element={<ResolucionEjercicioDocente />} />
         <Route path="ejercicios/:id" element={<DetalleEjercicioPage />} />
+        <Route path="correcciones" element={<CorreccionesDocente />} />
+        <Route
+          path="correcciones/ejercicios/:ejercicioId/entregas"
+          element={<EntregasCorreccionPage />}
+        />
+        <Route path="correcciones/entregas/:entregaId" element={<CorregirEjercicioDocente />} />
+        <Route path="correcciones/analisis-errores" element={<AnalisisErroresDocente />} />
       </Route>
 
       <Route path="/docente/login" element={<LoginDocente />} />
@@ -222,9 +234,14 @@ export default function AppRouter() {
 
         <Route path="contabilidad/balance-general" element={<BalanceGeneralPage />} />
 
+        {/* Ejercicios del alumno */}
         <Route path="ejercicios" element={<EjerciciosAlumno />} />
+
         <Route path="ejercicios/:id" element={<DetalleEjercicioAlumno />} />
+
         <Route path="ejercicios/:id/resolucion" element={<ResolucionEjercicioAlumno />} />
+
+        <Route path="ejercicios/:idEjercicio/correccion" element={<CorreccionEjercicioAlumno />} />
       </Route>
     </Routes>
   );

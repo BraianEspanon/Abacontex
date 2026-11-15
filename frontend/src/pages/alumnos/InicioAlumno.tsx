@@ -79,9 +79,7 @@ function TarjetaResumen({
 
         <div className="min-w-0">
           <p className="text-xs font-medium text-gray-500">{titulo}</p>
-
           <p className="mt-1 text-2xl font-semibold text-[#223024]">{valor}</p>
-
           <p className="mt-1 text-xs text-gray-500">{subtitulo}</p>
         </div>
       </div>
@@ -283,14 +281,13 @@ export default function InicioAlumno() {
     : null;
 
   return (
-    <div className="w-full max-w-[1600px] space-y-4">
+    <div className={`w-full space-y-4 ${tieneEmpresa ? 'max-w-[1600px]' : ''}`}>
       {/* =====================================================
           BREADCRUMB
       ====================================================== */}
 
       <nav className="flex items-center gap-1.5 text-sm text-gray-500">
         <Home className="h-4 w-4" />
-
         <span className="font-medium text-gray-700">Inicio</span>
       </nav>
 
@@ -298,7 +295,11 @@ export default function InicioAlumno() {
           ENCABEZADO
       ====================================================== */}
 
-      <section className="rounded-2xl border border-gray-200 bg-white px-6 py-5 shadow-sm">
+      <section
+        className={`rounded-2xl border border-gray-200 bg-white px-6 py-5 shadow-sm ${
+          !tieneEmpresa ? 'w-full' : ''
+        }`}
+      >
         <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-[#1D271F]">
@@ -365,21 +366,32 @@ export default function InicioAlumno() {
       ====================================================== */}
 
       {!tieneEmpresa && (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <div className="flex gap-3">
-            <Building2 className="mt-0.5 text-amber-600" size={21} />
-
-            <div>
-              <h2 className="font-semibold text-amber-900">Todavía no pertenecés a una empresa</h2>
-
-              <p className="mt-1 text-sm text-amber-700">
-                Cuando formes parte de una empresa vas a poder consultar desde este inicio sus
-                tareas, indicadores y actividad.
-              </p>
+        <div className="flex w-full justify-center pt-6">
+          <section className="flex min-h-80 w-full max-w-3xl flex-col items-center justify-center rounded-2xl bg-white px-8 py-12 text-center shadow-md">
+            <div className="flex size-20 items-center justify-center rounded-full bg-abacontex-primary/10">
+              <Building2 size={36} className="text-abacontex-primary" />
             </div>
-          </div>
-        </section>
+
+            <h2 className="mt-6 font-heading text-2xl font-semibold text-abacontex-black-text">
+              Todavía no pertenecés a una empresa
+            </h2>
+
+            <p className="mt-4 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+              Para comenzar a utilizar las funcionalidades empresariales de Abacontex, primero
+              necesitás formar parte de una empresa de tu curso.
+            </p>
+
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+              Cuando seas incorporado a una empresa, vas a poder consultar desde este inicio las
+              actividades, los indicadores y el progreso de tu empresa.
+            </p>
+          </section>
+        </div>
       )}
+
+      {/* =====================================================
+          CARGA Y ERRORES DEL DASHBOARD
+      ====================================================== */}
 
       {tieneEmpresa && cargandoDashboard && (
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
@@ -401,11 +413,13 @@ export default function InicioAlumno() {
         </div>
       )}
 
+      {/* =====================================================
+          DASHBOARD DEL ALUMNO CON EMPRESA
+      ====================================================== */}
+
       {tieneEmpresa && dashboard && (
         <>
-          {/* =================================================
-              TARJETAS SUPERIORES
-          ================================================= */}
+          {/* TARJETAS SUPERIORES */}
 
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <TarjetaResumen
@@ -544,6 +558,8 @@ export default function InicioAlumno() {
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {/* POSICIÓN */}
+
                 <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5">
                   <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
                     Posición
@@ -559,6 +575,8 @@ export default function InicioAlumno() {
                       : 'Ranking no disponible'}
                   </p>
                 </div>
+
+                {/* PUNTAJE EMPRESARIAL */}
 
                 <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5">
                   <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
@@ -578,6 +596,8 @@ export default function InicioAlumno() {
                   </p>
                 </div>
 
+                {/* RENTABILIDAD */}
+
                 <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5">
                   <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
                     Rentabilidad
@@ -593,6 +613,8 @@ export default function InicioAlumno() {
 
                   <p className="text-[10px] text-gray-400">Resultado actual</p>
                 </div>
+
+                {/* ALERTAS */}
 
                 <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5">
                   <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
@@ -623,6 +645,8 @@ export default function InicioAlumno() {
                   </p>
                 </div>
               </div>
+
+              {/* GRÁFICO */}
 
               <div className="mt-4">
                 {datosGrafico.length > 0 ? (
@@ -674,6 +698,8 @@ export default function InicioAlumno() {
                 )}
               </div>
             </div>
+
+            {/* LOGROS RECIENTES */}
 
             {dashboard.logros ? (
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">

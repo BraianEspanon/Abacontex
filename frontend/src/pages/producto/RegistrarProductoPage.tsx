@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { ChevronRight, Home } from 'lucide-react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
@@ -60,27 +60,24 @@ export default function RegistrarProductoPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     setError,
     clearErrors,
-    watch,
     formState: { errors },
   } = useForm<RegistrarProductoFormData>({
     resolver: zodResolver(registrarProductoSchema),
     defaultValues: {
       nombre: '',
       descripcion: '',
-      precioUnitario: 0,
-      margenGanancia: 0,
-      stockInicial: 0,
     },
   });
 
-  const nombreProducto = watch('nombre');
-  const descripcionProducto = watch('descripcion');
-  const precioProducto = watch('precioUnitario');
-  const margenProducto = watch('margenGanancia');
-  const stockProducto = watch('stockInicial');
+  const nombreProducto = useWatch({ control, name: 'nombre' }) ?? '';
+  const descripcionProducto = useWatch({ control, name: 'descripcion' }) ?? '';
+  const precioProducto = useWatch({ control, name: 'precioUnitario' });
+  const margenProducto = useWatch({ control, name: 'margenGanancia' });
+  const stockProducto = useWatch({ control, name: 'stockInicial' });
 
   const handleCancelar = () => {
     navigate('/alumno/productos');
@@ -101,7 +98,6 @@ export default function RegistrarProductoPage() {
 
     try {
       await crearProductoMutation.mutateAsync(payload);
-
       navigate('/alumno/productos');
     } catch (error) {
       if (!axios.isAxiosError<ErrorResponse>(error)) {

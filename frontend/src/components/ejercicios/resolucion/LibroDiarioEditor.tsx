@@ -2,6 +2,11 @@ import { CheckCircle2, CircleAlert, Plus, Trash2 } from 'lucide-react';
 
 import Button from '../../ui/Button';
 
+import type {
+  ResaltadoLibroDiario,
+  CampoResaltadoLibroDiario,
+} from '../../correcciones/resaltadoLibroDiario';
+
 import { useCuentasContablesEjercicio } from '../../../hooks/useCuentasContablesEjercicio';
 import SelectorCuentaContable from './SelectorCuentaContable';
 import InputImporte from './InputImporte';
@@ -17,6 +22,8 @@ interface LibroDiarioEditorProps {
   onChange: (contenido: ContenidoLibroDiario) => void;
   mostrarEstadoBalance?: boolean;
   soloLectura?: boolean;
+  resaltadosCorreccion?: ResaltadoLibroDiario[];
+  onSeleccionarError?: (indiceError: number) => void;
 }
 
 const MOVIMIENTOS: MovimientoContable[] = ['A+', 'A-', 'P+', 'P-', 'PN+', 'PN-', 'R+', 'R-'];
@@ -110,6 +117,8 @@ export default function LibroDiarioEditor({
   onChange,
   mostrarEstadoBalance = true,
   soloLectura = false,
+  resaltadosCorreccion = [],
+  onSeleccionarError,
 }: LibroDiarioEditorProps) {
   const { data: cuentasData, isLoading: cargandoCuentas } = useCuentasContablesEjercicio();
 
@@ -211,6 +220,23 @@ export default function LibroDiarioEditor({
     });
 
     actualizarAsiento(indiceAsiento, { lineas });
+  }
+
+  function buscarResaltado(
+    numeroAsiento: number,
+    indiceLinea: number,
+    campo: CampoResaltadoLibroDiario
+  ) {
+    return resaltadosCorreccion.find(
+      (item) =>
+        item.numeroAsiento === numeroAsiento &&
+        item.indiceLinea === indiceLinea &&
+        item.campo === campo
+    );
+  }
+
+  function claseError(resaltado: ResaltadoLibroDiario | undefined): string {
+    return resaltado ? '!border-red-400 !bg-red-50 !text-red-700 ring-1 ring-red-200' : '';
   }
 
   return (
@@ -378,102 +404,134 @@ export default function LibroDiarioEditor({
                 </thead>
 
                 <tbody>
-                  {asiento.lineas.map((linea, indiceLinea) => (
-                    <tr key={indiceLinea} className="relative">
-                      {/* Fecha del asiento */}
-                      <td className="border border-gray-300 bg-white px-3 py-2 text-center text-gray-700">
-                        {asiento.fecha || '—'}
-                      </td>
+                  {asiento.lineas.map((linea, indiceLinea) => {
+                    const errorCuenta = buscarResaltado(asiento.numero, indiceLinea, 'cuenta');
+                    const errorMovimiento = buscarResaltado(
+                      asiento.numero,
+                      indiceLinea,
+                      'movimiento'
+                    );
+                    const errorDebe = buscarResaltado(asiento.numero, indiceLinea, 'debe');
+                    const errorHaber = buscarResaltado(asiento.numero, indiceLinea, 'haber');
+                    const erroresLinea = [
+                      errorCuenta,
+                      errorMovimiento,
+                      errorDebe,
+                      errorHaber,
+                    ].filter((item): item is ResaltadoLibroDiario => item !== undefined);
 
-                      {/* Cuenta + Movimiento */}
-                      <td className="border border-gray-300 p-2">
-                        <div className="flex min-w-82.5 gap-2">
-                          <SelectorCuentaContable
-                            cuentas={cuentas}
-                            value={linea.idCuenta || null}
-                            disabled={soloLectura || cargandoCuentas}
-                            placeholder={
-                              cargandoCuentas ? 'Cargando cuentas...' : 'Buscar cuenta...'
+                    return (
+                      <tr key={indiceLinea} className="relative">
+                        {/* Fecha del asiento */}
+                        <td className="border border-gray-300 bg-white px-3 py-2 text-center text-gray-700">
+                          {asiento.fecha || '—'}
+                        </td>
+
+                        {/* Cuenta + Movimiento */}
+                        <td className="border border-gray-300 p-2">
+                          <div className="flex min-w-82.5 gap-2">
+                            <div className={`min-w-0 flex-1 rounded-md ${claseError(errorCuenta)}`}>
+                              <SelectorCuentaContable
+                                cuentas={cuentas}
+                                value={linea.idCuenta || null}
+                                disabled={soloLectura || cargandoCuentas}
+                                placeholder={
+                                  cargandoCuentas ? 'Cargando cuentas...' : 'Buscar cuenta...'
+                                }
+                                onSelect={(idCuenta) =>
+                                  actualizarLinea(indiceAsiento, indiceLinea, 'idCuenta', idCuenta)
+                                }
+                              />
+                            </div>
+
+                            <select
+                              value={linea.movimiento}
+                              onChange={(event) =>
+                                actualizarLinea(
+                                  indiceAsiento,
+                                  indiceLinea,
+                                  'movimiento',
+                                  event.target.value as MovimientoContable
+                                )
+                              }
+                              aria-label={`Movimiento de la línea ${indiceLinea + 1}`}
+                              disabled={soloLectura}
+                              className={`w-[78px] rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 ${claseError(errorMovimiento)}`}
+                            >
+                              {MOVIMIENTOS.map((movimiento) => (
+                                <option key={movimiento} value={movimiento}>
+                                  {movimiento}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </td>
+
+                        {/* Folio */}
+                        <td className="border border-gray-300 bg-white px-3 py-2 text-center">
+                          <span
+                            className="text-sm text-gray-700"
+                            title="El folio se asigna automáticamente según la cuenta contable."
+                          >
+                            {linea.folio ?? '—'}
+                          </span>
+                        </td>
+
+                        {/* Debe */}
+                        <td className="border border-gray-300 bg-white p-2">
+                          <InputImporte
+                            value={linea.debe}
+                            onChange={(valor) =>
+                              actualizarLinea(indiceAsiento, indiceLinea, 'debe', valor)
                             }
-                            onSelect={(idCuenta) =>
-                              actualizarLinea(indiceAsiento, indiceLinea, 'idCuenta', idCuenta)
+                            placeholder="0,00"
+                            ariaLabel={`Debe de la línea ${indiceLinea + 1}`}
+                            disabled={soloLectura}
+                            className={`w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 ${claseError(errorDebe)}`}
+                          />
+                        </td>
+
+                        {/* Haber */}
+                        <td className="relative border border-gray-300 bg-white p-2">
+                          <InputImporte
+                            value={linea.haber}
+                            onChange={(valor) =>
+                              actualizarLinea(indiceAsiento, indiceLinea, 'haber', valor)
                             }
+                            placeholder="0,00"
+                            ariaLabel={`Haber de la línea ${indiceLinea + 1}`}
+                            disabled={soloLectura}
+                            className={`w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 ${claseError(errorHaber)}`}
                           />
 
-                          <select
-                            value={linea.movimiento}
-                            onChange={(event) =>
-                              actualizarLinea(
-                                indiceAsiento,
-                                indiceLinea,
-                                'movimiento',
-                                event.target.value as MovimientoContable
-                              )
-                            }
-                            aria-label={`Movimiento de la línea ${indiceLinea + 1}`}
-                            disabled={soloLectura}
-                            className="w-[78px] rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                          >
-                            {MOVIMIENTOS.map((movimiento) => (
-                              <option key={movimiento} value={movimiento}>
-                                {movimiento}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </td>
+                          {erroresLinea.length > 0 && onSeleccionarError && (
+                            <button
+                              type="button"
+                              onClick={() => onSeleccionarError(erroresLinea[0].indiceError)}
+                              className="mt-1 text-xs font-semibold text-red-600 underline underline-offset-2 hover:text-red-800"
+                            >
+                              Ver{' '}
+                              {erroresLinea.length === 1
+                                ? 'error'
+                                : `${erroresLinea.length} errores`}
+                            </button>
+                          )}
 
-                      {/* Folio */}
-                      <td className="border border-gray-300 bg-white px-3 py-2 text-center">
-                        <span
-                          className="text-sm text-gray-700"
-                          title="El folio se asigna automáticamente según la cuenta contable."
-                        >
-                          {linea.folio ?? '—'}
-                        </span>
-                      </td>
-
-                      {/* Debe */}
-                      <td className="border border-gray-300 bg-white p-2">
-                        <InputImporte
-                          value={linea.debe}
-                          onChange={(valor) =>
-                            actualizarLinea(indiceAsiento, indiceLinea, 'debe', valor)
-                          }
-                          placeholder="0,00"
-                          ariaLabel={`Debe de la línea ${indiceLinea + 1}`}
-                          disabled={soloLectura}
-                          className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                        />
-                      </td>
-
-                      {/* Haber */}
-                      <td className="relative border border-gray-300 bg-white p-2">
-                        <InputImporte
-                          value={linea.haber}
-                          onChange={(valor) =>
-                            actualizarLinea(indiceAsiento, indiceLinea, 'haber', valor)
-                          }
-                          placeholder="0,00"
-                          ariaLabel={`Haber de la línea ${indiceLinea + 1}`}
-                          disabled={soloLectura}
-                          className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-right text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                        />
-
-                        {!soloLectura && (
-                          <button
-                            type="button"
-                            onClick={() => eliminarLinea(indiceAsiento, indiceLinea)}
-                            className="absolute -right-9 top-1/2 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 hover:text-red-700"
-                            title="Eliminar línea"
-                            aria-label={`Eliminar línea ${indiceLinea + 1}`}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                          {!soloLectura && (
+                            <button
+                              type="button"
+                              onClick={() => eliminarLinea(indiceAsiento, indiceLinea)}
+                              className="absolute -right-9 top-1/2 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                              title="Eliminar línea"
+                              aria-label={`Eliminar línea ${indiceLinea + 1}`}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
 
                   {asiento.lineas.length === 0 && (
                     <tr>

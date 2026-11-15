@@ -1,4 +1,4 @@
-import { ChevronRight, Home } from 'lucide-react';
+import { BookOpen, ChevronRight, Home } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -19,7 +19,6 @@ const ULTIMOS_ASIENTOS_LIMIT = 5;
 
 export default function ContabilidadPage() {
   const navigate = useNavigate();
-
   const [page, setPage] = useState(1);
 
   const {
@@ -87,11 +86,51 @@ export default function ContabilidadPage() {
 
   if (!tieneEmpresa) {
     return (
-      <EstadoError
-        titulo="Todavía no pertenecés a una empresa"
-        descripcion="Para utilizar el módulo de Contabilidad primero tenés que formar parte de una empresa."
-        mostrarReintentar={false}
-      />
+      <div className="space-y-5">
+        <nav className="flex items-center gap-2 text-sm">
+          <Link
+            to="/alumno"
+            className="inline-flex items-center gap-1.5 text-abacontex-gray-text transition hover:text-abacontex-black-text"
+          >
+            <Home className="size-4 shrink-0" />
+            <span>Inicio</span>
+          </Link>
+
+          <ChevronRight className="size-4 shrink-0 text-abacontex-gray-text" />
+
+          <span className="font-semibold text-abacontex-dark">Contabilidad</span>
+        </nav>
+
+        <header>
+          <h1 className="text-2xl font-bold text-gray-900">Contabilidad</h1>
+
+          <p className="mt-1 text-sm text-abacontex-gray-text">
+            Gestioná los registros contables y consultá la información financiera de tu empresa.
+          </p>
+        </header>
+
+        <div className="flex justify-center pt-6">
+          <section className="flex min-h-80 w-full max-w-3xl flex-col items-center justify-center rounded-2xl bg-white px-8 py-12 text-center shadow-md">
+            <div className="flex size-20 items-center justify-center rounded-full bg-abacontex-primary/10">
+              <BookOpen size={36} className="text-abacontex-primary" />
+            </div>
+
+            <h2 className="mt-6 font-heading text-2xl font-semibold text-abacontex-black-text">
+              Todavía no pertenecés a una empresa
+            </h2>
+
+            <p className="mt-4 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+              Para utilizar el módulo de Contabilidad primero tenés que formar parte de una empresa
+              de tu curso.
+            </p>
+
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-abacontex-gray-text">
+              Cuando seas incorporado a una empresa, vas a poder registrar asientos contables y
+              consultar la información contable de tu empresa.
+            </p>
+          </section>
+        </div>
+      </div>
     );
   }
 
@@ -129,9 +168,7 @@ export default function ContabilidadPage() {
         </Link>
 
         <ChevronRight className="h-3.5 w-3.5" />
-
         <span>Gestión contable</span>
-
         <ChevronRight className="h-3.5 w-3.5" />
 
         <span className="font-semibold text-gray-800">Libro diario</span>
@@ -178,26 +215,20 @@ interface EstadoErrorProps {
   titulo: string;
   descripcion: string;
   onReintentar?: () => void;
-  mostrarReintentar?: boolean;
 }
 
-function EstadoError({
-  titulo,
-  descripcion,
-  onReintentar,
-  mostrarReintentar = true,
-}: EstadoErrorProps) {
+function EstadoError({ titulo, descripcion, onReintentar }: EstadoErrorProps) {
   return (
     <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
       <h2 className="font-semibold text-red-800">{titulo}</h2>
 
       <p className="mt-1 text-sm text-red-700">{descripcion}</p>
 
-      {mostrarReintentar && onReintentar && (
+      {onReintentar && (
         <button
           type="button"
           onClick={onReintentar}
-          className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+          className="mt-4 cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
         >
           Reintentar
         </button>
