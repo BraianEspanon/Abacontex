@@ -72,6 +72,8 @@ import CorregirEjercicioDocente from '../pages/docente/CorregirEjercicioDocente'
 import AnalisisErroresDocente from '../pages/docente/AnalisisErroresDocente';
 import CorreccionEjercicioAlumno from '../pages/alumnos/CorreccionEjercicioAlumno';
 
+import SimulacionesDocente from '../pages/docente/SimulacionesDocente';
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -161,6 +163,7 @@ export default function AppRouter() {
         />
         <Route path="correcciones/entregas/:entregaId" element={<CorregirEjercicioDocente />} />
         <Route path="correcciones/analisis-errores" element={<AnalisisErroresDocente />} />
+        <Route path="simulaciones" element={<SimulacionesDocente />} />
       </Route>
 
       <Route path="/docente/login" element={<LoginDocente />} />
