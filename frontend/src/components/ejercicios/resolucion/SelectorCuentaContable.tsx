@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import type { CuentaContableEjercicio } from '../../../types/ejercicio.types';
 
@@ -10,6 +11,12 @@ interface SelectorCuentaContableProps {
   placeholder?: string;
   disabled?: boolean;
   compacto?: boolean;
+}
+
+interface PosicionDropdown {
+  top: number;
+  left: number;
+  width: number;
 }
 
 function normalizarTexto(texto: string) {
@@ -30,6 +37,10 @@ export default function SelectorCuentaContable({
 }: SelectorCuentaContableProps) {
   const [abierto, setAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState('');
+
+  const [posicionDropdown, setPosicionDropdown] = useState<PosicionDropdown | null>(null);
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const cuentaSeleccionada = cuentas.find((cuenta) => cuenta.idCuenta === value);
 
@@ -52,6 +63,42 @@ export default function SelectorCuentaContable({
     ? `${cuentaSeleccionada.codigo} - ${cuentaSeleccionada.nombre}`
     : '';
 
+  const actualizarPosicionDropdown = () => {
+    const input = inputRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    const rect = input.getBoundingClientRect();
+
+    setPosicionDropdown({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    });
+  };
+
+  useEffect(() => {
+    if (!abierto) {
+      return;
+    }
+
+    actualizarPosicionDropdown();
+
+    const actualizar = () => {
+      actualizarPosicionDropdown();
+    };
+
+    window.addEventListener('resize', actualizar);
+    window.addEventListener('scroll', actualizar, true);
+
+    return () => {
+      window.removeEventListener('resize', actualizar);
+      window.removeEventListener('scroll', actualizar, true);
+    };
+  }, [abierto]);
+
   const seleccionarCuenta = (idCuenta: number) => {
     onSelect(idCuenta);
     setBusqueda('');
@@ -59,15 +106,17 @@ export default function SelectorCuentaContable({
   };
 
   return (
-    <div className="relative min-w-0 w-full">
+    <div className="relative w-full min-w-0">
       <div className="relative">
         <input
+          ref={inputRef}
           type="text"
           value={abierto ? busqueda : textoSeleccionado}
           disabled={disabled}
           placeholder={placeholder}
           onFocus={() => {
             setBusqueda('');
+            actualizarPosicionDropdown();
             setAbierto(true);
           }}
           onChange={(event) => {
@@ -76,6 +125,7 @@ export default function SelectorCuentaContable({
             const valorValido = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9.\-\s]/g, '').slice(0, 20);
 
             setBusqueda(valorValido);
+            actualizarPosicionDropdown();
             setAbierto(true);
           }}
           maxLength={20}
@@ -107,37 +157,49 @@ export default function SelectorCuentaContable({
         />
       </div>
 
-      {abierto && !disabled && (
-        <div className="absolute left-0 right-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
-          {cuentasFiltradas.length > 0 ? (
-            cuentasFiltradas.map((cuenta) => (
-              <button
-                key={cuenta.idCuenta}
-                type="button"
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  seleccionarCuenta(cuenta.idCuenta);
-                }}
-                className="flex w-full cursor-pointer items-center rounded-md px-2.5 py-2 text-left transition hover:bg-abacontex-light"
-              >
-                <span className="min-w-0">
-                  <span className="block truncate text-xs font-medium text-abacontex-dark">
-                    {cuenta.nombre}
-                  </span>
+      {abierto &&
+        !disabled &&
+        posicionDropdown &&
+        createPortal(
+          <div
+            className="fixed z-[9999] max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-lg"
+            style={{
+              top: posicionDropdown.top,
+              left: posicionDropdown.left,
+              width: posicionDropdown.width,
+            }}
+          >
+            {cuentasFiltradas.length > 0 ? (
+              cuentasFiltradas.map((cuenta) => (
+                <button
+                  key={cuenta.idCuenta}
+                  type="button"
+                  onMouseDown={(event) => {
+                    event.preventDefault();
 
-                  <span className="block text-[10px] text-abacontex-gray-text">
-                    {cuenta.codigo}
+                    seleccionarCuenta(cuenta.idCuenta);
+                  }}
+                  className="flex w-full cursor-pointer items-center rounded-md px-2.5 py-2 text-left transition hover:bg-abacontex-light"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-xs font-medium text-abacontex-dark">
+                      {cuenta.nombre}
+                    </span>
+
+                    <span className="block text-[10px] text-abacontex-gray-text">
+                      {cuenta.codigo}
+                    </span>
                   </span>
-                </span>
-              </button>
-            ))
-          ) : (
-            <p className="px-3 py-3 text-center text-xs text-abacontex-gray-text">
-              No se encontraron cuentas.
-            </p>
-          )}
-        </div>
-      )}
+                </button>
+              ))
+            ) : (
+              <p className="px-3 py-3 text-center text-xs text-abacontex-gray-text">
+                No se encontraron cuentas.
+              </p>
+            )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
