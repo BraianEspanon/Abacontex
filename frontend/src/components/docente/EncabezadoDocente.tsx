@@ -13,6 +13,7 @@ const titulosPorRuta: Record<string, string> = {
   '/docente/ejercicios/nuevo': 'Nuevo ejercicio',
   '/docente/ejercicios/nuevo/ia': 'Nuevo ejercicio con IA',
   '/docente/simulaciones': 'Simulación empresarial',
+  '/docente/simulaciones/nueva': 'Nueva simulación',
 };
 
 export default function EncabezadoDocente() {

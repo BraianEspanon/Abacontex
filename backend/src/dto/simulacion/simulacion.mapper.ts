@@ -241,7 +241,7 @@ export function toSimulacionAlumnoCard(
   );
 
   const requiereMiDecision =
-    entity.estado === 'EN_CURSO' &&
+    entity.estado !== 'FINALIZADA' &&
     entity.eventoActual?.tipo === 'DECISION' &&
     puedeRolResponderEvento(entity.eventoActual.rolesHabilitados, rolAlumno);
 

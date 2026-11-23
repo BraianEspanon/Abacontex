@@ -878,7 +878,10 @@ export async function findSimulacionesAlumnoPaginadas(
     } else if (filtros.estado === 'EN_CURSO') {
       where.estado = EstadoParticipacionSimulacion.EN_CURSO;
     } else if (filtros.estado === 'REQUIERE_MI_DECISION') {
-      where.estado = EstadoParticipacionSimulacion.EN_CURSO;
+      where.estado = {
+        in: [EstadoParticipacionSimulacion.PENDIENTE, EstadoParticipacionSimulacion.EN_CURSO],
+      };
+
       where.eventoActual = {
         tipo: TipoEventoSimulacion.DECISION,
         OR: [
@@ -900,14 +903,15 @@ export async function findSimulacionesAlumnoPaginadas(
       };
     }
   }
-
   const baseResumenWhere: Prisma.SimulacionEmpresaWhereInput = {
     empresaId,
   };
 
   const decisionesPorResponderWhere: Prisma.SimulacionEmpresaWhereInput = {
     ...baseResumenWhere,
-    estado: EstadoParticipacionSimulacion.EN_CURSO,
+    estado: {
+      in: [EstadoParticipacionSimulacion.PENDIENTE, EstadoParticipacionSimulacion.EN_CURSO],
+    },
     eventoActual: {
       tipo: TipoEventoSimulacion.DECISION,
       OR: [
