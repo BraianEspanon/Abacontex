@@ -1,4 +1,6 @@
 import type { IntegranteSimulacion } from '../../types/simulacion.types';
+import Button from '../ui/Button';
+import { ArrowRight } from 'lucide-react';
 
 interface EquipoConversacionSimulacionProps {
   integrantes: IntegranteSimulacion[];
@@ -45,13 +47,14 @@ export default function EquipoConversacionSimulacion({
       </div>
 
       {finalizada && onVerFeedback && (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          label="Ver feedback"
+          icon={<ArrowRight size={16} />}
           onClick={onVerFeedback}
-          className="mt-auto flex h-9 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-sm font-medium text-abacontex-black-text transition hover:bg-abacontex-light"
-        >
-          Ver feedback →
-        </button>
+          className="mt-auto h-9! w-full rounded-lg! py-0! text-sm!"
+        />
       )}
     </section>
   );

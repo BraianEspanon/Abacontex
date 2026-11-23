@@ -80,6 +80,7 @@ import FeedbackSimulacionDocente from '../pages/docente/FeedbackSimulacionDocent
 
 import SimulacionesAlumno from '../pages/alumnos/SimulacionesAlumno';
 import ConversacionSimulacionAlumno from '../pages/alumnos/ConversacionSimulacionAlumno';
+import ResumenSimulacion from '../pages/alumnos/ResumenSimulacion';
 
 export default function AppRouter() {
   return (
@@ -257,6 +258,7 @@ export default function AppRouter() {
         {/* Simulación empresarial */}
         <Route path="simulacion" element={<SimulacionesAlumno />} />
         <Route path="simulacion/:id" element={<ConversacionSimulacionAlumno />} />
+        <Route path="simulacion/:id/resumen" element={<ResumenSimulacion />} />
       </Route>
     </Routes>
   );

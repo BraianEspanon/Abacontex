@@ -264,9 +264,10 @@ export default function FeedbackSimulacionDocente() {
                 <Button
                   type="button"
                   variant="outline"
-                  label="Volver a mis simulaciones"
+                  label="Volver a entregas"
                   icon={<ArrowLeft size={15} />}
-                  onClick={() => navigate('/docente/simulaciones')}
+                  iconPosition="left"
+                  onClick={() => navigate(`/docente/simulaciones/${idSimulacionNumero}/entregas`)}
                   className="h-10! w-full rounded-lg! py-0! text-sm!"
                 />
               </div>

@@ -32,6 +32,7 @@ export default function FiltrosEntregasSimulacion({
               value={busqueda}
               onChange={(event) => onBusquedaChange(event.target.value)}
               placeholder="Buscar empresa..."
+              maxLength={30}
               className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pr-10 pl-3 text-sm outline-none transition focus:border-abacontex-primary-three focus:ring-2 focus:ring-abacontex-primary-three/15"
             />
 

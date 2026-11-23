@@ -6,6 +6,7 @@ export default function Button({
   variant = 'solid',
   className = '',
   icon,
+  iconPosition = 'right',
   disabled,
   ...props
 }: ButtonProps) {
@@ -70,9 +71,15 @@ export default function Button({
       disabled={disabled}
       {...props}
     >
+      {icon && iconPosition === 'left' && (
+        <span className="flex items-center transition-transform duration-200 group-hover:-translate-x-1">
+          {icon}
+        </span>
+      )}
+
       <span>{label}</span>
 
-      {icon && (
+      {icon && iconPosition === 'right' && (
         <span className="flex items-center transition-transform duration-200 group-hover:translate-x-1">
           {icon}
         </span>

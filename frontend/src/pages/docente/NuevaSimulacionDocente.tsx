@@ -530,7 +530,7 @@ function ItemVistaPrevia({ label, valor }: ItemVistaPreviaProps) {
       <div className="min-w-0">
         <p className="text-sm font-medium">{label}</p>
 
-        <p className="mt-0.5 break-words text-sm text-abacontex-gray-text">{valor}</p>
+        <p className="mt-0.5 wrap-break-word text-sm text-abacontex-gray-text">{valor}</p>
       </div>
     </div>
   );

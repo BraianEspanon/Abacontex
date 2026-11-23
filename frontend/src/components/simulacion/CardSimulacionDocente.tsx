@@ -89,7 +89,7 @@ export default function CardSimulacionDocente({ simulacion }: CardSimulacionDoce
         label="Ver entregas"
         icon={<Eye size={16} />}
         onClick={() => navigate(`/docente/simulaciones/${simulacion.idSimulacion}/entregas`)}
-        className="mt-auto h-9! w-full rounded-lg! py-0! text-sm!"
+        className="mt-4 h-9! w-full rounded-lg! py-0! text-sm!"
       />
     </article>
   );

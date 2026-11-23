@@ -8,6 +8,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   label: string;
   variant?: ButtonVariant;
   icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
 }
 
 //Se arma la interfaz de las cards pertenecientes a características

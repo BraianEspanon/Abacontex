@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, ClipboardList, Trophy } from 'lucide-react';
+import { CalendarDays, CheckCircle2, ClipboardList, Trophy, Users } from 'lucide-react';
 
 import type { CabeceraEntregasSimulacion as CabeceraEntregasSimulacionType } from '../../types/simulacion.types';
 
@@ -47,11 +47,19 @@ export default function CabeceraEntregasSimulacion({
           valor={simulacion.tema}
         />
 
-        <ItemResumen
-          icono={<CheckCircle2 size={23} />}
-          label="Eventos completados"
-          valor={`${simulacion.cantEventosTotales} de ${simulacion.cantEventosTotales} eventos`}
-        />
+        {simulacion.estado === 'FINALIZADA' ? (
+          <ItemResumen
+            icono={<CheckCircle2 size={23} />}
+            label="Eventos completados"
+            valor={`${simulacion.cantEventosTotales} de ${simulacion.cantEventosTotales} eventos`}
+          />
+        ) : (
+          <ItemResumen
+            icono={<Users size={23} />}
+            label="Empresas que han empezado"
+            valor={`${simulacion.empresasQueHanEmpezado} de ${simulacion.empresasTotales} empresas`}
+          />
+        )}
       </div>
     </section>
   );

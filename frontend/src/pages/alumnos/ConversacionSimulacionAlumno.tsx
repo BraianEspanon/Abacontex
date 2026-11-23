@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { ChevronRight, Home } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Home } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
+
 import BarraVisualConversacion from '../../components/simulacion/BarraVisualConversacion';
 import DecisionActivaAlumno from '../../components/simulacion/DecisionActivaAlumno';
 import EquipoConversacionSimulacion from '../../components/simulacion/EquipoConversacionSimulacion';
@@ -27,6 +28,8 @@ export default function ConversacionSimulacionAlumno() {
 
   const [textoOpcionSeleccionada, setTextoOpcionSeleccionada] = useState('');
 
+  const modoLectura = data?.modo === 'LECTURA';
+
   function seleccionarOpcion(idOpcion: number, texto: string) {
     setIdOpcionSeleccionada(idOpcion);
     setTextoOpcionSeleccionada(texto);
@@ -50,7 +53,7 @@ export default function ConversacionSimulacionAlumno() {
         navigate(`/alumno/simulacion/${idSimulacionEmpresa}/resumen`);
       }
     } catch {
-      // el error ya se muestra abajo
+      // El error ya se muestra abajo.
     }
   }
 
@@ -60,6 +63,7 @@ export default function ConversacionSimulacionAlumno() {
 
   return (
     <div className="space-y-5 font-sans text-abacontex-black-text">
+      {/* Breadcrumb */}
       <nav className="flex flex-wrap items-center gap-2 text-sm text-abacontex-gray-text">
         <Link to="/alumno" className="flex items-center gap-1 transition hover:text-abacontex-dark">
           <Home size={16} />
@@ -72,13 +76,30 @@ export default function ConversacionSimulacionAlumno() {
           Mis simulaciones
         </Link>
 
+        {modoLectura && (
+          <>
+            <ChevronRight size={16} />
+
+            <Link
+              to={`/alumno/simulacion/${idSimulacionEmpresa}/resumen`}
+              className="transition hover:text-abacontex-dark"
+            >
+              Ver resumen
+            </Link>
+          </>
+        )}
+
         <ChevronRight size={16} />
 
-        <span className="font-semibold text-abacontex-dark">Simulación en curso</span>
+        <span className="font-semibold text-abacontex-dark">
+          {modoLectura ? 'Simulación finalizada' : 'Simulación en curso'}
+        </span>
       </nav>
 
+      {/* Loading */}
       {isLoading && <p className="text-sm text-abacontex-gray-text">Cargando simulación...</p>}
 
+      {/* Error */}
       {isError && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-medium text-red-700">No fue posible cargar la simulación.</p>
@@ -95,6 +116,7 @@ export default function ConversacionSimulacionAlumno() {
 
       {data && (
         <div className="grid items-start gap-4 lg:grid-cols-[265px_minmax(0,1fr)]">
+          {/* Panel izquierdo */}
           <aside className="space-y-4">
             <ProgresoConversacionSimulacion
               eventoActual={data.progreso.eventoActualNumero}
@@ -102,38 +124,54 @@ export default function ConversacionSimulacionAlumno() {
               porcentaje={data.progreso.porcentajeProgreso}
             />
 
-            <EquipoConversacionSimulacion integrantes={data.integrantes} finalizada={false} />
+            <EquipoConversacionSimulacion integrantes={data.integrantes} finalizada={modoLectura} />
+
+            {modoLectura && (
+              <Button
+                type="button"
+                variant="outline"
+                label="Volver al resumen"
+                icon={<ArrowLeft className="h-4 w-4" />}
+                iconPosition="left"
+                onClick={() => navigate(`/alumno/simulacion/${idSimulacionEmpresa}/resumen`)}
+                className="w-full! rounded-lg!"
+              />
+            )}
           </aside>
 
+          {/* Conversación */}
           <HistorialConversacionSimulacion
             titulo={data.titulo}
             integrantes={data.integrantes}
             mensajes={data.mensajes}
+            modoLectura={modoLectura}
           >
-            <div className="space-y-3 border-t border-gray-100 p-4">
-              {data.decisionActiva && (
-                <DecisionActivaAlumno
-                  decision={data.decisionActiva}
-                  idOpcionSeleccionada={idOpcionSeleccionada}
-                  onSeleccionar={seleccionarOpcion}
+            {!modoLectura && (
+              <div className="space-y-3 border-t border-gray-100 p-4">
+                {data.decisionActiva && (
+                  <DecisionActivaAlumno
+                    decision={data.decisionActiva}
+                    idOpcionSeleccionada={idOpcionSeleccionada}
+                    onSeleccionar={seleccionarOpcion}
+                  />
+                )}
+
+                {responderDecision.isError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {obtenerMensajeError(responderDecision.error)}
+                  </div>
+                )}
+
+                <BarraVisualConversacion
+                  textoSeleccionado={textoOpcionSeleccionada}
+                  puedeEnviar={
+                    data.decisionActiva?.puedeDecidir === true && idOpcionSeleccionada !== null
+                  }
+                  enviando={responderDecision.isPending}
+                  onEnviar={() => void handleResponder()}
                 />
-              )}
-
-              {responderDecision.isError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {obtenerMensajeError(responderDecision.error)}
-                </div>
-              )}
-
-              <BarraVisualConversacion
-                textoSeleccionado={textoOpcionSeleccionada}
-                puedeEnviar={
-                  data.decisionActiva?.puedeDecidir === true && idOpcionSeleccionada !== null
-                }
-                enviando={responderDecision.isPending}
-                onEnviar={() => void handleResponder()}
-              />
-            </div>
+              </div>
+            )}
           </HistorialConversacionSimulacion>
         </div>
       )}
