@@ -47,6 +47,7 @@ const opcionesMenu: OpcionMenu[] = [
   {
     etiqueta: 'Simulación empresarial',
     icono: BriefcaseBusiness,
+    ruta: '/docente/simulaciones',
   },
   {
     etiqueta: 'Ejercicios',

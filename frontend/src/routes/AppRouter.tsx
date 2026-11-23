@@ -72,6 +72,16 @@ import CorregirEjercicioDocente from '../pages/docente/CorregirEjercicioDocente'
 import AnalisisErroresDocente from '../pages/docente/AnalisisErroresDocente';
 import CorreccionEjercicioAlumno from '../pages/alumnos/CorreccionEjercicioAlumno';
 
+import SimulacionesDocente from '../pages/docente/SimulacionesDocente';
+import NuevaSimulacionDocente from '../pages/docente/NuevaSimulacionDocente';
+import EntregasSimulacionDocente from '../pages/docente/EntregasSimulacionDocente';
+import ConversacionSimulacionDocente from '../pages/docente/ConversacionSimulacionDocente';
+import FeedbackSimulacionDocente from '../pages/docente/FeedbackSimulacionDocente';
+
+import SimulacionesAlumno from '../pages/alumnos/SimulacionesAlumno';
+import ConversacionSimulacionAlumno from '../pages/alumnos/ConversacionSimulacionAlumno';
+import ResumenSimulacion from '../pages/alumnos/ResumenSimulacion';
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -161,6 +171,17 @@ export default function AppRouter() {
         />
         <Route path="correcciones/entregas/:entregaId" element={<CorregirEjercicioDocente />} />
         <Route path="correcciones/analisis-errores" element={<AnalisisErroresDocente />} />
+        <Route path="simulaciones" element={<SimulacionesDocente />} />
+        <Route path="simulaciones/nueva" element={<NuevaSimulacionDocente />} />
+        <Route path="simulaciones/:id/entregas" element={<EntregasSimulacionDocente />} />
+        <Route
+          path="simulaciones/:idSimulacion/entregas/:idSimulacionEmpresa"
+          element={<ConversacionSimulacionDocente />}
+        />
+        <Route
+          path="simulaciones/:idSimulacion/entregas/:idSimulacionEmpresa/feedback"
+          element={<FeedbackSimulacionDocente />}
+        />
       </Route>
 
       <Route path="/docente/login" element={<LoginDocente />} />
@@ -218,30 +239,26 @@ export default function AppRouter() {
 
         {/* Contabilidad */}
         <Route path="contabilidad" element={<ContabilidadPage />} />
-
         <Route path="contabilidad/libro-diario" element={<LibroDiarioPage />} />
-
         <Route
           path="contabilidad/asientos/registrar/:tipo/:id"
           element={<RegistrarAsientoPage />}
         />
-
         <Route path="contabilidad/asientos/:id/editar" element={<EditarAsientoPage />} />
-
         <Route path="contabilidad/libro-mayor" element={<LibroMayorPage />} />
-
         <Route path="contabilidad/estado-resultados" element={<EstadoResultadosPage />} />
-
         <Route path="contabilidad/balance-general" element={<BalanceGeneralPage />} />
 
         {/* Ejercicios del alumno */}
         <Route path="ejercicios" element={<EjerciciosAlumno />} />
-
         <Route path="ejercicios/:id" element={<DetalleEjercicioAlumno />} />
-
         <Route path="ejercicios/:id/resolucion" element={<ResolucionEjercicioAlumno />} />
-
         <Route path="ejercicios/:idEjercicio/correccion" element={<CorreccionEjercicioAlumno />} />
+
+        {/* Simulación empresarial */}
+        <Route path="simulacion" element={<SimulacionesAlumno />} />
+        <Route path="simulacion/:id" element={<ConversacionSimulacionAlumno />} />
+        <Route path="simulacion/:id/resumen" element={<ResumenSimulacion />} />
       </Route>
     </Routes>
   );

@@ -162,7 +162,7 @@ export default function SelectorCuentaContable({
         posicionDropdown &&
         createPortal(
           <div
-            className="fixed z-[9999] max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-lg"
+            className="fixed z-9999 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-lg"
             style={{
               top: posicionDropdown.top,
               left: posicionDropdown.left,

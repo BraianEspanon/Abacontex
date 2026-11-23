@@ -12,6 +12,8 @@ const titulosPorRuta: Record<string, string> = {
   '/docente/ejercicios': 'Mis ejercicios',
   '/docente/ejercicios/nuevo': 'Nuevo ejercicio',
   '/docente/ejercicios/nuevo/ia': 'Nuevo ejercicio con IA',
+  '/docente/simulaciones': 'Simulación empresarial',
+  '/docente/simulaciones/nueva': 'Nueva simulación',
 };
 
 export default function EncabezadoDocente() {
@@ -19,7 +21,11 @@ export default function EncabezadoDocente() {
 
   const titulo =
     titulosPorRuta[pathname] ??
-    (pathname.startsWith('/docente/ejercicios/') ? 'Detalle del ejercicio' : 'Panel docente');
+    (pathname.startsWith('/docente/simulaciones/')
+      ? 'Simulación empresarial'
+      : pathname.startsWith('/docente/ejercicios/')
+        ? 'Detalle del ejercicio'
+        : 'Panel docente');
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-[#17231b] px-5 text-white">

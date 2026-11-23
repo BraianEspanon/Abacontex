@@ -41,6 +41,10 @@ function obtenerTituloPorRuta(pathname: string) {
     return 'Editar asiento';
   }
 
+  if (pathname.startsWith('/alumno/simulacion')) {
+    return 'Simulación empresarial';
+  }
+
   return titulosPorRuta[pathname] ?? 'Panel del alumno';
 }
 

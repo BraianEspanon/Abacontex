@@ -60,9 +60,7 @@ export interface DetallePendienteConciliacionDTO {
 }
 
 export type DetallePendienteResponseDTO =
-  | DetallePendienteVentaDTO
-  | DetallePendienteMovimientoDTO
-  | DetallePendienteConciliacionDTO;
+  DetallePendienteVentaDTO | DetallePendienteMovimientoDTO | DetallePendienteConciliacionDTO;
 
 export interface CuentaConFolioItemDTO {
   idCuenta: number;
