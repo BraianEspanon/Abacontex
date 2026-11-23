@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import BarraLateralAlumno from '../components/alumno/BarraLateralAlumno';
@@ -51,16 +52,26 @@ function obtenerTituloPorRuta(pathname: string) {
 export default function EstructuraPanelAlumno() {
   const location = useLocation();
 
+  const [sidebarColapsado, setSidebarColapsado] = useState(false);
+
   const titulo = obtenerTituloPorRuta(location.pathname);
 
+  const alternarSidebar = () => {
+    setSidebarColapsado((valorActual) => !valorActual);
+  };
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f7f5f1]">
-      <BarraLateralAlumno />
+    <div className="flex h-screen overflow-hidden bg-[#f7f5f1] font-sans">
+      <BarraLateralAlumno colapsado={sidebarColapsado} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <EncabezadoAlumno titulo={titulo} />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <EncabezadoAlumno
+          titulo={titulo}
+          sidebarColapsado={sidebarColapsado}
+          onAlternarSidebar={alternarSidebar}
+        />
 
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

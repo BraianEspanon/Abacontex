@@ -5,11 +5,10 @@ import {
   CheckCircle2,
   Crown,
   GraduationCap,
-  Home,
   PencilLine,
   Users,
 } from 'lucide-react';
-
+import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 
 import { useCorreccionesResumen } from '../../hooks/useCorreccionesResumen';
@@ -20,37 +19,49 @@ import { useDocenteActual } from '../../hooks/useDocenteActual';
 interface TarjetaResumenProps {
   titulo: string;
   valor: string | number;
-  subtitulo: string;
+  textoInferior: string;
   icono: React.ReactNode;
   destacado?: boolean;
+  ruta?: string;
 }
 
 function TarjetaResumen({
   titulo,
   valor,
-  subtitulo,
+  textoInferior,
   icono,
   destacado = false,
+  ruta,
 }: TarjetaResumenProps) {
   return (
-    <article className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#eef1eb] text-abacontex-primary">
+    <article className="flex min-h-27 items-center rounded-2xl bg-white/70 px-4 py-3 shadow-md backdrop-blur-sm">
+      <div className="flex w-full items-center gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#eef1eb] text-abacontex-primary">
           {icono}
         </div>
 
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-gray-700">{titulo}</p>
+        <div className="flex min-w-0 flex-1 flex-col items-center text-center">
+          <p className="text-base text-abacontex-black-text">{titulo}</p>
 
           <p
-            className={`mt-1 text-xl font-semibold ${
-              destacado ? 'text-red-600' : 'text-abacontex-primary'
-            }`}
+            className={[
+              'mt-2 text-2xl font-medium leading-none',
+              destacado ? 'text-[#c50e12]' : 'text-abacontex-primary',
+            ].join(' ')}
           >
             {valor}
           </p>
 
-          <p className="mt-1 text-xs text-gray-500">{subtitulo}</p>
+          {ruta ? (
+            <Link
+              to={ruta}
+              className="mt-3 text-sm font-semibold text-abacontex-primary-three transition hover:text-abacontex-primary"
+            >
+              {textoInferior}
+            </Link>
+          ) : (
+            <p className="mt-3 text-sm text-abacontex-gray-text">{textoInferior}</p>
+          )}
         </div>
       </div>
     </article>
@@ -190,27 +201,17 @@ export default function InicioDocente() {
   return (
     <div className="w-full max-w-[1600px] space-y-4">
       {/* =====================================================
-          BREADCRUMB
-      ====================================================== */}
-
-      <nav className="flex items-center gap-1.5 text-sm text-gray-500">
-        <Home className="h-4 w-4" />
-
-        <span className="font-medium text-gray-700">Panel docente</span>
-      </nav>
-
-      {/* =====================================================
           ENCABEZADO
       ====================================================== */}
 
-      <section className="rounded-2xl border border-gray-200 bg-white px-6 py-5 shadow-sm">
+      <section className="px-1 py-3">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#1D271F]">
-              ¡Hola, <span className="italic text-abacontex-primary">{nombreDocente}!</span>
+            <h1 className="font-heading text-4xl font-semibold tracking-[0.02em] text-abacontex-black-text">
+              ¡Hola, <span className="italic text-abacontex-primary-two">{nombreDocente}</span>!
             </h1>
 
-            <p className="mt-1.5 text-sm text-gray-500">Bienvenido/a a tu panel docente</p>
+            <p className="mt-4 text-xl text-abacontex-gray-text">Bienvenido/a a tu panel docente</p>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -256,42 +257,44 @@ export default function InicioDocente() {
       {/* =====================================================
           TARJETAS PRINCIPALES
       ====================================================== */}
-
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <section className="grid grid-cols-1 gap-3.75 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <TarjetaResumen
           titulo="Cursos activos"
           valor={cursosActivos}
-          subtitulo={cursoActual ? cursoActual.nombre : 'Cursos asignados'}
-          icono={<GraduationCap size={21} />}
+          textoInferior="Ver cursos"
+          icono={<GraduationCap size={32} />}
+          ruta="/docente/cursos"
         />
 
         <TarjetaResumen
           titulo="Empresas activas"
           valor={empresasActivas}
-          subtitulo="Empresas supervisadas"
-          icono={<Building2 size={21} />}
+          textoInferior="Ver empresas"
+          icono={<Building2 size={32} />}
+          ruta="/docente/empresas"
         />
 
         <TarjetaResumen
           titulo="Alumnos"
           valor={alumnos}
-          subtitulo="Alumnos asignados"
-          icono={<Users size={21} />}
+          textoInferior="Ver alumnos"
+          icono={<Users size={32} />}
+          ruta="/docente/alumnos"
         />
 
         <TarjetaResumen
           titulo="Ejercicios por corregir"
           valor={cargandoCorrecciones ? '...' : errorCorrecciones ? '—' : ejerciciosPorCorregir}
-          subtitulo="Pendientes de revisión"
-          icono={<PencilLine size={21} />}
+          textoInferior="Pendientes de revisión"
+          icono={<PencilLine size={32} />}
           destacado={ejerciciosPorCorregir > 0}
         />
 
         <TarjetaResumen
           titulo="Puntaje promedio empresarial"
           valor={puntajePromedio}
-          subtitulo={puntajeValor === null ? 'Aún no disponible' : 'Promedio general'}
-          icono={<Crown size={21} />}
+          textoInferior={puntajeValor === null ? 'Aún no disponible' : 'Ver ranking'}
+          icono={<Crown size={32} />}
         />
       </section>
 

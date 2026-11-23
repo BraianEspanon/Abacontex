@@ -1,5 +1,6 @@
 import { Bell, Menu } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import type { EncabezadoPanelProps } from '../../types/ui.types';
 
 const titulosPorRuta: Record<string, string> = {
   '/docente': 'Inicio',
@@ -16,7 +17,10 @@ const titulosPorRuta: Record<string, string> = {
   '/docente/simulaciones/nueva': 'Nueva simulación',
 };
 
-export default function EncabezadoDocente() {
+export default function EncabezadoDocente({
+  sidebarColapsado,
+  onAlternarSidebar,
+}: EncabezadoPanelProps) {
   const { pathname } = useLocation();
 
   const titulo =
@@ -32,13 +36,15 @@ export default function EncabezadoDocente() {
       <div className="flex items-center gap-3">
         <button
           type="button"
+          onClick={onAlternarSidebar}
           className="rounded-md p-2 transition-colors hover:bg-white/10"
-          aria-label="Abrir menú"
+          aria-label={sidebarColapsado ? 'Expandir menú lateral' : 'Contraer menú lateral'}
+          aria-expanded={!sidebarColapsado}
         >
           <Menu size={21} />
         </button>
 
-        <h1 className="font-heading text-2xl font-semibold">{titulo}</h1>
+        <h1 className="font-heading text-4xl font-semibold tracking-[0.02em]">{titulo}</h1>
       </div>
 
       <button

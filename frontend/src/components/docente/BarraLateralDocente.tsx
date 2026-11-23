@@ -16,8 +16,9 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-
+import type { BarraLateralProps } from '../../types/ui.types';
 import { useUsuarioActual } from '../../hooks/useUsuarioActual';
+import LogoAbacontex from '../ui/LogoAbacontex';
 
 interface OpcionMenu {
   etiqueta: string;
@@ -83,7 +84,7 @@ const opcionesMenu: OpcionMenu[] = [
   },
 ];
 
-export default function BarraLateralDocente() {
+export default function BarraLateralDocente({ colapsado }: BarraLateralProps) {
   const { keycloak } = useKeycloak();
 
   const { data: usuario, isLoading: cargandoUsuario } = useUsuarioActual();
@@ -106,17 +107,15 @@ export default function BarraLateralDocente() {
   };
 
   return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col bg-[#17231b] text-white">
-      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#769a75]">
-          <span className="text-lg font-bold">✦</span>
-        </div>
-
-        <div>
-          <p className="font-heading text-lg font-bold tracking-wide">ABACONTEX</p>
-
-          <p className="text-xs text-white/60">Panel docente</p>
-        </div>
+    <aside
+      className={[
+        'flex h-screen shrink-0 flex-col bg-[#17231b] text-white',
+        'transition-[width] duration-300 ease-in-out',
+        colapsado ? 'w-18' : 'w-60',
+      ].join(' ')}
+    >
+      <div className="border-b border-white/10">
+        <LogoAbacontex colapsado={colapsado} />
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -127,18 +126,20 @@ export default function BarraLateralDocente() {
                 key={etiqueta}
                 to={ruta}
                 end={ruta === '/docente'}
+                title={colapsado ? etiqueta : undefined}
                 className={({ isActive }) =>
                   [
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                    'flex items-center rounded-lg py-2.5 text-sm transition-colors',
+                    colapsado ? 'justify-center px-2' : 'gap-3 px-3',
                     isActive
                       ? 'bg-abacontex-primary-three font-medium text-white'
                       : 'text-white/80 hover:bg-white/10 hover:text-white',
                   ].join(' ')
                 }
               >
-                <Icono size={18} />
+                <Icono size={20} className="shrink-0" />
 
-                <span>{etiqueta}</span>
+                {!colapsado && <span>{etiqueta}</span>}
               </NavLink>
             );
           }
@@ -148,39 +149,55 @@ export default function BarraLateralDocente() {
               key={etiqueta}
               type="button"
               disabled
-              title="Próximamente"
-              className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white/55"
+              title={colapsado ? `${etiqueta} - Próximamente` : 'Próximamente'}
+              className={[
+                'flex w-full cursor-not-allowed items-center rounded-lg py-2.5 text-sm text-white/55',
+                colapsado ? 'justify-center px-2' : 'gap-3 px-3 text-left',
+              ].join(' ')}
             >
-              <Icono size={18} />
+              <Icono size={20} className="shrink-0" />
 
-              <span>{etiqueta}</span>
+              {!colapsado && <span>{etiqueta}</span>}
             </button>
           );
         })}
       </nav>
 
-      <div className="border-t border-white/10 p-4">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f0e9] text-sm font-semibold text-[#17231b]">
+      <div className={['border-t border-white/10', colapsado ? 'px-2 py-4' : 'p-4'].join(' ')}>
+        <div
+          className={['mb-4 flex items-center', colapsado ? 'justify-center' : 'gap-3'].join(' ')}
+        >
+          <div
+            title={colapsado ? nombreCompleto : undefined}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f2f0e9] text-sm font-semibold text-[#17231b]"
+          >
             {cargandoUsuario ? '...' : iniciales}
           </div>
 
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">
-              {cargandoUsuario ? 'Cargando...' : nombreCompleto}
-            </p>
+          {!colapsado && (
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">
+                {cargandoUsuario ? 'Cargando...' : nombreCompleto}
+              </p>
 
-            <p className="text-xs text-white/60">{cargandoUsuario ? '...' : nombreRol}</p>
-          </div>
+              <p className="text-xs text-white/60">{cargandoUsuario ? '...' : nombreRol}</p>
+            </div>
+          )}
         </div>
 
         <button
           type="button"
           onClick={cerrarSesion}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+          title={colapsado ? 'Cerrar sesión' : undefined}
+          className={[
+            'flex w-full items-center rounded-lg py-2 text-sm text-white/75 transition-colors',
+            'hover:bg-white/10 hover:text-white',
+            colapsado ? 'justify-center px-2' : 'gap-3 px-3',
+          ].join(' ')}
         >
-          <LogOut size={18} />
-          Cerrar sesión
+          <LogOut size={19} className="shrink-0" />
+
+          {!colapsado && <span>Cerrar sesión</span>}
         </button>
       </div>
     </aside>

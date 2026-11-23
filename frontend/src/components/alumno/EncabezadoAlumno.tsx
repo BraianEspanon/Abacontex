@@ -2,23 +2,27 @@ import { Menu } from 'lucide-react';
 
 import CampanaNotificaciones from '../notificaciones/CampanaNotificaciones';
 
-interface EncabezadoAlumnoProps {
-  titulo: string;
-}
+import type { EncabezadoAlumnoProps } from '../../types/ui.types';
 
-export default function EncabezadoAlumno({ titulo }: EncabezadoAlumnoProps) {
+export default function EncabezadoAlumno({
+  titulo,
+  sidebarColapsado,
+  onAlternarSidebar,
+}: EncabezadoAlumnoProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-white/10 bg-[#172019] px-6 text-white">
-      <div className="flex items-center gap-5">
+    <header className="flex h-16 items-center justify-between border-b border-white/10 bg-[#17231b] px-5 text-white">
+      <div className="flex items-center gap-3">
         <button
           type="button"
-          aria-label="Abrir menú"
-          className="rounded-md p-1 text-white/80 hover:bg-white/10 hover:text-white"
+          onClick={onAlternarSidebar}
+          aria-label={sidebarColapsado ? 'Expandir menú lateral' : 'Contraer menú lateral'}
+          aria-expanded={!sidebarColapsado}
+          className="rounded-md p-2 transition-colors hover:bg-white/10"
         >
-          <Menu size={22} />
+          <Menu size={21} />
         </button>
 
-        <h2 className="font-serif text-3xl font-semibold">{titulo}</h2>
+        <h1 className="font-heading text-2xl font-semibold">{titulo}</h1>
       </div>
 
       <CampanaNotificaciones />

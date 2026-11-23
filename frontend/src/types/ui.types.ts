@@ -39,3 +39,20 @@ export interface RoleCardProps {
   isSelected: boolean;
   onClick: (id: number) => void;
 }
+
+export interface LogoAbacontexProps {
+  colapsado?: boolean;
+}
+
+export interface BarraLateralProps {
+  colapsado: boolean;
+}
+
+export interface EncabezadoPanelProps {
+  sidebarColapsado: boolean;
+  onAlternarSidebar: () => void;
+}
+
+export interface EncabezadoAlumnoProps extends EncabezadoPanelProps {
+  titulo: string;
+}
